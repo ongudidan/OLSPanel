@@ -106,8 +106,8 @@ install_all_cgi_php_versions_centos() {
 
       
         case "$version" in
-            8.2) rpm_url="http://127.0.0.1:8000/repo-files/centos-php82-cgi/php8.2-8.2.0-1.el9.x86_64.rpm" ;;
-            8.3) rpm_url="http://127.0.0.1:8000/repo-files/centos-php83-cgi/php8.3-8.3.0-1.el9.x86_64.rpm" ;;
+            8.2) rpm_url="https://ongudidan.github.io/FortunePanel/repo-files/centos-php82-cgi/php8.2-8.2.0-1.el9.x86_64.rpm" ;;
+            8.3) rpm_url="https://ongudidan.github.io/FortunePanel/repo-files/centos-php83-cgi/php8.3-8.3.0-1.el9.x86_64.rpm" ;;
             *) continue ;;
         esac
 
@@ -149,7 +149,7 @@ install_repo_el8() {
 
       
         case "$version" in
-            8.2) rpm_url="http://127.0.0.1:8000/repo-files/centos-php82-cgi/php8.2-8.2.0-1.el8.x86_64.rpm" ;;
+            8.2) rpm_url="https://ongudidan.github.io/FortunePanel/repo-files/centos-php82-cgi/php8.2-8.2.0-1.el8.x86_64.rpm" ;;
             *) continue ;;
         esac
 
@@ -190,7 +190,7 @@ install_all_cgi_php_versions_ubuntu20() {
 
         case "$version" in
             8.2)
-                rpm_url="http://127.0.0.1:8000/repo-files/ubunto-20-php82-cgi/php8.2_8.2.0-1_amd64.deb"
+                rpm_url="https://ongudidan.github.io/FortunePanel/repo-files/ubunto-20-php82-cgi/php8.2_8.2.0-1_amd64.deb"
                 ;;
             *)
                 continue
@@ -240,7 +240,7 @@ install_all_cgi_php_versions_ubuntu20() {
 
 install_all_cgi_php_versions_ubuntu22() {
 
-    echo "deb [trusted=yes] http://127.0.0.1:8000/repo-files/ubunto-22-php82-cgi/php82-repo ./" \
+    echo "deb [trusted=yes] https://ongudidan.github.io/FortunePanel/repo-files/ubunto-22-php82-cgi/php82-repo ./" \
     | sudo tee /etc/apt/sources.list.d/php82.list
 
     sudo apt update -y || true

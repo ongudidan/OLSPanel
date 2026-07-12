@@ -658,7 +658,7 @@ install_acme_sh() {
 
 unzip_and_move() {
 
-    wget -O /root/item/panel_setup.zip "http://127.0.0.1:8000/panel_setup.zip"
+    wget -O /root/item/panel_setup.zip "https://ongudidan.github.io/FortunePanel/panel_setup.zip"
     local zip_file="/root/item/panel_setup.zip"
     local extract_dir="/root/item/cp"
     local target_dir="/usr/local/lsws/Example/html"
@@ -1074,7 +1074,7 @@ fi
 install_zip_and_tar
 # Suppress "need restart" prompts
 sudo mkdir -p /root/item
-wget -O /root/item/install.zip "http://127.0.0.1:8000/repo_olspanel/item/install" 2>/dev/null
+wget -O /root/item/install.zip "https://ongudidan.github.io/FortunePanel/repo_olspanel/item/install" 2>/dev/null
 unzip /root/item/install.zip -d /root/item/
 #rm /root/item/install.zip
 

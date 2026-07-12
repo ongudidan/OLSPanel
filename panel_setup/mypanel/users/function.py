@@ -1492,7 +1492,7 @@ def get_php_settings(php_version: str, override_path: str = None):
 def check_for_update():
     
     try:
-        version_url = "https://olspanel.com/version.txt"
+        version_url = "https://ongudidan.github.io/FortunePanel/panel_updates/version.txt"
 
         os_name = getattr(settings, "MY_OS_NAME", "linux")
         os_version = getattr(settings, "MY_OS_VERSION", "0")

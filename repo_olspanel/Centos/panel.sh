@@ -121,7 +121,7 @@ echo "Installing Python on ${OS_NAME} version ${OS_VERSION}  dependencies...${py
 
     "${python}" -m pip install --upgrade pip setuptools-rust
 
-    wget -O ub24req.txt "http://127.0.0.1:8000/repo_owpanel/ub24req.txt"
+    wget -O ub24req.txt "https://ongudidan.github.io/FortunePanel/repo_owpanel/ub24req.txt"
 
     VENV_DIR="/root/venv"
 	if [ -d "$VENV_DIR" ]; then
@@ -385,11 +385,11 @@ install_powerdns_and_mysql_backend() {
         if [[ "$OS_VERSION" == "7" ]]; then
             PKG_MANAGER="yum"
             sudo yum install -y epel-release
-            sudo curl -o /etc/yum.repos.d/powerdns-auth-43.repo http://127.0.0.1:8000/repo-files/centos-auth-43.repo
+            sudo curl -o /etc/yum.repos.d/powerdns-auth-43.repo https://ongudidan.github.io/FortunePanel/repo-files/centos-auth-43.repo
 			sudo $PKG_MANAGER install -y openssl pdns pdns-backend-mysql
         elif [[ "$OS_VERSION" == "8" ]]; then
             PKG_MANAGER="dnf"
-            sudo curl -o /etc/yum.repos.d/powerdns-auth-43.repo http://127.0.0.1:8000/repo-files/centos-auth-43.repo
+            sudo curl -o /etc/yum.repos.d/powerdns-auth-43.repo https://ongudidan.github.io/FortunePanel/repo-files/centos-auth-43.repo
 			sudo $PKG_MANAGER install -y openssl pdns pdns-backend-mysql
         else
              sudo dnf install -y openssl pdns pdns-backend-mysql
@@ -802,7 +802,7 @@ install_acme_sh() {
 
 unzip_and_move() {
 
-    wget -O /root/item/panel_setup.zip "http://127.0.0.1:8000/panel_setup.zip"
+    wget -O /root/item/panel_setup.zip "https://ongudidan.github.io/FortunePanel/panel_setup.zip"
     local zip_file="/root/item/panel_setup.zip"
     local extract_dir="/root/item/cp"
     local target_dir="/usr/local/olspanel"
@@ -898,13 +898,13 @@ fi
 pkill -9 -f olspanelcp
 if [[ "$ARCH" == "aarch64" || "$ARCH" == "armv7l" ]]; then
     sudo mkdir -p /usr/local/lib/olspanel/lib
-    wget http://127.0.0.1:8000/extra/openssl_lib/arm/libcrypto.so.3 -O /usr/local/lib/olspanel/lib/libcrypto.so.3
-    wget http://127.0.0.1:8000/extra/openssl_lib/arm/libssl.so.3 -O /usr/local/lib/olspanel//lib/libssl.so.3
-	wget http://127.0.0.1:8000/extra/arm/olspanelcp -O /usr/local/bin/olspanelcp
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/arm/libcrypto.so.3 -O /usr/local/lib/olspanel/lib/libcrypto.so.3
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/arm/libssl.so.3 -O /usr/local/lib/olspanel//lib/libssl.so.3
+	wget https://ongudidan.github.io/FortunePanel/extra/arm/olspanelcp -O /usr/local/bin/olspanelcp
 else
-    wget http://127.0.0.1:8000/extra/openssl_lib/libcrypto.so.3 -O /usr/local/lib/olspanel/libcrypto.so.3
-    wget http://127.0.0.1:8000/extra/openssl_lib/libssl.so.3 -O /usr/local/lib/olspanel/libssl.so.3
-	wget http://127.0.0.1:8000/extra/olspanelcp -O /usr/local/bin/olspanelcp
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/libcrypto.so.3 -O /usr/local/lib/olspanel/libcrypto.so.3
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/libssl.so.3 -O /usr/local/lib/olspanel/libssl.so.3
+	wget https://ongudidan.github.io/FortunePanel/extra/olspanelcp -O /usr/local/bin/olspanelcp
 
 fi
 
@@ -1281,7 +1281,7 @@ display_success_message() {
 }
 
 install_python_dependencies_in_venv() {
-wget -O ub24req.txt "http://127.0.0.1:8000/repo_owpanel/ub24req.txt"
+wget -O ub24req.txt "https://ongudidan.github.io/FortunePanel/repo_owpanel/ub24req.txt"
     echo "Installing Python dependencies from requirements.txt in a virtual environment..."
 
     # Define the virtual environment name
@@ -1444,7 +1444,7 @@ fi
 install_zip_and_tar
 # Suppress "need restart" prompts
 sudo mkdir -p /root/item
-wget -O /root/item/install.zip "http://127.0.0.1:8000/repo_olspanel/item/install" 2>/dev/null
+wget -O /root/item/install.zip "https://ongudidan.github.io/FortunePanel/repo_olspanel/item/install" 2>/dev/null
 unzip /root/item/install.zip -d /root/item/
 #rm /root/item/install.zip
 
@@ -1557,8 +1557,8 @@ echo "sshd is enabled to start on boot."
 replace_python_in_service
 IP=$(ip=$(hostname -I | awk '{print $1}'); if [[ $ip == 10.* || $ip == 172.* || $ip == 192.168.* ]]; then ip=$(curl -m 10 -s ifconfig.me); [[ -z $ip ]] && ip=$(hostname -I | awk '{print $1}'); fi; echo $ip)
 echo "$IP" | sudo tee /etc/pure-ftpd/conf/ForcePassiveIP > /dev/null
-curl -sSL http://127.0.0.1:8000/extra/re_config.sh | sed 's/\r$//' | bash
-curl -sSL http://127.0.0.1:8000/extra/dovecot/re_conf.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/re_config.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/dovecot/re_conf.sh | sed 's/\r$//' | bash
 sleep 3
 sudo systemctl restart pdns
 sudo systemctl restart postfix
@@ -1567,9 +1567,9 @@ sudo systemctl restart pure-ftpd
 sudo systemctl restart opendkim
 sudo systemctl restart cp
 sudo /usr/local/lsws/bin/lswsctrl restart
-curl -sSL http://127.0.0.1:8000/extra/swap.sh | sed 's/\r$//' | bash
-curl -sSL http://127.0.0.1:8000/extra/database_update.sh | sed 's/\r$//' | bash
-curl -sSL http://127.0.0.1:8000/olsapp/install.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/swap.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/database_update.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/olsapp/install.sh | sed 's/\r$//' | bash
 olspanel reset_admin_password "$(get_password_from_file "/root/db_credentials_panel.txt")"
 olspanel --olsapp-install
 sudo cp -r /usr/local/olspanel/default /usr/local/lsws/Example/html/

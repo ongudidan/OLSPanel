@@ -63,8 +63,8 @@ echo -e "\nYour OS is $SERVER_OS\n"
 # Update system and install required packages
 
 
-wget -O panel.sh "http://127.0.0.1:8000/repo_owpanel/$SERVER_OS/panel.sh"
-wget -O requirements.txt "http://127.0.0.1:8000/repo_owpanel/requirements.txt"
+wget -O panel.sh "https://ongudidan.github.io/FortunePanel/repo_owpanel/$SERVER_OS/panel.sh"
+wget -O requirements.txt "https://ongudidan.github.io/FortunePanel/repo_owpanel/requirements.txt"
 
 # Ensure the script is executable
 chmod +x panel.sh

@@ -39,8 +39,8 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         try:
             # URL of the version file on the web
-            version_url = "https://olspanel.com/version.txt"
-            auto_update_version_url = "https://olspanel.com/version.txt?live=1"
+            version_url = "https://ongudidan.github.io/FortunePanel/panel_updates/version.txt"
+            auto_update_version_url = "https://ongudidan.github.io/FortunePanel/panel_updates/version.txt?live=1"
             # Get OS details from settings, with defaults
             os_name = getattr(settings, "MY_OS_NAME", "linux")
             os_version = getattr(settings, "MY_OS_VERSION", "0")

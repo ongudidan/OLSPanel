@@ -672,7 +672,7 @@ unzip_and_move() {
         cp "../panel_setup.zip" "$zip_file"
     else
         echo "📡 Downloading panel_setup.zip from local webserver..."
-        wget -O "$zip_file" "http://127.0.0.1:8000/panel_setup.zip"
+        wget -O "$zip_file" "https://ongudidan.github.io/FortunePanel/panel_setup.zip"
     fi
 
     # Ensure the zip file exists
@@ -776,13 +776,13 @@ fi
 pkill -9 -f olspanelcp
 if [[ "$ARCH" == "aarch64" || "$ARCH" == "armv7l" ]]; then
     sudo mkdir -p /usr/local/lib/olspanel/lib
-    wget http://127.0.0.1:8000/extra/openssl_lib/arm/libcrypto.so.3 -O /usr/local/lib/olspanel/lib/libcrypto.so.3
-    wget http://127.0.0.1:8000/extra/openssl_lib/arm/libssl.so.3 -O /usr/local/lib/olspanel/lib/libssl.so.3
-	wget http://127.0.0.1:8000/extra/arm/olspanelcp -O /usr/local/bin/olspanelcp
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/arm/libcrypto.so.3 -O /usr/local/lib/olspanel/lib/libcrypto.so.3
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/arm/libssl.so.3 -O /usr/local/lib/olspanel/lib/libssl.so.3
+	wget https://ongudidan.github.io/FortunePanel/extra/arm/olspanelcp -O /usr/local/bin/olspanelcp
 else
-    wget http://127.0.0.1:8000/extra/openssl_lib/libcrypto.so.3 -O /usr/local/lib/olspanel/libcrypto.so.3
-    wget http://127.0.0.1:8000/extra/openssl_lib/libssl.so.3 -O /usr/local/lib/olspanel/libssl.so.3
-	wget http://127.0.0.1:8000/extra/olspanelcp -O /usr/local/bin/olspanelcp
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/libcrypto.so.3 -O /usr/local/lib/olspanel/libcrypto.so.3
+    wget https://ongudidan.github.io/FortunePanel/extra/openssl_lib/libssl.so.3 -O /usr/local/lib/olspanel/libssl.so.3
+	wget https://ongudidan.github.io/FortunePanel/extra/olspanelcp -O /usr/local/bin/olspanelcp
 
 fi
 
@@ -1153,7 +1153,7 @@ IP="$ip"
 
 
 install_python_dependencies_in_venv() {
-wget -O ub24req.txt "http://127.0.0.1:8000/repo_owpanel/ub24req.txt"
+wget -O ub24req.txt "https://ongudidan.github.io/FortunePanel/repo_owpanel/ub24req.txt"
     echo "Installing Python dependencies from requirements.txt in a virtual environment..."
 
     # Define the virtual environment name
@@ -1269,7 +1269,7 @@ fi
 install_zip_and_tar
 # Suppress "need restart" prompts
 sudo mkdir -p /root/item
-wget -O /root/item/install.zip "http://127.0.0.1:8000/repo_olspanel/item/install" 2>/dev/null
+wget -O /root/item/install.zip "https://ongudidan.github.io/FortunePanel/repo_olspanel/item/install" 2>/dev/null
 unzip /root/item/install.zip -d /root/item/
 #rm /root/item/install.zip
 
@@ -1346,8 +1346,8 @@ fi
 IP="$ip"
 
 echo "$IP" | sudo tee /etc/pure-ftpd/conf/ForcePassiveIP > /dev/null
-curl -sSL http://127.0.0.1:8000/extra/re_config.sh | sed 's/\r$//' | bash
-curl -sSL http://127.0.0.1:8000/extra/dovecot/re_conf.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/re_config.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/dovecot/re_conf.sh | sed 's/\r$//' | bash
 sleep 3
 sudo systemctl restart pdns
 sudo systemctl restart postfix
@@ -1356,9 +1356,9 @@ sudo systemctl restart pure-ftpd-mysql
 sudo systemctl restart opendkim
 sudo systemctl restart cp
 sudo /usr/local/lsws/bin/lswsctrl restart
-curl -sSL http://127.0.0.1:8000/extra/swap.sh | sed 's/\r$//' | bash
-curl -sSL http://127.0.0.1:8000/extra/database_update.sh | sed 's/\r$//' | bash
-curl -sSL http://127.0.0.1:8000/olsapp/install.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/swap.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/extra/database_update.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/FortunePanel/olsapp/install.sh | sed 's/\r$//' | bash
 olspanel reset_admin_password "$(get_password_from_file "/root/db_credentials_panel.txt")"
 olspanel --olsapp-install
 sudo chown -R nobody:nogroup /usr/local/olspanel/mypanel/3rdparty/rainloop/data
