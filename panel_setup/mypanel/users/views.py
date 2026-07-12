@@ -2410,18 +2410,10 @@ def phpmyadmin_view(request):
     """
     Redirect users to the phpMyAdmin URL using the base URL without the port.
     """
-    # Get the full URL of the current request (e.g., "http://example.com:8001/")
-    full_url = request.build_absolute_uri('/')
-    current_port = request.META.get('SERVER_PORT')
-    
-    # Parse the URL to extract the scheme and hostname
-    parsed_url = urlparse(full_url)
-    scheme = parsed_url.scheme  # "http" or "https"
-    hostname = parsed_url.hostname  # "example.com"
-    
-    # Construct the phpMyAdmin URL (e.g., "http://example.com/phpmyadmin")
-    phpmyadmin_base_url = f"{scheme}://{hostname}/phpmyadmin"
-    sport=f"{scheme}://{hostname}:{current_port}"
+    # Use proxy headers if present to get correct public origin (e.g. port 4263)
+    scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
+    sport = f"{scheme}://{host}"
     
     db_password = get_phpmyadmin_password(request.user.username) 
     
@@ -2452,17 +2444,14 @@ def phpmyadmin_view(request):
         # Handle errors
         return HttpResponse(f"Error: {str(e)}", status=500)
 
-        
+
 @login_required
 @admincheck
 def softaculous_view(request):
-    # Build base URL
-    full_url = request.build_absolute_uri('/')
-    current_port = request.META.get('SERVER_PORT')
-    parsed_url = urlparse(full_url)
-    scheme = parsed_url.scheme
-    hostname = parsed_url.hostname
-    sport = f"{scheme}://{hostname}:{current_port}"
+    # Use proxy headers if present to get correct public origin (e.g. port 4263)
+    scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
+    sport = f"{scheme}://{host}"
 
     # Create session token
     u_password = encode(get_auto_login_password(request.user.username)) 
@@ -2495,12 +2484,10 @@ def softaculous_view(request):
 def olsapp_view(request):
     user_home = os.path.join('/home', request.user.username)
     olsapp_path = os.path.join(user_home, '.olsapp')
-    full_url = request.build_absolute_uri('/')
-    current_port = request.META.get('SERVER_PORT')
-    parsed_url = urlparse(full_url)
-    scheme = parsed_url.scheme
-    hostname = parsed_url.hostname
-    sport = f"{scheme}://{hostname}:{current_port}"
+    # Use proxy headers if present to get correct public origin (e.g. port 4263)
+    scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
+    sport = f"{scheme}://{host}"
 
     # Create session token
     u_password = encode(get_auto_login_password(request.user.username)) 
@@ -2542,12 +2529,10 @@ def olsapp_view(request):
 def olsapp_more_view(request,view_name,id=None):
     user_home = os.path.join('/home', request.user.username)
     olsapp_path = os.path.join(user_home, '.olsapp')
-    full_url = request.build_absolute_uri('/')
-    current_port = request.META.get('SERVER_PORT')
-    parsed_url = urlparse(full_url)
-    scheme = parsed_url.scheme
-    hostname = parsed_url.hostname
-    sport = f"{scheme}://{hostname}:{current_port}"
+    # Use proxy headers if present to get correct public origin (e.g. port 4263)
+    scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
+    sport = f"{scheme}://{host}"
 
     # Create session token
     u_password = encode(get_auto_login_password(request.user.username)) 
@@ -3158,12 +3143,9 @@ def web_server(request, php_file):
                 
 
             if needs_dbinfo:
-                full_url = request.build_absolute_uri('/')
-                current_port = request.META.get('SERVER_PORT')
-                parsed_url = urlparse(full_url)
-                scheme = parsed_url.scheme  # "http" or "https"
-                hostname = parsed_url.hostname  # e.g. "example.com"
-                sport = f"{scheme}://{hostname}:{current_port}"
+                scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+                host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
+                sport = f"{scheme}://{host}"
 
                 db_password = get_phpmyadmin_password(username)
                 json_data = {"user": username, "pass": db_password, "port": sport}

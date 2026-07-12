@@ -581,22 +581,49 @@ copy_conf_for_ols() {
         local MAP_REPLACEMENT="  map                     mypanel mypanel\n  map                     mypanel $SERVER_IP\n  map                     mypanel 127.0.0.1\n  map                     mypanel localhost"
         sed -i "s|$MAP_TARGET|$MAP_REPLACEMENT|g" "$HTTPD_CONFIG_TARGET"
         
-        # Set restrained to 0 for panel virtual hosts in httpd_config.conf
-        python3 -c "
+        # Set restrained to 0 for panel virtual hosts, and register Example/mypanel vhosts and maps
+        python3 -c '
 import re
-path = '$HTTPD_CONFIG_TARGET'
+path = "/usr/local/lsws/conf/httpd_config.conf"
 try:
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         content = f.read()
-    pattern = r'(virtualhost\\s+(?:panel_[^{]+|mypanel)\\s*\\{[\\s\\S]*?restrained\\s+)1'
-    new_content, count = re.subn(pattern, r'\\g<1>0', content)
-    if count > 0:
-        with open(path, 'w') as f:
-            f.write(new_content)
-        print('✅ [Configured] Set restrained to 0 for panel virtual hosts.')
+    
+    # 1. Restore/fix Default, SSL, and SSL IPv6 listeners to map Example to *
+    content = re.sub(r"listener Default\s*\{[\s\S]*?\}", "listener Default {\\n  address                 *:80\\n  secure                  0\\n  map                     Example *\\n  map                     mypanel mypanel\\n}", content)
+    content = re.sub(r"listener SSL\s*\{[\s\S]*?\}", "listener SSL {\\n  address                 *:443\\n  secure                  1\\n  keyFile                 /etc/letsencrypt/live/localhost/privkey.pem\\n  certFile                /etc/letsencrypt/live/localhost/fullchain.pem\\n  certChain               1\\n  sslProtocol             24\\n  enableECDHE             1\\n  renegProtection         1\\n  sslSessionCache         1\\n  enableSpdy              15\\n  enableStapling          1\\n  ocspRespMaxAge          86400\\n  map                     Example *\\n  map                     mypanel mypanel\\n}", content)
+    content = re.sub(r"listener SSL IPv6\s*\{[\s\S]*?\}", "listener SSL IPv6 {\\n  address                 [ANY]:443\\n  secure                  1\\n  keyFile                 /etc/letsencrypt/live/localhost/privkey.pem\\n  certFile                /etc/letsencrypt/live/localhost/fullchain.pem\\n  certChain               1\\n  sslProtocol             24\\n  enableECDHE             1\\n  renegProtection         1\\n  sslSessionCache         1\\n  enableSpdy              15\\n  enableStapling          1\\n  ocspRespMaxAge          86400\\n  map                     Example *\\n  map                     mypanel mypanel\\n}", content)
+
+    # 2. Add virtualhost declarations if not present
+    vhost_blocks = """virtualhost Example {
+  vhRoot                  Example/
+  configFile              conf/vhosts/Example/vhconf.conf
+  allowSymbolLink         1
+  enableScript            1
+  restrained              1
+}
+
+virtualhost mypanel {
+  vhRoot                  conf/vhosts/mypanel/
+  configFile              conf/vhosts/mypanel/vhconf.conf
+  allowSymbolLink         1
+  enableScript            1
+  restrained              0
+}"""
+    if "virtualhost Example" not in content:
+        content = content.strip() + "\\n" + vhost_blocks.strip() + "\\n"
+
+    pattern = r"(virtualhost\s+(?:panel_[^{]+|mypanel)\s*\{[\s\S]*?restrained\s+)1"
+    new_content, count = re.subn(pattern, r"\\g<1>0", content)
+    if count == 0:
+        new_content = content
+
+    with open(path, "w") as f:
+        f.write(new_content)
+    print("✅ [Configured] Registered Example/mypanel vhosts and mappings.")
 except Exception as e:
-    print('Error patching restrained:', e)
-"
+    print("Error patching httpd_config.conf:", e)
+'
     fi
 }
 
@@ -843,9 +870,10 @@ set_ownership_and_permissions() {
 
     # Create Symlinks for phpMyAdmin and Webmail in default Example virtual host
     if [ -d "/usr/local/lsws/Example/html" ]; then
-        # Fix: create compatibility symlink at /usr/local/olspanel/phpmyadmin
+        # Fix: create compatibility symlinks
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/olspanel/phpmyadmin
-        # Point OLS html dir to the correct phpMyAdmin location
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/olspanel/webmail
+        # Point OLS html dir to the correct locations
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
         sudo ln -sf /usr/local/olspanel/webmail /usr/local/lsws/Example/html/webmail
         sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail
@@ -923,10 +951,16 @@ copy_vhconf_to_example() {
 
     # Copy the source file to the target directory
     echo "Copying '$source_file' to '$target_file'..."
+        # Copy the source file to the target directory
+    echo "Copying '$source_file' to '$target_file'..."
     cp "$source_file" "$target_file"
     if [ $? -ne 0 ]; then
         echo "Failed to copy the file. Exiting."
         return 1
+    fi
+    if [ -f "$target_file" ]; then
+        sed -i 's|docRoot                   \$VH_ROOT/html/default|docRoot                   \$VH_ROOT/html/|g' "$target_file"
+        sed -i 's|indexFiles              index.html|indexFiles              index.html, index.php|g' "$target_file"
     fi
    mkdir -p /usr/local/lsws/conf/vhosts/mypanel 
    cp /root/item/move/conf/mypanel/vhconf.conf /usr/local/lsws/conf/vhosts/mypanel/vhconf.conf

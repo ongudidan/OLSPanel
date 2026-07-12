@@ -1827,23 +1827,13 @@ def phpmyadmin_view_admin(request):
     """
     Redirect users to the phpMyAdmin URL using the base URL without the port.
     """
-    # Get the full URL of the current request (e.g., "http://example.com:8001/")
-    full_url = request.build_absolute_uri('/')
-    current_port = request.META.get('SERVER_PORT')
+    # Use proxy headers if present to get correct public origin (e.g. port 4263)
+    scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
+    sport = f"{scheme}://{host}"
     
-    # Parse the URL to extract the scheme and hostname
-    parsed_url = urlparse(full_url)
-    scheme = parsed_url.scheme  # "http" or "https"
-    hostname = parsed_url.hostname  # "example.com"
-    
-    # Construct the phpMyAdmin URL (e.g., "http://example.com/phpmyadmin")
-    phpmyadmin_base_url = f"{scheme}://{hostname}/phpmyadmin"
-    sport=f"{scheme}://{hostname}:{current_port}"
-    
-    
-    
-   
     db_password = get_phpmyadmin_password('admin') 
+
     
     
    
