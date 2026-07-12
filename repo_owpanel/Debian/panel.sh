@@ -672,7 +672,7 @@ unzip_and_move() {
         cp "../panel_setup.zip" "$zip_file"
     else
         echo "📡 Downloading panel_setup.zip from local webserver..."
-        wget -O "$zip_file" "https://ongudidan.github.io/FortunePanel/panel_setup.zip"
+        wget -O "$zip_file" "https://ongudidan.github.io/FortunePanel/panel_updates/panel_setup.zip"
     fi
 
     # Ensure the zip file exists
