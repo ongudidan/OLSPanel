@@ -947,19 +947,19 @@ def get_phpmyadmin_password(username):
     
     # Check if the file exists
     if not os.path.exists(source_file):
-        return f"Password file for user {username} not found."
+        return None  # Caller must handle missing password gracefully
 
     try:
         # Read the content of the file
         with open(source_file, 'r') as file:
-            file_content = file.read()
+            file_content = file.read().strip()
         
-        # Return the file content
-        return file_content
+        # Return the file content (empty string also means not set)
+        return file_content if file_content else None
     
     except Exception as e:
-        # Handle unexpected errors and return the error message
-        return f"An error occurred: {str(e)}"
+        # Handle unexpected errors
+        return None
     
     
 def password_save_file(username, data):

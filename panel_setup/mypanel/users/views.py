@@ -2423,37 +2423,35 @@ def phpmyadmin_view(request):
     phpmyadmin_base_url = f"{scheme}://{hostname}/phpmyadmin"
     sport=f"{scheme}://{hostname}:{current_port}"
     
-    
-    
-   
     db_password = get_phpmyadmin_password(request.user.username) 
     
-    
-   
+    # Guard: if the password file is missing or unreadable, show a friendly error
+    if not db_password:
+        return HttpResponse(
+            "phpMyAdmin database password is not configured yet. "
+            "Please ensure the panel has finished initialising (check that the "
+            "<code>etc/mysqlPassword</code> or "
+            f"<code>etc/phpmyadmin_{request.user.username}</code> file exists).",
+            content_type="text/html",
+            status=503
+        )
+
     json_data = {"user": request.user.username, "pass": db_password, "port": sport}
     encrypted_json = encode_json_to_base64(json_data)
 
-
-
-
-    
     try:
-        # Generate a phpMyAdmin session
-        #session_id = generate_phpmyadmin_session(phpmyadmin_base_url, db_username, db_password)
-        
-        # Construct the phpMyAdmin URL with the session ID
         binary_path = "/usr/local/bin/olspanelcp"
         if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
             phpmyadmin_url = f"/3rdparty/phpmyadmin/auto_login.php?password={encrypted_json}"
         else:
             phpmyadmin_url = f"/phpmyadmin/auto_login.php?password={encrypted_json}"
             
-        
         # Redirect the user to phpMyAdmin
         return redirect(phpmyadmin_url)
     except Exception as e:
         # Handle errors
         return HttpResponse(f"Error: {str(e)}", status=500)
+
         
 @login_required
 @admincheck
