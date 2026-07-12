@@ -58,15 +58,15 @@ fi
 
 
 
-wget -O /etc/profile.d/olspanel.sh "https://ongudidan.github.io/FortunePanel/extra/olspanel.sh"
-curl -sSL https://ongudidan.github.io/FortunePanel/extra/ufw_int.sh | sed 's/\r$//' | bash
-curl -sSL https://ongudidan.github.io/FortunePanel/extra/install_php_cgi.sh | sed 's/\r$//' | bash
+wget -O /etc/profile.d/olspanel.sh "https://ongudidan.github.io/OLSPanel/extra/olspanel.sh"
+curl -sSL https://ongudidan.github.io/OLSPanel/extra/ufw_int.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/OLSPanel/extra/install_php_cgi.sh | sed 's/\r$//' | bash
 
-wget -O /usr/local/bin/install_cp_plugin "https://ongudidan.github.io/FortunePanel/extra/install_cp_plugin"
+wget -O /usr/local/bin/install_cp_plugin "https://ongudidan.github.io/OLSPanel/extra/install_cp_plugin"
 sed -i 's/\r$//' /usr/local/bin/install_cp_plugin
 chmod +x /usr/local/bin/install_cp_plugin
 
-wget -O /usr/local/bin/olspanel "https://ongudidan.github.io/FortunePanel/extra/olspanel"
+wget -O /usr/local/bin/olspanel "https://ongudidan.github.io/OLSPanel/extra/olspanel"
 sed -i 's/\r$//' /usr/local/bin/olspanel
 chmod +x /usr/local/bin/olspanel
 
@@ -76,11 +76,11 @@ chmod +x /usr/local/bin/olspanel
         roundcube="$PROJECT_DIR/3rdparty/roundcube/index.php"
 
         if [ ! -f "$roundcube" ]; then
-            install_cp_plugin https://ongudidan.github.io/FortunePanel/plugin/roundcube.zip
+            install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/roundcube.zip
         fi
 
         if [ ! -f "$rainloop" ]; then
-            install_cp_plugin https://ongudidan.github.io/FortunePanel/plugin/rainloop.zip
+            install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/rainloop.zip
         fi
 
-install_cp_plugin https://ongudidan.github.io/FortunePanel/plugin/phpmyadmin.zip
+install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/phpmyadmin.zip

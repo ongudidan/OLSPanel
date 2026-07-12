@@ -1,8 +1,8 @@
-# 🚀 Fortune Panel
+# 🚀 OLS Panel
 
-Fortune Panel is a premium, open-source web hosting control panel designed for speed, security, and maximum efficiency. Powered by **OpenLiteSpeed** and built on a robust Python/Django framework, it provides full control over your servers, websites, mailboxes, databases, and DNS.
+OLS Panel is a premium, open-source web hosting control panel designed for speed, security, and maximum efficiency. Powered by **OpenLiteSpeed** and built on a robust Python/Django framework, it provides full control over your servers, websites, mailboxes, databases, and DNS.
 
-This repository hosts the entire source code, installers, helper libraries, and release packaging tools for **Fortune Panel**.
+This repository hosts the entire source code, installers, helper libraries, and release packaging tools for **OLS Panel**.
 
 ---
 
@@ -21,10 +21,10 @@ This repository hosts the entire source code, installers, helper libraries, and 
 
 ## 💾 Installation
 
-To install **Fortune Panel** on a clean VPS running **Ubuntu (20.04/22.04/24.04)**, **Debian**, or **CentOS/AlmaLinux**, connect via SSH and run:
+To install **OLS Panel** on a clean VPS running **Ubuntu (20.04/22.04/24.04)**, **Debian**, or **CentOS/AlmaLinux**, connect via SSH and run:
 
 ```bash
-curl -sSL https://ongudidan.github.io/FortunePanel/install.sh | bash
+curl -sSL https://ongudidan.github.io/OLSPanel/install.sh | bash
 ```
 
 *This script downloads all required dependencies, packages, and codebase archives directly from the GitHub Pages CDN.*

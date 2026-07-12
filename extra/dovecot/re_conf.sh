@@ -35,7 +35,7 @@ if [ ! -f "/etc/dovecot/cert.pem" ]; then
 fi
 
 wget -qO /etc/dovecot/dovecot.conf \
-https://ongudidan.github.io/FortunePanel/extra/dovecot/dovecot.conf
+https://ongudidan.github.io/OLSPanel/extra/dovecot/dovecot.conf
 
 
 # Permissions fix

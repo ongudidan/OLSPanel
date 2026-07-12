@@ -74,8 +74,8 @@ fi
 
 printf "\nYour OS is %s\n\n" "$SERVER_OS"
 
-wget -O panel.sh "https://ongudidan.github.io/FortunePanel/repo_owpanel/$SERVER_OS/$PANEL_FILE"
-wget -O requirements.txt "https://ongudidan.github.io/FortunePanel/repo_owpanel/requirements.txt"
+wget -O panel.sh "https://ongudidan.github.io/OLSPanel/repo_owpanel/$SERVER_OS/$PANEL_FILE"
+wget -O requirements.txt "https://ongudidan.github.io/OLSPanel/repo_owpanel/requirements.txt"
 
 chmod +x panel.sh
 sed -i 's/\r$//' panel.sh

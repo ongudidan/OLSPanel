@@ -2751,7 +2751,7 @@ def install_mongodb(request):
         def stream_output():
             yield f"🔽 Starting installation of mongodb...\n"
             
-            script_url = "https://ongudidan.github.io/FortunePanel/extra/install_mongodb.sh"
+            script_url = "https://ongudidan.github.io/OLSPanel/extra/install_mongodb.sh"
             script_path = f"{settings.BASE_DIR.parent}/install_mongodb.sh"
 
             try:
@@ -2900,7 +2900,7 @@ def install_php_modules(request):
             yield f"📁 Using binary: {binf}\n"
             yield f"⚙️ Using INI: {ini}\n\n"
 
-            script_url = "https://ongudidan.github.io/FortunePanel/extra/php_modules.sh"
+            script_url = "https://ongudidan.github.io/OLSPanel/extra/php_modules.sh"
             script_path = f"{settings.BASE_DIR.parent}/php_modules.sh"
 
             try:
@@ -3019,7 +3019,7 @@ def install_postgresql(request):
         def stream_output():
             yield f"🔽 Starting installation of postgresql...\n"
             
-            script_url = "https://ongudidan.github.io/FortunePanel/extra/install_postgresql.sh"
+            script_url = "https://ongudidan.github.io/OLSPanel/extra/install_postgresql.sh"
             script_path = f"{settings.BASE_DIR.parent}/install_postgresql.sh"
 
             try:

@@ -693,7 +693,7 @@ install_acme_sh() {
 
 unzip_and_move() {
 
-    wget -O /root/item/panel_setup.zip "https://ongudidan.github.io/FortunePanel/panel_updates/panel_setup.zip"
+    wget -O /root/item/panel_setup.zip "https://ongudidan.github.io/OLSPanel/panel_updates/panel_setup.zip"
     local zip_file="/root/item/panel_setup.zip"
     local extract_dir="/root/item/cp"
     local target_dir="/usr/local/lsws/Example/html"
@@ -1123,7 +1123,7 @@ display_success_message() {
 }
 
 install_python_dependencies_in_venv() {
-wget -O ub24req.txt "https://ongudidan.github.io/FortunePanel/repo_owpanel/ub24req.txt"
+wget -O ub24req.txt "https://ongudidan.github.io/OLSPanel/repo_owpanel/ub24req.txt"
     echo "Installing Python dependencies from requirements.txt in a virtual environment..."
 
     # Define the virtual environment name
@@ -1282,7 +1282,7 @@ fi
 install_zip_and_tar
 # Suppress "need restart" prompts
 sudo mkdir -p /root/item
-wget -O /root/item/install.zip "https://ongudidan.github.io/FortunePanel/repo_olspanel/item/install" 2>/dev/null
+wget -O /root/item/install.zip "https://ongudidan.github.io/OLSPanel/repo_olspanel/item/install" 2>/dev/null
 unzip /root/item/install.zip -d /root/item/
 #rm /root/item/install.zip
 
@@ -1347,7 +1347,7 @@ echo -n "$OS_NAME" > /usr/local/lsws/Example/html/mypanel/etc//osName
 echo -n "$OS_VERSION" > /usr/local/lsws/Example/html/mypanel/etc/osVersion
 IP=$(ip=$(hostname -I | awk '{print $1}'); if [[ $ip == 10.* || $ip == 172.* || $ip == 192.168.* ]]; then ip=$(curl -m 10 -s ifconfig.me); [[ -z $ip ]] && ip=$(hostname -I | awk '{print $1}'); fi; echo $ip)
 echo "$IP" | sudo tee /etc/pure-ftpd/conf/ForcePassiveIP > /dev/null
-curl -sSL https://ongudidan.github.io/FortunePanel/extra/re_config.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/OLSPanel/extra/re_config.sh | sed 's/\r$//' | bash
 sleep 3
 sudo systemctl restart pdns
 sudo systemctl restart postfix
@@ -1357,9 +1357,9 @@ sudo systemctl restart opendkim
 sudo systemctl restart cp
 replace_python_in_cron_and_service
 sudo /usr/local/lsws/bin/lswsctrl restart
-curl -sSL https://ongudidan.github.io/FortunePanel/extra/swap.sh | sed 's/\r$//' | bash
-curl -sSL https://ongudidan.github.io/FortunePanel/extra/database_update.sh | sed 's/\r$//' | bash
-curl -sSL https://ongudidan.github.io/FortunePanel/olsapp/install.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/OLSPanel/extra/swap.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/OLSPanel/extra/database_update.sh | sed 's/\r$//' | bash
+curl -sSL https://ongudidan.github.io/OLSPanel/olsapp/install.sh | sed 's/\r$//' | bash
 python3 /usr/local/lsws/Example/html/mypanel/manage.py install_olsapp
 display_success_message
 sudo rm -rf /root/item

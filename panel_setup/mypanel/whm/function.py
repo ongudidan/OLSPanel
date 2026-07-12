@@ -62,8 +62,8 @@ def change_hostname(old_hostname, new_hostname):
 def install_panel_update():
     """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
     
-    upgrade_script_url = "https://ongudidan.github.io/FortunePanel/panel_updates/upgrade.sh"
-    update_url = "https://ongudidan.github.io/FortunePanel/panel_updates/panel_setup.zip"
+    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/panel_updates/upgrade.sh"
+    update_url = "https://ongudidan.github.io/OLSPanel/panel_updates/panel_setup.zip"
     download_path = f"{settings.BASE_DIR.parent}/panel_setup.zip"
     extract_path = settings.BASE_DIR.parent
     upgrade_script_path = f"{settings.BASE_DIR.parent}/upgrade.sh"
@@ -192,7 +192,7 @@ def install_olsapp_now():
 
 def install_imunifyfav_now():
     
-    upgrade_script_url = "https://ongudidan.github.io/FortunePanel/extra/imunifyfav.sh"
+    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/extra/imunifyfav.sh"
     extract_path = settings.BASE_DIR.parent
     upgrade_script_path = f"{settings.BASE_DIR.parent}/imunifyfav.sh"
    
@@ -2637,7 +2637,7 @@ USERLIMIT_BIN = "/usr/local/bin/userlimit"
 
 def install_cgroup():
      
-    upgrade_script_url = "https://ongudidan.github.io/FortunePanel/extra/cgroup.sh"
+    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/extra/cgroup.sh"
     upgrade_script_path = f"{settings.BASE_DIR.parent}/cgroup.sh"
 
     try:
