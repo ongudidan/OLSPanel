@@ -932,7 +932,10 @@ set_ownership_and_permissions() {
 
     # Create Symlinks for phpMyAdmin and Webmail in default Example virtual host
     if [ -d "/usr/local/lsws/Example/html" ]; then
-        sudo ln -sf /usr/local/olspanel/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
+        # Fix: create compatibility symlink at /usr/local/olspanel/phpmyadmin
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/olspanel/phpmyadmin
+        # Point OLS html dir to the correct phpMyAdmin location
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
         sudo ln -sf /usr/local/olspanel/webmail /usr/local/lsws/Example/html/webmail
         sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail
     fi
@@ -1016,6 +1019,12 @@ copy_vhconf_to_example() {
    mkdir -p /usr/local/lsws/conf/vhosts/mypanel 
    cp /root/item/move/conf/mypanel/vhconf.conf /usr/local/lsws/conf/vhosts/mypanel/vhconf.conf
     echo "File copied successfully to '$target_file'."
+    # Inject /3rdparty OLS context if not present
+    VCONF='/usr/local/lsws/conf/vhosts/mypanel/vhconf.conf'
+    if [ -f "$VCONF" ] && ! grep -q 'context /3rdparty' "$VCONF"; then
+        sed -i 's|^context / {$|context \/3rdparty {\n  location                \/usr\/local\/olspanel\/mypanel\/3rdparty\n  allowBrowse             1\n  indexFiles              index.php\n  accessControl  {\n    allow                 *\n  }\n  addDefaultCharset       off\n}\n\ncontext \/ {|' "$VCONF"
+        echo "Added /3rdparty context to mypanel vhconf"
+    fi
 
     # Add lsphp script handler mapping to mypanel vhost configuration
     python3 -c "
