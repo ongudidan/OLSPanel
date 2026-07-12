@@ -21,23 +21,27 @@ This repository hosts the entire source code, installers, helper libraries, and 
 
 ## 💾 Installation
 
-To install **OLS Panel** on a clean VPS running **Ubuntu (20.04/22.04/24.04)**, **Debian**, or **CentOS/AlmaLinux**, connect via SSH and run:
+### Ubuntu / Debian
 
+#### 1st command) Update system packages (optional)
 ```bash
-curl -sSL https://ongudidan.github.io/OLSPanel/install.sh | bash
+apt update && apt -y upgrade && apt -y install curl wget sudo
 ```
 
-*This script downloads all required dependencies, packages, and codebase archives directly from the GitHub Pages CDN.*
+#### 2nd command) Install OLSPanel
+```bash
+bash <(curl -fsSL https://ongudidan.github.io/OLSPanel/install.sh || wget -qO- https://ongudidan.github.io/OLSPanel/install.sh)
+```
 
 ---
 
 ## 📂 Repository Structure
 
-* **[`mypanel/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/fortune_panel/panel_setup/mypanel/)**: The main Django application backend and WHM user interface templates.
-* **[`panel_server/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/fortune_panel/panel_server/)**: Custom compiled HTTPS/SSL and WebSocket proxy wrapper (`olspanelcp`) written in Python.
-* **[`panel_updates/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/fortune_panel/panel_updates/)**: Utility scripts and templates to package code updates and version files.
-* **[`repo_owpanel/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/fortune_panel/repo_owpanel/)**: Core installation shell scripts (`panel.sh`) categorized by OS.
-* **[`extra/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/fortune_panel/extra/)**: Helper scripts for configuring Dovecot mail, UFW, PHP CGI, swap, and OpenSSL libraries.
+* **[`mypanel/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/OLSPanel/panel_setup/mypanel/)**: The main Django application backend and WHM user interface templates.
+* **[`panel_server/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/OLSPanel/panel_server/)**: Custom compiled HTTPS/SSL and WebSocket proxy wrapper (`olspanelcp`) written in Python.
+* **[`panel_updates/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/OLSPanel/panel_updates/)**: Utility scripts and templates to package code updates and version files.
+* **[`repo_owpanel/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/OLSPanel/repo_owpanel/)**: Core installation shell scripts (`panel.sh`) categorized by OS.
+* **[`extra/`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/OLSPanel/extra/)**: Helper scripts for configuring Dovecot mail, UFW, PHP CGI, swap, and OpenSSL libraries.
 
 ---
 
@@ -51,7 +55,7 @@ Make your customizations inside `panel_setup/mypanel/`. To package your updated 
 *This generates a compiled `panel_setup.zip` inside the `panel_updates/` directory.*
 
 ### 2. Update the Version
-1. Open [`panel_updates/version.txt`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/fortune_panel/panel_updates/version.txt) and increment the version string (e.g., `3.0.19`).
+1. Open [`panel_updates/version.txt`](file:///home/ongudidan/Projects/TOOLS/OLSPanel%20Full/OLSPanel/panel_updates/version.txt) and increment the version string (e.g., `3.0.19`).
 2. Update the corresponding `VERSION` parameter inside your Django settings: `panel_setup/mypanel/user_management/settings.py`.
 
 ### 3. Push and Deploy
