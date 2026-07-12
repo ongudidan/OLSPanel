@@ -1,0 +1,370 @@
+<!DOCTYPE html><html lang="en"><head>
+      <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Installation Guide OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel</title>
+    
+    <!-- Description (up to 160 characters) -->
+    <meta name="description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage your web hosting easily with our lightweight and powerful panel.">
+
+    
+    <!-- Keywords for SEO (comma-separated) -->
+    <meta name="keywords" content="web hosting control panel, openlitespeed, free hosting panel, server management, open source, web hosting, panel for OpenLiteSpeed">
+    
+    <!-- Robots Meta Tag (controls how search engines index the page) -->
+    <meta name="robots" content="index, follow">
+    
+  
+    <!-- Open Graph Meta Tags (for better sharing on social media platforms) -->
+    <meta property="og:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta property="og:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta property="og:image" content="images/ow_1.png">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OLSPanel",
+  "operatingSystem": "Linux",
+  "applicationCategory": "WebHostingControlPanel",
+  "description": "OLSPanel is a free OpenLiteSpeed web hosting control panel, perfect for managing your server with ease.",
+  "url": "https://www.olspanel.com",
+  "image": "https://www.olspanel.com/logo.png",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "0",
+    "eligibleRegion": {
+      "@type": "Place",
+      "name": "Global"
+    }
+  }
+}
+</script>
+    <!-- Twitter Card Meta Tags (for Twitter sharing) -->
+    <meta name="twitter:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta name="twitter:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta name="twitter:image" content="/ow.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/x-icon" href="../images/logo.png"> 
+   <link href="https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Orbitron:wght@400;700&family=Roboto:wght@400;700&family=Poppins:wght@300;400;600;700&Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Font Awesome CDN -->
+<link href="../css/all.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <a href="../index.html" style="text-decoration: none;">  <img src="../images/ow.png" alt="OLSPanel Logo" class="logo" width="200px"> </a>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="../introduction/index.html">Documents</a></li>
+                <li><a href="../requirements/index.html">Requirements</a></li>
+                <li><a href="../features/index.html">Features</a></li>
+                <li><a href="#">Demo</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="index.html" class="btn get-started">Get-Started</a>
+            </div>
+        </div>
+    </nav>
+    <section class="documentation-section">
+        <div class="documentation-header">
+            <h1>OLSPanel Installation Guide for Latest version (3.0.18)</h1>
+            <p class="section-subtitle">Step-by-step instructions to install OLSPanel on all supported platforms.</p>
+        </div>
+        
+        
+        
+        <div class="requirements-content documentation-block">
+            <div class="requirements-block">
+                <h2>Minimum Requirements</h2>
+                <p>Before installing OLSPanel, ensure your server meets the following minimum requirements to guarantee optimal performance and compatibility.</p>
+
+                <div class="requirements-card">
+                    <h3>Operating System</h3>
+                    <ul>
+                        <li>Ubuntu 20 or 22 or 24</li>
+                        <li>Debian 11 or 12</li>
+                        <li>Almalinux 8 or 9</li>
+                        <li>CentOS Stream 8 or 9</li>
+                    </ul>
+                    <div class="requirements-note">
+                        <p><strong>Note:</strong> OLSPanel does not support Windows servers. For Windows-based hosting, consider using a virtual machine with a supported Linux distribution.</p>
+                    </div>
+                </div>
+        </div>
+         </div>
+         
+         
+         
+          <div class="documentation-block">
+    <h2>Installation Command</h2>
+    <p>Choose your operating system and follow the appropriate commands below:</p>
+
+    <!-- ================= UBUNTU / DEBIAN ================= -->
+    <h3>Ubuntu / Debian</h3>
+    <ul>
+        <li><b>1st command)</b> Update system packages (optional)</li>
+    </ul>
+
+    <div class="code-snippet">
+        <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+            <i class="fas fa-copy"></i>
+        </button>
+        <pre><code>apt update && apt -y upgrade && apt -y install curl wget sudo</code></pre>
+    </div>
+
+    <ul>
+        <li><b>2nd command)</b> Install OLSPanel</li>
+    </ul>
+
+    <div class="code-snippet">
+        <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+            <i class="fas fa-copy"></i>
+        </button>
+        <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+    </div>
+
+    <!-- ================= CENTOS / RHEL ================= -->
+    <h3>CentOS / RHEL</h3>
+    <ul>
+        <li><b>1st command)</b> Update system packages (optional)</li>
+    </ul>
+
+    <div class="code-snippet">
+        <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+            <i class="fas fa-copy"></i>
+        </button>
+        <pre><code>yum update -y && yum install -y curl wget sudo</code></pre>
+    </div>
+
+    <ul>
+        <li><b>2nd command)</b> Install OLSPanel</li>
+    </ul>
+
+    <div class="code-snippet">
+        <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+            <i class="fas fa-copy"></i>
+        </button>
+        <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+    </div>
+
+    <div class="documentation-note">
+        <p>
+            <strong>Note:</strong> After installation, you will get login information (username, password, and URL) to access OLSPanel like:
+            <br><code>https://your-server-ip:port</code>
+            <br>username: admin
+            <br>password: **********
+            <br><br>
+            Ignore the self-signed certificate warning and create an admin user immediately to prevent unauthorized access.
+        </p>
+    </div>
+</div>
+
+        
+        <div class="documentation-content">
+            <div class="documentation-block">
+                <h2>Overview</h2>
+                <div class="documentation-image">
+                    <img src="../images/cloud_server.png" alt="Server Setup Illustration">
+                </div>
+                <p>OLSPanel can be installed on various cloud platforms or a dedicated server. This guide covers installation on Amazon Web Services (AWS), DigitalOcean, Google Cloud, Microsoft Azure, Vultr, and other dedicated servers. Before proceeding, ensure your server meets the <a href="../requirements/index.html">system requirements</a>.</p>
+            </div>
+
+          
+            <div class="documentation-block">
+                <h2>Installation on Cloud Providers</h2>
+                <div class="platform-cards">
+                    <div class="platform-card">
+                        <h3>Amazon Web Services (AWS)</h3>
+                        <ul>
+                            <li>Log in to the AWS Management Console and go to EC2 Service.</li>
+                            <li>Launch an instance with Ubuntu 24.04, 22.04, or Debian 12, 11 (x86 or ARM).</li>
+                            <li>Select an instance type meeting the minimum requirements (1 CPU, 2 GB RAM).</li>
+                            <li>Create or select a key pair for SSH access.</li>
+                            <li>Configure network settings: select VPC, subnet, and create a security group allowing all TCP traffic (OLSPanel manages its own firewall).</li>
+                            <li>Associate an Elastic IP to your instance.</li>
+                            <li>SSH into the instance: <code>ssh -i your_private_key.pem ubuntu@yourElasticIpAddress</code></li>
+                            <li>Run the installer with your preferred database engine:</li>
+                        </ul>
+                         <div class="code-snippet">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+</div>
+                    </div>
+
+                    <div class="platform-card">
+                        <h3>DigitalOcean</h3>
+                        <ul>
+                            <li>Create a Droplet in your DigitalOcean account.</li>
+                            <li>Choose Ubuntu 24.04, 22.04, or Debian 12, 11 as the OS image.</li>
+                            <li>Select a Droplet size (e.g., Premium AMD with NVMe SSD).</li>
+                            <li>Choose SSH key or password authentication.</li>
+                            <li>Assign a Reserved IP for a static IP address.</li>
+                            <li>SSH into the Droplet: <code>ssh root@yourDropletIpAddress</code></li>
+                            <li>Run the installer:</li>
+                        </ul>
+                        <div class="code-snippet">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+</div>
+                    </div>
+
+                    <div class="platform-card">
+                        <h3>Google Cloud</h3>
+                        <ul>
+                            <li>Create a VM instance in Google Cloud Console.</li>
+                            <li>Select Ubuntu 24.04, 22.04, or Debian 12, 11 as the boot disk image.</li>
+                            <li>Choose a machine type meeting the minimum requirements.</li>
+                            <li>Add a network tag (e.g., <code>OLSPanel</code>) for firewall rules.</li>
+                            <li>Create a static IP address in the network interface settings.</li>
+                            <li>Create a firewall rule to allow TCP port 8443 (OLSPanel).</li>
+                            <li>SSH into the instance and run the installer:</li>
+                        </ul>
+                        <div class="code-snippet">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+</div>
+                    </div>
+
+                    <div class="platform-card">
+                        <h3>Microsoft Azure</h3>
+                        <ul>
+                            <li>Log in to the Azure Portal and create a Virtual Machine.</li>
+                            <li>Select Ubuntu 24.04, 22.04, or Debian 12, 11 as the image.</li>
+                            <li>Choose a size meeting the minimum requirements.</li>
+                            <li>Use SSH public key authentication and enter your username and key.</li>
+                            <li>Create a firewall rule to allow all TCP traffic (or specific ports: 22, 80, 443, 8443, and 443 UDP for HTTP/3).</li>
+                            <li>SSH into the instance: <code>ssh -i your_private_key azure@yourIpAddress</code></li>
+                            <li>Run the installer:</li>
+                        </ul>
+                         <div class="code-snippet">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+</div>
+                    </div>
+
+                    <div class="platform-card">
+                        <h3>Vultr</h3>
+                        <ul>
+                            <li>Create an instance in Vultr</li>
+                            <li>Choose a server size and location.</li>
+                            <li>Configure SSH key authentication.</li>
+                            <li>SSH into the instance and update the system.</li>
+                            <li>Run the installer:</li>
+                        </ul>
+                         <div class="code-snippet">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="documentation-block">
+                <h2>Installation on a Dedicated Server (Other)</h2>
+                <p>For a dedicated server or any other cloud provider not listed above, follow these steps:</p>
+                <ul>
+                    <li>Use a fresh server </li>
+                    <li>Log in via SSH as root: <code>ssh -i your_private_key root@yourIpAddress</code> or <code>ssh root@yourIpAddress</code> (if using a password).</li>
+                    <li>Update the system as shown in the prerequisites.</li>
+                    <li>Run the installer with your preferred database engine:</li>
+                </ul>
+                <div class="code-snippet">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>bash <(curl -fsSL https://olspanel.com/install.sh || wget -qO- https://olspanel.com/install.sh)</code></pre>
+</div>
+               
+            </div>
+
+            <div class="documentation-block">
+                <h2>Post-Installation Steps</h2>
+                <p>After installation on any platform:</p>
+                <ul>
+                    <li> <p><strong>Note:</strong> After installation,you get login information  username , password and url for access OLSPanel like as <br><code>https://your-server-ip:port</code><br>username: admin<br>password: **********<br><br>Ignore the self-signed certificate warning and create an admin user immediately to prevent unauthorized access.</p></li>
+                    <li>Create an admin user and enable Two-Factor Authentication (2FA) for security.</li>
+                    <li>Configure your domain and issue a free Let's Encrypt SSL certificate through the OLSPanel interface.</li>
+                    <li>Explore the admin area to add sites, manage databases, and configure services.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="next-button-container">
+            <a href="contact" class="btn next-btn">Next: Contact Us</a>
+        </div>
+    </section>
+
+   <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-column">
+            <h4>Product</h4>
+            
+            <a href="../pricing/index.html">Pricing</a>
+            <a href="../features/index.html">Features</a>
+            <a href="introduction">Documentation</a>
+            <a href="../plugin_develop/index.html">Plugin Develop</a>
+            <a href="https://marketplace.whmcs.com/product/7967-olspanel">Whmcs Module</a>
+            <a href="../mongoDB/index.html">MongoDB</a>
+            <a href="../api_documentation/index.html">Api</a>
+           
+        </div>
+       
+        <div class="footer-column">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+            <a href="../release/index.html">Release log</a>
+             <a href="#">Demo</a>
+            <a href="https://community.olspanel.com/">Community</a>
+            
+        </div>
+        <div class="footer-column">
+            <h4>Legal</h4>
+            <a href="../terms/index.html">Terms</a>
+            <a href="../privacy/index.html">Privacy</a>
+			<a href="../refund/index.html">Refund</a>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    
+<script>
+  function copyCode(button) {
+    const code = button.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      const icon = button.querySelector('i');
+      icon.className = 'fas fa-check';  // Change icon to checkmark
+      setTimeout(() => {
+        icon.className = 'fas fa-copy'; // Change back to copy icon
+      }, 1500);
+    });
+  }
+</script>
+    
+
+
+</body></html>
