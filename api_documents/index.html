@@ -1,0 +1,700 @@
+<!DOCTYPE html><html lang="en"><head>
+      <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>API Documents OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel</title>
+    
+    <!-- Description (up to 160 characters) -->
+    <meta name="description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage your web hosting easily with our lightweight and powerful panel.">
+
+    
+    <!-- Keywords for SEO (comma-separated) -->
+    <meta name="keywords" content="web hosting control panel, openlitespeed, free hosting panel, server management, open source, web hosting, panel for OpenLiteSpeed">
+    
+    <!-- Robots Meta Tag (controls how search engines index the page) -->
+    <meta name="robots" content="index, follow">
+    
+  
+    <!-- Open Graph Meta Tags (for better sharing on social media platforms) -->
+    <meta property="og:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta property="og:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta property="og:image" content="images/ow_1.png">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OLSPanel",
+  "operatingSystem": "Linux",
+  "applicationCategory": "WebHostingControlPanel",
+  "description": "OLSPanel is a free OpenLiteSpeed web hosting control panel, perfect for managing your server with ease.",
+  "url": "https://www.olspanel.com",
+  "image": "https://www.olspanel.com/logo.png",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "0",
+    "eligibleRegion": {
+      "@type": "Place",
+      "name": "Global"
+    }
+  }
+}
+</script>
+    <!-- Twitter Card Meta Tags (for Twitter sharing) -->
+    <meta name="twitter:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta name="twitter:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta name="twitter:image" content="/ow.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/x-icon" href="../images/logo.png"> 
+   <link href="https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Orbitron:wght@400;700&family=Roboto:wght@400;700&family=Poppins:wght@300;400;600;700&Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Font Awesome CDN -->
+<link href="../css/all.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <a href="../index.html" style="text-decoration: none;">  <img src="../images/ow.png" alt="OLSPanel Logo" class="logo" width="200px"> </a>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="../introduction/index.html">Documents</a></li>
+                <li><a href="../requirements/index.html">Requirements</a></li>
+                <li><a href="../features/index.html">Features</a></li>
+                <li><a href="#">Demo</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="../documents/index.html" class="btn get-started">Get-Started</a>
+            </div>
+        </div>
+    </nav>
+
+<div class="ols-docs-menu-toggle" id="ols-docs-toggle"><i class="fa fa-indent"></i> All Category</div>
+
+<div class="ols-docs-container">
+  <aside class="ols-docs-sidebar" id="ols-docs-sidebar">
+    <ul class="ols-docs-menu">
+      <li class="dropdown active">
+        <a href="javascript:void(0);" class="menu-link">
+          Admin account API
+          <span class="arrow"><i class="fa fa-angle-down"></i></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#home_api">Account information</a></li>
+          <li><a href="#add_user_api">Add User</a></li>
+          <li><a href="#suspend_user_api">Suspend/Unsuspend/Delete User</a></li>
+          <li><a href="#update_user_api">Update User</a></li>
+          <li><a href="#list_packages_api">Package List</a></li>
+          <li><a href="#new_package_api">New Package</a></li>
+          <li><a href="#issue_ssl_api">Isue SSL</a></li>
+          <li><a href="#add_domain_api">Add Domain</a></li>
+          <li><a href="#db_user_make_api">Database & user create</a></li>
+          <li><a href="#sso_login_api">SSO Login(auto login)</a></li>
+          <li><a href="#add_user_api_exampe">Example use api</a></li>
+          
+        </ul>
+      </li>
+      
+      
+      <a href="/api_documents_user" class="menu-link">
+          User account API
+          
+        </a> 
+      
+    </ul>
+  </aside>
+
+  <main class="ols-docs-content">
+    <section id="intro" class="introduction-section">
+      <div class="introduction-content">
+
+        <div class="introduction-block">
+          <h2 id="home_api">Account information</h2>
+          <p>This API endpoint retrieves account and usage information for a user based on POSTed <code>username</code>.</p>
+
+          <h3>Endpoint</h3>
+          <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/</port></server_ip_or_hostname></code></pre>
+
+          <h3>Request Headers</h3>
+          <ul>
+            <li><strong>username</strong>: Admin username (optional if using POST username)</li>
+            <li><strong>password</strong>: Admin password</li>
+          </ul>
+
+          <h3>Request Body (POST)</h3>
+          <pre><code>[
+    "username": "exampleuser"
+]</code></pre>
+
+          <h3>Response</h3>
+          <p>Returns JSON object containing user package, usage, and limits:</p>
+          <pre><code>{
+    "package_name": "Basic Plan",
+    "disk_limit": "10GB",
+    "disk_used": "2GB",
+    "email_disk_used": "100MB",
+    "db_disk_used": "500MB",
+    "email_limit": 5,
+    "email_used": 2,
+    "db_limit": 3,
+    "db_used": 1,
+    "ftp_limit": 2,
+    "ftp_used": 1,
+    "domain_limit": 2,
+    "domain_used": 1,
+    "server_ip": "192.168.1.100",
+    "main_domain": "example.com",
+    "user_id": 123,
+    "email": "user@example.com",
+    "full_name": "John Doe"
+}</code></pre>
+
+          <h3>Error Responses</h3>
+          <ul>
+            <li><code>{ "error": "POST method required" }</code> – if not POST</li>
+            <li><code>{ "error": "Username is required" }</code> – if username missing</li>
+            <li><code>{ "error": "User not found" }</code> – if username invalid</li>
+            <li><code>{ "error": "Package not found" }</code> – if user has no package</li>
+            <li><code>{ "error": "Invalid credentials" }</code> – if authentication fails</li>
+          </ul>
+
+        </div>
+
+
+
+
+
+<div class="introduction-block">
+          <h2 id="add_user_api">Add User</h2>
+          <p>This API endpoint allows an admin to create a new user with a package, FTP account, and domain setup.</p>
+
+          <h3>Endpoint</h3>
+          <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/add_user/</port></server_ip_or_hostname></code></pre>
+
+          <h3>Request Headers</h3>
+          <ul>
+            <li><strong>username</strong>: Admin username</li>
+            <li><strong>password</strong>: Admin password</li>
+          </ul>
+
+          <h3>Request Body (POST)</h3>
+          <pre><code>[
+    "username": "newuser",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "user@example.com",
+    "password": "UserPassword123",
+    "pkg_id": 1,
+    "domain": "example.com",
+    "php_version": "8.2"
+]</code></pre>
+
+          <h3>Response</h3>
+          <p>Returns a JSON object indicating success or failure:</p>
+          <pre><code>{
+    "success": true,
+    "message": "Username newuser created successfully",
+    "user_id": 123
+}</code></pre>
+
+          <h3>Error Responses</h3>
+          <ul>
+            <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+            <li><code>{ "success": false, "message": "All fields are required" }</code> – if any required field is missing</li>
+            <li><code>{ "success": false, "message": "A username with the same name already exists" }</code> – if the username is already taken</li>
+            <li><code>{ "success": false, "message": "Invalid package ID" }</code> – if pkg_id is invalid</li>
+            <li><code>{ "success": false, "message": "Domain creation failed message" }</code> – if domain setup fails</li>
+          </ul>
+
+        </div>
+
+
+
+
+<div class="introduction-block">
+  <h2 id="suspend_user_api">Suspend/Unsuspend/Delete User</h2>
+  <p>This API endpoint allows an admin to suspend, unsuspend, or delete a user along with all associated FTP, email accounts, and domains.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/suspend_user/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+    "username": "targetuser",
+    "state": "SUSPEND"  // options: SUSPEND, UNSUSPEND, DELETE
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+    "success": true,
+    "message": "User 'targetuser' and all associated accounts/domains have been suspended."
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Username and state are required" }</code> – if missing parameters</li>
+    <li><code>{ "success": false, "message": "User 'targetuser' does not exist." }</code> – if username not found</li>
+    <li><code>{ "success": false, "message": "User 'targetuser' must be suspended before deletion." }</code> – if trying to DELETE an active user</li>
+    <li><code>{ "success": false, "message": "Unknown state 'XYZ'. Use SUSPEND, UNSUSPEND or DELETE." }</code> – if invalid state</li>
+  </ul>
+</div>
+
+
+
+
+
+<div class="introduction-block">
+  <h2 id="update_user_api">Update User</h2>
+  <p>This API endpoint allows an admin to update a user's details, including name, email, password, and package assignment.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/update_user/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+    "username": "existinguser",   // required
+    "first_name": "NewFirstName", // optional
+    "last_name": "NewLastName",   // optional
+    "email": "newemail@example.com", // optional
+    "password": "NewPassword123", // optional
+    "pkg_id": 2                   // optional
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+    "success": true,
+    "message": "User 'existinguser' updated successfully.",
+    "user_id": 123
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Username is required" }</code> – if missing username</li>
+    <li><code>{ "success": false, "message": "User with username 'existinguser' not found." }</code> – if username does not exist</li>
+  </ul>
+</div>
+
+
+
+
+<div class="introduction-block">
+  <h2 id="list_packages_api">List Packages API</h2>
+  <p>This API endpoint allows an admin to retrieve a list of all available hosting packages, including package ID, name, disk space, and other relevant details.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/packages_list/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <p>No additional parameters are required for this endpoint.</p>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object containing all available packages:</p>
+  <pre><code>{
+  "success": true,
+  "packages": [
+    {
+      "id": 1,
+      "name": "Basic",
+      "disk_space": 1024
+    },
+    {
+      "id": 2,
+      "name": "Premium",
+      "disk_space": 5120
+    }
+    // ... other packages
+  ]
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Invalid admin credentials" }</code> – if login fails</li>
+  </ul>
+</div>
+
+
+
+
+
+<div class="introduction-block">
+  <h2 id="new_package_api">Add New Package</h2>
+  <p>This API endpoint allows an admin to create a new hosting package with custom limits for disk space, bandwidth, email accounts, databases, FTP accounts, and domains.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/new_package/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+    "name": "Premium",             // required
+    "disk_space": 10240,           // optional, in MB
+    "bandwidth": 50000,            // optional, in MB
+    "email_accounts": 50,          // optional
+    "databases": 20,               // optional
+    "ftp_accounts": 10,            // optional
+    "allowed_domains": 5,          // optional
+    "allowed_subdomains": 10,      // optional
+    "limit_action": true           // optional, enforce disk limits
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+    "success": true,
+    "message": "Package has been added successfully.",
+    "package_id": 3
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Package name is required" }</code> – if missing package name</li>
+    <li><code>{ "success": false, "message": "A package with the same name already exists." }</code> – if duplicate package</li>
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="introduction-block">
+  <h2 id="issue_ssl_api">Issue SSL for Domain</h2>
+  <p>This API endpoint allows an admin to issue an SSL certificate for a specific domain. The domain must exist in the system before requesting SSL issuance.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/issue_ssl/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+    "domain": "example.com"   // required
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+  "success": true,
+  "message": "SSL issued successfully for 'example.com'."
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Domain name is required." }</code> – if domain parameter is missing</li>
+    <li><code>{ "success": false, "message": "Domain 'example.com' not found." }</code> – if domain does not exist</li>
+    <li><code>{ "success": false, "message": "Failed to issue SSL for 'example.com'." }</code> – if SSL issuance fails</li>
+  </ul>
+</div>
+
+
+<div class="introduction-block">
+  <h2 id="add_domain_api">Add Domain</h2>
+  <p>This API endpoint allows an admin to add a new domain for a specific user. The user must exist, and domain limits must not be exceeded.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/add_domain/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+    "username": "johndoe",       // required
+    "domain": "example.com",      // required
+    "php_version": "8.2",         // required
+    "path": "public_html"         // optional, defaults to 'public_html'
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+  "success": true,
+  "message": "Domain 'example.com' added successfully!",
+  "domain_id": 12
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Username, domain, and php_version are required." }</code> – if required fields are missing</li>
+    <li><code>{ "success": false, "message": "User 'johndoe' not found." }</code> – if username does not exist</li>
+    <li><code>{ "success": false, "message": "Invalid domain format." }</code> – if domain is invalid</li>
+    <li><code>{ "success": false, "message": "The domain 'example.com' already exists." }</code> – if domain exists</li>
+    <li><code>{ "success": false, "message": "Domain add limit exceeded." }</code> – if user package limit reached</li>
+    <li><code>{ "success": false, "message": "Failed to add mapping for 'example.com'." }</code> – if listener mapping fails</li>
+    <li><code>{ "success": false, "message": "Failed to add virtual host for 'example.com'." }</code> – if virtual host creation fails</li>
+    <li><code>{ "success": false, "message": "Failed to set folder permissions for 'example.com'." }</code> – if permissions fail</li>
+  </ul>
+</div>
+
+
+
+<div class="introduction-block">
+  <h2 id="db_user_make_api">Create Database User API</h2>
+  <p>This API endpoint allows an admin to create a new database user for a specific existing account. The username must exist in the system.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/database_add/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+  "username": "johndoe",       // required, the account username
+  "db": "mydatabase",           // required, database name
+  "dbuser": "dbuser1",          // required, new database username
+  "dbpass": "strongpassword",   // required, password for database user
+  "dbpassc": "strongpassword"   // required, confirm password
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+  "success": true,
+  "message": "Database user created successfully for johndoe."
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "error": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "error": "All fields are required." }</code> – if any field is missing</li>
+    <li><code>{ "success": false, "error": "Username 'johndoe' does not exist." }</code> – if username does not exist</li>
+    <li><code>{ "success": false, "error": "Database username must be at least 2 characters long." }</code> – if dbuser is too short</li>
+    <li><code>{ "success": false, "error": "Password must be at least 8 characters long." }</code> – if password is too short</li>
+    <li><code>{ "success": false, "error": "Passwords do not match." }</code> – if passwords mismatch</li>
+    <li><code>{ "success": false, "error": "Some error message from database creation function" }</code> – if creation fails</li>
+  </ul>
+</div>
+
+
+
+
+<div class="introduction-block">
+  <h2 id="sso_login_api">SSO Login(auto login)</h2>
+  <p>This API endpoint allows an admin to auto login for a specific user base on url. The user must exist.</p>
+
+  <h3>Endpoint</h3>
+  <pre><code>POST https://<server_ip_or_hostname>:<port>/admin_api/sso_login/</port></server_ip_or_hostname></code></pre>
+
+  <h3>Request Headers</h3>
+  <ul>
+    <li><strong>username</strong>: Admin username</li>
+    <li><strong>password</strong>: Admin password</li>
+  </ul>
+
+  <h3>Request Body (POST)</h3>
+  <pre><code>[
+    "username": "johndoe",       // required
+    
+]</code></pre>
+
+  <h3>Response</h3>
+  <p>Returns a JSON object indicating success or failure:</p>
+  <pre><code>{
+    "success": true,
+    "message": "User 'johndoe' successfully genarate sso token.",
+    "url": "https://example.win:0000/login/?token=ugkyteyJ1c2VyIjogImxpdG9udmFpIiwgImFwaSI6ICJwZ2Zwbk9EZDZMa3Q1S2xWa05qZFdSbkk9IiwgInBvcnQiOiAiMDAwMCJ9"
+}</code></pre>
+
+  <h3>Error Responses</h3>
+  <ul>
+    <li><code>{ "success": false, "message": "POST method required" }</code> – if not POST</li>
+    <li><code>{ "success": false, "message": "Username are required." }</code> – if required fields are missing</li>
+   
+  </ul>
+</div>
+
+
+<div class="introduction-block">
+  <h2 id="add_user_api_exampe">Exampe Add User by php</h2>
+ 
+
+ <h3>PHP Example</h3>
+  <pre><code><!--?php
+$api_url = "http://<server_ip_or_hostname-->:<port>/admin_api/add_user/";
+
+$post_data = [
+    "username"   => "newuser",
+    "first_name" => "John",
+    "last_name"  => "Doe",
+    "email"      => "user@example.com",
+    "password"   => "UserPassword123",
+    "pkg_id"     => 1,
+    "domain"     => "example.com",
+    "php_version"=> "8.2"
+];
+
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $api_url);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+// Set admin headers
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "username: adminuser",
+    "password: adminpass",
+    "Content-Type: application/x-www-form-urlencoded"
+]);
+
+$response = curl_exec($ch);
+if(curl_errno($ch)){
+    echo "cURL Error: " . curl_error($ch);
+} else {
+    echo $response;
+}
+curl_close($ch);
+?></port></code></pre>
+</div>
+
+
+
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const toggle = document.getElementById('ols-docs-toggle');
+const sidebar = document.getElementById('ols-docs-sidebar');
+const dropdowns = document.querySelectorAll('.dropdown');
+
+// Toggle menu on click
+toggle.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+});
+
+// Close menu on outside click
+document.addEventListener('click', function(event) {
+  const isClickInside = sidebar.contains(event.target) || toggle.contains(event.target);
+  if (!isClickInside && sidebar.classList.contains('active')) {
+    sidebar.classList.remove('active');
+  }
+});
+
+// Toggle dropdowns on click
+dropdowns.forEach(dropdown => {
+  const link = dropdown.querySelector('.menu-link');
+  const arrow = dropdown.querySelector('.arrow');
+  link.addEventListener('click', () => {
+    dropdown.classList.toggle('active');
+    arrow.classList.toggle('rotate');
+  });
+});
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const targetID = this.getAttribute('href').substring(1);
+    const targetElement = document.getElementById(targetID);
+    if (targetElement) {
+      const headerOffset = 160;
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  });
+});
+</script>
+
+  <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-column">
+            <h4>Product</h4>
+            
+            <a href="../pricing/index.html">Pricing</a>
+            <a href="../features/index.html">Features</a>
+            <a href="introduction">Documentation</a>
+            <a href="../plugin_develop/index.html">Plugin Develop</a>
+            <a href="https://marketplace.whmcs.com/product/7967-olspanel">Whmcs Module</a>
+            <a href="../mongoDB/index.html">MongoDB</a>
+            <a href="../api_documents/index.html">Api</a>
+           
+        </div>
+       
+        <div class="footer-column">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+            <a href="../release/index.html">Release log</a>
+             <a href="#">Demo</a>
+            <a href="https://community.olspanel.com/">Community</a>
+            
+        </div>
+        <div class="footer-column">
+            <h4>Legal</h4>
+            <a href="../terms/index.html">Terms</a>
+            <a href="../privacy/index.html">Privacy</a>
+			<a href="../refund/index.html">Refund</a>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    
+<script>
+  function copyCode(button) {
+    const code = button.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      const icon = button.querySelector('i');
+      icon.className = 'fas fa-check';  // Change icon to checkmark
+      setTimeout(() => {
+        icon.className = 'fas fa-copy'; // Change back to copy icon
+      }, 1500);
+    });
+  }
+</script>
+    
+
+
+</body></html>

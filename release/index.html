@@ -1,0 +1,280 @@
+<!DOCTYPE html><html lang="en"><head>
+      <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Release OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel</title>
+    
+    <!-- Description (up to 160 characters) -->
+    <meta name="description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage your web hosting easily with our lightweight and powerful panel.">
+
+    
+    <!-- Keywords for SEO (comma-separated) -->
+    <meta name="keywords" content="web hosting control panel, openlitespeed, free hosting panel, server management, open source, web hosting, panel for OpenLiteSpeed">
+    
+    <!-- Robots Meta Tag (controls how search engines index the page) -->
+    <meta name="robots" content="index, follow">
+    
+  
+    <!-- Open Graph Meta Tags (for better sharing on social media platforms) -->
+    <meta property="og:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta property="og:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta property="og:image" content="images/ow_1.png">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OLSPanel",
+  "operatingSystem": "Linux",
+  "applicationCategory": "WebHostingControlPanel",
+  "description": "OLSPanel is a free OpenLiteSpeed web hosting control panel, perfect for managing your server with ease.",
+  "url": "https://www.olspanel.com",
+  "image": "https://www.olspanel.com/logo.png",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "0",
+    "eligibleRegion": {
+      "@type": "Place",
+      "name": "Global"
+    }
+  }
+}
+</script>
+    <!-- Twitter Card Meta Tags (for Twitter sharing) -->
+    <meta name="twitter:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta name="twitter:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta name="twitter:image" content="/ow.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/x-icon" href="../images/logo.png"> 
+   <link href="https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Orbitron:wght@400;700&family=Roboto:wght@400;700&family=Poppins:wght@300;400;600;700&Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Font Awesome CDN -->
+<link href="../css/all.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <a href="../index.html" style="text-decoration: none;">  <img src="../images/ow.png" alt="OLSPanel Logo" class="logo" width="200px"> </a>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="../introduction/index.html">Documents</a></li>
+                <li><a href="../requirements/index.html">Requirements</a></li>
+                <li><a href="../features/index.html">Features</a></li>
+                <li><a href="#">Demo</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="../documents/index.html" class="btn get-started">Get-Started</a>
+            </div>
+        </div>
+    </nav>
+
+<style>
+/* Modern Release Notes Style */
+.release-notes-section {
+    max-width: 900px;
+    margin: 50px auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0 20px;
+}
+
+.section-header h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.section-header p {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 40px;
+}
+
+.version-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    padding: 25px 30px;
+    margin-bottom: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.version-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.version-header h2 {
+    font-size: 1.6rem;
+    color: #111;
+}
+
+.version-header small {
+    font-size: 0.95rem;
+    color: #888;
+}
+
+.version-notes {
+    list-style: disc;
+    padding-left: 20px;
+    color: #444;
+}
+
+.version-notes li {
+    margin-bottom: 8px;
+}
+
+.release-notes-section a {
+    text-decoration: none;  /* Removes underline */
+    color: #007bff;          /* Optional: keep link color */
+    transition: color 0.3s;
+}
+
+.release-notes-section a:hover {
+    color: #0056b3;          /* Optional: darker on hover */
+    text-decoration: none;   /* Ensure no underline on hover */
+}
+
+</style>
+ <section class="requirements-section">
+<div class="release-notes-section">
+    <div class="section-header">
+        <h1>OLSPanel Release Notes</h1>
+        <p>See what’s new in each version.</p>
+    </div>
+
+    <div class="release-notes-content">
+        <div class="version-card"><div class="version-header"><h2>Version 3.0.17-18 <span style="color:#ff4d4d;">(Latest)</span></h2><small>Jun 27, 2026</small></div><ul class="version-notes"><li><ul>
+  <li>Resource limits added.</li>
+ <li>Old backups are automatically removed based on the configured retention policy.</li>
+ <li>File Manager supports TAR and GZIP (GZ) archive formats.</li>
+</ul></li></ul></div><div class="version-card"><div class="version-header"><h2>Version 3.0.16</h2><small>May 22, 2026</small></div><ul class="version-notes"><li><ul>
+  <li>Branding added.</li>
+ 
+</ul></li></ul></div><div class="version-card"><div class="version-header"><h2>Version 3.0.13</h2><small>May 20, 2026</small></div><ul class="version-notes"><li><ul>
+  <li>Terminal added in plugin( but new install need).</li>
+ 
+</ul></li></ul></div><div class="version-card"><div class="version-header"><h2>Version 3.0.11</h2><small>Mar 02, 2026</small></div><ul class="version-notes"><li>
+<ul>
+  <li>SSL for www has been successfully added.</li>
+  <li>Virtual Host editing is now available from Admin Panel (Domain List).</li>
+  <li>Saving the .htaccess file via File Manager will automatically restart OpenLiteSpeed Auto-restart can be disabled from Settings.</li>
+</ul></li></ul></div><div class="version-card"><div class="version-header"><h2>Version 3.0.9</h2><small>Nov 10, 2025</small></div><ul class="version-notes"><li><h2>PostgreSQL Added</h2>
+</li></ul></div><div class="version-card"><div class="version-header"><h2>Version 3.0.8</h2><small>Nov 06, 2025</small></div><ul class="version-notes"><li>Two-Factor Authentication Added
+Bug Fixes & Improvements
+You can now stay logged in to both user and admin accounts simultaneously on the same browser.</li></ul></div><div class="version-card"><div class="version-header"><h2>Version 3.0.7</h2><small>Nov 04, 2025</small></div><ul class="version-notes"><li> MongoDB Integration
+  
+
+  New Features
+ 
+    Added MongoDB  Secure Installer with auto setup for Ubuntu, Debian, and AlmaLinux.
+    Automatic <strong>admin user creation with root privileges and security hardening.
+   
+  
+
+</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.6</strong></h2><strong><small>Oct 12, 2025</small></strong></div><ul class="version-notes"><li><div><strong>
+  <h2>New: ImunifyAV Antivirus</h2>
+  <p>We've added <strong>ImunifyAV Antivirus</strong> to OLSPanel! Now you can easily scan and remove malware directly from your dashboard.</p>
+
+  <h3>Highlights:</h3>
+  <ul>
+    <li>One-click malware scanning and cleanup</li>
+    <li>Integrated with the OLSPanel Security section
+    Fast and reliable protection for your websites
+  
+
+  <p>If not installed yet, you can install it from the <strong>Security</strong> section of your dashboard.</p>
+
+  <p>
+   Go to Security Section<br>
+    Open ImunifyAV Dashboard
+  </p>
+
+  <p><em>Stay protected — scan your sites regularly to keep them safe!</em></p>
+</li></ul></strong></div><strong>
+</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.5</strong></h2><strong><small>Oct 02, 2025</small></strong></div><ul class="version-notes"><li><strong>Fix bugs of Node js </strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.4</strong></h2><strong><small>Oct 01, 2025</small></strong></div><ul class="version-notes"><li><strong>Node js addedd with multiple version</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.3</strong></h2><strong><small>Sep 14, 2025</small></strong></div><ul class="version-notes"><li><h2><strong>Feature Enhancement</strong></h2><strong>
+  <p>File size display during upload has been improved. Sizes are now shown dynamically in <strong>KB, MB, or GB</strong> instead of always in KB.</p>
+
+  <h2>What changed</h2>
+  <ul>
+    <li>Automatic, human-friendly file size formatting (B / KB / MB / GB).</li>
+    <li>Upload preview now shows converted size next to each file name.</li>
+    <li>Better clarity for large file uploads.</li>
+  </ul>
+
+  <h2>Benefits to users</h2>
+  <ul>
+    <li>Clearer understanding of file sizes during upload.</li>
+    <li>No need to manually convert KB to MB or GB.</li>
+    <li>Improved experience for both small and large uploads.</li>
+  </ul>
+</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.2</strong></h2><strong><small>Aug 22, 2025</small></strong></div><ul class="version-notes"><li><strong>Added API system for both User and Admin (<a href="../api_documents/index.html">Documentation</a>), with WHMCS support (<a href="https://marketplace.whmcs.com/product/7967-olspanel">Module here</a>).
+</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.1</strong></h2><strong><small>Aug 01, 2025</small></strong></div><ul class="version-notes"><li><strong>Added Self Brute Force Attack protection using ufw firewall with support custom rules and ufw user interface.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 3.0.0</strong></h2><strong><small>Jul 15, 2025</small></strong></div><ul class="version-notes"><li><strong>Added php plugin system on olspanel <a href="../plugin_develop/index.html"> Details here</a></strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.10</strong></h2><strong><small>May 20, 2025</small></strong></div><ul class="version-notes"><li><strong>Bug fixes for FTP login issues and improved compatibility with AlmaLinux and CentOS Stream.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.9</strong></h2><strong><small>May 01, 2025</small></strong></div><ul class="version-notes"><li><strong>Improved server metrics page with CPU, memory, and load monitoring. Minor UI tweaks.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.8</strong></h2><strong><small>Apr 10, 2025</small></strong></div><ul class="version-notes"><li><strong>Added email account management and enhanced SSL automation with Auto SSL.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.6</strong></h2><strong><small>Mar 20, 2025</small></strong></div><ul class="version-notes"><li><strong>Introduced backup and restore functionality and optimized database queries for faster dashboard load.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.5</strong></h2><strong><small>Mar 05, 2025</small></strong></div><ul class="version-notes"><li><strong>Fixed security issue with file manager permissions and updated OpenLiteSpeed integration.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.4</strong></h2><strong><small>Feb 10, 2025</small></strong></div><ul class="version-notes"><li><strong>Added PHP management support, improved UI for easier domain and SSL handling, and minor bug fixes.</strong></li></ul></div><div class="version-card"><div class="version-header"><h2><strong>Version 2.0.1</strong></h2><strong><small>Feb 01, 2025</small></strong></div><ul class="version-notes"><li><strong>Initial public release of OLSPanel with core features: OpenLiteSpeed management, FTP, DNS, and basic web hosting controls.</strong></li></ul></div><strong>
+    </strong></div><strong>
+    </strong></div><strong>
+</strong></section><strong>
+   <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-column">
+            <h4>Product</h4>
+            
+            <a href="../pricing/index.html">Pricing</a>
+            <a href="../features/index.html">Features</a>
+            <a href="introduction">Documentation</a>
+            <a href="../plugin_develop/index.html">Plugin Develop</a>
+            <a href="https://marketplace.whmcs.com/product/7967-olspanel">Whmcs Module</a>
+            <a href="../mongoDB/index.html">MongoDB</a>
+            <a href="../api_documents/index.html">Api</a>
+           
+        </div>
+       
+        <div class="footer-column">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+            <a href="../release/index.html">Release log</a>
+             <a href="#">Demo</a>
+            <a href="https://community.olspanel.com/">Community</a>
+            
+        </div>
+        <div class="footer-column">
+            <h4>Legal</h4>
+            <a href="../terms/index.html">Terms</a>
+            <a href="../privacy/index.html">Privacy</a>
+			<a href="../refund/index.html">Refund</a>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    
+<script>
+  function copyCode(button) {
+    const code = button.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      const icon = button.querySelector('i');
+      icon.className = 'fas fa-check';  // Change icon to checkmark
+      setTimeout(() => {
+        icon.className = 'fas fa-copy'; // Change back to copy icon
+      }, 1500);
+    });
+  }
+</script>
+    
+
+
+</strong></body></html>

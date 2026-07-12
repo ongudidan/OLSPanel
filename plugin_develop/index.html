@@ -1,0 +1,546 @@
+<!DOCTYPE html><html lang="en"><head>
+      <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>API Documents OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel</title>
+    
+    <!-- Description (up to 160 characters) -->
+    <meta name="description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage your web hosting easily with our lightweight and powerful panel.">
+
+    
+    <!-- Keywords for SEO (comma-separated) -->
+    <meta name="keywords" content="web hosting control panel, openlitespeed, free hosting panel, server management, open source, web hosting, panel for OpenLiteSpeed">
+    
+    <!-- Robots Meta Tag (controls how search engines index the page) -->
+    <meta name="robots" content="index, follow">
+    
+  
+    <!-- Open Graph Meta Tags (for better sharing on social media platforms) -->
+    <meta property="og:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta property="og:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta property="og:image" content="images/ow_1.png">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OLSPanel",
+  "operatingSystem": "Linux",
+  "applicationCategory": "WebHostingControlPanel",
+  "description": "OLSPanel is a free OpenLiteSpeed web hosting control panel, perfect for managing your server with ease.",
+  "url": "https://www.olspanel.com",
+  "image": "https://www.olspanel.com/logo.png",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "0",
+    "eligibleRegion": {
+      "@type": "Place",
+      "name": "Global"
+    }
+  }
+}
+</script>
+    <!-- Twitter Card Meta Tags (for Twitter sharing) -->
+    <meta name="twitter:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta name="twitter:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta name="twitter:image" content="/ow.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/x-icon" href="../images/logo.png"> 
+   <link href="https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Orbitron:wght@400;700&family=Roboto:wght@400;700&family=Poppins:wght@300;400;600;700&Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Font Awesome CDN -->
+<link href="../css/all.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <a href="../index.html" style="text-decoration: none;">  <img src="../images/ow.png" alt="OLSPanel Logo" class="logo" width="200px"> </a>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="../introduction/index.html">Documents</a></li>
+                <li><a href="../requirements/index.html">Requirements</a></li>
+                <li><a href="../features/index.html">Features</a></li>
+                <li><a href="#">Demo</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="../documents/index.html" class="btn get-started">Get-Started</a>
+            </div>
+        </div>
+    </nav>
+
+
+
+<div class="ols-docs-menu-toggle" id="ols-docs-toggle"><i class="fa fa-indent"></i> All Category</div>
+
+<div class="ols-docs-container">
+<div class="ols-docs-sidebar-wrapper">
+  <aside class="ols-docs-sidebar" id="ols-docs-sidebar">
+    <ul class="ols-docs-menu">
+      <li class="dropdown active">
+        <a href="javascript:void(0);" class="menu-link">
+          Plugin Development
+          <span class="arrow"><i class="fa fa-angle-down"></i></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#plugin_conf_install">Install plugin</a></li>
+          <li><a href="#plugin_conf_example">Configuration File</a></li>
+          <li><a href="#plugin_conf_field">Configuration Fields</a></li>
+          <li><a href="#plugin_conf_file">Configuration Location</a></li>
+         
+        
+          
+        </ul>
+      </li>
+      
+      
+      
+      
+    </ul>
+  </aside>
+</div>
+  <div class="ols-docs-content">
+
+    <div class="introduction-block">
+      <h2 id="dynamic_plugin_config">Plugin Configuration & Installation</h2>
+      
+       <p id="plugin_conf_install">Plugin install</p>
+           <div class="code-snippet" id="restart_lite">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>install_cp_plugin https://example.com/plugin_name.zip</code></pre>
+</div>
+      
+      
+      
+      
+      
+      
+      
+      <p>This page describes the configuration required to add a 3rd-party plugin by php to OLSPanel. The configuration file should be included in the root zip file of the plugin.</p>
+
+      <h3 id="plugin_conf_example">Example Configuration File</h3>
+      <div class="code-snippet" id="restart_lite">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code># The Display name.
+name=RoundCube webmail
+
+# The application's service.
+service=user_panel
+
+# Physical path: /usr/local/lsws/Example/html/mypanel/3rdparty/index.php
+# Literal URL path: $server:$port/3rdparty/plugin_folder/name/index.php
+url=/3rdparty/roundcube/index.php
+auto_login_url=/3rdparty/roundcube/?_task=login
+
+# Pass parameters via HTTP headers
+header[HTTP_AUTOLOGINUSER]=%email%
+header[HTTP_AUTOLOGINPASS]=%email_password%
+
+# System user and group to run process as
+user=$authuser
+group=$authuser
+
+# Features required
+features=mail
+
+# Media required
+icon=/media/icon/roundcube.png
+
+# Short order
+sorder=0
+
+target=_blank
+
+# System user and group to run process as second path optional
+user2=root
+group2=root
+path2=auto_index.php
+</code></pre>
+</div>
+
+    <h3 id="plugin_conf_field">Configuration Fields</h3>
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Description</th>
+      <th>Usage / Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>name</td>
+      <td>The display name of the plugin as shown in the panel.</td>
+      <td>Example: <code>RoundCube webmail</code></td>
+    </tr>
+    <tr>
+      <td>service</td>
+      <td>The type of panel service this plugin belongs to.</td>
+      <td>Common values: <code>user_panel</code>, <code>admin_panel</code>. Determines access and available actions.</td>
+    </tr>
+    <tr>
+      <td>url</td>
+      <td>Physical path of the plugin relative to the panel root.</td>
+      <td>Example: <code>/3rdparty/roundcube/index.php</code>. This must point to the plugin’s main PHP entry file.</td>
+    </tr>
+    <tr>
+      <td>auto_login_url</td>
+      <td>URL used for automatic login to the plugin.</td>
+      <td>Example: <code>/3rdparty/roundcube/?_task=login</code>. This URL will be accessed using credentials passed via HTTP headers.</td>
+    </tr>
+    <tr>
+      <td>header[]</td>
+      <td>HTTP headers sent to the plugin for auto-login.</td>
+      <td>
+        Can include any of these placeholders: <br>
+        <code>%email%</code> – user email<br>
+        <code>%email_password%</code> – email password<br>
+        <code>%username%</code> – panel username<br>
+        <code>%userid%</code> – panel user ID<br>
+        <code>%dbinfo%</code> – database connection info<br>
+        <code>%usertoken%</code> – secure user token<br>
+        <br>
+        Example: <code>header[HTTP_AUTOLOGINUSER]=%email%</code><br>
+        <code>header[HTTP_AUTOLOGINPASS]=%email_password%</code>
+      </td>
+    </tr>
+    <tr>
+      <td>user / group</td>
+      <td>System user and group under which the plugin PHP process runs.</td>
+      <td>
+        Can use <code>$authuser</code> (panel system user), <code>nobody</code>, or any valid system user/group.<br>
+        Ensures correct file permissions and process ownership.
+      </td>
+    </tr>
+    
+     <tr>
+      <td>user2 / group2</td>
+      <td>System user and group under which the plugin PHP process runs for sparte path.</td>
+      <td>
+        Can use <code>$authuser</code> (panel system user), <code>nobody</code>, or any valid system user/group.<br>
+        path2=auto_index.php<br>
+        Ensures correct file permissions and process ownership.
+      </td>
+    </tr>
+    <tr>
+      <td>features</td>
+      <td>Required system features or capabilities for the plugin.</td>
+      <td>
+        Supported features (lowercase): <br>
+        <code>domains</code>, <code>files</code>, <code>security</code>, <code>database</code>, <code>email</code>, <code>mail</code>, <code>advance</code>, <code>software</code>.<br>
+        Multiple features can be comma-separated: <code>features=mail,email</code>
+      </td>
+    </tr>
+    
+    <tr>
+  <td>target</td>
+  <td>Open links in a new browser tab.</td>
+  <td>
+    To make a link open in a new tab, use the HTML attribute <code>target= _blank</code> inside your tag.
+  </td>
+</tr>
+
+    <tr>
+      <td>icon</td>
+      <td>Path to the plugin icon to display in the panel interface.</td>
+      <td>Example: <code>/media/icon/roundcube.png</code></td>
+    </tr>
+   <tr>
+  <td>display_hide</td>
+  <td>
+    Controls whether the plugin should be shown or hidden in the interface.
+    If set to <code>true</code>, the plugin will not appear in the list.
+  </td>
+  <td>
+    Example: <code>display_hide = true</code>
+  </td>
+</tr>
+
+  </tbody>
+</table>
+
+      <h3>Usage</h3>
+      <p>After adding the plugin configuration in the root zip file and uploading it to OLSPanel, the plugin will appear in the 3rd-party section of the panel. Auto-login will use the provided headers if configured.</p>
+
+      <h3>Notes</h3>
+      <ul>
+        <li>Ensure the <code>url</code> path matches the actual location of the plugin files.</li>
+        <li>Header placeholders like <code>%email%</code>, <code>%username%</code>, etc. will be replaced automatically by OLSPanel during login.</li>
+        <li>Set <code>user</code> and <code>group</code> to the panel user or <code>nobody</code> if necessary for permissions.</li>
+      </ul>
+
+    </div>
+
+
+  <div class="introduction-block">
+  <h2 id="plugin_conf_file">Plugin Configuration File</h2>
+  <p>
+    Each plugin requires a corresponding configuration file with the extension <code>.conf</code>. 
+    The system automatically detects the plugin’s nickname from the <strong>plugin name</strong> 
+    specified inside the configuration file. By convention, the configuration file should be named 
+    as <code>plugin_<nickname>.conf</nickname></code>, for example, <code>plugin_roundcube.conf</code>. 
+    This file must be placed inside the panel’s root directory, alongside the plugin’s main entry file 
+    (e.g., <code>index.php</code>).
+  </p>
+  <p>
+    The plugin icon file must also reside in the root of the plugin ZIP archive and must be named 
+    following the convention <code>plugin_icon.png</code>, for example, 
+    <code>plugin_icon.png</code>. This ensures the panel can automatically display the icon 
+    in the plugin listing.
+  </p>
+  <p>
+    Example directory structure for the RoundCube plugin:
+    </p><pre>zip/
+├── index.php
+├── plugin_roundcube.conf
+├── plugin_icon.png
+    </pre>
+    The system will automatically read the configuration file to determine the plugin’s display name, 
+    service, headers, and other settings required for proper integration and auto-login.
+  <p></p>
+</div>
+
+
+ <div class="introduction-block">
+  <h2 id="plugin_conf_file">Display Links</h2>
+  <p>
+    The system automatically detects plugin links from JSON files placed inside the 
+    <code>plugin/</code> directory.  
+    Each file must have a <strong>.json</strong> extension — for example, 
+    <code>wordpress_link.json</code> or <code>cms_links.json</code>.
+  </p>
+
+  <p>
+    Every JSON file can contain either:
+    </p><ul>
+      <li><strong>Single object</strong> — one plugin link definition</li>
+      <li><strong>Array of objects</strong> — multiple plugin links in one file</li>
+    </ul>
+    The system automatically handles both formats.
+  <p></p>
+
+  <h3>✅ Example JSON (multiple plugin entries)</h3>
+  <pre><code>[
+  {
+    "icon": "/media/icon/wordpress.png",
+    "order": -1,
+    "name": "Install WordPress",
+    "url": "/3rdparty/olsapp/indexb.live.php?view=install&app=wordpress",
+    "features": "database",
+    "service": "user_panel",
+    "target": "_blank"
+  },
+  {
+    "icon": "/media/icon/joomla.png",
+    "order": 1,
+    "name": "Install Joomla",
+    "url": "/3rdparty/olsapp/indexb.live.php?view=install&app=joomla",
+    "features": "database",
+    "service": "user_panel",
+    "target": "_blank"
+  }
+]</code></pre>
+
+  <p>
+    You can also use a <strong>single plugin entry</strong> file, for example:
+  </p>
+
+  <pre><code>{
+  "icon": "/media/icon/php.svg",
+  "order": 10,
+  "name": "PHP Info",
+  "url": "/phpinfo/",
+  "features": "system",
+  "service": "admin_panel",
+  "target": "_self"
+}</code></pre>
+
+  <p>
+    The following fields are supported:
+  </p>
+  <ul>
+    <li><code>name</code> — Display name of the plugin link</li>
+    <li><code>icon</code> — Icon URL or path shown in the panel</li>
+    <li><code>url</code> — Full or relative link target</li>
+    <li><code>order</code> — Sort order (lower numbers appear first)</li>
+    <li><code>features</code> — Optional feature tag (e.g. <code>database</code>, <code>system</code>)</li>
+    <li><code>service</code> — Optional service scope (<code>admin_panel</code>, <code>user_panel</code>, or <code>both</code>)</li>
+    <li><code>target</code> — Optional link target (e.g. <code>_blank</code> for new tab)</li>
+    <li><code>display_hide</code> — If set to <code>true</code>, the plugin will be hidden</li>
+  </ul>
+
+  <h3>📁 Example Directory Structure</h3>
+  <pre><code>
+plugin/
+├── cms_links.json
+├── wordpress_link.json
+├── custom_admin.json
+  </code></pre>
+
+  <p>
+    The system automatically loads and merges all valid JSON files from this directory.
+    Each file is read only once, and hidden entries (<code>display_hide=true</code>) are skipped.
+  </p>
+</div>
+
+
+
+ <div class="introduction-block">
+  <h2 id="module_dev_guide">Module Development Guide (Python / Django)</h2>
+  <p>
+    OLSPanel supports dynamic module creation using the <strong>Django framework</strong>.  
+    Each module can extend the Admin and User dashboards with its own templates and views.  
+    To learn how to create and integrate your own module, visit the detailed development guide below:
+  </p>
+
+  <p class="mt-3">
+    👉 <a href="/mod_dev" class="introduction-link" target="_blank">
+      Open OLSPanel Module Development Guide
+    </a>
+  </p>
+
+  <p>
+    This guide includes examples for:
+    </p><ul>
+      <li>Folder structure under <code>modules/</code></li>
+      <li>Django views and URL configuration</li>
+      <li>Using <code>@alogin_required</code> and <code>@login_required</code></li>
+      <li>Rendering <code>home_right.html</code> and <code>admin_home_top.html</code></li>
+    </ul>
+  <p></p>
+</div>
+
+
+</div>
+</div>
+<script>
+const toggle = document.getElementById('ols-docs-toggle');
+const sidebar = document.getElementById('ols-docs-sidebar');
+const dropdowns = document.querySelectorAll('.dropdown');
+
+// Toggle menu on click
+toggle.addEventListener('click', () => {
+  sidebar.classList.toggle('active');
+});
+
+// Close menu on outside click
+document.addEventListener('click', function(event) {
+  const isClickInside = sidebar.contains(event.target) || toggle.contains(event.target);
+  if (!isClickInside && sidebar.classList.contains('active')) {
+    sidebar.classList.remove('active');
+  }
+});
+
+// Toggle dropdowns on click
+dropdowns.forEach(dropdown => {
+  const link = dropdown.querySelector('.menu-link');
+  const arrow = dropdown.querySelector('.arrow');
+  link.addEventListener('click', () => {
+    dropdown.classList.toggle('active');
+    arrow.classList.toggle('rotate');
+  });
+});
+
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const targetID = this.getAttribute('href').substring(1);
+    const targetElement = document.getElementById(targetID);
+    if (targetElement) {
+      const headerOffset = 160;
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  });
+});
+</script>
+<style>
+/* Global table styles */
+table {
+    border-collapse: collapse; /* Merge borders */
+    width: 100%; /* Full width */
+}
+
+table th,
+table td {
+    padding: 10px; /* Cell padding */
+    border: 1px solid #ddd; /* Border around cells */
+    text-align: left; /* Align text to left */
+}
+
+table th {
+    background-color: #f2f2f2; /* Header background */
+}
+
+table tr:hover {
+    background-color: #f9f9f9; /* Row hover effect */
+}
+</style>
+
+  <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-column">
+            <h4>Product</h4>
+            
+            <a href="../pricing/index.html">Pricing</a>
+            <a href="../features/index.html">Features</a>
+            <a href="introduction">Documentation</a>
+            <a href="../plugin_develop/index.html">Plugin Develop</a>
+            <a href="https://marketplace.whmcs.com/product/7967-olspanel">Whmcs Module</a>
+            <a href="../mongoDB/index.html">MongoDB</a>
+            <a href="../api_documents/index.html">Api</a>
+           
+        </div>
+       
+        <div class="footer-column">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+            <a href="../release/index.html">Release log</a>
+             <a href="#">Demo</a>
+            <a href="https://community.olspanel.com/">Community</a>
+            
+        </div>
+        <div class="footer-column">
+            <h4>Legal</h4>
+            <a href="../terms/index.html">Terms</a>
+            <a href="../privacy/index.html">Privacy</a>
+			<a href="../refund/index.html">Refund</a>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    
+<script>
+  function copyCode(button) {
+    const code = button.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      const icon = button.querySelector('i');
+      icon.className = 'fas fa-check';  // Change icon to checkmark
+      setTimeout(() => {
+        icon.className = 'fas fa-copy'; // Change back to copy icon
+      }, 1500);
+    });
+  }
+</script>
+    
+
+
+</body></html>

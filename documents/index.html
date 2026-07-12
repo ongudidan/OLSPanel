@@ -1,0 +1,944 @@
+<!DOCTYPE html><html lang="en"><head>
+      <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Documents OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel</title>
+    
+    <!-- Description (up to 160 characters) -->
+    <meta name="description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage your web hosting easily with our lightweight and powerful panel.">
+
+    
+    <!-- Keywords for SEO (comma-separated) -->
+    <meta name="keywords" content="web hosting control panel, openlitespeed, free hosting panel, server management, open source, web hosting, panel for OpenLiteSpeed">
+    
+    <!-- Robots Meta Tag (controls how search engines index the page) -->
+    <meta name="robots" content="index, follow">
+    
+  
+    <!-- Open Graph Meta Tags (for better sharing on social media platforms) -->
+    <meta property="og:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta property="og:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta property="og:image" content="images/ow_1.png">
+    <meta property="og:type" content="website">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OLSPanel",
+  "operatingSystem": "Linux",
+  "applicationCategory": "WebHostingControlPanel",
+  "description": "OLSPanel is a free OpenLiteSpeed web hosting control panel, perfect for managing your server with ease.",
+  "url": "https://www.olspanel.com",
+  "image": "https://www.olspanel.com/logo.png",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "USD",
+    "price": "0",
+    "eligibleRegion": {
+      "@type": "Place",
+      "name": "Global"
+    }
+  }
+}
+</script>
+    <!-- Twitter Card Meta Tags (for Twitter sharing) -->
+    <meta name="twitter:title" content="OLSPanel - Free OpenLiteSpeed Web Hosting Control Panel">
+    <meta name="twitter:description" content="OLSPanel is a free, open-source web hosting control panel for OpenLiteSpeed. Manage websites, databases, and more with ease.">
+    <meta name="twitter:image" content="/ow.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/x-icon" href="../images/logo.png"> 
+   <link href="https://fonts.googleapis.com/css2?family=ADLaM+Display&family=Orbitron:wght@400;700&family=Roboto:wght@400;700&family=Poppins:wght@300;400;600;700&Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Font Awesome CDN -->
+<link href="../css/all.min.css" rel="stylesheet">
+
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+      <a href="../index.html" style="text-decoration: none;">  <img src="../images/ow.png" alt="OLSPanel Logo" class="logo" width="200px"> </a>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-container">
+            <ul class="nav-links">
+                <li><a href="../introduction/index.html">Documents</a></li>
+                <li><a href="../requirements/index.html">Requirements</a></li>
+                <li><a href="../features/index.html">Features</a></li>
+                <li><a href="#">Demo</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+            <div class="nav-buttons">
+                <a href="../documents/index.html" class="btn get-started">Get-Started</a>
+            </div>
+        </div>
+    </nav>
+
+
+<div class="ols-docs-menu-toggle" id="ols-docs-toggle"><i class="fa fa-indent"></i> All Category</div>
+
+<div class="ols-docs-container">
+  <aside class="ols-docs-sidebar" id="ols-docs-sidebar">
+    <ul class="ols-docs-menu">
+      <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+          OLSPanel Command
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#reset_password">Reset password</a></li>
+          <li><a href="#restart_panel">ReStart OLSPanel</a></li>
+          <li><a href="#restart_lite">ReStart Openlitespeed</a></li>
+          <li><a href="#restart_db">ReStart MarialDB</a></li>
+           <li><a href="#swap_mem">Swap Memory</a></li>
+        </ul>
+      </li>
+      
+       <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+         Account management
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#add_account">Add Account</a></li>
+          <li><a href="#edit_account">Edit account</a></li>
+          <li><a href="#suspend_account">Suspend Account</a></li>
+          <li><a href="#unsuspend_account">UnSuspend Account</a></li>
+          <li><a href="#delete_account">Delete Account</a></li>
+        </ul>
+      </li>
+      
+      
+      <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+          Domain/SSL management
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#add_domain">Add Domain</a></li>
+           <li><a href="#add_database">Add Database</a></li>
+          <li><a href="#edit_domain">Edit Domain</a></li>
+          <li><a href="#remove_domain">Remove Domain</a></li>
+          <li><a href="#ssl_issue">SSL Issue</a></li>
+        </ul>
+      </li>
+     
+      <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+          Database management
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#add_db">Add Databse</a></li>
+          <li><a href="#edit_db">Edit Databse</a></li>
+          <li><a href="#remove_db">Remove Databse</a></li>
+          <li><a href="#import_db">Import Databse</a></li>
+        </ul>
+      </li>
+     
+      <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+          Security
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#csf">Install Csf Firewall</a></li>
+          <li><a href="#mode">Install ModSecurity</a></li>
+          <li><a href="#ssh">Change ssh port</a></li>
+          <li><a href="#panel_port">Change OLSPanel port</a></li>
+        </ul>
+      </li>
+     
+       <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+          Upgrade/Downgrade
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#upg">Upgrade</a></li>
+          <li><a href="#dwg">Downgrade</a></li>
+         
+        </ul>
+      </li>
+
+ <li class="dropdown">
+        <a href="javascript:void(0);" class="menu-link">
+          Admin Command/CLI
+          <span class="arrow"><i class="fa fa-angle-down"></i></span> <!-- Down arrow icon -->
+        </a>
+        <!-- Nested List -->
+        <ul class="dropdown-menu">
+          <li><a href="#cadduser">Add user</a></li>
+          <li><a href="#ssl">Issue SSL</a></li>
+          <li><a href="#cadddomain">Add new domain</a></li>
+          <li><a href="#csuspend">Suspend user</a></li>
+          <li><a href="#cunsuspend">UnSuspend user</a></li>
+          <li><a href="#cdel">Delete Suspended user</a></li>
+          <li><a href="#cedit">Edit user</a></li>
+          <li><a href="#cpass">Change user password</a></li>
+          <li><a href="#npkg">New Package</a></li>
+          <li><a href="#cpkg">Package List</a></li>
+          <li><a href="#cbk">Make a Backup</a></li>
+          <li><a href="#2fa">Disable 2FA</a></li>
+          
+         
+        </ul>
+      </li>
+     
+    </ul>
+  </aside>
+
+  <main class="ols-docs-content">
+    <section id="intro" class="introduction-section">
+      
+      <div class="introduction-content">
+        
+
+<div class="introduction-block">
+          <h2 id="add_account">ADD Account</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select add user</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose package and insert domain ,password,username, firtname,last name and email</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>submit</h3>
+              
+            </div>
+          </div>
+        </div>
+
+<div class="introduction-block">
+          <h2 id="edit_account">Edit account</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Userlist</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a user</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Go mange</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+<div class="introduction-block">
+          <h2 id="suspend_account">Suspend Account</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Userlist</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a user</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Go Manage and click suspend</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+<div class="introduction-block">
+          <h2 id="unsuspend_account">UnSuspend Account</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Userlist</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a suspended user</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Go Manage and click Unsuspend</h3>
+              
+            </div>
+          </div>
+        </div>
+
+<div class="introduction-block">
+          <h2 id="delete_account">Delete Account</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Userlist</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a suspended user</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Mange then click Delete</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="introduction-block">
+          <h2 id="add_domain">ADD Domain</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user/admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select add domain</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose folder location</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>submit</h3>
+              
+            </div>
+          </div>
+        </div>
+
+<div class="introduction-block">
+          <h2 id="edit_domain">Edit Domain</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user/admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select domain</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a domain</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Chose Mange</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+<div class="introduction-block">
+          <h2 id="remove_domain">Remove Domain</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user/admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select domain</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a domain</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Chose Mange then click remove</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+
+<div class="introduction-block">
+          <h2 id="ssl_issue">SSL issue a Domain</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user/admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select SSL</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a domain</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>click issue</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+ <div class="introduction-block">
+          <h2 id="add_db">ADD Database</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Database Wizerd</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Type DB name → Next</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Type DB username and password → create</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+<div class="introduction-block">
+          <h2 id="edit_db">Edit Database</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Database</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a DB → Mange</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Edit</h3>
+              
+            </div>
+          </div>
+        </div>
+
+<div class="introduction-block">
+          <h2 id="remove_db">Delete Database</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Database</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a DB → Delete</h3>
+             
+            </div>
+           
+          </div>
+        </div>
+
+<div class="introduction-block">
+          <h2 id="import_db">Import Database</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login user account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Database</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Chose a DB → Import</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Upload file → Import</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+<div class="introduction-block">
+          <h2 id="csf">Install Csf Firewall</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Csf</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Click install</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Wait few time</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+
+<div class="introduction-block">
+          <h2 id="mode">Install Modsecurity</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select Modsecurity</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Click install</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Wait few time</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+<div class="introduction-block">
+          <h2 id="ssh">Change SSH port</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select ssh port</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Type new port</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Save</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+
+<div class="introduction-block">
+          <h2 id="panel_port">Change Olspanel login url port</h2>
+          <div class="benefits-cards">
+            <div class="benefit-card">
+              <h3>Login admin account</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Select panel port</h3>
+            
+            </div>
+            <div class="benefit-card">
+              <h3>Type new port</h3>
+             
+            </div>
+            <div class="benefit-card">
+              <h3>Save</h3>
+              
+            </div>
+          </div>
+        </div>
+
+
+
+        <div class="introduction-block">
+          <h2>Command line</h2>
+          
+           <p>OLSPanel Password reset</p>
+           <div class="code-snippet" id="reset_password">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel reset_admin_password my_new_password</code></pre>
+</div>
+          
+
+
+<p>Add new user</p>
+           <div class="code-snippet" id="cadduser">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel adduser --username john --first_name OLS --last_name Panel --email email@olspanel.com  --password securepassword --domain example2.com --pkg_id 1 --php_version 8.1 
+</code></pre>
+</div>
+
+
+<p>Issue SSL</p>
+           <div class="code-snippet" id="ssl">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel ssl --domain example.com
+</code></pre>
+</div>
+
+
+<p>Add new domain</p>
+           <div class="code-snippet" id="cadddomain">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel domainadd --username john --domain example5.com --php_version 8.1 --path public_html
+</code></pre>
+</div>
+
+<p>Suspend user</p>
+           <div class="code-snippet" id="csuspend">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel actionuser --username john --state suspend</code></pre>
+</div>   
+
+
+<p>UnSuspend user</p>
+           <div class="code-snippet" id="cunsuspend">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel actionuser --username john --state unsuspend</code></pre>
+</div> 
+
+
+<p>Delete Suspended user</p>
+           <div class="code-snippet" id="cdel">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel actionuser --username john --state delete</code></pre>
+</div>
+
+<p>Disable 2FA</p>
+           <div class="code-snippet" id="2fa">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel actionuser --username john --state disable_otp</code></pre>
+</div>   
+
+<p>Edit user</p>
+           <div class="code-snippet" id="cedit">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel edituser --username john --first_name John --last_name Doe --email john.doe@example.com --pkg_id 1
+</code></pre>
+</div> 
+
+
+<p>Change user password</p>
+           <div class="code-snippet" id="cpass">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel edituser --username john --first_name John --last_name Doe --email john.doe@example.com --pkg_id 1 --password newsecurepassword</code></pre>
+</div>
+
+<p>New Package</p>
+           <div class="code-snippet" id="npkg">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel newpkg --name "Starter Plan" --disk_space 5000 --bandwidth 10000 --email_accounts 50 --databases 10 --ftp_accounts 5 --allowed_domains 2 --allowed_subdomains 5 --limit_action 0</code></pre>
+</div> 
+
+<p>New Database</p>
+           <div class="code-snippet" id="add_database">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel makedb --username=babu --dbname=test --dbuser=testuser --dbpass=Pass1234 --dbpassc=Pass1234</code></pre>
+</div> 
+
+<p>New Cronjob</p>
+           <div class="code-snippet" id="add_database">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel cronjob_add --username=babau --minute="0" --hour="3" --day="*" --month="*" --weekday="*" --comm="/home/babau/scripts/backup.sh"
+
+</code></pre>
+</div> 
+
+
+<p>Fix permission</p>
+           <div class="code-snippet" id="add_database">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel fixperm --username=babu --full_path=/home/babu/public_html 
+
+</code></pre>
+</div> 
+
+<p>Package List</p>
+           <div class="code-snippet" id="cpkg">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel pkglist</code></pre>
+</div> 
+
+
+<p>Make a Backup</p>
+           <div class="code-snippet" id="cbk">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>olspanel backupnow --username john --backup_option full,database,email,dns,files --category default</code></pre>
+</div> 
+
+          <p>OLSPanel Restart</p>
+           <div class="code-snippet" id="restart_panel">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>systemctl restart cp</code></pre>
+</div>
+
+
+ <p>Openlitespeed Restart</p>
+           <div class="code-snippet" id="restart_lite">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>/usr/local/lsws/bin/lswsctrl restart</code></pre>
+</div>
+
+
+
+ <p>MarialDB Restart</p>
+           <div class="code-snippet" id="restart_db">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>systemctl restart mariadb</code></pre>
+</div>
+
+<p>Swap  Memory add 2GB</p>
+           <div class="code-snippet" id="swap_mem">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>curl -sSL https://olspanel.com/extra/swap.sh | sed 's/\r$//' | bash
+</code></pre>
+</div>
+
+
+<p>Upgrade/Update</p>
+           <div class="code-snippet" id="upg">
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code>curl -sSL https://olspanel.com/upgrade.sh | sed 's/\r$//' | bash
+</code></pre>
+</div>
+
+
+
+
+
+<p>Downgrade</p>
+<div class="code-snippet" id="dwg">
+  <label for="versionSelect">Select Version:</label>
+  <select id="versionSelect" onchange="updateCode()">
+    <option value="3.0.16">3.0.16</option><option value="3.0.15">3.0.15</option><option value="3.0.13">3.0.13</option><option value="3.0.12">3.0.12</option><option value="3.0.8">3.0.8</option><option value="3.0.6">3.0.6</option><option value="3.0.5">3.0.5</option><option value="3.0.3">3.0.3</option><option value="3.0.2">3.0.2</option><option value="3.0.1">3.0.1</option><option value="3.0.0">3.0.0</option><option value="2.0.10">2.0.10</option><option value="2.0.9">2.0.9</option><option value="2.0.8">2.0.8</option><option value="2.0.6">2.0.6</option><option value="2.0.5">2.0.5</option><option value="2.0.4">2.0.4</option><option value="2.0.1">2.0.1</option>  </select>
+
+  <button class="copy-btn" onclick="copyCode(this)" title="Copy to clipboard">
+    <i class="fas fa-copy"></i>
+  </button>
+
+  <pre><code id="codeBlock">VERSION=3.0.16 bash <(curl -sSL https://olspanel.com/downgrade.sh)</code></pre>
+</div>
+
+<script>
+  function updateCode() {
+    const version = document.getElementById('versionSelect').value;
+    const codeBlock = document.getElementById('codeBlock');
+    codeBlock.textContent = `VERSION=${version} bash <(curl -sSL https://olspanel.com/downgrade.sh)`;
+  }
+
+ 
+</script>
+
+
+
+
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const toggle = document.getElementById('ols-docs-toggle');
+  const sidebar = document.getElementById('ols-docs-sidebar');
+  const dropdowns = document.querySelectorAll('.dropdown');
+
+  // Toggle menu on click
+  toggle.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+  });
+
+  // Close menu on outside click
+  document.addEventListener('click', function(event) {
+    const isClickInside = sidebar.contains(event.target) || toggle.contains(event.target);
+    if (!isClickInside && sidebar.classList.contains('active')) {
+      sidebar.classList.remove('active');
+    }
+  });
+
+  // Toggle dropdowns on click
+  dropdowns.forEach(dropdown => {
+    const link = dropdown.querySelector('.menu-link');
+    const arrow = dropdown.querySelector('.arrow');
+    link.addEventListener('click', () => {
+      dropdown.classList.toggle('active');
+      arrow.classList.toggle('rotate');
+    });
+  });
+  
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const targetID = this.getAttribute('href').substring(1);
+    const targetElement = document.getElementById(targetID);
+    if (targetElement) {
+      const headerOffset = 160; // height of fixed header
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  });
+});
+  
+  
+</script>
+
+  <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-column">
+            <h4>Product</h4>
+            
+            <a href="../pricing/index.html">Pricing</a>
+            <a href="../features/index.html">Features</a>
+            <a href="introduction">Documentation</a>
+            <a href="../plugin_develop/index.html">Plugin Develop</a>
+            <a href="https://marketplace.whmcs.com/product/7967-olspanel">Whmcs Module</a>
+            <a href="../mongoDB/index.html">MongoDB</a>
+            <a href="../api_documents/index.html">Api</a>
+           
+        </div>
+       
+        <div class="footer-column">
+            <h4>Company</h4>
+            <a href="#">About Us</a>
+            <a href="#">Contact Us</a>
+            <a href="../release/index.html">Release log</a>
+             <a href="#">Demo</a>
+            <a href="https://community.olspanel.com/">Community</a>
+            
+        </div>
+        <div class="footer-column">
+            <h4>Legal</h4>
+            <a href="../terms/index.html">Terms</a>
+            <a href="../privacy/index.html">Privacy</a>
+			<a href="../refund/index.html">Refund</a>
+        </div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    
+<script>
+  function copyCode(button) {
+    const code = button.parentElement.querySelector('code').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+      const icon = button.querySelector('i');
+      icon.className = 'fas fa-check';  // Change icon to checkmark
+      setTimeout(() => {
+        icon.className = 'fas fa-copy'; // Change back to copy icon
+      }, 1500);
+    });
+  }
+</script>
+    
+
+
+</body></html>
