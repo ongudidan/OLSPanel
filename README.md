@@ -33,6 +33,26 @@ apt update && apt -y upgrade && apt -y install curl wget sudo
 bash <(curl -fsSL https://ongudidan.github.io/OLSPanel/install.sh || wget -qO- https://ongudidan.github.io/OLSPanel/install.sh)
 ```
 
+### CentOS / RHEL
+
+#### 1st command) Update system packages (optional)
+```bash
+yum update -y && yum install -y curl wget sudo
+```
+
+#### 2nd command) Install OLSPanel
+```bash
+bash <(curl -fsSL https://ongudidan.github.io/OLSPanel/install.sh || wget -qO- https://ongudidan.github.io/OLSPanel/install.sh)
+```
+
+> [!NOTE]
+> After installation, you will get login information (username, password, and URL) to access OLSPanel:
+> * **URL**: `https://your-server-ip:port`
+> * **Username**: `admin`
+> * **Password**: `**********`
+>
+> Ignore the self-signed certificate warning in your browser and log in immediately to complete configurations.
+
 ---
 
 ## 📂 Repository Structure
