@@ -1,0 +1,539 @@
+{% extends "users/base.html" %}
+{% block title %} Dashboard {% endblock title%}
+{% block content %}
+
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-end">
+        <div class="form-group mb-0" style="width: 250px;">
+		<input type="search" id="search" name="lookup_q" class="form-control bg-white" placeholder="Search for option..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+
+        </div>
+    </div>
+</div>
+
+     <div class="row" id="search_here">
+                  <div class="col-md-9 col-xl-9">
+                      
+                    <!-- manu -->
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                            <h3><img src="/media/icon/domain.svg" width="28px" height="28px" style="margin-right: 10px;" />  Domains</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#domain-manu" aria-expanded="true" aria-controls="domain-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="domain-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						{% for app in domain_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}
+								
+							
+							
+							
+							</div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/folder.svg" width="28px" height="28px" style="margin-right: 10px;" />  Files</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#file-manu" aria-expanded="true" aria-controls="file-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="file-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                           {% for app in file_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}  
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                    
+                     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/ssl.svg" width="28px" height="28px" style="margin-right: 10px;" />  Security</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#security-manu" aria-expanded="true" aria-controls="security-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="security-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                           {% for app in security_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}     
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+                   
+                     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/database.svg" width="28px" height="28px" style="margin-right: 10px;" />  Database</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#database-manu" aria-expanded="true" aria-controls="database-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="database-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                           {% for app in database_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}        
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+                    
+                    
+                    
+                      <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/mail.svg" width="28px" height="28px" style="margin-right: 10px;" />  Email</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#email-manu" aria-expanded="true" aria-controls="email-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="email-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            {% for app in email_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}          
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+                   
+                    
+                   
+                   
+                     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/settings.svg" width="28px" height="28px" style="margin-right: 10px;" />  Advance</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#advance-manu" aria-expanded="true" aria-controls="advance-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="advance-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						
+						{% for app in advance_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}         
+						
+                             
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+				    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/software.svg" width="28px" height="28px" style="margin-right: 10px;" />  OLSApp</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#olsapp-manu" aria-expanded="true" aria-controls="olsapp-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="olsapp-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view' 'wordpress_manager' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/wordpress.png" style="margin-right: 10px;" /> <span>Wordpress Manger</span></div></a></div>
+                             <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'wordpress' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/wordpress.png" style="margin-right: 10px;" /> <span>Wordpress Install</span></div></a></div>
+                           
+							 <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'joomla' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/joomla.png" style="margin-right: 10px;" /> <span>Joomla</span></div></a></div>
+                           <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'prestashop' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/presta.png" style="margin-right: 10px;" /> <span>Prestashop</span></div></a></div>
+                          <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'opencart' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/opencart.png" style="margin-right: 10px;" /> <span>Opencart</span></div></a></div>
+                           <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'phpbb' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/phpbb.png" style="margin-right: 10px;" /> <span>phpBB</span></div></a></div>
+                          <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_view'%}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/softaculous.png" style="margin-right: 10px;" /> <span>More App</span></div></a></div>
+                          
+						   
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+				   
+				   
+				   
+				    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/software.svg" width="28px" height="28px" style="margin-right: 10px;" />  Software</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#software-manu" aria-expanded="true" aria-controls="software-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="software-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						
+						
+						{% for app in software_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}
+
+												
+						
+						
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+				   
+                   
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/account.svg" width="28px" height="28px" style="margin-right: 10px;" />  Account</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#account-manu" aria-expanded="true" aria-controls="account-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="account-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'users-profile' %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/user.svg" style="margin-right: 10px;" /> <span>Profile</span></div></a></div>
+                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'logout' %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/logout.svg" style="margin-right: 10px;" /><span>Logout</span></div></a></div>
+                            
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                    
+                   
+
+
+                  </div>
+                  <div class="col-md-3 col-xl-3">
+                    <!-- Current Users  -->
+                    <div class="card card-default">
+                      <div class="card-header">
+                          <span class="cardtitle">General Information</span>
+                      </div>
+                      <div class="bottom-border_right">
+                          <div class="infotitle">Current User</div>
+                          <div class="infovalue">{{ user.username }}</div>
+                          </div>
+                           <div class="bottom-border_right">
+                          <div class="infotitle">Primary Domain</div>
+                          <div class="infovalue"><a href="https://{{pkg_data.main_domain}}" target="_blank">{{pkg_data.main_domain}}</a></div>
+                          </div>
+						  
+						  <div class="bottom-border_right">
+    <div class="infotitle">SSL Certificate <i class="info-icon" title="An SSL certificate allows visitors to communicate with your website over a secure connection.">
+    i
+</i></div>
+
+    <div class="infovalue" id="home_ssl">
+        Loading... <span class="home-loader"></span>
+    </div>
+</div>
+						  
+                           <div class="bottom-border_right">
+                          <div class="infotitle">Server ip</div>
+                          <div class="infovalue">{{pkg_data.server_ip}}</div>
+                          </div>
+                           <div class="bottom-border_right">
+                          <div class="infotitle">Home Directory</div>
+                           <div class="infovalue"><a href="{% url 'file_manager_home' %}" target="_blank">/home/{{ user.username }}</a></div>
+                      
+                        </div>
+                      
+                    </div>
+                    
+                 <div class="card card-default">
+    <div class="card-header">
+        <span class="cardtitle">Statistics</span>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Package</div>
+        <div class="infovalue" id="home_package">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Disk Usage</div>
+        <div class="infovalue" id="home_disk_usage">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">MySQL® Disk Usage</div>
+        <div class="infovalue" id="home_db_usage">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Email Disk Space</div>
+        <div class="infovalue" id="home_email_disk">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Memory</div>
+        <div class="infovalue" id="home_memory">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">CPU</div>
+        <div class="infovalue" id="home_cpu">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Bandwidth</div>
+        <div class="infovalue" id="home_bandwidth">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Domains</div>
+        <div class="infovalue" id="home_domains">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Sub Domains</div>
+        <div class="infovalue" id="home_subdomains">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">FTP Accounts</div>
+        <div class="infovalue" id="home_ftp">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Database</div>
+        <div class="infovalue" id="home_database">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    <div class="bottom-border_right">
+        <div class="infotitle">Email Accounts</div>
+        <div class="infovalue" id="home_email_accounts">
+            Loading... <span class="home-loader"></span>
+        </div>
+    </div>
+
+    {% for mod in modules %}
+        {% include mod.template %}
+    {% endfor %}
+</div>
+
+
+
+    </div>
+                </div>
+				
+				
+								
+				
+				
+			<script>
+document.addEventListener("DOMContentLoaded", function() {
+    fetch("/home_data/")
+        .then(response => response.json())
+        .then(data => {
+
+            const p = data.pkg_data;
+
+            document.getElementById("home_package").innerHTML =
+                p.name;
+
+            document.getElementById("home_disk_usage").innerHTML =
+                `${p.disk_use} / ${p.disk_space}`;
+
+            document.getElementById("home_db_usage").innerHTML =
+                `${p.disk_use_db} / ${p.disk_space}`;
+
+            document.getElementById("home_email_disk").innerHTML =
+                `${p.disk_use_email} / ${p.disk_space}`;
+
+            document.getElementById("home_memory").innerHTML =
+                `${p.memory} MB / ${p.memory_limit} MB`;
+
+            document.getElementById("home_cpu").innerHTML =
+                `${p.cpu}% (Core ${p.cpu_limit})`;
+
+            document.getElementById("home_bandwidth").innerHTML =
+                `${p.bandwidth_use} / ${p.bandwidth}`;
+
+            document.getElementById("home_domains").innerHTML =
+                `${p.domain_use} / ${p.allowed_domains}`;
+
+            document.getElementById("home_subdomains").innerHTML =
+                `${p.subdomain_use} / ${p.allowed_subdomains}`;
+
+            document.getElementById("home_ftp").innerHTML =
+                `${p.ftp_accounts_use} / ${p.ftp_accounts}`;
+
+            document.getElementById("home_database").innerHTML =
+                `${p.databases_use} / ${p.databases}`;
+
+            document.getElementById("home_email_accounts").innerHTML =
+                `${p.total_email_count} / ${p.email_accounts}`;
+				
+				
+			 if (p.ssl.toLowerCase().includes("invalid") || p.ssl.toLowerCase().includes("self")){
+    document.getElementById("home_ssl").innerHTML =
+        '<span class="ssl-inactive">' +
+        '<i class="ri-close-circle-fill"></i> Inactive' +
+        '</span>'+
+		'<a href="/domain_list_ssl/" class="ssl-link">Issue Certificate</a>';
+}	else {
+    document.getElementById("home_ssl").innerHTML =
+        '<span class="ssl-active">' +
+        '<i class="ri-checkbox-circle-fill"></i> Active' +
+        '</span> ' +
+        '<a href="/domain_list_ssl/" class="ssl-link">View Certificate</a>';
+} 
+				
+				
+
+        })
+        .catch(err => {
+
+            [
+                "home_package",
+                "home_disk_usage",
+                "home_db_usage",
+                "home_email_disk",
+                "home_memory",
+                "home_cpu",
+                "home_bandwidth",
+                "home_domains",
+                "home_subdomains",
+                "home_ftp",
+                "home_database",
+                "home_email_accounts"
+            ].forEach(id => {
+                document.getElementById(id).innerHTML =
+                    "<span style='color:red'>Error loading</span>";
+            });
+
+            console.error(err);
+        });
+});
+</script>	
+				<script>
+				
+				 document.getElementById('search').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const container = document.getElementById('search_here');
+    const cards = container.querySelectorAll('.card.card-default');
+
+    cards.forEach(card => {
+      // Get all visible text inside the card
+      const text = card.textContent.toLowerCase();
+      // Show or hide card depending on match
+      if (text.includes(filter)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+
+
+
+
+</script>
+{% include "users/footer.html" %}
+{% endblock content %}

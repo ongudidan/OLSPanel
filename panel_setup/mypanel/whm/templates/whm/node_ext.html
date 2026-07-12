@@ -1,0 +1,167 @@
+{% extends "whm/base.html" %}
+{% block title %}Node JS Module{% endblock title %}
+{% block content %}
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Node JS Module</h2>
+    </div>
+    <div class="card-body">
+        <label class="small mb-1" for="php_version">Select Node JS Version:</label>
+		 {% csrf_token %}
+        <div class="form-group">
+            <label for="php_version">Select Node JS Version:</label>
+           <select class="form-control" name="php_version" id="php_version" onchange="load(this.value)">
+    <option value="">Node JS version</option>
+    {% for version in node_versions %}
+        <option value="{{ version }}">{{ version }}</option>
+    {% endfor %}
+</select>
+
+ <div id="responseContainer" style="display: none;" class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</div>
+		
+      <div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="extension-list">
+            <!-- Extensions will be dynamically added here -->
+        </tbody>
+    </table>
+</div>
+
+    </div>
+</div>
+</div>
+</div>
+<script>
+  document.getElementById('php_version').addEventListener('change', function () {
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const version = this.value;
+    const extensionList = document.getElementById('extension-list');
+    extensionList.innerHTML = 'Loading extensions...';
+const alertContainer = document.getElementById('responseContainer');
+    if (version) {
+	alertContainer.style.display = 'block';
+        fetch("{% url 'node_module_load' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken
+            },
+            body: new URLSearchParams({
+                'node_version': version
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+			alertContainer.style.display = 'none';
+                if (data.extensions_status) {
+                    const { available, not_available } = data.extensions_status;
+                    let html = '';
+
+                    // Loop through available extensions
+                    available.forEach(ext => {
+                       html += `<tr>
+    <td>${ext}</td>
+    <td><span class="badge badge-success">Available</span></td>
+    <td>
+        <button class="btn btn-sm btn-danger" onclick="manageExtension('uninstall', '${ext}', '${data.selected_version}')">Uninstall</button>
+    </td>
+</tr>`;
+
+                    });
+
+                    // Loop through unavailable extensions
+                    not_available.forEach(ext => {
+                       html += `<tr>
+    <td>${ext}</td>
+    <td><span class="badge badge-danger">Unavailable</span></td>
+    <td>
+        <button class="btn btn-sm btn-primary" onclick="manageExtension('install', '${ext}', '${data.selected_version}')">Install</button>
+    </td>
+</tr>`;
+
+                    });
+
+                    extensionList.innerHTML = html;
+                } else {
+                    extensionList.innerHTML = '<tr><td colspan="3">No extensions found.</td></tr>';
+                }
+            })
+            .catch(error => {
+			alertContainer.style.display = 'none';
+                console.error('Error fetching extensions:', error);
+                extensionList.innerHTML = '<tr><td colspan="3">Error loading extensions.</td></tr>';
+            });
+    } else {
+        extensionList.innerHTML = '';
+    }
+});
+
+
+function manageExtension(action, extension, php_version) {
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const button = event.target;
+    button.disabled = true;
+
+    // Insert spinner HTML inside the button
+    button.innerHTML = `
+        <div class="sk-wave" style="display:inline-block;width:20px;height:20px;vertical-align:middle;">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+           
+        </div>
+        &nbsp;${action === 'install' ? 'Installing...' : 'Uninstalling...'}
+    `;
+
+    fetch("{% url 'node_module_manage' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({
+            'action': action,
+            'extension': extension,
+            'node_version': php_version
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reload extensions to update statuses
+            document.getElementById('php_version').dispatchEvent(new Event('change'));
+        } else {
+            alert('Error: ' + (data.message || 'Unknown failure.'));
+            button.disabled = false;
+            button.innerText = action === 'install' ? 'Install' : 'Uninstall';
+        }
+    })
+    .catch(error => {
+        alert('Request failed: ' + error);
+        button.disabled = false;
+        button.innerText = action === 'install' ? 'Install' : 'Uninstall';
+    });
+}
+
+
+
+</script>
+
+{% include "whm/footer.html" %}
+{% endblock content %}

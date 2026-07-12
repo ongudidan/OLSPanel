@@ -1,0 +1,160 @@
+{% extends "whm/base.html" %}
+{% block title %}My Domain DNS{% endblock title %}
+{% block content %}
+
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>List of DNS Records</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+   <div class="p-6">
+            
+    <ul class="nav nav-tabs" id="typeTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" data-type="" href="#" role="tab">All Types</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="A" href="#" role="tab">A</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="AAAA" href="#" role="tab">AAAA</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="CAA" href="#" role="tab">CAA</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="CNAME" href="#" role="tab">CNAME</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="MX" href="#" role="tab">MX</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="SRV" href="#" role="tab">SRV</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="TXT" href="#" role="tab">TXT</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="SOA" href="#" role="tab">SOA</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-type="NS" href="#" role="tab">NS</a>
+        </li>
+    </ul>
+	</div>
+   <div class="row">
+   <div class="col-xl-6">
+   <span class="mb-1 btn btn-pill btn-success" role="button" style="text-transform: none;">DNS</span>
+</div>
+<div class="col-xl-6 d-flex justify-content-end">
+    <form class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search for record...">
+        </div>
+    </form>
+	</div>
+	</div>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th>Name</th>
+                <th>TTL</th>
+                <th>Type</th>
+                <th>Record</th>
+                
+            </tr>
+        </thead>
+        <tbody id="domainTable">
+            {% for dns in dnss %}
+            <tr data-name="{{ dns.name }}" data-type="{{ dns.type }}">
+                <td>{{ dns.name }}</td>
+                <td>{{ dns.ttl }}</td>
+                <td>{{ dns.type }}</td>
+                <td>
+                    {% if dns.type == "MX" %}
+                    Priority: {{ dns.prio }} <br>
+                    Destination: {{ dns.content }}
+                    {% else %}
+                    {{ dns.content }}
+                    {% endif %}
+                </td>
+               
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">No record found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById('search');
+        const typeTabs = document.querySelectorAll('#typeTabs .nav-link');
+        const tableRows = document.querySelectorAll('#domainTable tr');
+        const noResults = document.getElementById('noResults');
+        let selectedType = '';
+
+        // Function to filter the table based on search query and selected tab
+        function filterTable() {
+            const searchQuery = searchInput.value.toLowerCase();
+            let visibleRows = 0;
+
+            tableRows.forEach(row => {
+                const name = row.getAttribute('data-name').toLowerCase();
+                const type = row.getAttribute('data-type');
+
+                const matchesSearch = name.includes(searchQuery);
+                const matchesType = !selectedType || type === selectedType;
+
+                if (matchesSearch && matchesType) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Show or hide the "No results" message
+            noResults.style.display = visibleRows === 0 ? 'block' : 'none';
+        }
+
+        // Add click event listener to tabs
+        typeTabs.forEach(tab => {
+            tab.addEventListener('click', function(event) {
+                event.preventDefault();
+                selectedType = this.getAttribute('data-type');
+
+                // Remove 'active' class from all tabs and add to the clicked tab
+                typeTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                filterTable(); // Filter table on tab click
+            });
+        });
+
+        // Filter table when the search input changes
+        searchInput.addEventListener('input', filterTable);
+    });
+</script>
+
+
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

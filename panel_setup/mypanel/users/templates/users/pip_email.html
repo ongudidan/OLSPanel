@@ -1,0 +1,232 @@
+{% extends "users/base.html" %}
+{% block title %}Create Email Pipe{% endblock title %}
+{% block content %}
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Create Email Pipe</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post">
+	 
+    
+        {% csrf_token %}
+        <!-- Username Field -->
+		
+		 <div class="form-group" style="display: flex; align-items: center;">
+            <select id="domainx" name="domain" class="form-control" onchange="setDomainValue()">
+			 {% for domain in domains %}
+                <option value="{{ domain.id }}">{{ domain.domain }}</option>
+               {% endfor %}
+                <!-- Add more domain options here -->
+            </select>
+        </div>
+        
+		
+<label for="username" style="margin-right: 10px;">Username:</label>
+
+ <div class="input-group mb-2 mr-sm-2">
+				  <input type="text" id="username" name="username" class="form-control" value="{{ db_name }}" placeholder="Enter username">
+            <div class="input-group-prepend">
+			
+             <input type="text" id="emailDisplay" class="form-control" readonly>
+            </div>
+            
+			
+          </div>
+
+       
+  <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Document Root (File System Location):</label>
+				  <div class="input-group mb-2 mr-sm-2">
+				 
+            <div class="input-group-prepend">
+			
+              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+            </div>
+           <input type="text" id="path" name="path" class="form-control" value="" placeholder="myscript.php">
+          </div>
+        
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Submit</button>
+        </div>
+    </form>
+</div>
+</div>
+
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Example php</h2>
+        
+
+      </div>
+     
+<div class="code-container">
+    <pre>
+        <code class="python">
+#!/usr/bin/php -q
+ &lt;?php
+$fd = fopen("php://stdin","r");
+$email = "";
+while (!feof($fd)) {
+$email .= fread($fd,1024);
+}
+fclose($fd);
+   
+      $dbx='osman_rc';
+      $dbu='osman_rc';
+      $dbp='dej4>Y]|lspA&pFi';
+   
+
+
+$server = 'localhost';
+$username = $dbu;
+$password = $dbp;
+$database = $dbx;
+
+try{
+	$conn = new PDO("mysql:host=$server;dbname=$database;charset=utf8mb4", $username, $password);
+	
+	$conn->exec("set names utf8mb4");
+	$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
+} catch(PDOException $e){
+	die( "Connection failed: " . $e->getMessage());
+
+
+
+
+}
+$lines = explode("\n", $email);
+$from = "";
+$subject = "";
+$headers = "";
+$message = "";
+$id="1";
+$splittingheaders = true;
+for ($i=0; $i < count($lines); $i++) {if($splittingheaders) {$headers = $lines[$i]."\n";
+if(preg_match("/^Subject: (.*)/", $lines[$i],$matches)) {$subject = $matches[1];}
+if(preg_match("/^From: (.*)/", $lines[$i], $matches)) {$from = $matches[1];}
+if(preg_match("/^To:(.*)/", $lines[$i], $matches)) {$to = $matches[1];}}else{$message .= $lines[$i]."\n";}
+if(trim($lines[$i])==""){$splittingheaders =false;
+}}
+
+preg_match("/[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})/i", $to, $matches);
+$to=$matches[0];
+ 	$queryv = "UPDATE tickets SET msg =:reply_msg WHERE id = :id";
+$v='1';
+$stmtv = $conn->prepare($queryv);
+$stmtv->bindParam(':reply_msg',$from);
+$stmtv->bindParam(':id',$id);
+
+$stmtv->execute() ;  
+?>
+
+
+ </code>
+    </pre>
+</div>
+
+</div>
+
+
+<style>
+/* General styling for the code container */
+.code-container {
+    background-color: #f4f4f4; /* Light gray background */
+    border: 1px solid #ddd;    /* Border to define the code block */
+    padding: 16px;             /* Padding inside the code block */
+    margin: 0px 0;            /* Margin above and below the code block */
+    border-radius: 5px;        /* Rounded corners */
+    font-family: 'Courier New', Courier, monospace; /* Monospace font for code */
+    font-size: 16px;           /* Standard font size */
+    line-height: 1.6;          /* Line height for readability */
+    overflow-x: auto;          /* Allow horizontal scrolling if the code overflows */
+}
+
+/* Style for syntax highlighting */
+.code-container .keyword {
+    color: #d73a49; /* Red for keywords */
+    font-weight: bold;
+}
+
+.code-container .function {
+    color: #6f42c1; /* Purple for function names */
+}
+
+.code-container .string {
+    color: #032f62; /* Blue for string literals */
+}
+
+.code-container .comment {
+    color: #6a737d; /* Gray for comments */
+    font-style: italic;
+}
+
+.code-container .variable {
+    color: #e36209; /* Orange for variables */
+}
+
+.code-container .number {
+    color: #005cc5; /* Blue for numbers */
+}
+
+.code-container .operator {
+    color: #d73a49; /* Red for operators */
+}
+
+/* Optional: Add a scrollbar for large code blocks */
+.code-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.code-container::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 4px;
+}
+
+.code-container::-webkit-scrollbar-thumb:hover {
+    background-color: #555;
+}
+
+
+</style>
+
+<script>
+
+	
+window.onload = function() {
+    updateEmail(); // Call updateEmail on page load
+};
+
+// Function to update the email display field
+document.getElementById('username').addEventListener('input', updateEmail);
+document.getElementById('domainx').addEventListener('change', updateEmail);
+
+function updateEmail() {
+    var username = document.getElementById('username').value || 'user'; // Default to 'user' if username is empty
+    var domainSelect = document.getElementById('domainx');
+    var domain = domainSelect && domainSelect.options[domainSelect.selectedIndex] ? domainSelect.options[domainSelect.selectedIndex].text : ''; // Ensure it's not undefined
+    
+    // If domain is valid, update the email display
+    if (domain) {
+        document.getElementById('emailDisplay').value = '@' + domain;
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var domainSelect = document.getElementById('domainx');
+    if (domainSelect && domainSelect.options.length > 0) {
+        var firstDomain = domainSelect.options[0].text; // Get the first domain
+        document.getElementById('emailDisplay').value = 'user' + '@' + firstDomain; // Set initial value
+    }
+});
+
+
+
+    
+</script>
+{% endblock content %}
+{% include "users/footer.html" %}

@@ -1,0 +1,133 @@
+{% extends "whm/base.html" %}
+{% block title %}Panel PORT{% endblock title %}
+{% block content %}
+<div class="card card-default">
+ <div class="card-header">
+        <h2>Panel PORT</h2>
+        
+
+      </div>
+<div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+            
+                <div class="form-group">
+                <label for="dns_name" id="labelName">Panel port</label>
+                <input type="text" class="form-control" id="port" name="port"  value="{{ port }}" required>
+                
+            </div>
+          
+			
+			
+			
+			
+				
+           
+       
+        <button type="submit" id="save" class="mb-1 btn btn-success">Save Changes</button>
+    </form>
+	
+	
+      <div id="responseContainer" style="display: none;" class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+				
+				<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>		
+	
+	
+	
+	
+	
+</div>
+</div>
+
+
+<script>
+document.getElementById('save').addEventListener('click', function(event) {
+    event.preventDefault();
+    updatePanelPort();
+});
+
+function updatePanelPort() {
+    const port = document.getElementById('port').value;
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+    responseDisplay.style.display = 'inline-block';
+
+    fetch("{% url 'panel_port_update' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": csrfToken
+        },
+        body: new URLSearchParams({
+            port: port
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        responseDisplay.style.display = 'none';
+
+        if (data.status === "success") {
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = data.message + " Redirecting...";
+
+            alertContainer.style.display = "block";
+
+            // Redirect to new panel port
+            setTimeout(function () {
+    const newPort = document.getElementById("port").value.trim();
+
+    // Build new URL using current protocol + hostname + new port + same path
+    const newUrl = window.location.protocol + "//" + window.location.hostname + ":" + newPort + window.location.pathname;
+
+    window.location.href = newUrl;
+}, 2000);
+
+
+        } else {
+            setTimeout(function () {
+    const newPort = document.getElementById("port").value.trim();
+
+    // Build new URL using current protocol + hostname + new port + same path
+    const newUrl = window.location.protocol + "//" + window.location.hostname + ":" + newPort + window.location.pathname;
+
+    window.location.href = newUrl;
+}, 2000);
+
+        }
+    })
+    .catch(error => {
+       setTimeout(function () {
+    const newPort = document.getElementById("port").value.trim();
+
+    // Build new URL using current protocol + hostname + new port + same path
+    const newUrl = window.location.protocol + "//" + window.location.hostname + ":" + newPort + window.location.pathname;
+
+    window.location.href = newUrl;
+}, 2000);
+
+    });
+}
+</script>
+
+
+
+
+
+
+
+{% endblock content %}

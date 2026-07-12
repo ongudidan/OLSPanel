@@ -1,0 +1,31 @@
+{% extends "whm/base.html" %}
+{% block title %}SSH PORT{% endblock title %}
+{% block content %}
+<div class="card card-default">
+ <div class="card-header">
+        <h2>SSH PORT</h2>
+        
+
+      </div>
+<div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+            
+                <div class="form-group">
+                <label for="dns_name" id="labelName">SSH port</label>
+                <input type="text" class="form-control" id="port" name="port"  value="{{ port }}" required>
+                
+            </div>
+          
+			
+			
+			
+			
+				
+           
+       
+        <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
+    </form>
+</div>
+</div>
+{% endblock content %}

@@ -1,0 +1,90 @@
+{% extends "whm/base.html" %}
+{% block title %}Process Manager{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+ <div class="card card-default">
+      <div class="card-header">
+        <h2>List of Process </h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+  
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th>Pid</th>
+                <th>Owner</th>
+                <th>CPU %</th>
+				<th>RAM %</th>
+			<th></th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="domainTable">
+            {% for pk in process %}
+            <tr>
+        <td>{{ pk.pid }}</td>
+        <td>{{ pk.owner }}</td>
+        <td>{{ pk.cpu }}%</td>
+        <td>{{ pk.ram }}%</td>
+        <td>{{ pk.command }}</td>
+        <td>
+            <form method="POST" action="{% url 'kill_process' %}">
+                {% csrf_token %}
+                <input type="hidden" name="pid" value="{{ pk.pid }}">
+                <button type="submit" class="btn btn-danger btn-sm">Kill</button>
+            </form>
+        </td>
+    </tr>
+   
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No domains found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

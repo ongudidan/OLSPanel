@@ -1,0 +1,86 @@
+{% extends "users/base.html" %}
+{% block title %}Add new domain{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+  <div class="card-header">
+    <h2>Add new domain</h2>
+  </div>
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="col-md-5">
+          <!-- Domain Field -->
+          <div class="form-group">
+            <label class="form-check-label" for="id_domain">Domain:</label>
+            {{ user_form.domain}}
+          </div>
+
+          <!-- Document Root Checkbox -->
+          <label class="form-check-label">Document Root (File System Location):</label>
+          <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="dtype" name="dtype">
+            <label class="small mb-1"" for="dtype">
+              Share document root (/home/{{ user.username }}/public_html).
+            </label>
+          </div>
+
+          <!-- Path Field -->
+          <div class="input-group mb-2 mr-sm-2">
+            <div class="input-group-prepend">
+              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+            </div>
+            {{ user_form.path }}
+          </div>
+
+          <!-- PHP Version Select -->
+          <div class="form-group">
+            <label class="form-check-label" for="php_version">Select PHP Version:</label>
+            <select class="form-control" name="php_version" id="php_version">
+              {% for version in php_versions %}
+              <option value="{{ version }}">{{ version }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </div>
+      </div>
+      <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Add domain</button>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript to handle checkbox and domain auto-fill -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const checkbox = document.getElementById("dtype");
+  const domainInput = document.getElementById("id_domain");
+  const pathInput = document.getElementById("id_path");
+
+  function updatePath() {
+    if (!pathInput || !domainInput) return;
+    if (checkbox.checked) {
+      pathInput.value = "/public_html";
+    } else {
+      let domain = domainInput.value.trim().replace(/\s+/g, '').replace(/^www\./, '');
+      if (domain) {
+        pathInput.value = `/${domain}`;
+      } else {
+        pathInput.value = "";
+      }
+    }
+  }
+
+  checkbox.addEventListener("change", updatePath);
+  domainInput.addEventListener("input", function () {
+    if (!checkbox.checked) {
+      updatePath();
+    }
+  });
+
+  updatePath(); // Initial call
+});
+</script>
+
+{% endblock content %}

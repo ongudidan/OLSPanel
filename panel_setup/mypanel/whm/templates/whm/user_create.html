@@ -1,0 +1,140 @@
+{% extends "whm/base.html" %}
+{% block title %}Add User{% endblock title %}
+
+{% block content %}
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+<div class="card card-default">
+<div class="card-header">
+        <h2>ADD user</h2>
+        
+
+      </div>
+<div class="card-body">
+   
+    
+    <form method="post" action="">
+        {% csrf_token %}
+		
+		 <div class="form-group">
+            <label for="dns_name">Domain</label>
+            <input type="text" class="form-control" id="tdomain" name="domain" required>
+        </div>
+		 <div class="form-group">
+                    <label class="small mb-1" for="php_version">Select PHP Version:</label>
+                    <select class="form-control" name="php_version" id="php_version">
+                        {% for version in php_versions %}
+                            <option value="{{ version }}">{{ version }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+        <div class="row mb-2">
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label  for="firstName">First name</label>
+                <input name="first_name" type="text" class="form-control" id="firstName" required>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label for="lastName">Last name</label>
+                <input name="last_name" type="text" class="form-control" id="lastName" required>
+              </div>
+            </div>
+          </div>
+        <div class="form-group">
+            <label for="dns_name">username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="ttl">Email</label>
+            <input type="email" class="form-control" id="ttl" name="email" value="" required>
+        </div>
+
+        <div class="form-group">
+            <label for="type">Package</label>
+            <select class="form-control" id="type" name="pkg_id" required>
+                 {% for pk in pkg %} 
+        <option value="{{pk.id}}">{{pk.name}}</option>
+        {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" id="prio-container" style="display:none;">
+            <label for="prio">Priority</label>
+            <input type="text" class="form-control" id="prio" name="prio" value="0">
+        </div>
+
+        <div class="form-group">
+		<label for="dbpassc" style="margin-right: 10px;">Confirm Password</label>
+<div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
+   
+    <input type="text" id="password" name="password" class="form-control" value="" placeholder="{{ tips }}"> 
+	<button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Genarate</button>
+</div>
+
+        <button type="submit" class="mb-1 btn btn-success">Add user</button>
+    </form>
+</div>
+</div></div></div>
+<script>
+const domainInput = document.getElementById('tdomain');
+    const usernameInput = document.getElementById('username');
+
+  
+// Auto-fill username from domain
+domainInput.addEventListener('input', function () {
+    let namePart = this.value.trim().split('.')[0]; // Get text before first dot
+    namePart = namePart.replace(/[^a-zA-Z0-9]/g, ''); // Keep only letters and numbers
+
+    // Remove starting numbers
+    namePart = namePart.replace(/^[0-9]+/, '');
+
+    // Limit to 9 characters
+    namePart = namePart.slice(0, 9);
+
+    usernameInput.value = namePart;
+});
+
+// Restrict manual input to letters and numbers only, remove starting numbers
+usernameInput.addEventListener('input', function () {
+    let value = this.value.replace(/[^a-zA-Z0-9]/g, ''); // Keep only letters and numbers
+    value = value.replace(/^[0-9]+/, ''); // Remove numbers at the start
+    this.value = value.slice(0, 50); // Limit length
+});
+	
+    function generateStrongPassword(length = 16) {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    
+    // Combine all characters (excluding special characters)
+    const allCharacters = lowercase + uppercase + digits;
+    let password = '';
+
+    // Ensure the password contains at least one character from each category
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += digits[Math.floor(Math.random() * digits.length)];
+
+    // Fill the rest of the password length with a mix of all characters
+    for (let i = 3; i < length; i++) {
+        password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    }
+
+    // Shuffle the password to ensure randomness
+    password = password.split('').sort(() => Math.random() - 0.5).join('');
+    return password;
+}
+
+
+    function generateAndFillPassword() {
+        const password = generateStrongPassword();
+        document.getElementById('password').value = password;
+        
+        return false; // Prevent any default action (not strictly necessary here)
+    }
+</script>
+{% endblock content %}

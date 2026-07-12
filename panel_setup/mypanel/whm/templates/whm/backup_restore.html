@@ -1,0 +1,605 @@
+{% extends "whm/base.html" %}
+{% block title %}Restore Backup{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Backup Restore running do not leave this page, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+ 
+	
+	<div class="card card-default">
+	<div class="card-header"></div>
+
+<div class="card-body">
+
+
+
+
+<form action="#" method="POST">
+ 
+ <div class="form-row">
+            <div class="col-md-5">
+			
+			
+			
+			<p><strong>Backup Location:</strong></p>
+       <label><input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()"> Upload Backup </label><br>
+	    <label><input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()"> Import via url </label><br>
+            <label><input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()"> Local Backup (<span class="mdi mdi-home"></span>/backup/)</label><br>
+            <label><input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()"> FTP Backup</label><br><br>
+         	
+{% csrf_token %}
+
+
+ <div class="form-group" >
+  <div id="sbackup" style="display:none;">
+    <label for="backup-files-select">Select a backup file:</label>
+    <select id="backup-files-select" name="backup-files-select" class="form-control">
+        
+    </select>
+	</div>
+	<br/>
+	<div class="form-group">
+                        <label id="lblCommonSettings" for="common_options">
+                          Backup Format
+                        </label>
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                <select id="common_options" name="category" class="form-control">
+                                   
+                                   
+                                   
+                                    <option value="default">
+                                        Default
+                                    </option>
+                                    <option value="cpanel">
+                                        Cpanel
+                                    </option>
+                                   
+                                    <option value="cyberpanel">
+                                       CyberPanel
+                                    </option>
+                                    <option value="pleask">
+                                       pleask pannel
+                                    </option>
+                                    
+                                </select>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            </div>
+                        </div>
+                    </div>	
+
+ <p><strong>Backup Restore:</strong></p>
+            <label>
+                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)"> Full Backup
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="database"> Database
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="email"> Email
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="dns"> DNS
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="files"> Files
+            </label><br><br>
+			
+				<label for="dbpassc" style="margin-right: 10px;">Account Password</label>
+<div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
+   
+    <input type="text" id="dbpassc" name="dbpassc" class="form-control" value="" placeholder="{{ tips }}"> <button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Genarate</button>
+</div>
+
+
+   <div class="ftp-fields" style="display:none;">
+                <label for="ftp_host">FTP Host:</label>
+                <input type="text" class="form-control" id="ftp_host" name="ftp_host"><br>
+
+                <label for="ftp_user">FTP User:</label>
+                <input type="text" class="form-control" id="ftp_user" name="ftp_user"><br>
+
+                <label for="ftp_pass">FTP Password:</label>
+                <input type="password" class="form-control" id="ftp_pass" name="ftp_pass"><br>
+				
+				 <button class="btn btn-success" type="submit" onclick="fatchbackup('ftp');">Fatch backup file</button>
+            </div>
+			
+			
+			<div class="form-group" id="upload" style="display:none;">
+            <label for="bk_up">Upload file</label>
+			<div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text mdi mdi-zip-box" id="basic-addon1"></span>
+            </div>
+            <input type="file" class="form-control" id="bk_up" name="bk_up" accept=".zip,.tar,.gz">
+          </div>
+			
+			<div id="file-preview" class="file-preview"></div>
+            
+			<button class="btn btn-success" type="submit" id="upload-button">Start</button>
+          </div>
+		  
+		  <div class="form-group" id="curl" style="display:none;">
+            <label for="url">Import via url</label>
+			<div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text mdi mdi-link-variant" id="basic-addon1"></span>
+            </div>
+            <input type="text" class="form-control" id="url-input" name="url-input" placeholder="https://example.com/bk.zip">
+          </div>
+		  
+		   <div  class="upload-item">
+           
+            <div id ="prog" class="progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <div class="progress-percentage">0%</div>
+        </div>
+		  
+         
+			<button class="btn btn-success" type="submit" id="upload-button-url">Start</button>
+          </div>
+		  
+		
+<br/>
+
+
+
+<div id="file_name" style="display:none">
+				
+	 <button class="btn btn-success" type="submit" onclick="issuebackup();">Restore</button>
+	  </div>
+	 
+    </div>
+
+
+           
+        
+    </div>
+	</div>
+	
+</form>	
+	
+</div>
+	
+</div>	
+	
+	
+	
+
+<style>
+        /* Hide the FTP fields initially */
+        .ftp-fields {
+            display: none;
+        }
+    </style>
+
+<script>
+ const csrfToken = "{{ csrf_token }}";
+ const upload_url = "{% url "upload_bk" %}";
+ const upload_url_from_url = "{% url "upload_from_url_bk" %}";
+
+const fileid = document.getElementById('file_name');
+document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form'); // Replace with your form selector if different
+      
+        form.addEventListener('submit', function (e) {
+            
+                e.preventDefault(); // Prevent form submission
+               
+                //issuebackup();
+            
+        });
+    });
+
+
+
+   function toggleFtpFields() {
+    var backupType = document.querySelector('input[name="backup_type"]:checked').value;
+    
+    // Elements for different backup input sections
+    var ftpFields = document.querySelector('.ftp-fields');
+    var uploadSection = document.getElementById('upload');
+    var urlSection = document.getElementById('curl');
+    var localFileSelect = document.getElementById('file_name');
+	var sbackup = document.getElementById('sbackup');
+
+    // Hide everything first
+    ftpFields.style.display = 'none';
+    uploadSection.style.display = 'none';
+    urlSection.style.display = 'none';
+    localFileSelect.style.display = 'none';
+	sbackup.style.display = 'none';
+    
+    if (backupType === 'ftp') {
+        ftpFields.style.display = 'block';
+		
+        // Hide file list for ftp initially; you can show it after fetch if needed
+        localFileSelect.style.display = 'none';
+    } else if (backupType === 'local') {
+	sbackup.style.display = 'block';
+        // Show backup file select for local
+        localFileSelect.style.display = 'block';
+        ftpFields.style.display = 'none';
+        // Optionally fetch files on local select
+        fatchbackup('local');
+    } else if (backupType === 'upload') {
+        uploadSection.style.display = 'block';
+    } else if (backupType === 'url') {
+        urlSection.style.display = 'block';
+    }
+}
+
+
+
+        // Function to toggle the form visibility
+        function toggleForm() {
+            var form = document.getElementById('backup-form');
+            form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+        }
+		function toggleFullBackup(fullBackupCheckbox) {
+            var backupOptions = document.querySelectorAll('.backup-option');
+            backupOptions.forEach(option => {
+                option.checked = fullBackupCheckbox.checked;
+            });
+        }
+		
+		
+function issuebackup(backupfile = "") {
+    const csrfToken = "{{ csrf_token }}";
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+   if (!backupfile) {
+        backupfile = document.querySelector('[name="backup-files-select"]').value;
+    }
+    const backupOptions = Array.from(document.querySelectorAll('input[name="backup_option"]:checked')).map(option => option.value);
+    var backupType = document.querySelector('input[name="backup_type"]:checked').value;
+    const ftpHost = document.querySelector('[name="ftp_host"]').value;
+    const ftpUser = document.querySelector('[name="ftp_user"]').value;
+    const ftpPass = document.querySelector('[name="ftp_pass"]').value;
+    const category = document.querySelector('[name="category"]').value;
+	const pass = document.querySelector('[name="dbpassc"]').value;
+
+    setTimeout(function() {
+        responseDisplay.style.display = 'inline-block';
+
+        // Prepare form data using FormData object
+        const formData = new FormData();
+        
+       formData.append('backup_file', backupfile);  // Join array values as comma-separated string
+        formData.append('type', backupOptions.join(','));
+       if (backupType =='ftp'){ 
+	   formData.append('ftp_host', ftpHost);
+        formData.append('ftp_user', ftpUser);
+        formData.append('ftp_pass', ftpPass);
+		}
+        formData.append('category', category);
+		formData.append('pass', pass);
+ 
+        // Send the form data using a POST request to the backup_now URL
+        fetch('{% url 'backup_restore_start' %}', {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": csrfToken,
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                responseDisplay.style.display = 'none';
+				 messageDisplay.innerText = response.statusText;
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.text(); // Retrieve response as plain text
+        })
+        .then(data => {
+    console.log('Response:', data);
+    responseDisplay.style.display = 'none';
+
+    // Parse the JSON response
+    let responseData = JSON.parse(data);
+
+    // Extract the message from the response
+    let message = responseData.message;
+
+    if (responseData.status === 'success') {
+        // Set alert for success
+        alertContainer.className = "alert alert-success alert-dismissible fade show";
+        messageDisplay.innerText = message; // Displaying success message
+    } else {
+        // Set alert for error
+        alertContainer.className = "alert alert-danger alert-dismissible fade show";
+        messageDisplay.innerText = message; // Displaying error message
+    }
+
+    alertContainer.style.display = "block";
+    setTimeout(function() {
+        //window.location.href = '/domain_list_ssl'; // Change this to your desired URL
+    }, 5000); // 5000 milliseconds = 5 seconds
+})
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }, 0); // 1000 milliseconds = 1 second
+}
+
+
+function fatchbackup(type) {
+    const file_id = document.getElementById('file_name');
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+	const sbackup = document.getElementById('sbackup');
+sbackup.style.display = 'block';
+    responseDisplay.style.display = 'inline-block';
+    alertContainer.style.display = "none";
+   file_id.style.display = "none";  // Hide initially
+ 
+    const csrfToken = "{{ csrf_token }}";
+    const formData = new FormData();
+    formData.append('fetch_type', type);
+
+    if (type == 'ftp') {
+        const ftpHost = document.querySelector('[name="ftp_host"]').value;
+        const ftpUser = document.querySelector('[name="ftp_user"]').value;
+        const ftpPass = document.querySelector('[name="ftp_pass"]').value;
+        formData.append('ftp_host', ftpHost);
+        formData.append('ftp_user', ftpUser);
+        formData.append('ftp_pass', ftpPass);
+    }
+
+    fetch('{% url 'list_backup_files' %}', {
+        method: 'POST',
+        headers: {
+            "X-CSRFToken": csrfToken,
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Fetched backup files:', data); // Debugging log
+        responseDisplay.style.display = 'none';
+
+        if (data.status === 'success' && data.files.length > 0) {
+            file_id.style.display = "block";  // Show backup file list
+
+            const selectElement = document.getElementById('backup-files-select');
+            selectElement.innerHTML = ''; // Clear existing options
+
+            data.files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                selectElement.appendChild(option);
+            });
+			
+			
+			
+        } else {
+            alertContainer.style.display = "block";
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = data.message || "No backup files found.";
+            console.error('Error:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        alertContainer.style.display = "block";
+        alertContainer.className = "alert alert-danger alert-dismissible fade show";
+        messageDisplay.innerText = "Failed to fetch backup files. Please try again.";
+        responseDisplay.style.display = 'none';
+    });
+}
+
+function generateStrongPassword(length = 16) {
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const digits = '0123456789';
+        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+        
+        const allCharacters = lowercase + uppercase + digits + specialChars;
+        let password = '';
+
+        // Ensure the password contains at least one character from each category
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += digits[Math.floor(Math.random() * digits.length)];
+        password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+        // Fill the rest of the password length with a mix of all characters
+        for (let i = 4; i < length; i++) {
+            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+        }
+
+        // Shuffle the password to ensure randomness
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+        return password;
+    }
+
+    function generateAndFillPassword() {
+        const password = generateStrongPassword();
+        //document.getElementById('dbpass').value = password;
+        document.getElementById('dbpassc').value = password; // Set confirm password to match
+        return false; // Prevent any default action (not strictly necessary here)
+    }
+	
+	
+	
+	
+	
+	
+function uploadFile(file) {
+    let parentPath = "backup"; // Set if needed
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('target_name', parentPath);
+
+    // Clear previous preview
+    $('#file-preview').html(`
+        <div id="file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}" class="upload-item">
+            <strong>${file.name}</strong>
+            <div class="progress">
+                <div class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <div class="progress-percentage">0%</div>
+        </div>
+    `);
+
+    const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+    const progressBar = $(`#${fileId} .progress-bar`);
+    const progressPercentage = $(`#${fileId} .progress-percentage`);
+
+    $.ajax({
+        url: upload_url,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: { "X-CSRFToken": csrfToken },
+        xhr: function () {
+            const xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function (e) {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    progressBar.css('width', `${percentComplete}%`);
+                    progressPercentage.text(`${percentComplete}%`);
+                }
+            }, false);
+            return xhr;
+        },
+        success: function (response) {
+            progressBar.css('background-color', 'green');
+            progressPercentage.text('Complete');
+            if (parentPath === "") {
+                parentPath = "/";
+            }
+			issuebackup(file.name);
+            //fetchFolderContents(parentPath); // You can define or remove this as needed
+        },
+        error: function (xhr, status, error) {
+            progressBar.css('background-color', 'red');
+            progressPercentage.text('Failed');
+            console.log('Error:', error);
+            console.log('Status:', status);
+            console.log('Full Response:', xhr);
+            console.log('Response Text:', xhr.responseText);
+        }
+    });
+}
+
+$('#upload-button').on('click', function () {
+    const file = $('#bk_up')[0].files[0];
+    if (!file) {
+        alert('Please select a file to upload.');
+        return;
+    }
+
+    uploadFile(file); // Upload the single selected file
+});
+
+
+function uploadFileFromUrl(fileUrl, targetPath) {
+    const formData = new FormData();
+    formData.append('file_url', fileUrl);
+    formData.append('target_name', targetPath);
+const container = document.querySelector('.upload-item');
+
+    const progressBar = container.querySelector('.progress-bar');
+const progressPercentage = container.querySelector('.progress-percentage');
+
+    progressBar.style.width = '0%';
+    progressBar.style.backgroundColor = ''; // Reset to default
+    progressBar.classList.remove('failed');
+    progressPercentage.textContent = '0%';
+
+    $.ajax({
+        url: upload_url_from_url,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: { "X-CSRFToken": csrfToken },
+        xhr: function () {
+            const xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', () => {
+                // No actual upload progress for URL fetch
+            }, false);
+            return xhr;
+        },
+        beforeSend: function () {
+            let progress = 0;
+            this.interval = setInterval(() => {
+                if (progress < 80) {
+                    progress += 5;
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.textContent = `${progress}%`;
+                }
+            }, 200);
+        },
+        success: function (response) {
+            clearInterval(this.interval);
+            progressBar.style.width = '100%';
+            progressBar.style.backgroundColor = 'green';
+            progressPercentage.textContent = 'Complete';
+
+            const path = targetPath || '/';
+            issuebackup(response.file_name);
+        },
+        error: function (xhr, status, error) {
+            clearInterval(this.interval);
+            progressBar.style.backgroundColor = 'red';
+            progressBar.style.width = '100%';
+            progressPercentage.textContent = 'Failed';
+            console.error('Upload from URL failed:', error, status, xhr.responseText);
+        }
+    });
+}
+
+$('#upload-button-url').on('click', function () {
+    const url = $('#url-input').val().trim();
+    const targetPath = "backup";  // assuming you want to reuse the folder input
+
+    if (!url) {
+        alert('Please enter a file URL to upload.');
+        return;
+    }
+
+    uploadFileFromUrl(url, targetPath);
+});
+	
+</script>	
+	
+	
+{% endblock content %}
+
+{% include "whm/footer.html" %}

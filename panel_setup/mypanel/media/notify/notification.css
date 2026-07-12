@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+  padding: 0;
+}
+.notification-area {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  z-index: 100;
+}
+.notification {
+  height: 100px;
+  width: 330px;
+  position: relative;
+  background: #eee;
+  border-radius: 10px;
+  margin-top: 20px;
+  -webkit-box-shadow: 0px 0px 45px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 0px 0px 45px 0px rgba(0, 0, 0, 0.75);
+  box-shadow: 0px 0px 45px 0px rgba(0, 0, 0, 0.75);
+}
+.notification__icon {
+  float: left;
+  height: 40px;
+  width: 50px;
+  position: relative;
+  top: 30px;
+  left: 15px;
+  font-size: 30px;
+  color: #64963b;
+}
+.notification__exit-icon {
+  float: right;
+  height: 16px;
+  top: 10px;
+  right: 15px;
+  position: relative;
+  color: #363636;
+  cursor: pointer;
+}
+.notification__exit-icon:hover {
+  color: #747474;
+}
+.notification__content {
+  float: left;
+  height: 100px;
+  width: 230px;
+  margin: 0 7px;
+  position: relative;
+}
+.notification-title {
+  font-weight: 900;
+  font-size: 20px;
+  margin: 18px 0 0 0;
+  color: #64963b;
+  font-family: "Montserrat Alternates", sans-serif;
+}
+.notification-message {
+  font-weight: 400;
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  font-family: "Montserrat Alternates", sans-serif;
+  color: #000;
+}
+@media (max-width: 600px) {
+  .notification {
+    top: 0px;
+    left: 0px;
+    width: 100%;
+  }
+  .notification-area {
+    top: 0px;
+    left: 0px;
+    margin: 0;
+    width: 100%;
+    max-height: 100px;
+    position: fixed;
+  }
+}

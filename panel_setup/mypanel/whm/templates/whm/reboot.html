@@ -1,0 +1,115 @@
+{% extends "whm/base.html" %}
+
+{% block title %}Restart server{% endblock %}
+
+{% block content %}
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-inverse">
+            <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Action running, please wait.....</li> 
+            <li> 
+                <div class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </li> 
+        </ol>
+    </nav>
+</div>
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>  
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Server Control</h2>
+    </div>
+    
+    <div class="card-body">
+        <div class="row">
+            <!-- Reboot Now Button -->
+            <div id="rebootNowBtn" class="col-xl-4 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-header btn-danger text-center" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px;">
+                        <h2>Reboot Now</h2>
+                        <div class="sub-title">
+                            <span>Reboot your server immediately</span>
+                        </div>
+                    </div>
+                    <div class="card-body text-center">
+                        <button class="btn btn-danger btn-lg" onclick="handleReboot('immediate')">Reboot Now</button>
+                    </div>
+                </div>
+            </div>
+            
+           
+			
+			
+			
+			 <div id="gracefulRebootBtn" class="col-xl-4 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-header btn-danger text-center" style="display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px;">
+                        <h2>Graceful Reboot</h2>
+                        <div class="sub-title">
+                            <span>Power off and on your server safely</span>
+                        </div>
+                    </div>
+                    <div class="card-body text-center">
+                        <button class="btn btn-danger btn-lg" onclick="onclick="handleReboot('graceful')"">Graceful Reboot</button>
+                    </div>
+                </div>
+            </div>
+			
+			
+			
+			
+        </div>
+        
+        <!-- Feedback Response Container -->
+        <div id="rebootResponse" class="alert" style="display: none;"></div>
+    </div>
+</div>
+
+<script>
+    function handleReboot(type) {
+        const loadingContainer = document.getElementById('responseContainer');
+ const responseContainer = document.getElementById('rebootResponse');
+        // Hide the response container immediately
+        responseContainer.style.display = 'none';
+		loadingContainer.style.display = 'block';
+
+        // Send POST request to trigger reboot action
+        fetch("{% url 'reboot' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: new URLSearchParams({ type: type })
+        })
+        .catch(error => {
+            console.log('Ignoring error:', error); // Ignore any errors
+        });
+
+        // Wait 40 seconds before showing the success message
+        setTimeout(() => {
+		loadingContainer.style.display = 'none';
+            responseContainer.style.display = 'block'; // Show response container
+            responseContainer.className = 'alert alert-success';
+            responseContainer.innerText = 'Server rebooted successfully!';
+        }, 40000);
+    }
+</script>
+
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

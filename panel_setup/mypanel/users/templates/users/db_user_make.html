@@ -1,0 +1,79 @@
+{% extends "users/base.html" %}
+{% block title %}Database User{% endblock title %}
+{% block content %}
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Database User</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post">
+        {% csrf_token %}
+       <label for="user" style="margin-right: 10px;"> Username</label>
+      <div class="form-row">
+            <div class="col-md-5">
+
+ <div class="input-group mb-2 mr-sm-2">
+				 
+            <div class="input-group-prepend">
+			
+              <div class="input-group-text">{{ user.username }}_</div>
+            </div>
+            
+			 <input type="text" id="dbuser" name="dbuser" class="form-control" value="{{ db_name }}">
+          </div></div></div>
+  <label for="dbpass" style="margin-right: 10px;">Password</label>
+<div class="form-group form-inline mb-3">
+  
+    <input type="text" id="dbpass" name="dbpass" class="form-control" value=""  placeholder="{{ tips }}">
+</div>
+ <label for="dbpassc" style="margin-right: 10px;">Confirm Password</label>
+<div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
+   
+    <input type="text" id="dbpassc" name="dbpassc" class="form-control" value="" placeholder="{{ tips }}"> <button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Genarate</button>
+</div>
+        
+        <div class="form-group">
+            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Submit</button>
+            <!-- Delete Button as a Form -->
+                  
+        </div>
+    </form>
+</div>
+</div>
+<script>
+    function generateStrongPassword(length = 16) {
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const digits = '0123456789';
+        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+        
+        const allCharacters = lowercase + uppercase + digits + specialChars;
+        let password = '';
+
+        // Ensure the password contains at least one character from each category
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += digits[Math.floor(Math.random() * digits.length)];
+        password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+        // Fill the rest of the password length with a mix of all characters
+        for (let i = 4; i < length; i++) {
+            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+        }
+
+        // Shuffle the password to ensure randomness
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+        return password;
+    }
+
+    function generateAndFillPassword() {
+        const password = generateStrongPassword();
+        document.getElementById('dbpass').value = password;
+        document.getElementById('dbpassc').value = password; // Set confirm password to match
+        return false; // Prevent any default action (not strictly necessary here)
+    }
+</script>
+{% endblock content %}
+{% include "users/footer.html" %}

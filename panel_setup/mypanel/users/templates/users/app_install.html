@@ -1,0 +1,133 @@
+{% extends "users/base.html" %}
+{% block title %}Install {{ name }}{% endblock title %}
+{% block content %}
+
+
+        <div class="card card-default">
+            <div class="card-header">
+                <h2>Install {{ name }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="col-md-5">
+                    <label class="small mb-1" for="domainx">Select Domain:</label>
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <select class="form-control" name="domainx" id="domainx">
+                            {% for domain in domains %}
+                                <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <label class="small mb-1" for="path">Document Root (File System Location):</label>
+                    <div class="input-group mb-2 mr-sm-2">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+                        </div>
+                        <input type="text" id="path" name="path" class="form-control" value="{{ name }}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button id="save" class="btn btn-primary mt-3">Install {{ name }}</button>
+                </div>
+
+                <div id="responseContainer" style="display: none;" class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+
+                <div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+                    <div id="message"></div>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    
+
+<script>
+document.getElementById('save').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent form submission or default action
+
+    // Call the installApp function
+    installApp();
+});
+
+function installApp() {
+    const domainSelect = document.getElementById('domainx'); // Get the select element
+    const domain = domainSelect.value; // Get the selected domain value
+    const path = document.getElementById('path').value; // Get the document root path
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+    // Ensure that a domain is selected
+    if (!domain) {
+        alertContainer.className = "alert alert-danger alert-dismissible fade show";
+        messageDisplay.innerText = "Please select a domain.";
+        alertContainer.style.display = "block";
+        return;
+    }
+
+    // Show loading spinner
+    responseDisplay.style.display = 'inline-block';
+
+    // Send AJAX request to the server
+    fetch("{% url 'app_install' name=name %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({
+            'domain_name': domain,
+            'target_name': path
+        }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json(); // Parse response as JSON
+    })
+    .then(data => {
+        console.log('Response:', data);
+        responseDisplay.style.display = 'none'; // Hide loading spinner
+
+        if (data.status === 'success') {
+            // Set alert for success
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = data.message; // Display success message
+        } else {
+            // Set alert for error
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = data.message; // Display error message
+        }
+
+        alertContainer.style.display = "block"; // Show alert
+
+        // Redirect after 3 seconds
+        
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        responseDisplay.style.display = 'none'; // Hide loading spinner
+
+        // Set alert for error
+        alertContainer.className = "alert alert-danger alert-dismissible fade show";
+        messageDisplay.innerText = error; // Display error message
+        alertContainer.style.display = "block"; // Show alert
+    });
+}
+</script>
+
+{% include "whm/footer.html" %}
+{% endblock content %}

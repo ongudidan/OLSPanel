@@ -1,0 +1,174 @@
+{% extends "users/base.html" %}
+{% block title %}Composer{% endblock title %}
+{% block content %}
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Action running, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Composer Install</h2>
+    </div>
+    <div class="card-body">
+       
+			
+			
+			 <form method="post" action="">
+            {% csrf_token %}
+			
+			
+            <!-- Select Domain -->
+            <div class="col-md-5 mb-3">
+                <label class="small mb-1" for="domainx">Select Domain:</label>
+                <div class="form-group">
+                    <select class="form-control" name="domain_name" id="domainx">
+                        {% for domain in domains %}
+                            <option value="{{ domain.path }}">
+                               
+                                {{ domain.domain }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+           
+
+            <!-- Document Root -->
+            <div class="col-md-5 mb-3">
+                <label class="small mb-1" for="path">Document Root (Composer.json's Folder):</label>
+                <div class="input-group mb-2 mr-sm-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text"> <span id="domainPath"></span></div>
+                    </div>
+                    <input type="text" id="path" name="target_name" class="form-control"
+                           value="{% if edit_mode %}{{ app_path }}{% else %}{{ target_name_simple }}{% endif %}">
+                </div>
+            </div>
+
+            <!-- Startup File -->
+         
+			
+			   <div class="form-group">
+			
+            <!-- Submit Button -->
+         
+             <button id="install" onclick="composer_install(event)" class="btn btn-outline-primary">
+                   <i class="mdi mdi-play"></i> Run Composer Install  
+			
+			
+                </button>
+				
+				
+				
+            </div>
+			
+			
+			
+			
+        </form>
+    </div>
+</div>
+
+
+<script>
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const domainSelect = document.getElementById("domainx");
+    const domainPath = document.getElementById("domainPath");
+    
+    function updatePathDisplay() {
+        const selectedPath = domainSelect.value;
+        domainPath.textContent = selectedPath;
+       
+    }
+
+    // On load and on change
+    updatePathDisplay();
+    domainSelect.addEventListener("change", updatePathDisplay);
+});
+
+function composer_install(event) {
+    event.preventDefault(); // prevent form submission
+
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+    // Get path from input or span
+    const inputPath = document.getElementById("path").value.trim();
+    const spanPath = document.getElementById("domainPath").textContent.trim();
+    const targetPath = inputPath ? spanPath + "/" + inputPath : spanPath;
+
+    // Get CSRF token
+    const csrfTokenInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    const csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
+
+    responseDisplay.style.display = 'inline-block';
+
+    fetch('{% url "composer_install_run" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({
+            'target_path': targetPath
+        }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json(); // Parse JSON response
+    })
+    .then(data => {
+        console.log('Response:', data);
+        responseDisplay.style.display = 'none';
+
+        // ✅ Check JSON status field
+        if (data.status === 'success') {
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = data.message || "Run successfully";
+        } else {
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = data.message || data.error || "An error occurred";
+        }
+
+        alertContainer.style.display = "block";
+    })
+    .catch(error => {
+        responseDisplay.style.display = 'none';
+        console.error('Error:', error);
+        alertContainer.className = "alert alert-danger alert-dismissible fade show";
+        messageDisplay.innerText = "Network or server error";
+        alertContainer.style.display = "block";
+    });
+}
+
+
+
+</script>
+{% include "users/footer.html" %}
+{% endblock content %}

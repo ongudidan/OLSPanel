@@ -1,0 +1,219 @@
+{% extends "whm/base.html" %}
+{% block title %}System Statistics{% endblock title %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card card-default">
+            <div class="card-header">
+                <h2>System Statistics</h2>
+            </div>
+            <div class="card-body">
+
+                <!-- First Row (Two Tables in One Line) -->
+                <div class="row">
+                    <!-- CPU Information Table -->
+                    <div class="col-md-6 mb-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>CPU Cores</th>
+									
+                                    <th>CPU Model</th>
+                                    <th>CPU MHz</th>
+                                    <th>CPU Cache</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+								
+                                    <td>{{ cpu_info.cores }}</td>
+                                    <td>{{ cpu_info.model }}</td>
+                                    <td>{{ cpu_info.cpu_mhz }}</td>
+                                    <td>{{ cpu_info.cache }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Load Average Table -->
+                    <div class="col-md-6 mb-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>1 Min Load</th>
+                                    <th>5 Min Load</th>
+                                    <th>15 Min Load</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ load_avg.1min }}</td>
+                                    <td>{{ load_avg.5min }}</td>
+                                    <td>{{ load_avg.15min }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Second Row (Two Tables in One Line) -->
+                <div class="row">
+                    <!-- Process Status Table -->
+                    <div class="col-md-6 mb-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Total Processes</th>
+                                    <th>Running</th>
+                                    <th>Sleeping</th>
+                                    <th>Stopped</th>
+                                    <th>Zombie</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ process_status.total }}</td>
+                                    <td>{{ process_status.running }}</td>
+                                    <td>{{ process_status.sleeping }}</td>
+                                    <td>{{ process_status.stopped }}</td>
+                                    <td>{{ process_status.zombie }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CPU Usage Table -->
+                    <div class="col-md-6 mb-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>I/O Wait</th>
+                                    <th>Idle Time</th>
+                                    <th>HW Interrupts</th>
+                                    <th>SoftIRQs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ io_info.iowait }}</td>
+                                    <td>{{ io_info.idle }}</td>
+                                    <td>{{ io_info.interrupts }}</td>
+                                    <td>{{ io_info.softirqs }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Third Row (Two Tables in One Line) -->
+                <div class="row">
+                    <!-- Memory Info Table -->
+                    <div class="col-md-6 mb-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr><th>Memory</th>
+                                    <th>Memory Free</th>
+                                    <th>Memory Used</th>
+                                    <th>Memory Buff/Cache</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+								 <td>{{ total_memory  }}</td>
+                                    <td>{{ memory.free }}</td>
+                                    <td>{{ memory.used }}</td>
+                                    <td>{{ memory.buff_cache }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Swap Info Table -->
+                    <div class="col-md-6 mb-3">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+								<th>Swap</th>
+                                    <th>Swap Free</th>
+                                    <th>Swap Used</th>
+                                    <th>Swap Buff/Cache</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+								<td>{{ total_swap }}</td>
+                                    <td>{{ swap.free }}</td>
+                                    <td>{{ swap.used }}</td>
+                                    <td>{{ swap.buff_cache }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+<div class="row">
+   
+
+    <!-- Disk Info Table -->
+    <div class="col-md-6 mb-3">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    
+                    <th>Disk Total</th>
+                    <th>Used</th>
+                    <th>Available</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    
+                    <td>{{ disk_usage.total }}</td>
+                    <td>{{ disk_usage.used }}</td>
+                    <td>{{ disk_usage.available }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+		
+		
+		
+		
+		 <div class="card card-default">
+		 <div class="card-header">
+                <h2>Service Status</h2>
+            </div>
+            <div class="card-body">
+<table class="table">
+    <thead>
+        <tr>
+            <th>Service Name</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for service, status in services.items %}
+        <tr>
+            <td>{{ service }}</td>
+            <td>{{ status }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>	
+		
+		
+		
+		
+    </div>
+</div>
+
+{% include "whm/footer.html" %}
+{% endblock content %}

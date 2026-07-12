@@ -1,0 +1,312 @@
+{% extends "whm/base.html" %}
+{% block title %}MultiPHP INI Editor{% endblock title %}
+{% block content %}
+
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+
+
+
+<script src="/media/editor/ace.js"></script>
+<style>
+ #editor { 
+            width: 100%; 
+            height: 400px; 
+            border: 1px solid #ccc; 
+        }
+</style>
+<form method="post" action="">
+            {% csrf_token %}
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+<div class="card card-default">
+    <div class="card-header">
+        <h2>MultiPHP INI Editor</h2>
+    </div>
+    <div class="card-body">
+	 <div class="form-group">
+            <label for="php_version">Select PHP Version:</label>
+           <select class="form-control" name="php_version" id="php_version" onchange="load(this.value)">
+    <option value="">PHP version</option>
+    {% for version in php_versions %}
+        <option value="{{ version }}">{{ version }}</option>
+    {% endfor %}
+</select>
+
+ <div id="responseContainer" style="display: none;" class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</div>
+	         <ul class="nav nav-tabs mb-3" id="pills-tab" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#nav-tabs-home" role="tab"
+                  aria-controls="nav-tabs" aria-selected="true">Basic mode</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="nav-profile-tab" data-toggle="pill" href="#nav-profile" role="tab"
+                  aria-controls="nav-profile" aria-selected="false">Editor mode</a>
+              </li>
+              
+             
+            </ul>
+            <div class="tab-content mt-5" id="nav-tabContent">
+              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                
+           
+
+<div class="form-group mt-3">
+    <label for="memory_limit">Memory Limit:</label>
+    <input type="text" class="form-control" id="memory_limit" name="memory_limit" placeholder="e.g., 128M">
+</div>
+
+<div class="form-group">
+    <label for="upload_max_filesize">Upload Max Filesize:</label>
+    <input type="text" class="form-control" id="upload_max_filesize" name="upload_max_filesize" placeholder="e.g., 64M">
+</div>
+
+<div class="form-group">
+    <label for="post_max_size">Post Max Size:</label>
+    <input type="text" class="form-control" id="post_max_size" name="post_max_size" placeholder="e.g., 64M">
+</div>
+
+<div class="form-group">
+    <label for="max_execution_time">Max Execution Time:</label>
+    <input type="text" class="form-control" id="max_execution_time" name="max_execution_time" placeholder="e.g., 30">
+</div>
+
+
+<div class="form-group">
+    <label for="max_input_time">Max input time:</label>
+    <input type="text" class="form-control" id="max_input_time" name="max_input_time" placeholder="e.g., 30">
+</div>
+
+
+<div class="form-group">
+    <label for="allow_url_fopen">allow_url_fopen:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="allow_url_fopen" id="allow_url_fopen" class="switch-input form-check-input" value="On">
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+<div class="form-group">
+    <label for="allow_url_include">allow_url_include:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="allow_url_include" id="allow_url_include" class="switch-input form-check-input" value="On">
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+<div class="form-group">
+    <label for="allow_url_include">display_errors:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="display_errors" id="display_errors" class="switch-input form-check-input" value="On">
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+
+<div class="form-group">
+    <label for="allow_url_include">file_uploads:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="file_uploads" id="file_uploads" class="switch-input form-check-input" value="On">
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+
+            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+       
+    
+	    </div>
+              <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                          
+<div id="editor"></div>
+<div class="form-group">
+ <button id="save"  class="btn btn-primary mt-3">Save</button>
+</div>
+          </div>
+
+          </div>
+	
+	
+	
+     
+	
+</div>
+
+ </div>
+</div>
+
+ </form>
+<script>
+    const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/xcode"); // You can change the theme
+        editor.session.setMode("ace/mode/ini"); // Set the mode to PHP
+
+        document.addEventListener('keydown', function(event) {
+            // Detect if 'Ctrl' (or 'Cmd' for Mac) + 'F' is pressed
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+                event.preventDefault();  // Prevent the default browser action (find)
+                toggleSearch();  // Open or close the search box
+            }
+        });
+
+       const alertContainer = document.getElementById('alertContainer');
+       const messageDisplay = document.getElementById('message');
+      const responseDisplay = document.getElementById('responseContainer');
+      
+
+   function load(selectedVersion) {
+    if (selectedVersion) {  // Ensuring selectedVersion is available
+        console.log('Selected version:', selectedVersion);
+       
+        setTimeout(function() {
+            responseDisplay.style.display = 'inline-block';
+
+            // Call the URL with GET method, appending php_version as a query parameter
+            fetch(`{% url 'fetch_php_settings' %}?php_version=${selectedVersion}`, {
+                method: 'GET',  // Using GET to pass php_version as a query parameter
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json(); // Retrieve response as JSON
+            })
+            .then(response => {
+                console.log('Response:', response);
+               responseDisplay.style.display = 'none';
+
+                // Populate form fields with the response data
+                $('#memory_limit').val(response.memory_limit || '');
+                $('#upload_max_filesize').val(response.upload_max_filesize || '');
+                $('#post_max_size').val(response.post_max_size || '');
+                $('#max_execution_time').val(response.max_execution_time || '');
+				$('#max_input_time').val(response.max_input_time || '');
+				$('#allow_url_fopen').val(response.allow_url_fopen || '');
+				$('#allow_url_include').val(response.allow_url_include || '');
+				$('#display_errors').val(response.display_errors || '');
+				$('#file_uploads').val(response.file_uploads || '');
+				
+editor.setValue(response.content, -1);
+// Toggle checkbox if the value matches '1' or 'on'
+if (response.allow_url_fopen === '1' || response.allow_url_fopen.toString().toLowerCase() === 'on') {
+    $('#allow_url_fopen').prop('checked', true);
+} else {
+    $('#allow_url_fopen').prop('checked', false);
+}
+
+// Toggle checkbox if the value matches '1' or 'on'
+if (response.allow_url_include === '1' || response.allow_url_include.toString().toLowerCase() === 'on') {
+    $('#allow_url_include').prop('checked', true);
+} else {
+    $('#allow_url_include').prop('checked', false);
+}
+
+// Toggle checkbox if the value matches '1' or 'on'
+if (response.display_errors === '1' || response.display_errors.toString().toLowerCase() === 'on') {
+    $('#display_errors').prop('checked', true);
+} else {
+    $('#display_errors').prop('checked', false);
+}
+
+// Toggle checkbox if the value matches '1' or 'on'
+if (response.file_uploads === '1' || response.file_uploads.toString().toLowerCase() === 'on') {
+    $('#file_uploads').prop('checked', true);
+} else {
+    $('#file_uploads').prop('checked', false);
+}
+
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // You can show an alert to notify the user about the error
+               responseDisplay.style.display = 'none';
+               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
+            });
+        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
+    } else {
+        console.log('No PHP version selected.');
+    }
+}
+
+
+       
+		
+	document.getElementById('save').onclick = function () {
+   event.preventDefault();
+    const content = editor.getValue();
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
+    const alertContainer = document.getElementById('alertContainer'); // Assuming this is your alert container
+    const messageDisplay = document.getElementById('message'); // Assuming this is your message container
+ const phpVersion = document.getElementById('php_version').value;
+    responseDisplay.style.display = 'inline-block';
+
+    // Get the value of the input field
+   
+    // Use fetch to send a POST request to save the file content
+    fetch("{% url 'ini_editor' %}", { // Assuming `inputValue` contains the API URL
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new URLSearchParams({
+            'content': content,
+			'php_version': phpVersion
+        })
+    })
+    .then(response => {
+        responseDisplay.style.display = 'none';
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json(); // Parse response as JSON
+    })
+    .then(data => {
+        console.log('Response:', data);
+        responseDisplay.style.display = 'none';
+ alertContainer.style.display = 'block';
+        if (data.status === 'success') {
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = 'Save successful'; // Displaying success message
+        } else {
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = "Failed: " + data.message; // Displaying error message
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        responseDisplay.style.display = 'none';
+		alertContainer.style.display = 'block';
+        alertContainer.className = "alert alert-danger alert-dismissible fade show";
+        messageDisplay.innerText = 'An error occurred: ' + error.message; // Displaying network error
+    });
+};
+	
+
+</script>
+  
+{% include "whm/footer.html" %}
+{% endblock content %}

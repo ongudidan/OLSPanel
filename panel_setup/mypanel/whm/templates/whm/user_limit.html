@@ -1,0 +1,491 @@
+{% extends "whm/base.html" %}
+{% block title %}Resource limits{% endblock title %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.35.0/tabler-icons.min.css" integrity="sha512-gzw5zNP2TRq+DKyAqZfDclaTG4dOrGJrwob2Fc8xwcJPDPVij0HowLIMZ8c1NefFM0OZZYUUUNoPfcoI5jqudw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+
+
+ <div class="card card-default">
+      <div class="card-header">
+       
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+   <div class="row">
+   <div class="col-xl-6">
+   <h2>List of users</h2>
+</div>
+<div class="col-xl-6 d-flex justify-content-end">
+    <form action="{% url 'user_list_all' %}" method="post" class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search for user...">
+        </div>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Filter</button>
+    </form>
+	</div>
+	</div>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th>Username</th>
+				
+				<th>Domain</th>
+                
+                <th>Status</th>
+				
+				 <th>Quota</th>
+                 <th style="white-space: nowrap">Disk Used</th>
+				<th>Bandwidth</th>
+				 
+				<th>Package</th>
+				<th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="domainTable">
+            {% for myuser in users %}
+            <tr class="{% if not myuser.is_active %}table-danger{% endif %}">
+                <td><b>{{ myuser.username }}</b></td>
+				
+				<td><a href="http://{{ myuser.main_domain }}" target="_blank">{{ myuser.main_domain }}</a></td>
+              
+                <td><span id="domainPath_{{ forloop.counter }}">
+    {% if myuser.is_active %}
+        <span class="badge badge-success">Active</span>
+    {% else %}
+        <span class="badge badge-danger">Suspended</span>
+    {% endif %}
+	</span></td>
+	
+	
+	<td>{% if myuser.quota == 0 %}unlimited{% else %}{{ myuser.quota }} MB{% endif %}</td>
+ <td class="user-cell" data_username="{{ myuser.username }}">
+
+    <div class="sk-wave">
+        <div class="rect1"></div>
+        <div class="rect2"></div>
+        <div class="rect3"></div>
+        <div class="rect4"></div>
+        <div class="rect5"></div>
+    </div>
+
+</td>
+
+<td>{{ myuser.bandwidth_use }}</td>
+	<td>{{ myuser.pkg }}</td>
+                <td>
+			
+     {% if myuser.is_active %}  
+	 <button class="btn btn-outline-info btn-sm" data-toggle="modal" data-target="#resourceLimitModal" data-username="{{ myuser.id }}"> <i class="ti ti-cpu"></i> Resource</button>    
+	 {% endif %}          
+                    
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No domains found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+
+<script>
+
+const download_url = "{% url 'disk_users_view' %}"; // Base download URL
+
+function fetchdiskUser() {
+
+  fetch(download_url)
+    .then(response => response.json())
+    .then(data => {
+
+      if (data.status === "success") {
+
+        data.data.forEach(user => {
+
+          const username = user.username;
+          const total_usage = user.total_usage;
+
+          // Select the cell using data_username
+          const cell = document.querySelector(
+            `.user-cell[data_username="${username}"]`
+          );
+
+          if (cell) {
+
+            // Fade out animation smoothly
+            cell.style.opacity = "0.3";
+
+            setTimeout(() => {
+
+              // Replace loading animation with total_usage
+              cell.innerHTML = `<span>${total_usage}</span>`;
+
+              // Fade back in
+              cell.style.opacity = "1";
+
+            }, 300);
+
+          }
+
+        });
+
+      } else {
+        console.warn("No user data found or partial data");
+      }
+
+    })
+    .catch(error => {
+      console.error("Error fetching user data:", error);
+    });
+}
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+fetchdiskUser();
+  const rowsPerPage = 20;
+  const table = document.getElementById("domainTable");
+  if (!table) return;
+
+  const rows = Array.from(table.getElementsByTagName("tr"));
+  const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+  // ✅ Only create pagination if needed
+  if (rows.length > rowsPerPage) {
+    const paginationContainer = document.createElement("div");
+    paginationContainer.className = "dataTables_paginate paging_simple_numbers";
+    paginationContainer.id = "productsTable_paginate";
+
+    const prevBtn = document.createElement("a");
+    prevBtn.className = "paginate_button previous disabled";
+    prevBtn.id = "productsTable_previous";
+    prevBtn.textContent = "Previous";
+
+    const nextBtn = document.createElement("a");
+    nextBtn.className = "paginate_button next";
+    nextBtn.id = "productsTable_next";
+    nextBtn.textContent = "Next";
+
+    const spanContainer = document.createElement("span");
+
+    paginationContainer.appendChild(prevBtn);
+    paginationContainer.appendChild(spanContainer);
+    paginationContainer.appendChild(nextBtn);
+
+    table.parentElement.after(paginationContainer);
+
+    function showPage(page) {
+      rows.forEach((row, i) => {
+        row.style.display = (i >= (page - 1) * rowsPerPage && i < page * rowsPerPage)
+          ? ""
+          : "none";
+      });
+
+      const pageButtons = spanContainer.querySelectorAll(".paginate_button");
+      pageButtons.forEach(btn => btn.classList.remove("current"));
+      const activeBtn = spanContainer.querySelector(`.paginate_button[data-page="${page}"]`);
+      if (activeBtn) activeBtn.classList.add("current");
+
+      prevBtn.classList.toggle("disabled", page === 1);
+      nextBtn.classList.toggle("disabled", page === totalPages);
+    }
+
+    function createPagination() {
+      spanContainer.innerHTML = "";
+
+      for (let i = 1; i <= totalPages; i++) {
+        const a = document.createElement("a");
+        a.className = "paginate_button";
+        a.dataset.page = i;
+        a.textContent = i;
+        a.style.cursor = "pointer";
+        a.removeAttribute("href");
+        spanContainer.appendChild(a);
+      }
+
+      prevBtn.style.cursor = "pointer";
+      nextBtn.style.cursor = "pointer";
+
+      paginationContainer.addEventListener("click", function (e) {
+        if (e.target.classList.contains("paginate_button") && !e.target.classList.contains("disabled")) {
+          e.preventDefault();
+
+          if (e.target.classList.contains("previous")) {
+            const current = Number(spanContainer.querySelector(".current")?.dataset.page || 1);
+            if (current > 1) showPage(current - 1);
+          } else if (e.target.classList.contains("next")) {
+            const current = Number(spanContainer.querySelector(".current")?.dataset.page || 1);
+            if (current < totalPages) showPage(current + 1);
+          } else {
+            const page = Number(e.target.dataset.page);
+            showPage(page);
+          }
+        }
+      });
+    }
+
+    createPagination();
+    showPage(1);
+  } else {
+    // ✅ Show all rows and no pagination
+    rows.forEach(r => (r.style.display = ""));
+  }
+});
+</script>
+
+
+
+
+<div class="modal fade" id="resourceLimitModal" tabindex="-1" role="dialog">
+  
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+
+        <div class="resource-limit-header">
+            <div class="resource-limit-title">
+                <i class="ti ti-cpu" aria-hidden="true"></i>
+                Resource limits
+            </div>
+
+            <div class="resource-limit-actions">
+                <button class="btn-remove-limit" onclick="userLimit('remove')">
+                    <i class="ti ti-trash" aria-hidden="true"></i>
+                    Remove limits
+                </button>
+
+               <button type="button"
+                class="close"
+                data-dismiss="modal">
+            <span>&times;</span>
+        </button>
+            </div>
+        </div>
+
+        <div class="resource-limit-body">
+		
+		
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+
+
+
+
+            <div class="resource-group">
+                <label>CPU limit</label>
+
+                <div class="resource-input-row">
+                    <input type="number" min="1" placeholder="e.g. 200" id="cpu_limit">
+					<input type="hidden" id="uid">
+                    <span>% of one core</span>
+                </div>
+
+                <p class="resource-help">
+                    100% = 1 core · 200% = 2 cores · 400% = 4 cores
+                </p>
+            </div>
+
+            <div class="resource-group">
+                <label>Memory limit</label>
+
+                <div class="resource-input-row">
+                    <input type="number" min="0" placeholder="e.g. 512" id="memory_limit">
+                    <span>MB</span>
+                </div>
+            </div>
+
+           <div class="resource-info-box">
+<div id="loadingBar" style="display:flex; align-items:center; gap:8px;">
+  Loading... <div class="sk-wave">
+    <div class="rect1"></div>
+    <div class="rect2"></div>
+    <div class="rect3"></div>
+    <div class="rect4"></div>
+    <div class="rect5"></div>
+  </div>
+</div>
+  
+
+    <div id="usageData" style="display:none; align-items:center; gap:8px;">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        <span>
+            Current usage:
+            <strong id="current_cpu">0%</strong> CPU ·
+            <strong id="current_ram">0 MB</strong> RAM
+        </span>
+    </div>
+
+</div>
+
+        </div>
+
+        <div class="resource-limit-footer">
+            <button class="btn-resource-close"  data-dismiss="modal">Close</button>
+            <button class="btn-resource-save" onclick="userLimit('set')">Save changes</button>
+        </div>
+
+    </div>
+</div>
+
+    </div>
+ <script> 
+ 
+ 
+ 
+ 
+ 
+$('#resourceLimitModal').on('show.bs.modal', function (event) {
+
+    const button = $(event.relatedTarget);
+    const username = button.data('username');
+$('#alertContainer').hide();
+    // reset UI
+	$('#uid').val(username);
+    $('#cpu_limit').val('');
+    $('#memory_limit').val('');
+
+    $('#usageData').hide();
+    $('#loadingBar').show();
+
+    fetch('/whm/res_data/' + encodeURIComponent(username))
+        .then(response => response.json())
+        .then(res => {
+
+            if (!res.success || !res.pkg_data) {
+                $('#loadingBar').hide();
+                $('#usageData').show();
+
+                $('#current_cpu').text('N/A');
+                $('#current_ram').text('N/A');
+                return;
+            }
+
+            const data = res.pkg_data;
+
+            // show data, hide loader
+            $('#loadingBar').hide();
+            $('#usageData').show();
+
+            $('#current_cpu').text(data.cpu + '%');
+            $('#current_ram').text(data.memory + ' MB');
+
+            $('#cpu_limit').val(data.cpu_limit || '');
+            $('#memory_limit').val(data.memory_limit || '');
+
+            $('#resourceLimitModal').data('username', username);
+        })
+        .catch(err => {
+
+            console.error(err);
+
+            $('#loadingBar').hide();
+            $('#usageData').show();
+
+            $('#current_cpu').text('Error');
+            $('#current_ram').text('Error');
+        });
+
+});
+
+
+function userLimit(action) {
+  const responseDisplay = document.getElementById('responseContainer');
+   const alertContainer = document.getElementById('alertContainer'); 
+      responseDisplay.style.display = 'inline-block';
+	  alertContainer.style.display = 'none';
+    const formData = new FormData();
+    formData.append("action", action);
+    const user = document.getElementById("uid").value;
+     if (action === "set") {
+    const cpu = document.getElementById("cpu_limit").value;
+    const ram = document.getElementById("memory_limit").value;
+
+    formData.append("cpu", cpu);
+    formData.append("ram_mb", ram);
+}
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
+
+    fetch("/whm/user_limit_set/"+user+"/", {
+        method: "POST",
+		  headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        showMsg(data.status, data.message);
+    })
+    .catch(err => {
+        showMsg("error", err.toString());
+    });
+}
+
+
+  function showMsg(type, message) {
+ const alertContainer = document.getElementById('alertContainer'); // Assuming this is your alert container
+ const messageDisplay = document.getElementById('message'); 
+  const responseDisplay = document.getElementById('responseContainer');
+   responseDisplay.style.display = 'none';
+     alertContainer.style.display = 'block';
+   if (type === 'success') {
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = message; // Displaying success message
+        } else {
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = "Failed: " + message; // Displaying error message
+        }
+   
+    
+
+  
+}
+
+
+
+</script>
+
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

@@ -1,0 +1,31 @@
+{% extends "whm/base.html" %}
+{% block title %}Auto Login{% endblock title %}
+{% block content %}
+<div class="card card-default">
+ <div class="card-header">
+        <h2>Auto Login</h2>
+        
+
+      </div>
+<div class="card-body">
+    <form method="post" action="" enctype="multipart/form-data">
+        {% csrf_token %}
+            
+                <div class="form-group">
+                <label for="dns_name" id="labelName">By login user account, admin account will be logout</label>
+               <input type="hidden" class="form-control" id="port" name="username"  value="{{ username }}" required>
+                
+            </div>
+          
+			
+			
+			
+			
+				
+           
+       
+        <button type="submit" class="mb-1 btn btn-success">Login in {{ username }}</button>
+    </form>
+</div>
+</div>
+{% endblock content %}

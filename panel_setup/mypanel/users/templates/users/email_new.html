@@ -1,0 +1,127 @@
+{% extends "users/base.html" %}
+{% block title %}Create email{% endblock title %}
+{% block content %}
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Create Email</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post">
+	 
+    
+        {% csrf_token %}
+        <!-- Username Field -->
+		
+		 <div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
+            <select id="domainx" name="domain" class="form-control" style="width: 200px; margin-left: 10px;" onchange="setDomainValue()">
+			 {% for domain in domains %}
+                <option value="{{ domain.id }}">{{ domain.domain }}</option>
+               {% endfor %}
+                <!-- Add more domain options here -->
+            </select>
+        </div>
+        
+		
+<label for="username" style="margin-right: 10px;">Username:</label>
+
+ <div class="input-group mb-2 mr-sm-2">
+				  <input type="text" id="username" name="username" class="form-control" value="{{ db_name }}" placeholder="Enter username">
+            <div class="input-group-prepend">
+			
+             <input type="text" id="emailDisplay" class="form-control" readonly>
+            </div>
+            
+			
+          </div> 
+
+       
+<label for="dbpass" style="margin-right: 10px;">Password</label>
+        <!-- Password Field -->
+        <div class="form-group form-inline mb-3">
+            
+            <input type="text" id="dbpass" name="password" class="form-control" placeholder="Enter password">
+        </div>
+<label for="dbpassc" style="margin-right: 10px;">Confirm Password</label>
+        <!-- Confirm Password Field -->
+        <div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
+            
+            <input type="text" id="dbpassc" name="passwordc" class="form-control" placeholder="Confirm password">
+            <button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Generate</button>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Submit</button>
+        </div>
+    </form>
+</div>
+</div>
+<script>
+
+	
+window.onload = function() {
+    updateEmail(); // Call updateEmail on page load
+};
+
+// Function to update the email display field
+document.getElementById('username').addEventListener('input', updateEmail);
+document.getElementById('domainx').addEventListener('change', updateEmail);
+
+function updateEmail() {
+    var username = document.getElementById('username').value || 'user'; // Default to 'user' if username is empty
+    var domainSelect = document.getElementById('domainx');
+    var domain = domainSelect && domainSelect.options[domainSelect.selectedIndex] ? domainSelect.options[domainSelect.selectedIndex].text : ''; // Ensure it's not undefined
+    
+    // If domain is valid, update the email display
+    if (domain) {
+        document.getElementById('emailDisplay').value = '@' + domain;
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var domainSelect = document.getElementById('domainx');
+    if (domainSelect && domainSelect.options.length > 0) {
+        var firstDomain = domainSelect.options[0].text; // Get the first domain
+        document.getElementById('emailDisplay').value = 'user' + '@' + firstDomain; // Set initial value
+    }
+});
+
+
+
+    function generateStrongPassword(length = 16) {
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const digits = '0123456789';
+        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+        
+        const allCharacters = lowercase + uppercase + digits + specialChars;
+        let password = '';
+
+        // Ensure the password contains at least one character from each category
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += digits[Math.floor(Math.random() * digits.length)];
+        password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+        // Fill the rest of the password length with a mix of all characters
+        for (let i = 4; i < length; i++) {
+            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+        }
+
+        // Shuffle the password to ensure randomness
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+        return password;
+    }
+
+    function generateAndFillPassword() {
+        const password = generateStrongPassword();
+        document.getElementById('dbpass').value = password;
+        document.getElementById('dbpassc').value = password; // Set confirm password to match
+        return false; // Prevent any default action (not strictly necessary here)
+    }
+</script>
+{% endblock content %}
+{% include "users/footer.html" %}

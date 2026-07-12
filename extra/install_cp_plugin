@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Step 1: Detect Python binary used by cp.service, starting with /root/
+PYTHON_PATH_FILE="/etc/olspanel/PYTHON_PATH"
+HOME_PATH_FILE="/etc/olspanel/base_dir"
+
+if [ -f "$PYTHON_PATH_FILE" ]; then
+    # Read value from file
+    PYTHON_PATH="$(cat "$PYTHON_PATH_FILE")"
+else
+    # Extract from systemd service
+    PYTHON_PATH=$(grep -Po '^ExecStart=\K/root/[^\s]+' /etc/systemd/system/cp.service 2>/dev/null)
+fi
+
+
+
+if [ -f "$HOME_PATH_FILE" ]; then
+    # Read value from file
+    PROJECT_DIR="$(cat "$HOME_PATH_FILE")"
+else
+    # Extract from systemd service
+    PROJECT_DIR="/usr/local/lsws/Example/html/mypanel"
+fi
+
+
+if [[ ! "$PYTHON_PATH" =~ ^/root/ ]]; then
+  echo "❌ ExecStart does not contain a valid /root/ Python path."
+  exit 1
+fi
+
+# Step 2: Validate Python path
+if [ ! -x "$PYTHON_PATH" ]; then
+  echo "❌ Python binary not executable: $PYTHON_PATH"
+  exit 1
+fi
+
+
+cd "$PROJECT_DIR" || { echo "❌ Could not find project directory: $PROJECT_DIR"; exit 1; }
+
+# Clean up any stale extraction directory in /home/tmp/ if present to heal from previous failed runs
+FILENAME=$(basename "$PLUGIN_FILE")
+PLUGIN_NAME="${FILENAME%.*}"
+if [ -n "$PLUGIN_NAME" ] && [ -d "/home/tmp/$PLUGIN_NAME" ]; then
+    echo "🧹 Cleaning up stale extraction directory: /home/tmp/$PLUGIN_NAME"
+    rm -rf "/home/tmp/$PLUGIN_NAME"
+fi
+
+# Step 4: Require --file argument
+PLUGIN_FILE="$1"
+# Resolve relative paths to absolute paths before we change directories
+if [[ ! "$PLUGIN_FILE" =~ ^https?:// ]] && [[ ! "$PLUGIN_FILE" =~ ^/ ]]; then
+    PLUGIN_FILE="$(pwd)/$PLUGIN_FILE"
+fi
+if [ -z "$PLUGIN_FILE" ]; then
+  echo "❌ Usage: $0 <plugin_file_url_or_path>"
+  exit 1
+fi
+
+# Step 5: Run Django plugin installer
+echo "🚀 Using Python: $PYTHON_PATH"
+echo "📦 Installing plugin from: $PLUGIN_FILE"
+"$PYTHON_PATH" manage.py install_plugin --file="$PLUGIN_FILE"

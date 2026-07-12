@@ -1,0 +1,110 @@
+
+#maintbl {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Header Styles */
+.header {
+    background: #f0f0f0;
+}
+
+.editor-toolbar {
+    display: flex;                /* Use flexbox for alignment */
+    justify-content: center;      /* Center items horizontally */
+    align-items: center;          /* Center items vertically */
+    margin: 10px 0;              /* Space above and below */
+}
+
+/* Button Group Styles */
+.btnx-group {
+    margin: 0 5px;               /* Margin between groups */
+}
+
+/* Button Styles */
+.btnx {
+    padding: 8px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+
+
+/* Primary Button Styles */
+.btnx-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+
+
+/* Default Button Styles */
+
+
+
+#search-container {
+   
+}
+
+
+.arrow {
+    font-size: 13px;
+    color: black; /* Text color */
+    border: none; /* No border */
+    padding: 5px; /* Padding for the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Transition for background color */
+}
+
+
+#btnSearch {
+    cursor: pointer; /* Pointer cursor for close button */
+    color: red; /* Color for close button */
+    font-size: 18px; /* Size of close button text */
+    margin-right: 10px; /* Space to the right */
+}
+
+.action-buttons {
+    display: flex; /* Flexbox for action buttons */
+    gap: 5px; /* Space between action buttons */
+}
+
+
+#find-next, #find-prev {
+    margin-left: 5px; /* Space to the left of Next/Previous buttons */
+}
+
+
+/* Additional Input Button Styles */
+#find, #find-next, #find-prev {
+    margin-left: 5px; /* Add margin between search input and buttons */
+}
+
+/* Editor Styles */
+#editor {
+    width: 100%; 
+   height: calc(100vh - 150px); 
+    border: 1px solid #ccc;
+    border-radius: 4px; /* Add border radius for aesthetics */
+    background-color: #fdfdfd; /* Light background for the editor */
+	
+}
+.btn-default {
+    background-color: #007bff;
+	color: #ffffff
+}
+
+.flex-container {
+	background-color: #000000;
+    display: flex;
+    justify-content: space-between; /* Space between items */
+    align-items: center; /* Align items vertically centered */
+    padding: 5px; /* Padding around the container */
+}
+
+.flex-item {
+    flex: 1; /* Allow items to grow equally */
+}

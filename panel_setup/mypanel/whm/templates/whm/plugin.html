@@ -1,0 +1,339 @@
+{% extends "whm/base.html" %}
+{% block title %}Plugins{% endblock title %}
+{% block content %}
+
+<div style="padding:20px; background:#f4f6f9; min-height:100vh;">
+
+   
+    <!-- SEARCH -->
+    <input type="text" id="searchBox"
+        placeholder="Search plugins..."
+        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:15px;">
+
+    <!-- CATEGORY BAR -->
+    <div id="categoryBar"
+         style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+    </div>
+
+    <!-- LOADER -->
+    <div id="loader" style="text-align:center;padding:30px;">
+        <div style="width:40px;height:40px;border:4px solid #ddd;border-top:4px solid #0d6efd;border-radius:50%;margin:auto;animation:spin 1s linear infinite;"></div>
+        <p>Loading...</p>
+    </div>
+
+    <!-- PLUGINS -->
+    <div id="pluginList"
+         style="display:flex;flex-wrap:wrap;gap:15px;">
+    </div>
+
+</div>
+
+<style>
+@keyframes spin {
+    0% {transform:rotate(0deg);}
+    100% {transform:rotate(360deg);}
+}
+</style>
+
+<script>
+
+let plugins = [];
+let categories = [];
+let activeCategory = "";
+
+
+/* ======================
+   INIT
+====================== */
+document.addEventListener("DOMContentLoaded", function () {
+    loadCategories();
+    loadPlugins();
+
+    document.getElementById("searchBox")
+        .addEventListener("input", renderPlugins);
+});
+
+
+/* ======================
+   LOAD CATEGORIES
+====================== */
+function loadCategories() {
+    fetch("{% url 'api_categories' %}")
+        .then(res => res.json())
+        .then(data => {
+
+            categories = data.categories || [];
+
+            let bar = document.getElementById("categoryBar");
+
+            bar.innerHTML = `
+                <div onclick="setCategory('')"
+                     style="padding:10px 15px;border-radius:20px;background:#0d6efd;color:#fff;cursor:pointer;">
+                    All
+                </div>
+            `;
+
+            categories.forEach(cat => {
+
+                bar.innerHTML += `
+                    <div id="cat-${cat.id}"
+                         onclick="setCategory('${cat.id}')"
+                         style="padding:10px 15px;border-radius:20px;background:#fff;border:1px solid #ddd;cursor:pointer;">
+                        ${cat.name}
+                        <span style="background:#0d6efd;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;">
+                            ${cat.plugin_count}
+                        </span>
+                    </div>
+                `;
+            });
+        });
+}
+
+
+/* ======================
+   LOAD PLUGINS
+====================== */
+function loadPlugins() {
+    fetch("{% url 'api_plugins' %}")
+        .then(res => res.json())
+        .then(data => {
+
+            plugins = data.plugins || [];
+
+            document.getElementById("loader").style.display = "none";
+
+            renderPlugins();
+        });
+}
+
+
+/* ======================
+   CATEGORY FILTER
+====================== */
+function setCategory(id) {
+    activeCategory = id;
+
+    document.querySelectorAll("#categoryBar div")
+        .forEach(el => {
+            el.style.background = "#fff";
+            el.style.color = "#000";
+        });
+
+    renderPlugins();
+}
+
+
+/* ======================
+   RENDER PLUGINS
+====================== */
+function renderPlugins() {
+
+    let list = document.getElementById("pluginList");
+    let search = document.getElementById("searchBox").value.toLowerCase();
+
+    list.innerHTML = "";
+
+    let filtered = plugins.filter(p => {
+
+        let matchSearch =
+            p.name.toLowerCase().includes(search) ||
+            p.category.toLowerCase().includes(search);
+
+        let matchCategory =
+            activeCategory === "" ||
+            String(p.category_id) === String(activeCategory);
+
+        return matchSearch && matchCategory;
+    });
+
+    if (filtered.length === 0) {
+        list.innerHTML = `<div style="width:100%;text-align:center;color:#888;padding:40px;">No plugins found</div>`;
+        return;
+    }
+
+    filtered.forEach(p => {
+
+        let btn = "";
+
+/* =========================
+   INSTALLED
+========================= */
+if (p.is_installed) {
+
+    btn = `
+        <div style="
+            margin-top:10px;
+            text-align:center;
+            background:#198754;
+            color:#fff;
+            padding:10px;
+            border-radius:8px;
+            font-weight:bold;
+        ">
+            Installed
+        </div>
+    `;
+}
+
+/* =========================
+   LICENSE INVALID
+========================= */
+else if (p.license_valid === false) {
+
+    btn = `
+        <a href="{% url 'license' %}"
+           style="
+               display:block;
+               margin-top:10px;
+               text-align:center;
+               background:#dc3545;
+               color:#fff;
+               padding:10px;
+               border-radius:8px;
+               text-decoration:none;
+               font-weight:bold;
+           ">
+            Unlock
+        </a>
+    `;
+}
+
+/* =========================
+   PRE-BUILD PATH
+========================= */
+else if (p.pre_build_path) {
+
+    // current url
+    let currentUrl = window.location.origin + window.location.pathname;
+
+    // remove last path
+    let baseUrl = currentUrl.replace(/plugin\/?$/, '');
+
+    // remove starting slash
+    let path = p.pre_build_path.replace(/^\/+/, '');
+
+    // final url
+    let finalUrl = baseUrl + path;
+
+    btn = `
+        <a href="${finalUrl}"
+           style="
+               display:block;
+               margin-top:10px;
+               text-align:center;
+               background:#0d6efd;
+               color:#fff;
+               padding:10px;
+               border-radius:8px;
+               text-decoration:none;
+               font-weight:bold;
+           ">
+            Install
+        </a>
+    `;
+}
+
+/* =========================
+   NORMAL INSTALL
+========================= */
+else {
+ const INSTALL_URL = "{% url 'install_plugin' 0 %}".replace("/0/", "/");
+    btn = `
+        <a href="${INSTALL_URL}${p.id}/"
+           style="
+               display:block;
+               margin-top:10px;
+               text-align:center;
+               background:#fd7e14;
+               color:#fff;
+               padding:10px;
+               border-radius:8px;
+               text-decoration:none;
+               font-weight:bold;
+           ">
+            Install
+        </a>
+    `;
+}
+
+        list.innerHTML += `
+        <div style="width:300px;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);padding:15px;">
+
+            <h3 style="margin:0;">${p.name}</h3>
+
+            <p style="color:#666;">${p.category}</p>
+
+            <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+
+    <span style="
+        font-size:12px;
+        font-weight:700;
+        color:#333;
+        margin-right:4px;
+    ">
+        License:
+    </span>
+
+    ${p.type.split(',').map(type => {
+
+        type = type.trim();
+
+        // ✅ Capitalize first letter
+        let label = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+
+        let key = type.toLowerCase();
+
+        let bg = "#6c757d";
+
+        if (key === "free") {
+            bg = "#198754";
+        }
+        else if (key === "basic") {
+            bg = "#0d6efd";
+        }
+        else if (key === "pro") {
+            bg = "#fd7e14";
+        }
+        else if (key === "enterprise") {
+            bg = "#6f42c1";
+        }
+
+        return `
+            <span style="
+                background:${bg};
+                color:#fff;
+                padding:4px 10px;
+                border-radius:20px;
+                font-size:12px;
+                font-weight:600;
+            ">
+                ${label}
+            </span>
+        `;
+    }).join('')}
+
+</div>
+
+           <img 
+    src="${p.image ? p.image : '/media/icon/plugin.png'}"
+    onerror="this.src='/media/icon/plugin.png';"
+    style="
+        width:100%;
+        height:180px;
+        object-fit:contain;
+        margin-top:10px;
+        border-radius:10px;
+        background:#f8f9fa;
+        border:1px solid #eee;
+        padding:10px;
+    ">
+
+            ${btn}
+
+        </div>`;
+    });
+}
+
+</script>
+
+{% endblock %}

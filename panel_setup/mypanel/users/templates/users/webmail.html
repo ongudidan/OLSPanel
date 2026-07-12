@@ -1,0 +1,181 @@
+{% extends "users/base.html" %}
+{% block title %}Webmail Service{% endblock title %}
+
+{% block content %}
+
+  <div class="row">
+                  <div class="col-md-9 col-xl-9">
+                      
+                    <!-- manu -->
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                            <h3><img src="/media/icon/mail.svg" width="28px" height="28px" style="margin-right: 10px;" />  Mail</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#domain-manu" aria-expanded="true" aria-controls="domain-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="domain-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						
+						{% if list %}
+						 {% for plugin in list %}
+                            <div class="col-xl-6 mb-4">
+							<div class="card rounded h-100 overflow-hidden d-flex flex-column">
+							
+							
+							 {% if plugin.icon %}
+                <div class="px-4 py-2" >
+                  <img src="{{ plugin.icon }}" alt="{{ plugin.name }}"
+                       class="" style="width: 100%;">
+                </div>
+              {% else %}
+                <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary" style="height: 200px;">
+                  <span class="mdi mdi-email-outline text-white" style="font-size: 60px;"></span>
+                </div>
+              {% endif %}
+			  
+			  
+			   <div class="mt-auto px-3 pb-3">
+			     <form method="post" action="" target="_blank">
+    {% csrf_token %}
+			   <input type="hidden" name="plugin_name" value="{{ plugin.name }}"/>
+                {% if plugin.auto_login_url %}
+                  <button type="submit" class="btn btn-success btn-sm">
+                    Open Mail
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-success btn-sm">
+                    Open Mail
+                  </button>
+                {% endif %}
+				
+				</form>
+              </div>
+			  
+
+						
+							</div></div>
+							 {% endfor %}
+							{% endif %}
+							
+							
+							
+							
+							
+                           	</div>
+                      </div>
+                      </div>
+                    </div>
+                  
+                   
+ <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/ssl.svg" width="28px" height="28px" style="margin-right: 10px;" />Email Security</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#security-manu" aria-expanded="true" aria-controls="security-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="security-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						<div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'email_accounts_create' %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/mail.svg" style="margin-right: 10px;" /> <span>Create Email</span></div></a></div>
+                            
+                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'email_edit' email_id %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/ssl.svg" style="margin-right: 10px;" /> <span>Change Password</span></div></a></div>
+                            
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+					
+					
+					
+
+                  </div>
+                  <div class="col-md-3 col-xl-3">
+                    <!-- Current Users  -->
+                <!-- Email Settings Card -->
+<div class="card card-default">
+  <div class="card-header">
+    <span class="cardtitle">General Information</span>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">Current Email</div>
+    <div class="infovalue">{{ email }}</div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">Username</div>
+    <div class="infovalue">{{ email }}</div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">Password</div>
+    <div class="infovalue">Use the email account's password.</div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">Incoming Server</div>
+    <div class="infovalue" id="incoming-server"></div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">IMAP Port</div>
+    <div class="infovalue">993</div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">POP3 Port</div>
+    <div class="infovalue">995</div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">Outgoing Server (SMTP)</div>
+    <div class="infovalue" id="smtp-server"></div>
+  </div>
+
+  <div class="bottom-border_right">
+    <div class="infotitle">SMTP Port</div>
+    <div class="infovalue">465</div>
+  </div>
+</div>
+
+        
+                     </div>
+                </div>
+				
+				
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- JavaScript to parse domain -->
+<script>
+  function getEmailDomain(email) {
+    if (typeof email !== 'string') return '';
+    const parts = email.trim().split('@');
+    return parts.length === 2 ? parts[1] : '';
+  }
+
+  const email = "{{ email }}"; // Django template value
+  const domain = getEmailDomain(email);
+  document.getElementById("incoming-server").textContent = domain;
+  document.getElementById("smtp-server").textContent = domain;
+</script>
+
+
+
+{% endblock content %}

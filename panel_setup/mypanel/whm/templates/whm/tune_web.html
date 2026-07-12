@@ -1,0 +1,181 @@
+{% extends "whm/base.html" %}
+{% block title %}PHP Tuning{% endblock title %}
+{% block content %}
+
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+
+
+
+
+
+<form method="post" action="">
+            {% csrf_token %}
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+<div class="card card-default">
+    <div class="card-header">
+        <h2>PHP Tuning</h2>
+    </div>
+    <div class="card-body">
+	 <div class="form-group">
+            <label for="php_version">Select Domain:</label>
+           <select class="form-control" name="php_domain" id="php_domain" onchange="load(this.value)">
+    <option value="">Domain</option>
+    {% for domain in php_domain %}
+        <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+    {% endfor %}
+</select>
+
+ <div id="responseContainer" style="display: none;" class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</div>
+	       
+            <div class="tab-content mt-5" id="nav-tabContent">
+              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                
+           
+
+<div class="form-group mt-3">
+    <label for="initTimeout">Initial Request Timeout (sec):</label>
+    <input type="text" class="form-control" id="initTimeout" name="initTimeout" placeholder="e.g., 128M">
+</div>
+
+<div class="form-group">
+    <label for="maxConns">Max Connections:</label>
+    <input type="text" class="form-control" id="maxConns" name="maxConns" placeholder="e.g., 64M">
+</div>
+
+<div class="form-group">
+    <label for="memSoftLimit">Memory Soft Limit:</label>
+    <input type="text" class="form-control" id="memSoftLimit" name="memSoftLimit" placeholder="e.g., 64M">
+</div>
+
+<div class="form-group">
+    <label for="memHardLimit">Memory Hard Limit:</label>
+    <input type="text" class="form-control" id="memHardLimit" name="memHardLimit" placeholder="e.g., 30">
+</div>
+
+
+<div class="form-group">
+    <label for="procSoftLimit">Process Soft Limit:</label>
+    <input type="text" class="form-control" id="procSoftLimit" name="procSoftLimit" placeholder="e.g., 30">
+</div>
+<div class="form-group">
+    <label for="procHardLimit">Process Hard Limit:</label>
+    <input type="text" class="form-control" id="procHardLimit" name="procHardLimit" placeholder="e.g., 30">
+</div>
+
+
+<div class="form-group">
+    <label for="persistConn">Persistent Connection:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="persistConn" id="persistConn" class="switch-input form-check-input" value="1">
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+
+
+
+            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+       
+    
+	    </div>
+            
+
+          </div>
+	
+	
+	
+     
+	
+</div>
+
+ </div>
+</div>
+
+ </form>
+<script>
+  
+
+       const alertContainer = document.getElementById('alertContainer');
+       const messageDisplay = document.getElementById('message');
+      const responseDisplay = document.getElementById('responseContainer');
+      
+
+   function load(selectedVersion) {
+    if (selectedVersion) {  // Ensuring selectedVersion is available
+        console.log('Selected version:', selectedVersion);
+       
+        setTimeout(function() {
+            responseDisplay.style.display = 'inline-block';
+
+            // Call the URL with GET method, appending php_version as a query parameter
+            fetch(`{% url 'fatch_php_tune' %}?php_domain=${selectedVersion}`, {
+                method: 'GET',  // Using GET to pass php_version as a query parameter
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json(); // Retrieve response as JSON
+            })
+            .then(response => {
+                console.log('Response:', response);
+               responseDisplay.style.display = 'none';
+
+                // Populate form fields with the response data
+              $('#initTimeout').val(response.initTimeout || '');
+$('#maxConns').val(response.maxConns || '');
+$('#memSoftLimit').val(response.memSoftLimit || '');
+$('#memHardLimit').val(response.memHardLimit || '');
+$('#procSoftLimit').val(response.procSoftLimit || '');
+$('#procHardLimit').val(response.procHardLimit || '');
+
+// Checkbox for persistConn
+if (response.persistConn === '1' ) {
+    $('#persistConn').prop('checked', true);
+} else {
+    $('#persistConn').prop('checked', false);
+}
+
+
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // You can show an alert to notify the user about the error
+               responseDisplay.style.display = 'none';
+               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
+            });
+        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
+    } else {
+        console.log('No PHP version selected.');
+    }
+}
+
+
+       
+		
+
+</script>
+  
+{% include "whm/footer.html" %}
+{% endblock content %}

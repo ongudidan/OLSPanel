@@ -1,0 +1,109 @@
+{% extends "whm/base.html" %}
+{% block title %}MongoDB{% endblock title %}
+{% block content %}
+
+        <div class="card shadow rounded-3 border-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0 text-white">MongoDB</h4>
+            </div>
+            <div class="card-body text-center">
+                <img src="/media/icon/mongodb.png" alt="MongoDB Logo" class="img-fluid my-4" style="max-width: 180px;">
+
+                {% if install_available %}
+                    <div class="alert alert-success rounded-3 py-3 px-4 mx-auto" role="alert" style="max-width: 500px;">
+                        <strong>MongoDB is already installed.</strong><br>
+                        You can start using it from your <strong class="text-decoration-underline">user dashboard</strong>.<br>
+                       
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger rounded-3 py-3 px-4 mx-auto" role="alert" style="max-width: 500px;">
+                        MongoDB is not installed yet.
+                    </div>
+                    <div class="form-group mt-3">
+                        <button id="save" class="btn btn-primary btn-lg">Install MongoDB</button>
+                    </div>
+                {% endif %}
+
+                <div class="form-group d-none">
+                    {% csrf_token %}
+                </div>
+
+                <!-- Loader -->
+    <div id="responseContainer" class="sk-wave my-4" style="display: none;">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+
+    <!-- Output Box -->
+    <pre id="outputBox" style="background:#111;color:#0f0;padding:10px;border-radius:8px;
+    font-size:13px;display:none;max-height:400px;overflow-y:auto;"></pre>
+
+    <!-- Alert -->
+    <div id="alertContainer" class="alert alert-dismissible fade show mt-3" role="alert" style="display: none;">
+      <div id="message"></div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+            </div>
+        </div>
+    
+
+
+
+<script>
+document.getElementById('save').addEventListener('click', function (event) {
+    event.preventDefault();
+    install_soft();
+});
+
+function install_soft() {
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const outputBox = document.getElementById('outputBox');
+    const loader = document.getElementById('responseContainer');
+    const btn = document.getElementById('save');
+
+    outputBox.style.display = 'block';
+    outputBox.innerText = "🚀 Installing MongoDB...\n\n";
+    loader.style.display = 'block';
+    btn.disabled = true;
+
+    fetch("{% url 'install_mongodb' %}", {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    }).then(response => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        function readChunk() {
+            reader.read().then(({ done, value }) => {
+                if (done) {
+                    loader.style.display = 'none';
+                    outputBox.innerText += "\n✅ Installation finished.";
+                    outputBox.scrollTop = outputBox.scrollHeight;
+                    btn.disabled = false;
+                    return;
+                }
+                const chunk = decoder.decode(value, { stream: true });
+                outputBox.innerText += chunk;
+                outputBox.scrollTop = outputBox.scrollHeight;
+                readChunk();
+            });
+        }
+        readChunk();
+    }).catch(error => {
+        loader.style.display = 'none';
+        btn.disabled = false;
+        outputBox.innerText += "\n❌ Error: " + error.message;
+    });
+}
+
+
+</script>
+
+
+{% include "whm/footer.html" %}
+{% endblock content %}

@@ -1,0 +1,202 @@
+#!/bin/bash
+
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+PYTHON_PATH_FILE="/etc/olspanel/PYTHON_PATH"
+HOME_PATH_FILE="/etc/olspanel/base_dir"
+
+if [ -f "$PYTHON_PATH_FILE" ]; then
+    # Read value from file
+    PY_PATH="$(cat "$PYTHON_PATH_FILE")"
+else
+    # Extract from systemd service
+    PY_PATH=$(grep -Po '^ExecStart=\K/root/[^\s]+' /etc/systemd/system/cp.service 2>/dev/null)
+fi
+
+
+
+if [ -f "$HOME_PATH_FILE" ]; then
+    # Read value from file
+    PROJECT_DIR="$(cat "$HOME_PATH_FILE")"
+else
+    # Extract from systemd service
+    PROJECT_DIR="/usr/local/lsws/Example/html/mypanel"
+fi
+
+
+
+
+
+if [ ! -x "$PY_PATH" ]; then
+  echo -e "${RED}❌ Python binary not executable: $PY_PATH${NC}"
+  exit 1
+fi
+
+cd "$PROJECT_DIR" || { echo -e "${RED}❌ Could not find project directory: $PROJECT_DIR${NC}"; exit 1; }
+
+# Default empty command
+com=""
+
+case "$1" in
+    --version)
+        com="v"
+        shift
+        ;;
+    --check_version)
+        com="check_version"
+        shift
+        ;;	    
+    --backup)
+        com="backup"
+        shift
+        ;;
+    --fail2ban)
+        com="fail2ban"
+        shift
+        ;;
+    --limit-check)
+        com="limit_check"
+        shift
+        ;;
+    --olsapp-install)
+        com="install_olsapp"
+        shift
+        ;;
+    adduser)
+        
+        com="olspanel"
+       
+        set -- adduser "$@"
+        shift
+        ;;
+	actionuser)
+        
+        com="olspanel"
+        
+        set -- actionuser "$@"
+        shift
+        ;;
+    edituser)
+       
+        com="olspanel"
+        
+        set -- edituser "$@"
+        shift
+        ;;
+    pkglist)
+        
+        com="olspanel"
+        
+        set -- pkglist "$@"
+        shift
+        ;;
+    newpkg)
+        
+        com="olspanel"
+        
+        set -- newpkg "$@"
+        shift
+        ;;
+    editpkg)
+        
+        com="olspanel"
+        
+        set -- editpkg "$@"
+        shift
+        ;;
+    ssl)
+        
+        com="olspanel"
+        
+        set -- ssl "$@"
+        shift
+        ;;
+
+    domainadd)
+        
+        com="olspanel"
+        
+        set -- domainadd "$@"
+        shift
+        ;;
+    backupnow)
+        
+        com="olspanel"
+        
+        set -- backupnow "$@"
+        shift
+        ;;
+        
+    makedb)
+        
+        com="olspanel"
+        
+        set -- makedb "$@"
+        shift
+        ;;	
+
+    cronjob_add)
+        
+        com="olspanel"
+        
+        set -- cronjob_add "$@"
+        shift
+        ;;	
+    fixperm)
+        
+        com="olspanel"
+        
+        set -- fixperm "$@"
+        shift
+        ;;	      
+    
+     dbedit)
+        
+        com="olspanel"
+        
+        set -- dbedit "$@"
+        shift
+        ;;	   
+        
+    --plugin-install)
+        if [ -z "$2" ]; then
+            echo -e "${RED}❌ Missing plugin file${NC}"
+            exit 1
+        fi
+        com="install_plugin"
+        # Pass plugin file argument
+        "$PY_PATH" "$PROJECT_DIR/manage.py" "$com" --file="$2"
+        exit 0
+        ;;
+    --reset-password)
+        com="reset_admin_password"
+        shift
+        ;;
+    --help|"")
+        echo "Usage: $0 [option] [args...]"
+        echo "Options:"
+        echo "  --version               Show panel version"
+        echo "  --backup [args...]      Run backup"
+        echo "  --fail2ban [args...]    Run fail2ban"
+        echo "  --limit-check [args...] Run limit check"
+        echo "  --olsapp-install [args...] Install OLS app"
+        echo "  --plugin-install FILE   Install plugin"
+        echo "  --reset-password        Reset admin password"
+        echo "  adduser [args...]       Create user (maps to 'olspanel adduser')"
+        echo "  <command> [args...]     Run any manage.py command"
+        exit 0
+        ;;
+    *)
+        # Fallback, first arg is script/command name
+        com="$1"
+        shift
+        ;;
+esac
+
+if [ -z "$com" ]; then
+    echo -e "${RED}❌ No command specified.${NC}"
+    exit 1
+fi
+
+"$PY_PATH" "$PROJECT_DIR/manage.py" "$com" "$@"

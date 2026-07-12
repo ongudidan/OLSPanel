@@ -1,0 +1,26 @@
+{% extends "users/base.html" %}
+{% block title %}Composer Not Installed{% endblock title %}
+
+{% block content %}
+
+<div class="card card-default mt-4">
+    <div class="card-header bg-warning text-dark">
+        <h2>Composer Not Installed</h2>
+    </div>
+    <div class="card-body">
+	<br/>
+        <p class="lead">
+            Composer is not installed on this server. You cannot run Composer  applications at this time.
+        </p>
+        <p>
+            Please contact your system administrator to install Composer before proceeding.
+        </p>
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="mdi mdi-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

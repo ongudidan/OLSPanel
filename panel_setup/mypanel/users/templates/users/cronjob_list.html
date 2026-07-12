@@ -1,0 +1,73 @@
+{% extends "users/base.html" %}
+{% block title %}Cronjob{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>List Cronjob</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+    <div class="row">
+   <div class="col-xl-6">
+   <a class="mb-1 btn btn-pill btn-success" href="{% url 'cronjob_add' %}" role="button" style="text-transform: none;">+ Add cronjob</a>
+</div>
+<div class="col-xl-6 d-flex justify-content-end">
+    
+	</div>
+	</div>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+             <tr>
+                <th>Minute</th>
+                <th>Hour</th>
+                <th>Day</th>
+				<th>Month</th>
+				<th>Weekday</th>
+				<th>Command</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+		{% if cronjob %}
+       <tbody id="domainTable">
+            {% for job in cronjob %}
+            <tr>
+                <td>{{ job.minute }}</td>
+        <td>{{ job.hour }}</td>
+        <td>{{ job.day }}</td>
+        <td>{{ job.month }}</td>
+        <td>{{ job.weekday }}</td>
+        <td>{{ job.command }}</td>
+              {% if job.line_number %}  <td>
+                    <a href="{% url 'cronjob_edit' job.line_number %}" class="btn btn-primary btn-sm">Manage</a>
+					 <a href="{% url 'cronjob_delete' job.line_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this cron job?');">Delete</a>
+
+                    
+                </td>
+				{% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No results found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+		{% else %}
+<p class="text-center">No cron jobs found.</p>
+{% endif %}
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+
+{% endblock content %}
+
+{% include "users/footer.html" %}

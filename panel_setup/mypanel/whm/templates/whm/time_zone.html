@@ -1,0 +1,103 @@
+{% extends "whm/base.html" %}
+{% block title %}Time Zone{% endblock title %}
+{% block content %}
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Loading animation -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-inverse">
+            <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Saving, please wait.....</li> 
+            <li> 
+                <div class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </li> 
+        </ol>
+    </nav>
+</div>
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="document.getElementById('alertContainer').style.display='none';">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>  
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Time Zone</h2>
+    </div>
+    <div class="card-body">
+        <form id="timezoneForm" method="post" enctype="multipart/form-data" onsubmit="return save();">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="time_zone" id="labelName">Time Zone</label>
+                <select class="form-control" name="time_zone" id="time_zone">
+                    {% for zone in timezone %}
+                        <option value="{{ zone.timezone }}" {% if nowzone == zone.timezone %}selected{% endif %}>
+                            {{ zone.timezone }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function save() {
+    const loadingContainer = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDiv = document.getElementById('message');
+    const timezoneSelect = document.getElementById('time_zone');
+
+    // Hide alert initially
+    alertContainer.style.display = 'none';
+
+    // Show loading animation
+    loadingContainer.style.display = 'block';
+
+    // Prepare POST data
+    const formData = new URLSearchParams();
+    formData.append('time_zone', timezoneSelect.value);
+
+    fetch("{% url 'time_zone' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: formData.toString(),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide loading animation
+        loadingContainer.style.display = 'none';
+
+        if (data.status === 'success') {
+            messageDiv.textContent = data.message || 'Timezone updated successfully!';
+            alertContainer.className = 'alert alert-success alert-dismissible fade show';
+        } else {
+            messageDiv.textContent = data.message || 'Failed to update timezone.';
+            alertContainer.className = 'alert alert-danger alert-dismissible fade show';
+        }
+        alertContainer.style.display = 'block';
+    })
+    .catch(error => {
+        loadingContainer.style.display = 'none';
+       messageDiv.textContent = 'Timezone updated successfully!';
+            alertContainer.className = 'alert alert-success alert-dismissible fade show';
+        alertContainer.style.display = 'block';
+        
+    });
+
+    // Prevent default form submit
+    return false;
+}
+</script>
+
+{% endblock content %}

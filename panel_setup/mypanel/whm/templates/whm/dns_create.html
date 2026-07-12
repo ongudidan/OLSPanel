@@ -1,0 +1,78 @@
+{% extends "whm/base.html" %}
+{% block title %}Add DNS Record{% endblock title %}
+
+{% block content %}
+<div class="card card-default">
+<div class="card-header">
+        <h2>ADD DNS Record</h2>
+        
+
+      </div>
+<div class="card-body">
+     
+    
+    <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="dns_name">DNS Name</label>
+            <input type="text" class="form-control" id="dns_name" name="dns_name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="ttl">TTL</label>
+            <input type="text" class="form-control" id="ttl" name="ttl" value="3600" required>
+        </div>
+
+        <div class="form-group">
+            <label for="type">Type</label>
+            <select class="form-control" id="type" name="type" required>
+                 <option value="A">A</option>
+        <option value="AAAA">AAAA</option>
+        <option value="CAA">CAA</option>
+        <option value="CNAME">CNAME</option>
+        <option value="MX">MX</option>
+        <option value="SRV">SRV</option>
+        <option value="TXT">TXT</option>
+        <option value="SOA">SOA</option>
+        <option value="NS">NS</option>
+            </select>
+        </div>
+
+        <div class="form-group" id="prio-container" style="display:none;">
+            <label for="prio">Priority</label>
+            <input type="text" class="form-control" id="prio" name="prio" value="0">
+        </div>
+
+        <div class="form-group">
+            <label for="dns_value">DNS Value</label>
+            <input type="text" class="form-control" id="dns_value" name="dns_value" required>
+        </div>
+
+        <button type="submit" class="mb-1 btn btn-success">Add DNS Record</button>
+    </form>
+</div>
+</div>
+<!-- JavaScript to handle the change of the DNS type and display/hide priority input -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('type');
+        const prioContainer = document.getElementById('prio-container');
+
+        // Function to show/hide priority input based on selected type
+        function togglePrioInput() {
+            if (typeSelect.value === 'MX') {
+                prioContainer.style.display = 'block'; // Show if MX
+            } else {
+                prioContainer.style.display = 'none'; // Hide otherwise
+            }
+        }
+
+        // Add event listener for change event
+        typeSelect.addEventListener('change', togglePrioInput);
+
+        // Initial check to set the visibility of the priority input
+        togglePrioInput();
+    });
+</script>
+{% endblock content %}

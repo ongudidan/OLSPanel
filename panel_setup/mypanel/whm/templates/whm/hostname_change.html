@@ -1,0 +1,121 @@
+{% extends "whm/base.html" %}
+{% block title %}Change Hostname{% endblock title %}
+{% block content %}
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+<div class="card card-default">
+ <div class="card-header">
+        <h2>Change Hostname</h2>
+        
+
+      </div>
+<div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+            
+                <div class="form-group">
+                <label for="dns_name" id="labelName">Hostname</label>
+                <input type="text" class="form-control" id="host" name="host"  value="{{ current_hostname }}" required>
+                
+            </div>
+          
+			
+			
+			
+			
+				
+           
+       
+        <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
+    </form>
+</div>
+</div>
+
+<script>
+
+
+window.onload = function() {
+const responseDisplay = document.getElementById('responseContainer');
+  const alertContainer = document.getElementById('alertContainer');
+        const messageDisplay = document.getElementById('message');
+    var currentUrl = window.location.href;
+
+    // Use URLSearchParams to check if the 'id' parameter is present
+    var urlParams = new URLSearchParams(window.location.search);
+
+    if (urlParams.has('id')) {
+        // Retrieve the value of the 'id' parameter
+        var idValue = urlParams.get('id');
+        console.log('ID found:', idValue);
+ setTimeout(function() {
+ responseDisplay.style.display = 'inline-block';
+            // Call the URL (replace '/your-url' with your actual URL)
+            fetch('/whm/domain_list_ssl_first_all/' + idValue, {
+                method: 'GET', // or 'POST' depending on your requirement
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text(); // Retrieve response as plain text
+            })
+            .then(data => {
+                console.log('Response:', data);
+                responseDisplay.style.display = 'none';
+				if (data.includes('success')) {
+            // Set alert for success
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = data; // Displaying success message
+        } else {
+            // Set alert for error
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = data; // Displaying error message
+        }
+		
+		alertContainer.style.display = "block";
+		 setTimeout(function() {
+           window.location.href = '/whm/change_hostname'; // Change this to your desired URL
+        }, 5000); // 5000 milliseconds = 5 seconds
+		
+		
+		
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 1000); // 5000 milliseconds = 5 seconds
+
+    } else {
+        console.log('No ID parameter found.');
+    }
+    
+}
+
+</script>
+
+{% endblock content %}

@@ -1,0 +1,96 @@
+{% extends "users/base.html" %}
+{% block title %}Two-Factor Authentication{% endblock title %}
+
+{% block content %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<div class="card card-default"> <div class="card-header"> <h2>Two-Factor Authentication (2FA)</h2> </div>
+
+  <div class="card-body p-4">
+    <!-- ✅ Status Section -->
+    {% if is_enabled %}
+      <div class="alert alert-success text-center mb-4">
+        <i class="bi bi-check-circle-fill"></i>
+        <strong>2-Step Verification is currently ENABLED</strong>
+      </div>
+    {% else %}
+      <div class="alert alert-warning text-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>2-Step Verification is currently DISABLED</strong>
+      </div>
+    {% endif %}
+{% if not is_enabled %}
+    <!-- Step 1 -->
+    <h5 class="fw-semibold mb-3">Step 1: Scan the QR Code</h5>
+    <p class="text-muted">
+      Open the <strong>Google Authenticator</strong> app (or any TOTP-compatible app like Authy or Microsoft Authenticator)
+      and scan the QR code below to link your account.
+    </p>
+
+    <div class="text-center mb-3">
+      <div id="qrcode" class="d-inline-block p-3 border rounded bg-light shadow-sm"></div>
+    </div>
+
+    <p class="text-center mb-4">
+      Or manually enter this secret key in your app:  
+      <code class="fw-bold">{{ secret }}</code>
+    </p>
+{% endif %}
+    <hr class="my-4">
+
+    <!-- Step 2 -->
+    <h5 class="fw-semibold mb-3">
+      {% if is_enabled %}Disable Two-Factor Authentication{% else %}Enable Two-Factor Authentication{% endif %}
+    </h5>
+    <p class="text-muted">
+      Enter the 6-digit code from your Authenticator app to 
+      {% if is_enabled %}disable{% else %}enable{% endif %} 2FA.
+    </p>
+
+    <form method="post" class="mt-3">
+  {% csrf_token %}
+  <div class="form-group mb-3 text-center">
+    <label for="otp" class="form-label">Authentication Code</label>
+    <input type="text" id="otp" name="otp" class="form-control form-control-lg text-center" maxlength="6" placeholder="Enter 6-digit code" required>
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <a href="/" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Cancel
+    </a>
+
+    {% if is_enabled %}
+      <button type="submit" name="disable" value="1" class="btn btn-danger px-4">
+        <i class="bi bi-x-circle"></i> Disable 2FA
+      </button>
+    {% else %}
+      <button type="submit" name="enable" value="1" class="btn btn-success px-4">
+        <i class="bi bi-check-circle"></i> Verify & Enable
+      </button>
+    {% endif %}
+  </div>
+</form>
+
+  </div>
+
+  <div class="card-footer text-muted small text-center">
+    <i class="bi bi-shield-check"></i>
+    Protect your account with Google Authenticator — simple, secure, and fast.
+  </div>
+</div>
+{% if not is_enabled %}
+<script>
+  const otpAuthUri = `{{ qr_url }}`;
+  new QRCode(document.getElementById("qrcode"), {
+    text: otpAuthUri,
+    width: 220,
+    height: 220,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
+</script>
+{% endif %}
+{% endblock content %}
+
+{% include "users/footer.html" %}

@@ -1,0 +1,754 @@
+{% extends "whm/base.html" %}
+{% block title %} Dashboard {% endblock title%}
+{% block content %}
+
+<div id="ols-notices"></div>
+
+<script src="/media/js/notice-render.js"></script>
+
+
+
+{% if update_available %}
+    
+        <div class="alert alert-primary alert-icon">
+            ⚠️ A new version ({{ latest_version }}) is available! Please update.
+          <a href="{% url 'update_check' %}" class="mb-1 btn btn-pill btn-success">Update now</a>
+        </div>
+   
+{% endif %}
+<div class="row mb-3">
+    <div class="col-12 d-flex justify-content-end">
+        <div class="form-group mb-0" style="width: 250px;">
+		<input type="search" id="search" name="lookup_q" class="form-control bg-white" placeholder="Search for option..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+
+        </div>
+    </div>
+</div>
+
+<div class="row">
+                  <div class="col-xl-6">
+                    
+                      <!-- Sessions By Device -->
+                      <div class="card card-default">
+                        <div class="card-header border-bottom">
+                          <h2 class="mdi mdi-desktop-mac">Resource</h2>
+                        </div>
+                        <div class="card-body pt-6">
+                         
+							
+                             
+							 <div class="bar">
+            <div class="label">CPU</div>
+            <div class="bar-inner">
+                <div class="bar-fill"  id="cpu" style="width: 0%; background-color: #4CAF50;">
+                    <span id="cpup" class="bar-value">0%</span>
+                </div>
+				
+				
+				
+            </div>
+			  
+        </div>
+        <div class="bar">
+            <div class="label">RAM</div>
+            <div class="bar-inner">
+                <div class="bar-fill" id="ram" style="width: 0%; background-color: #4CAF50;">
+                    <span id="ramp" class="bar-value">0%</span>
+                </div>
+            </div>
+        </div>
+		
+		 <div class="bar">
+            <div class="label">DISK</div>
+            <div class="bar-inner">
+                <div class="bar-fill" id="disk" style="width: 0%; background-color: #4CAF50;">
+                    <span id="diskp" class="bar-value">0%</span>
+                </div>
+            </div>
+        </div>
+         
+                           <div class="bottom-border_right">
+                          <div class="infotitle">Hostname</div>
+                         <div class="infovalue">
+    {{ host_name }}
+    <a href="{% url 'change_hostname' %}" style="color:#ef6d19; margin-left: 8px;">
+        <i class="mdi mdi-square-edit-outline"></i> change
+    </a>
+</div>
+
+                          </div>
+   
+                         
+                        </div>
+                      </div>
+
+                  </div>
+
+                  <!-- Sessions by Device -->
+                  <div class="col-xl-6">
+                    
+                      <!-- Sessions By Device -->
+                      <div class="card card-default">
+                        <div class="card-header border-bottom">
+                          <h2 class="mdi mdi-desktop-mac">Statics</h2>
+                        </div>
+                        
+                         	<div class="bottom-border_right">
+                            <div class="infovalue">Server ip: <span>{{ip}}</span></div>
+							</div>
+						 <div class="bottom-border_right">
+                            <div class="infovalue">Server time: <span>{{time}}</span></div>
+							</div>
+							 <div class="bottom-border_right">
+                            <div class="infovalue">Server uptime: <span>{{uptime}}</span></div>
+							</div>
+						 	<div class="bottom-border_right">
+                            <div class="infovalue">Open litespeed: <span>{{lite}}</span></div>
+							</div>
+							<div class="bottom-border_right">
+                            <div class="infovalue">Load avg: <span id="xload">{{load}}</span></div>
+							</div>
+							
+							<div class="bottom-border_right">
+						    <div class="infovalue">OS: <span>{{osz}}</span></div>
+                           </div>
+                            
+                        
+                      </div>
+
+                  </div>
+                </div>
+
+
+
+<div class="row">
+                    <div class="col-xl-3 col-sm-6">
+                      <div class="card card-default">
+                        <div class="card-header">
+                          <h2>{{total_user}}</h2>
+                         
+                          <div class="sub-title">
+                            <span class="mr-1">Total User</span>
+                            
+                           
+                          </div>
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6">
+                      <div class="card card-default">
+                        <div class="card-header">
+                          <h2>{{total_db}}</h2>
+                          
+                          <div class="sub-title">
+                            <span class="mr-1">Total Database</span> 
+                            
+                          </div>
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6">
+                      <div class="card card-default">
+                        <div class="card-header">
+                          <h2>{{total_pkg}}</h2>
+                         
+                          <div class="sub-title">
+                            <span class="mr-1">Total Pkg</span> 
+                            
+                          </div>
+                        </div>
+                       
+                      </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6">
+                      <div class="card card-default">
+                        <div class="card-header">
+                          <h2>{{total_domain}}</h2>
+                          
+                          <div class="sub-title">
+                            <span class="mr-1">Total Domain</span> 
+                            
+                          </div>
+                        </div>
+                         </div>
+                    </div>
+                  </div>
+
+
+<div class="row">
+
+
+						{% for mod in modules %}
+  
+                        {% include mod.template %}
+  
+                        {% endfor %}
+                    </div>
+
+
+
+
+
+
+
+
+
+     <div class="row" id="search_here">
+                  <div class="col-md-12 col-xl-12">
+                      
+					  <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                            <h3><img src="/media/icon/user.svg" width="28px" height="28px" style="margin-right: 10px;" />  Users</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#user-manu" aria-expanded="true" aria-controls="user-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="domain-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						{% for app in users_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}
+						
+						
+						
+                                    
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+					  
+					   <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/database.svg" width="28px" height="28px" style="margin-right: 10px;" />  Database</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#database-manu" aria-expanded="true" aria-controls="database-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="database-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                                 {% for app in database_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+					  
+					  
+                    <!-- manu -->
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                            <h3><img src="/media/icon/domain.svg" width="28px" height="28px" style="margin-right: 10px;" />  Domains</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#domain-manu" aria-expanded="true" aria-controls="domain-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="domain-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                         {% for app in domain_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}    
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/folder.svg" width="28px" height="28px" style="margin-right: 10px;" />  Files</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#file-manu" aria-expanded="true" aria-controls="file-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="file-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                           
+                          {% for app in file_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                    
+                     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/ssl.svg" width="28px" height="28px" style="margin-right: 10px;" />  Security</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#security-manu" aria-expanded="true" aria-controls="security-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="security-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            {% for app in security_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}        
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+                   
+                     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/pc.svg" width="28px" height="28px" style="margin-right: 10px;" />  Server</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#database-manu" aria-expanded="true" aria-controls="database-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="database-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            {% for app in service_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}        
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+                    
+                    
+                    
+                      <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/mail.svg" width="28px" height="28px" style="margin-right: 10px;" />  Email</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#email-manu" aria-expanded="true" aria-controls="email-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="email-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                           {% for app in email_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}          
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+                   
+                     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/php.svg" width="28px" height="28px" style="margin-right: 10px;" />  PHP</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#php-manu" aria-expanded="true" aria-controls="php-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="php-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            {% for app in php_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}           
+						     
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                   
+				   
+				   
+				    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/node.svg" width="28px" height="28px" style="margin-right: 10px;" />  Node JS</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#node-manu" aria-expanded="true" aria-controls="node-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="node-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						
+						 {% for app in node_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}               
+						     
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+				   
+				    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/settings.svg" width="28px" height="28px" style="margin-right: 10px;" />  Advance</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#advance-manu" aria-expanded="true" aria-controls="advance-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="advance-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                            {% for app in advance_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}           
+						     
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+				   
+				   
+				   
+				   
+				   
+				   
+                   
+                 
+                    
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/conf.svg" width="28px" height="28px" style="margin-right: 10px;" />  Configuration</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#configuration-manu" aria-expanded="true" aria-controls="configuration-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="configuration-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						{% for app in configuration_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}             
+						     
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                   
+				   
+				   
+				   
+				     <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/help.svg" width="28px" height="28px" style="margin-right: 10px;" />  Help</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#help-manu" aria-expanded="true" aria-controls="configuration-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="help-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+						{% for app in support_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}             
+						     
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+				   
+				   
+				   
+				   
+				   
+                    <div class="card card-default">
+                      <div class="has-sub">
+                          <div class="card-header border-bottom">
+                           <h3><img src="/media/icon/account.svg" width="28px" height="28px" style="margin-right: 10px;" />  Account</h3>
+                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#account-manu" aria-expanded="true" aria-controls="account-manu"><b class="caret"></b></a>
+                          </div>
+                          
+                      </div>  
+                      <div class="collapse show"  id="account-manu" data-parent="">
+                          <div class="card-body sub-menu ptop-6">
+                        <div class="row">
+                         {% for app in account_plugin %}
+<div class="col-sm-9 col-md-3 col-lg-3">
+    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+        <div class="d-flex justify-content-start align-items-center">
+            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
+            <span>{{ app.name }}</span>
+        </div>
+    </a>
+</div>
+{% endfor %}             
+						     
+                           
+                           
+                        </div>
+                      </div>
+                      </div>
+                    </div>
+                    
+                    
+                   
+
+
+                  </div>
+                 </div>
+				
+				
+				
+
+ <script>
+  // Function to update the bar
+function updateBar(elementId, percentage, spanId) {
+    var barElement = document.getElementById(elementId);
+    var spanElement = document.getElementById(spanId);
+    
+    // Update width of the bar
+    barElement.style.width = percentage + "%";
+    spanElement.textContent = percentage + "%";
+    
+    // Change color based on the percentage
+    if (percentage > 80) {
+        barElement.style.backgroundColor = '#F44336'; // Red for high usage
+    } else if (percentage > 50) {
+        barElement.style.backgroundColor = '#af3793'; // Yellow for moderate usage
+    } else {
+        barElement.style.backgroundColor = '#4CAF50'; // Green for normal usage
+    }
+}
+
+
+
+function fetchSystemStatus() {
+   
+    // Make the response container visible
+    setTimeout(function() {
+      
+        // Call the URL (replace '/your-url' with your actual URL)
+        fetch('{% url 'system_status' %}', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json(); // Parse response as JSON
+        })
+        .then(data => {
+            // Ensure the data contains the required fields
+            if (data.cpu_percent && data.ram_percent && data.disk_percent) {
+                // Update the bars with the data from the response
+                updateBar("cpu", data.cpu_percent, "cpup");
+                updateBar("ram", data.ram_percent, "ramp");
+                updateBar("disk", data.disk_percent, "diskp");
+				var spanload = document.getElementById("xload");
+				var loadAvg = data.load_avg; // Example: [0.01171875, 0.0224609375, 0.0]
+if (Array.isArray(loadAvg)) {
+    // Display load averages as "1 min: x, 5 min: y, 15 min: z"
+    spanload.textContent = ` ${loadAvg[0].toFixed(2)}, ${loadAvg[1].toFixed(2)},  ${loadAvg[2].toFixed(2)}`;
+} 
+            } else {
+                //console.error("Missing data in response:", data);
+            }
+        })
+        .catch(error => {
+           // console.error('Error:', error);
+        });
+    }, 0); // Call immediately (no delay)
+}
+    
+const interval = setInterval(function() {
+  fetchSystemStatus();
+ }, 3000);
+
+
+
+
+
+  document.getElementById('search').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const container = document.getElementById('search_here');
+    const cards = container.querySelectorAll('.card.card-default');
+
+    cards.forEach(card => {
+      // Get all visible text inside the card
+      const text = card.textContent.toLowerCase();
+      // Show or hide card depending on match
+      if (text.includes(filter)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+
+
+
+
+</script>
+
+  
+ <style>
+       
+
+        .chart {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .label {
+            
+            text-align: right;
+            padding-right: 10px;
+            font-weight: bold;
+        }
+
+        .bar-inner {
+            flex-grow: 1;
+            height: 30px;
+            background-color: #f0f0f0;
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .bar-value {
+            position: absolute;
+            right: 10px;
+            top: 0;
+            bottom: 0;
+            line-height: 30px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        h2 {
+            text-align: center;
+        }
+    </style>  
+				
+				
+{% include "whm/footer.html" %}
+{% endblock content %}

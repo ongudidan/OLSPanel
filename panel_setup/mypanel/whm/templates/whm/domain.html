@@ -1,0 +1,122 @@
+{% extends "whm/base.html" %}
+{% block title %}Add new domain{% endblock title %}
+{% block content %}
+
+
+
+ <div class="card card-default">
+      <div class="card-header">
+        <h2>Add new domain</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post"  enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="col-md-5">
+			
+			<div class="form-group">
+                    <label class="small mb-1" for="php_version">Select user:</label>
+                    <select class="form-control" name="user" id="xuser">
+                        {% for auser in all_user %}
+                            <option value="{{ auser.username }}">{{ auser.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+			
+			
+                <div class="form-group">
+                    <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Domain:</label>
+                    {{ user_form.domain }}  <!-- Render the domain input field -->
+                </div>
+				 <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Document Root (File System Location):</label>
+				 
+				  <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="dtype" name="dtype">
+            <label class="small mb-1" for="dtype" id="docRootLabel">
+  Share document root (/home/username/public_html).
+</label>
+
+          </div>
+				 
+				 
+				 
+				  <div class="input-group mb-2 mr-sm-2">
+				 
+            <div class="input-group-prepend">
+			
+              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+            </div>
+            {{ user_form.path }}
+          </div>
+				 
+				
+				 <div class="form-group">
+                    <label class="small mb-1" for="php_version">Select PHP Version:</label>
+                    <select class="form-control" name="php_version" id="php_version">
+                        {% for version in php_versions %}
+                            <option value="{{ version }}">{{ version }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+				
+            </div>
+        </div>
+        <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Add domain</button>
+    </form>
+</div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const checkbox = document.getElementById("dtype");
+  const domainInput = document.getElementById("id_domain");
+  const pathInput = document.getElementById("id_path");
+
+  function updatePath() {
+    if (!pathInput || !domainInput) return;
+    if (checkbox.checked) {
+      pathInput.value = "/public_html";
+    } else {
+      let domain = domainInput.value.trim().replace(/\s+/g, '').replace(/^www\./, '');
+      if (domain) {
+        pathInput.value = `/${domain}`;
+      } else {
+        pathInput.value = "";
+      }
+    }
+  }
+
+  checkbox.addEventListener("change", updatePath);
+  domainInput.addEventListener("input", function () {
+    if (!checkbox.checked) {
+      updatePath();
+    }
+  });
+
+  updatePath(); 
+  
+  
+  
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const userSelect = document.getElementById("xuser");
+  const label = document.getElementById("docRootLabel");
+
+  function updateLabel() {
+    const selectedUser = userSelect.value;
+    label.textContent = `Share document root (/home/${selectedUser}/public_html).`;
+  }
+
+  // Initial label update (for default selected user)
+  updateLabel();
+
+  // Update on selection change
+  userSelect.addEventListener("change", updateLabel);
+});
+
+
+</script>
+
+{% endblock content %}

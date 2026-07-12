@@ -1,0 +1,93 @@
+{% extends "whm/base.html" %}
+{% block title %}ConfigServer Security and Firewall{% endblock title %}
+{% block content %}
+
+
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">CSF Installing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+	
+
+
+ <div class="card card-default">
+    {% csrf_token %}   
+     <div class="card-header">
+        <h2>Install ConfigServer Security &amp; Firewall</h2>
+		
+        
+
+      </div>
+   <div class="card-body">
+   <div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Notice:</strong> CSF will reach end of life on <strong>31 August 2025</strong> and will no longer receive updates.
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+ <div class="col-xl-6">
+  <button type="submit" onclick="installCSF()" class="mb-1 btn btn-success" style="text-transform: none;">Install</button> 
+   
+</div>
+    <!-- No Results Message -->
+  
+
+</div>
+</div>
+
+
+ <script>
+        async function installCSF() {
+		const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+		const responseDisplay = document.getElementById('responseContainer');
+		const alertContainer = document.getElementById('alertContainer');
+        const messageDisplay = document.getElementById('message');
+		
+  		responseDisplay.style.display = 'inline-block';
+            const response = await fetch("{% url 'csf_install'%}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+					 'X-CSRFToken': csrfToken,
+                }
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+			responseDisplay.style.display = 'none';
+			 alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = data.output; 
+               location.reload();
+            } else {
+			responseDisplay.style.display = 'none';
+                
+			alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = "Error: " + data.error;
+            }
+        }
+    </script>
+{% endblock content %}
+
+{% include "whm/footer.html" %}

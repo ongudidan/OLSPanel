@@ -1,0 +1,44 @@
+{% extends "whm/base.html" %}
+{% block title %}Go File manger{% endblock title %}
+{% block content %}
+
+
+
+ <div class="card card-default">
+      <div class="card-header">
+        <h2>Go File manger</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post"  enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="col-md-5">
+			
+			<div class="form-group">
+                    <label class="small mb-1" for="php_version">Select user:</label>
+                    <select class="form-control" name="user" id="xuser">
+                        {% for auser in all_user %}
+                            <option value="{{ auser.username }}">{{ auser.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+			
+			
+				 
+				 
+				
+				 
+				
+				
+				
+            </div>
+        </div>
+        <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Go File manger</button>
+    </form>
+</div>
+</div>
+
+
+{% endblock content %}

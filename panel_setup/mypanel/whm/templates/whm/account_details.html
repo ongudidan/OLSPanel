@@ -1,0 +1,157 @@
+{% extends "whm/base.html" %}
+{% block title %}My Domain{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+ <div class="card card-default">
+      <div class="card-header">
+        <h2>Account Details</h2>
+		
+        
+
+      </div>
+    
+        <div class="card-body">
+               <div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert">
+  Account created successfully
+   
+</div>	
+                    <div class="list-group">
+					<div class="list-group-item">
+                            <strong>Login url:</strong> https://{{ pkg_data.server_ip }}:{{ pkg_data.port }}
+                        </div>
+						<div class="list-group-item">
+                            <strong>SSL Login url:</strong> https://{{pkg_data.main_domain}}:{{ pkg_data.port }}
+                        </div>
+                        <div class="list-group-item">
+                            <strong>Username:</strong> {{ pkg_data.username }}
+                        </div>
+						<div class="list-group-item">
+                            <strong>password:</strong> {{pkg_data.password}}
+                        </div>
+						 <div class="list-group-item">
+                            <strong>Domain:</strong> {{pkg_data.main_domain}}
+                        </div>
+						
+						<div class="list-group-item">
+                            <strong>FTP Username:</strong> {{ pkg_data.username }}
+                        </div>
+						<div class="list-group-item">
+                            <strong>FTP password:</strong> {{pkg_data.password}}
+                        </div>
+						 <div class="list-group-item">
+                            <strong>FTP Host:</strong> {{ pkg_data.server_ip }}
+                        </div>
+						
+                        <div class="list-group-item">
+                            <strong>Email:</strong> {{pkg_data.email}}
+                        </div>
+                        
+                        <div class="list-group-item">
+                            <strong>Package:</strong> {{ pkg_data.name }}
+                        </div>
+						
+						
+                        <div class="list-group-item">
+                            <strong>IP Address:</strong> {{ pkg_data.server_ip }}
+                        </div>
+                       
+						
+                       
+                    </div>
+                </div>
+          
+        
+
+       
+   
+
+   
+
+
+
+<script>
+
+
+window.onload = function() {
+const responseDisplay = document.getElementById('responseContainer');
+  const alertContainer = document.getElementById('alertContainer');
+  const messageDisplay = document.getElementById('message');
+   
+ setTimeout(function() {
+ responseDisplay.style.display = 'inline-block';
+            // Call the URL (replace '/your-url' with your actual URL)
+            fetch('/whm/domain_list_ssl_first_all/{{ pkg_data.domain_id }}', {
+                method: 'GET', // or 'POST' depending on your requirement
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text(); // Retrieve response as plain text
+            })
+            .then(data => {
+                console.log('Response:', data);
+                responseDisplay.style.display = 'none';
+				if (data.includes('success')) {
+            // Set alert for success
+            alertContainer.className = "alert alert-success alert-dismissible fade show";
+            messageDisplay.innerText = data; // Displaying success message
+        } else {
+            // Set alert for error
+            alertContainer.className = "alert alert-danger alert-dismissible fade show";
+            messageDisplay.innerText = data; // Displaying error message
+        }
+		
+		alertContainer.style.display = "block";
+		 setTimeout(function() {
+          // window.location.href = '/whm/domain_list_all'; // Change this to your desired URL
+        }, 5000); // 5000 milliseconds = 5 seconds
+		
+		
+		
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 1000); // 5000 milliseconds = 5 seconds
+
+    
+    
+}
+
+</script>
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

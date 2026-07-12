@@ -1,0 +1,90 @@
+{% extends "users/base.html" %}
+{% block title %}Create Email Forword{% endblock title %}
+{% block content %}
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Create Email Forword</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post">
+	 
+    
+        {% csrf_token %}
+        <!-- Username Field -->
+		
+		 <div class="form-group" style="display: flex; align-items: center;">
+            <select id="domainx" name="domain" class="form-control" onchange="setDomainValue()">
+			 {% for domain in domains %}
+                <option value="{{ domain.id }}">{{ domain.domain }}</option>
+               {% endfor %}
+                <!-- Add more domain options here -->
+            </select>
+        </div>
+        
+		
+<label for="username" style="margin-right: 10px;">Username:</label>
+
+ <div class="input-group mb-2 mr-sm-2">
+				  <input type="text" id="username" name="username" class="form-control" value="{{ db_name }}" placeholder="Enter username">
+            <div class="input-group-prepend">
+			
+             <input type="text" id="emailDisplay" class="form-control" readonly>
+            </div>
+            
+			
+          </div>
+
+       
+ <label for="forword" >Forword to Email</label>
+        <div class="form-group">
+           
+            <input type="email" id="email" name="email" class="form-control" placeholder="example@example.com">
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Submit</button>
+        </div>
+    </form>
+</div>
+</div>
+<script>
+
+	
+window.onload = function() {
+    updateEmail(); // Call updateEmail on page load
+};
+
+// Function to update the email display field
+document.getElementById('username').addEventListener('input', updateEmail);
+document.getElementById('domainx').addEventListener('change', updateEmail);
+
+function updateEmail() {
+    var username = document.getElementById('username').value || 'user'; // Default to 'user' if username is empty
+    var domainSelect = document.getElementById('domainx');
+    var domain = domainSelect && domainSelect.options[domainSelect.selectedIndex] ? domainSelect.options[domainSelect.selectedIndex].text : ''; // Ensure it's not undefined
+    
+    // If domain is valid, update the email display
+    if (domain) {
+        document.getElementById('emailDisplay').value = '@' + domain;
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    var domainSelect = document.getElementById('domainx');
+    if (domainSelect && domainSelect.options.length > 0) {
+        var firstDomain = domainSelect.options[0].text; // Get the first domain
+        document.getElementById('emailDisplay').value = 'user' + '@' + firstDomain; // Set initial value
+    }
+});
+
+
+
+    
+</script>
+{% endblock content %}
+{% include "users/footer.html" %}
+

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OLSPanel | Default Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary: #0d6efd;
+      --text: #212529;
+      --muted: #6c757d;
+      --light: #ffffff;
+      --dark: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f8f9fa;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: var(--light);
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    header img {
+      max-height: 40px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .content {
+      max-width: 700px;
+    }
+
+    .content h1 {
+      font-size: 2.4rem;
+      color: var(--primary);
+      margin-bottom: 15px;
+    }
+
+    .content p {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    footer {
+      background-color: var(--dark);
+      color: #ccc;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .content h1 {
+        font-size: 1.8rem;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      header img {
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <img src="https://olspanel.com/ow.png" alt="OLSPanel Logo">
+  </header>
+
+  <!-- Main content -->
+  <main>
+    <div class="content">
+      <h1>👋 Welcome to OLSPanel</h1>
+      <p>📄 This is the default web page for this server.</p>
+      <p>✅ The web server is working correctly and is ready to be configured.</p>
+      <p>🔐 If you're the administrator, you can access the 
+        <a href="/" style="color: var(--primary); text-decoration: none;">OLSPanel Dashboard</a>.
+      </p>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    &copy; <span id="year"></span> OLSPanel. All rights reserved.
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,41 @@
+{% extends "whm/base.html" %}
+{% block title %}Firewall PORTS{% endblock title %}
+{% block content %}
+<div class="card card-default">
+ <div class="card-header">
+        <h2>Firewall PORTS</h2>
+      </div>
+<div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="dns_name" id="labelName">TCP In ports</label>
+            <input type="text" class="form-control" id="dns_name" name="tcpin"  value="{{ TCP_IN }}" required>
+        </div>
+
+        {% if csf %}
+            <div class="form-group">
+                <label for="dns_value" id="labelValue">TCP Out ports</label>
+                <input type="text" class="form-control" id="dns_value" name="tcpout" value="{{ TCP_OUT }}" required>
+            </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="dns_value" id="labelValue">UDP In Ports</label>
+            <input type="text" class="form-control" id="ttl" name="udpin" value="{{ UDP_IN }}" required>
+        </div>
+
+        {% if csf %}
+            <div class="form-group">
+                <label for="dns_value" id="labelValue">UDP Out Ports</label>
+                <input type="text" class="form-control" id="ttl" name="udpout" value="{{ UDP_OUT }}" required>
+            </div>
+        {% endif %}
+        
+        <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
+    </form>
+</div>
+</div>
+{% endblock content %}
+

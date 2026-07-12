@@ -1,0 +1,103 @@
+{% extends "whm/base.html" %}
+{% block title %}Modsecurity{% endblock title %}
+{% block content %}
+<div class="card card-default">
+ <div class="card-header">
+        <h2>Modsecurity</h2>
+        
+
+      </div>
+<div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+		
+		
+		
+		
+		<div class="form-group">
+    <label for="allow_url_include">ModSecurity Status</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="status" id="status" class="switch-input form-check-input" value="on" {% if modsecurity|lower == 'on' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+<div class="form-group">
+    <label for="SecAuditEngine">SecAuditEngine:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="SecAuditEngine" id="SecAuditEngine" class="switch-input form-check-input" value="on" {% if SecAuditEngine|lower == 'on' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+<div class="form-group">
+    <label for="SecRuleEngine">SecRuleEngine:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="SecRuleEngine" id="SecRuleEngine" class="switch-input form-check-input" value="On" {% if SecRuleEngine|lower == 'on' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+		
+		
+		
+            <div class="form-group"> 
+                                            <label>SecDebugLogLevel</label>
+                                          
+                                               <select class="form-control" id="SecDebugLogLevel" name="SecDebugLogLevel">
+    {% for i in range_0_to_9 %}
+        <option value="{{ i }}">{{ i }}</option>
+    {% endfor %}
+</select>
+
+
+                                            
+                                        </div>
+										
+                <div class="form-group">
+                <label for="dns_name" id="labelName">SecAuditLogParts</label>
+                <input type="text" class="form-control" id="dns_name" name="SecAuditLogParts"  value="{{ SecAuditLogParts }}" required>
+                
+            </div>
+            <div class="form-group">
+                <label for="dns_value" id="labelValue">SecAuditLogRelevantStatus</label>
+                <input type="text" class="form-control" id="dns_value" name="SecAuditLogRelevantStatus" placeholder="203.0.113.11" value="{{ SecAuditLogRelevantStatus }}" required>
+                
+            </div>
+			<div class="form-group">
+                <label for="dns_value" id="labelValue">SecAuditLogType</label>
+                <input type="text" class="form-control" id="ttl" name="SecAuditLogType" placeholder="203.0.113.11" value="{{ SecAuditLogType }}" required>
+                
+            </div>
+			
+			<div class="form-group">
+    <label for="SecRuleEngine">OWASP ModSecurity Core Rules:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox"  name="rule" id="rule" class="switch-input form-check-input" value="On" {% if rule|lower == 'true' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+				
+           
+       
+        <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
+    </form>
+</div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Replace '3' with the value of SecDebugLogLevel dynamically fetched from the server
+        const SecDebugLogLevel = "{{SecDebugLogLevel}}"; // Example value; replace with the actual value
+
+        // Get the dropdown element
+        const selectElement = document.getElementById("SecDebugLogLevel");
+
+        // Set the selected value
+        selectElement.value = SecDebugLogLevel;
+    });
+</script>
+{% endblock content %}

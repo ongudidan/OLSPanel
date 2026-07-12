@@ -1,0 +1,108 @@
+{% extends "whm/base.html" %}
+{% block title %}PHP Modules{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+  <div class="card-header">
+    <h2>PHP Modules</h2>
+  </div>
+
+  <div class="card-body">
+    <form id="phpModulesForm" method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="col-md-5">
+          <div class="form-group">
+            <label class="small mb-1" for="php_version">Select PHP Version:</label>
+            <select class="form-control" name="php_version" id="php_version" required>
+              {% for version in php_versions %}
+              <option value="{{ version }}">{{ version }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ext">Module name</label>
+            <input type="text"
+                   class="form-control"
+                   id="ext"
+                   name="ext"
+                   placeholder="e.g. mongodb, redis, imagick"
+                   required>
+          </div>
+        </div>
+      </div>
+      <button type="submit" id="installBtn" class="mb-1 btn btn-success">Install PHP Module</button>
+    </form>
+
+    <!-- Loader -->
+    <div id="responseContainer" class="sk-wave my-4" style="display: none;">
+      <div class="rect1"></div>
+      <div class="rect2"></div>
+      <div class="rect3"></div>
+      <div class="rect4"></div>
+      <div class="rect5"></div>
+    </div>
+
+    <!-- Output Box -->
+    <pre id="outputBox" style="background:#111;color:#0f0;padding:10px;border-radius:8px;
+    font-size:13px;display:none;max-height:400px;overflow-y:auto;"></pre>
+
+    <!-- Alert -->
+    <div id="alertContainer" class="alert alert-dismissible fade show mt-3" role="alert" style="display: none;">
+      <div id="message"></div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('phpModulesForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    install_php_module();
+});
+
+function install_php_module() {
+    const phpVersion = document.getElementById('php_version').value.trim();
+    const ext = document.getElementById('ext').value.trim();
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const outputBox = document.getElementById('outputBox');
+
+    outputBox.style.display = 'block';
+    outputBox.innerText = "Installing " + ext + " for " + phpVersion + "...\n";
+
+    fetch("{% url 'install_php_modules' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({
+            'php_version': phpVersion,
+            'ext': ext
+        })
+    }).then(response => {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        function readChunk() {
+            reader.read().then(({ done, value }) => {
+                if (done) {
+                    outputBox.innerText += "\n✅ Installation finished.";
+                    outputBox.scrollTop = outputBox.scrollHeight;
+                    return;
+                }
+                const chunk = decoder.decode(value, { stream: true });
+                outputBox.innerText += chunk;
+                // auto scroll down
+                outputBox.scrollTop = outputBox.scrollHeight;
+                readChunk();
+            });
+        }
+        readChunk();
+    }).catch(error => {
+        outputBox.innerText += "\n❌ Error: " + error.message;
+    });
+}
+</script>
+
+{% endblock content %}

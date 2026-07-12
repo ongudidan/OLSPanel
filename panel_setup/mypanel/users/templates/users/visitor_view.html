@@ -1,0 +1,71 @@
+{% extends "users/base.html" %}
+{% block title %}Visitors{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>List Visitors</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+    <div class="row">
+  
+<div class="col-xl-6 d-flex justify-content-end">
+    
+	</div>
+	</div>
+<div class="table-responsive">
+<div class="conthentshow">
+   <pre>
+   {{ content }}
+   
+   </pre>
+   </div>
+    <!-- No Results Message -->
+  
+</div>
+</div>
+
+<style>
+.conthentshow {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: "Courier New", monospace;
+    font-size: 14px;
+    white-space: pre-wrap; /* Preserve new lines */
+    word-wrap: break-word;
+    overflow-x: auto;
+    line-height: 1.5;
+}
+
+
+
+.conthentshow pre {
+    display: block;
+    position: relative;
+    padding-left: 2.5em;
+    margin: 0;
+	color: #ffffff !important;
+}
+
+.conthentshow pre::before {
+    counter-increment: linenumber;
+    content: counter(linenumber);
+    position: absolute;
+    left: 5px;
+    top: 0;
+    color: #75715e;
+    font-size: 12px;
+}
+
+
+
+</style>
+{% endblock content %}
+
+{% include "users/footer.html" %}

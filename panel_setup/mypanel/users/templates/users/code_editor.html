@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Editor</title>
+    <script src="/media/editor/ace.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+	<link rel="stylesheet" href="/media/editor/smart.css">
+	<link rel="stylesheet" href="/media/notify/notification.css">
+   
+</head>
+<body>
+   <div id="maintbl" class="flex-container">
+   
+   
+  
+   
+   
+    <div class="flex-item left" style="margin-left:10px">
+        <label style="font-weight: 900; font-size: 13px;margin-top:4px">
+           
+            <input type="text" id="path" name="path" value="{{file}}" class="form-control">
+			
+        </label>
+        <input type="button" style="margin-left:10px;" onclick="reloadPageWithUrl();" class="btn btn-white btn-md" value="Re-open" id="btnReOpen">
+    </div>
+
+   
+
+    
+			
+           
+
+        <button type="submit" id="sform_submit" class="btn btn-primary btn-md" style="font-weight: bold"><img id="responseContainer" style="margin-right: 5px; display: none;" src="/media/loading.gif" width="30px" height="30px"/> Save Changes</button>
+		<input type="button" style="margin-left:10px;" onclick="closeTab();" class="btn btn-white btn-md" value="Close">
+    </div>
+</div>
+
+			 
+            <div class="show-ace-editor">
+              
+				
+                    <div class="">
+                        <div class="col-xs-12 col-sm-8">
+                            <div class="btn-toolbar editor-toolbar" role="toolbar">
+                                <div class="btnx-group" role="group">
+                                    <button id="search" type="button" class="btn btn-default" onclick="toggleSearch()" title="Search">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <button id="btnGoto" type="button" onclick="toolbarActions('goto')" class="btn btn-default" title="Go to line.">
+                                        <i class="fas fa-terminal"></i>
+                                    </button>
+                                </div>
+                                <div class="btnx-group" role="group">
+                                    <button id="btnUndo" type="button" onclick="toolbarActions('undo')" class="btn btn-default" title="Undo">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    <button id="btnRedo" type="button" onclick="toolbarActions('redo')" class="btn btn-default" title="Redo">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                </div>
+                                <div class="btnx-group" role="group">
+                                    <button id="btnLineWrap" type="button" onclick="toolbarActions('linewrap')" class="btn btn-default" title="Wrap">
+                                        <i class="fas fa-arrows-alt-h"></i>
+                                    </button>
+                                </div>
+                                <div class="btnx-group" role="group">
+                                    <select id="ddlFontSizes" class="btn btn-default form-control btn-group-ddl">
+                                        <option value="10">10px</option>
+                                        <option value="11">11px</option>
+                                        <option value="12">12px</option>
+                                        <option value="13">13px</option>
+                                        <option value="14">14px</option>
+                                        <option value="16">16px</option>
+                                        <option value="18">18px</option>
+                                        <option value="20">20px</option>
+                                        <option value="24">24px</option>
+                                    </select>
+                                </div>
+                                <!-- Search Functionality -->
+                               <!-- Inside your HTML -->
+
+
+
+
+
+
+                            </div>
+                        </div>
+						
+						
+						 <div class="flex-item center" id="search-container" style="display:none">
+	<div class="ace_search right">
+	<span action="hide" onclick="toggleSearch()" class="ace_searchbtn_close"></span>
+	<div class="ace_search_form">
+	<input class="ace_search_field" id="search-input" placeholder="Search for" spellcheck="false">
+	<span id="find-prev" class="ace_searchbtn prev" disabled></span>
+	<span id="find-next" class="ace_searchbtn next" disabled></span>
+	<span id="find-all" class="ace_searchbtn" title="Alt-Enter">All</span></div>
+	<div class="ace_replace_form" style="display: none;">
+	<input class="ace_search_field" placeholder="Replace with" spellcheck="false">
+	<span action="replaceAndFindNext" class="ace_searchbtn">Replace</span>
+	<span action="replaceAll" class="ace_searchbtn">All</span></div>
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+    </div>
+						
+						
+						
+                    </div>
+                    </div>
+   {% csrf_token %}              
+<div id="editor">{{content}}</div>
+   <script>
+    // Define the Django base URL and the URL for 'php_editor'
+    const baseUrl = "{{ base_url }}";
+    const phpEditorUrl = "{% url 'php_editor' %}";
+	const ext = "{{ext}}";
+	
+        document.addEventListener('keydown', function(event) {
+            // Detect if 'Ctrl' (or 'Cmd' for Mac) + 'F' is pressed
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+                event.preventDefault();  // Prevent the default browser action (find)
+                toggleSearch();  // Open or close the search box
+            }
+        });
+</script>
+   <script src="/media/editor/searchbox.js" defer></script>
+   <script src="/media/notify/notify.js"></script>
+</body>
+</html>

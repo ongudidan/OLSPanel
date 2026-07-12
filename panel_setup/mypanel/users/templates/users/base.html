@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ branding.brand_icon }}">
+    <!-- Bootstrap CSS 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+-->
+ <link href="/media/css/material/css/materialdesignicons.min.css" rel="stylesheet" />
+ <link href="/media/css/simplebar.css" rel="stylesheet" />
+
+ <style>
+ * {
+    text-transform: none !important;
+}
+
+ </style>
+
+  <link id="main-css-href" rel="stylesheet" href="/media/css/style.css?v=2.0" />
+    <title>{% block title %} {% endblock %} </title>
+</head>
+ {% if user.is_authenticated %}
+				
+<body class="navbar-fixed sidebar-fixed" id="body">
+   
+
+    
+    <!--<div id="toaster">Welcome to Epanel</div>-->
+    
+
+    <!-- ====================================
+    ——— WRAPPER
+    ===================================== -->
+    <div class="wrapper">
+      
+      
+        <!-- ====================================
+          ——— LEFT SIDEBAR WITH OUT FOOTER
+        ===================================== -->
+        <aside class="left-sidebar sidebar-dark" id="left-sidebar">
+            
+          <div id="sidebar" class="sidebar sidebar-with-footer">
+              
+            <!-- Aplication Brand -->
+            <div class="app-brand">
+              <a href="/">
+                <img src="{{ branding.brand_icon }}" alt="{{ branding.brand_title }}">
+                <span class="brand-name"><font color="#ef6d19">{{ branding.brand_title }}</font></span>
+              </a>
+            </div>
+            
+            <!-- begin sidebar scrollbar -->
+            <div class="sidebar-left" data-simplebar style="height: 100%;">
+              <!-- sidebar menu -->
+              <ul class="nav sidebar-inner" id="sidebar-menu">
+                 <div id="custom-search" class="top-search-bar px-3 mb-2">
+    <div class="input-group" style="position: relative; align-items: center;">
+        <input type="text" name="fakeusernameremembered" style="display:none" />
+        <input type="password" name="fakepasswordremembered" style="display:none" />
+        <!-- Icon shown only in minified mode -->
+        <button class="search-icon-btn" title="Search">
+            <i class="mdi mdi-magnify"></i>
+        </button>
+        <!-- Input shown in full mode -->
+        <input class="form-control shadow-sm" autocomplete="off"
+               id="menuSearchInput" type="text" placeholder="Search..."
+               style="padding-left: 1.2rem; border-radius: 10px;">
+    </div>
+</div>
+                  <li
+                   class="active"
+                   >
+                    <a class="sidenav-item-link" href="/">
+                     <img src="/media/icon/dashboard.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Dashboard</span>
+                    </a>
+                  </li>
+
+                  <li class="section-title">
+                    Tools
+                  </li>
+                  
+                  <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#domain"
+                      aria-expanded="false" aria-controls="domain">
+                     <img src="/media/icon/domain.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Domains</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="domain"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+					  
+					 
+
+
+					   {% for app in domain_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}
+							
+							
+                          
+                      </div>
+                    </ul>
+                  </li>
+                  
+                  <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#files"
+                      aria-expanded="false" aria-controls="files">
+                     <img src="/media/icon/folder.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Files</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="files"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                            {% for app in file_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}
+							
+                      </div>
+                    </ul>
+                  </li>
+                  
+                  <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#security"
+                      aria-expanded="false" aria-controls="security">
+                     <img src="/media/icon/ssl.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Security</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="security"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                            {% for app in security_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}
+							
+                      </div>
+                    </ul>
+                  </li>
+
+                  <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#database"
+                      aria-expanded="false" aria-controls="database">
+                      <img src="/media/icon/database.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Database</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="database"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                            {% for app in database_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}
+                      </div>
+                    </ul>
+                  </li>
+                
+                  <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#email"
+                      aria-expanded="false" aria-controls="email">
+                      <img src="/media/icon/mail.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Email</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="email"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                            {% for app in email_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}
+                      </div>
+                    </ul>
+                  </li>
+                  
+                  
+                  
+                   <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#php"
+                      aria-expanded="false" aria-controls="php">
+                      <img src="/media/icon/php.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">PHP</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="php"
+                      data-parent="#php-menu">
+                      <div class="sub-menu">
+                          
+                            
+                            <li >
+                              <a class="sidenav-item-link" href="{% url 'multi_php_manager' %}">
+                                 <img src="/media/icon/php.svg" width="24px" height="24px" style="margin-right: 5px;" /><span class="nav-text">MultiPHP Manager</span>
+                                
+                              </a>
+                            </li>
+                            <li >
+                              <a class="sidenav-item-link" href="{% url 'multi_php_ini_u' %}">
+                                 <img src="/media/icon/php.svg" width="24px" height="24px" style="margin-right: 5px;" /><span class="nav-text">MultiPHP INI</span>
+                                
+                              </a>
+                            </li>
+                          
+
+
+
+                            
+                           
+                      </div>
+                    </ul>
+                  </li>
+
+
+   <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#node"
+                      aria-expanded="false" aria-controls="node">
+                      <img src="/media/icon/node.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Node JS</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="node"
+                      data-parent="#node-menu">
+                      <div class="sub-menu">
+                            <li >
+                              <a class="sidenav-item-link" href="{% url 'app_add' 'node_js' %}">
+                                <img src="/media/icon/node.svg" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">Add Node Js</span>
+                                
+                              </a>
+                            </li>
+                            
+                            <li >
+                              <a class="sidenav-item-link" href="{% url 'apps_list' 'node_js' %}">
+                                 <img src="/media/icon/version.svg" width="24px" height="24px" style="margin-right: 5px;" /><span class="nav-text">Node Js List</span>
+                                
+                              </a>
+                            </li>
+                           
+                        
+
+                            
+                           
+                      </div>
+                    </ul>
+                  </li>
+                  
+
+
+
+
+   <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#advance"
+                      aria-expanded="false" aria-controls="advance">
+                      <img src="/media/icon/settings.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Advance</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="advance"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                             {% for app in advance_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}
+
+                            
+                           
+                      </div>
+                    </ul>
+                  </li>
+                  
+
+
+
+
+
+                  
+
+<li class="has-sub">
+  <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#olsapp"
+    aria-expanded="false" aria-controls="olsapp">
+    <img src="/media/icon/software.svg" width="24px" height="24px" style="margin-right: 5px;" />
+    <span class="nav-text">OlsApp</span> <b class="caret"></b>
+  </a>
+  <ul class="collapse" id="olsapp" data-parent="#sidebar-menu">
+    <div class="sub-menu">
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_more_view' 'wordpress_manager' %}" target="_blank">
+          <img src="/media/icon/wordpress.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">WordPress Manager</span>
+        </a>
+      </li>
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_more_view_with_id' 'install' 'wordpress' %}" target="_blank">
+          <img src="/media/icon/wordpress.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">Install WordPress</span>
+        </a>
+      </li>
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_more_view_with_id' 'install' 'joomla' %}" target="_blank">
+          <img src="/media/icon/joomla.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">Install Joomla</span>
+        </a>
+      </li>
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_more_view_with_id' 'install' 'prestashop' %}" target="_blank">
+          <img src="/media/icon/presta.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">Install PrestaShop</span>
+        </a>
+      </li>
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_more_view_with_id' 'install' 'opencart' %}" target="_blank">
+          <img src="/media/icon/opencart.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">Install OpenCart</span>
+        </a>
+      </li>
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_more_view_with_id' 'install' 'phpbb' %}" target="_blank">
+          <img src="/media/icon/phpbb.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">Install phpBB</span>
+        </a>
+      </li>
+      <li>
+        <a class="sidenav-item-link" href="{% url 'olsapp_view' %}" target="_blank">
+          <img src="/media/icon/softaculous.png" width="24px" height="24px" style="margin-right: 5px;" />
+          <span class="nav-text">More Apps</span>
+        </a>
+      </li>
+    </div>
+  </ul>
+</li>
+
+                  
+ 
+
+<li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#software"
+                      aria-expanded="false" aria-controls="software">
+                      <img src="/media/icon/software.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Software</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="software"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                           {% for app in software_plugin %}
+					  
+                            <li >
+                              <a class="sidenav-item-link" href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
+                               <img src="{{ app.icon }}" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">{{ app.name }}</span>
+                                
+                              </a>
+                            </li>
+							
+							{% endfor %}             
+                           
+                            
+                           
+                      </div>
+                    </ul>
+                  </li>        
+
+
+
+ 
+ <li  class="has-sub" >
+                    <a class="sidenav-item-link" href="javascript:void(0)" data-toggle="collapse" data-target="#account"
+                      aria-expanded="false" aria-controls="account">
+                      <img src="/media/icon/user.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="nav-text">Account</span> <b class="caret"></b>
+                    </a>
+                    <ul  class="collapse"  id="account"
+                      data-parent="#sidebar-menu">
+                      <div class="sub-menu">
+                            <li >
+                              <a class="sidenav-item-link" href="{% url 'users-profile' %}">
+                                <img src="/media/icon/user.svg" width="24px" height="24px" style="margin-right: 5px;" /> <span class="nav-text">Profile</span>
+                                
+                              </a>
+                            </li>
+                            
+                            <li >
+                              <a class="sidenav-item-link" href="{% url 'logout' %}">
+                                 <img src="/media/icon/logout.svg" width="24px" height="24px" style="margin-right: 5px;" /><span class="nav-text">Logout</span>
+                                
+                              </a>
+                            </li>
+                            
+                           
+                            
+                           
+                      </div>
+                    </ul>
+                  </li>                  
+                  
+                  
+                  
+                 
+              </ul>
+            </div>
+
+          </div>
+        </aside>
+        
+              <!-- ====================================
+      ——— PAGE WRAPPER
+      ===================================== -->
+      <div class="page-wrapper">
+        
+          <!-- Header -->
+          <header class="main-header" id="header">
+            <nav class="navbar navbar-expand-lg navbar-light" id="navbar">
+              <!-- Sidebar toggle button -->
+              <button id="sidebar-toggler" class="sidebar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+              </button>
+
+              <span id="self_title" class="page-title">dashboard</span>
+
+              <div class="navbar-right ">
+
+
+                <ul class="nav navbar-nav">
+                 
+                  <!-- User Account -->
+                  <li class="dropdown user-menu">
+                    <button class="dropdown-toggle nav-link" data-toggle="dropdown">
+                       <img src="/media/icon/user.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                      <span class="d-none d-lg-inline-block">{{ user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      <li>
+                        <a class="dropdown-link-item" href="{% url 'users-profile' %}">
+                           <img src="/media/icon/user.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                          <span class="nav-text">Profile</span>
+                        </a>
+                      </li>
+                      <li>
+                        <a class="dropdown-link-item" href="">
+                           <img src="/media/icon/settings.svg" width="24px" height="24px" style="margin-right: 5px;" />
+                          <span class="nav-text">Setting</span>
+                        </a>
+                      </li>
+                      <li class="dropdown-footer">
+                        <a class="dropdown-link-item" href="{% url 'logout' %}">  <img src="/media/icon/logout.svg" width="24px" height="24px" style="margin-right: 5px;" /> Log Out </a>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </nav>
+
+
+          </header>
+		  
+<div class="content-wrapper">
+    <div class="content">   		  
+		  
+                  {% endif %}
+				  
+				  
+<style>
+.loading {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 30px; /* Smaller width */
+    height: 30px; /* Smaller height */
+    animation: spin 1s linear infinite; /* Spinning animation */
+    display: inline-block; /* Ensures it stays inline with text */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#responseDisplay {
+    margin-top: 20px; /* Space between button and response */
+}
+</style>
+     <script src="/media/js/jquery.min.js"></script>
+                    <script src="/media/js/bootstrap.bundle.min.js"></script>
+                   
+                    
+                 
+                 <script>
+        (function() {
+            // Define a condition to check if the user is on the main page
+            const isMainPage = window.location.pathname === '/'; // Adjust as needed
+
+            // Create a new <script> element
+            const script = document.createElement("script");
+
+            // Set the script source depending on the page, without a timestamp
+            script.src = isMainPage 
+                ? '/media/js/mono.js' 
+                : '/media/js/monoall.js';
+
+            // Append the script element to the document head to load it
+            document.head.appendChild(script);
+        })();
+		
+		
+		
+	document.getElementById("menuSearchInput").addEventListener("keyup", function () {
+    const filter = this.value.toLowerCase().trim();
+    const menuItems = document.querySelectorAll("#sidebar-menu > li");
+
+    menuItems.forEach(function (item) {
+        const link = item.querySelector("a.sidenav-item-link");
+        const subMenu = item.querySelector(".sub-menu");
+        const collapseEl = item.querySelector(".collapse, .show");
+
+        let matchFound = false;
+
+        // Reset visibility
+        item.style.display = "";
+
+        if (subMenu) {
+            const subLinks = subMenu.querySelectorAll("a.sidenav-item-link");
+            let subMatch = false;
+
+            subLinks.forEach(function (subLink) {
+                const subText = subLink.textContent.toLowerCase();
+                const subLi = subLink.closest("li");
+                if (filter !== "" && subText.includes(filter)) {
+                    subLi.style.display = "block";
+                    subMatch = true;
+                    matchFound = true;
+                } else {
+                    subLi.style.display = filter === "" ? "" : "none";
+                }
+            });
+
+            // Expand/collapse submenu
+            if (collapseEl) {
+                if (filter !== "" && subMatch) {
+                    collapseEl.classList.add("show");
+                    collapseEl.classList.remove("collapse");
+                } else {
+                    collapseEl.classList.remove("show");
+                    collapseEl.classList.add("collapse");
+                }
+            }
+        }
+
+        // Check main item match
+        if (link && link.textContent.toLowerCase().includes(filter)) {
+            matchFound = true;
+        }
+
+        // Final visibility
+        item.style.display = matchFound || filter === "" ? "block" : "none";
+    });
+});
+
+	document.addEventListener('DOMContentLoaded', function() {
+    const titleText = document.title || 'Dashboard';  // fallback text if no title
+    const span = document.getElementById('self_title');
+    if (span) {
+        span.textContent = titleText;
+    }
+});	
+    </script>
+                    
+                    
+{% if branding.brand_color != "#ef6d19" %}   
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const brandColor = "{{ branding.brand_color }}";
+  
+    if (brandColor === "#ef6d19") {
+        return;
+    }
+
+    document.querySelectorAll(
+        '#search_here img[src$=".svg"], #left-sidebar img[src$=".svg"]'
+    ).forEach(img => {
+        fetch(img.src)
+            .then(r => r.text())
+            .then(svgText => {
+                const parser = new DOMParser();
+                const svg = parser
+                    .parseFromString(svgText, "image/svg+xml")
+                    .querySelector("svg");
+
+                // Copy ALL attributes from IMG to SVG
+                Array.from(img.attributes).forEach(attr => {
+                    if (attr.name !== "src") {
+                        svg.setAttribute(attr.name, attr.value);
+                    }
+                });
+
+                // Preserve width & height if not already set
+                if (!svg.getAttribute("width")) {
+                    svg.setAttribute("width", img.getAttribute("width") || "40px");
+                }
+
+                if (!svg.getAttribute("height")) {
+                    svg.setAttribute("height", img.getAttribute("height") || "40px");
+                }
+
+                // Preserve inline styles
+                svg.style.cssText = img.style.cssText;
+
+                // Apply branding color
+                svg.style.color = brandColor;
+
+                // Colorize SVG elements
+                svg.querySelectorAll("*").forEach(el => {
+                    if (
+                        el.getAttribute("fill") &&
+                        el.getAttribute("fill") !== "none"
+                    ) {
+                        el.setAttribute("fill", "currentColor");
+                    }
+                    if (
+                        el.getAttribute("stroke") &&
+                        el.getAttribute("stroke") !== "none"
+                    ) {
+                        el.setAttribute("stroke", "currentColor");
+                    }
+                });
+
+                svg.setAttribute("fill", "currentColor");
+
+                img.replaceWith(svg);
+            })
+            .catch(err => console.error("SVG load failed:", err));
+    });
+});
+</script>               
+                   		  
+{% endif %}                          		  
+				  
+ {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+
+
+
+{% if user_form.errors %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+   
+            {% for key, value in user_form.errors.items %}
+                <strong>{{ value }}</strong>
+            {% endfor %}
+         <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+    </div>
+{% endif %}
+
+
+
+        {% block content %}{% endblock %}				  
+
+

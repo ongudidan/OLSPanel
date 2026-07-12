@@ -1,0 +1,7 @@
+imap_host = "mail.chandpurtelecom.xyz"
+imap_port = 993
+imap_secure = "SSL"
+smtp_host = "mail.chandpurtelecom.xyz"
+smtp_port = 465
+smtp_secure = "SSL"
+smtp_auth = On

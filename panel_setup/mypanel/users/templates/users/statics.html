@@ -1,0 +1,27 @@
+{% extends "users/base.html" %}
+{% block title %}Manage domain{% endblock title %}
+{% block content %}
+<div class="row my-3 p-3"></div>
+<div class="container mt-5">
+    
+      
+{% if pkg_data %}
+    <h3>Package Details:</h3>
+    <p>Name: {{ pkg_data.name }}</p>
+    <p>Disk Space: {{pkg_data.disk_use}} / {{ pkg_data.disk_space }} MB</p>
+	<p>MySQL® Disk Usage : {{pkg_data.disk_use_db}} / {{ pkg_data.disk_space }} MB</p>
+	<p>Email Disk Space: {{pkg_data.disk_use_email}} / {{ pkg_data.disk_space }} MB</p>
+    <p>Bandwidth: {{ pkg_data.bandwidth_use }} / {{ pkg_data.bandwidth }} MB</p>
+    <p>Email Accounts: {{ pkg_data.total_email_count }} / {{ pkg_data.email_accounts }}</p>
+    <p>Databases: {{ pkg_data.databases_use }} / {{ pkg_data.databases }}</p>
+    <p>FTP Accounts: {{ pkg_data.ftp_accounts }}</p>
+    <p>Allowed Domains: {{ pkg_data.domain_use }} / {{ pkg_data.allowed_domains }}</p>
+{% else %}
+    <p>No package data available for this user.</p>
+{% endif %}
+
+       
+    
+</div>
+{% endblock content %}
+{% include "users/footer.html" %}

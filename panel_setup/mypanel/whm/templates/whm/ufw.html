@@ -1,0 +1,70 @@
+{% extends "whm/base.html" %}
+{% block title %}UFW Security and Firewall{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">CSF Removing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+	
+
+	
+
+
+ <div class="card card-default">
+   
+
+    <div class="card-body">
+        <br/>
+
+        {% if csf == "yes" %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          You are currently using CSF. To access the UFW Firewall Manager, please remove CSF from your system.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <iframe border="0" name="myiframe" id="myiframe" src="{% url 'configservercsfiframe' %}" style="width: 100%;" frameborder="0" onload="resizeIframe(this);"></iframe>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+ <script>
+  function resizeIframe(obj) {
+    obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+	window.scrollTo(0,0);
+  }
+  window.parent.parent.scrollTo(0,0);
+  
+  
+  
+
+</script>
+{% endblock content %}
+
+{% include "whm/footer.html" %}

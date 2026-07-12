@@ -1,0 +1,69 @@
+{% extends "users/base.html" %}
+{% block title %}List Email Forward{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>List Email Forward</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+    <div class="row">
+   <div class="col-xl-6">
+   <a class="mb-1 btn btn-pill btn-success" href="{% url 'email_forword' %}" role="button" style="text-transform: none;">+ New forward</a>
+</div>
+<div class="col-xl-6 d-flex justify-content-end">
+    <form action="{% url 'email_accounts' %}" method="post" class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+        </div>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Filter</button>
+    </form>
+	</div>
+	</div>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+             <tr>
+                <th>Email</th>
+                <th>destination</th>
+               
+                <th>Actions</th>
+            </tr>
+        </thead>
+         <tbody id="domainTable">
+            {% for email in emails %}
+            <tr>
+                <td>{{ email.source }}</td>
+                <td>{{ email.destination }}</td>
+                
+                <td><form action="{% url 'email_forword_delete' email.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this email ?');">Delete</button>
+                    </form>
+                    
+                    
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No results found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+
+{% endblock content %}
+
+{% include "users/footer.html" %}

@@ -1,0 +1,194 @@
+{% extends "users/base.html" %}
+{% block title %}My Apps{% endblock title %}
+{% block content %}
+
+
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Restarting, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>    
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>List of Apps</h2>
+    </div>
+    
+    <div class="card-body">
+
+        <div class="row mb-3">
+            <div class="col-xl-6">
+                <a class="btn btn-success" href="{% url 'app_add' main_type %}" role="button" style="text-transform: none;">+ Add {{ type|title }}</a>
+            </div>
+            <div class="col-xl-6 d-flex justify-content-end">
+                <form action="" method="post" class="form-inline">
+                    {% csrf_token %}
+                    <input type="text" name="search" class="form-control mr-2" placeholder="Search for path...">
+                    <button type="submit" class="btn btn-danger">Filter</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Url</th>
+                        <th>Type</th>
+                        <th>Version</th>
+                        <th>Path</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in apps %}
+                    <tr data-type="{{ app.type }}">
+                       <td>
+    {% if app.domain_id %}
+        <a id="app-link" target="_blank">
+    {{ app.domain_name }}/{{ app.app_path }}
+</a>
+    {% else %}
+        N/A
+    {% endif %}
+</td>
+
+                        <td>{{ app.type|title }}</td>
+                        <td>{{ app.version }}</td>
+                        <td><a href="{% url 'file_manager_home' %}" target="_blank"><span class="mdi mdi-home" style="font-size:20px"></span>{{ app.display_path }}</a></td>
+                       <td>
+					   
+    <a href="{% url 'app_edit' main_type app.id %}" class="btn btn-outline-primary btn-sm">
+        <i class="mdi mdi-square-edit-outline"></i> Manage
+    </a>
+    <a href="" onclick="restart({{app.id}})" class="btn btn-outline-success btn-sm" target="_blank">
+        <i class="mdi mdi-restart"></i> Restart
+    </a>
+	<form method="post" class="d-inline" action="{% url 'app_edit' main_type app.id %}" onsubmit="return confirm('Are you sure you want to delete this app?');">
+    {% csrf_token %}
+    <button type="submit" name="delete" class="btn btn-outline-danger btn-sm"> <i class="mdi mdi-delete"></i> Delete</button>
+</form>
+
+</td>
+
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No apps found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const pathElements = document.querySelectorAll("td a span.mdi");
+    pathElements.forEach(element => {
+        const parentText = element.parentNode.textContent;
+        element.parentNode.textContent = parentText.replace(/^\/home\/{{ user.username }}\//, '');
+    });
+});
+
+function restart(id) {
+    event.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const responseDisplay = document.getElementById('responseContainer');
+        const alertContainer = document.getElementById('alertContainer');
+        const messageDisplay = document.getElementById('message');
+
+        setTimeout(function() {
+            responseDisplay.style.display = 'inline-block';
+
+            // Call the URL (replace '/your-url' with your actual URL)
+            fetch('/restart_node/'+id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text(); // Retrieve response as plain text
+            })
+            .then(data => {
+                console.log('Response:', data);
+                responseDisplay.style.display = 'none';
+
+                if (data.includes('success')) {
+                    // Set alert for success
+                    alertContainer.className = "alert alert-success alert-dismissible fade show";
+                    messageDisplay.innerText = "restart success full"; // Displaying success message
+                } else {
+                    // Set alert for error
+                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                    messageDisplay.innerText = "restart failed"; // Displaying error message
+                }
+
+                alertContainer.style.display = "block";
+               
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 0); // 1000 milliseconds = 1 second
+
+    
+}
+
+  
+document.addEventListener("DOMContentLoaded", function() {
+    // Select all app links in the table
+    const appLinks = document.querySelectorAll("a#app-link");
+
+    appLinks.forEach(link => {
+        let urlText = link.textContent.trim(); // e.g., "example.com//myapp"
+        
+        // Split domain and path
+        let parts = urlText.split("/");
+        let domain = parts.shift(); // first part is domain
+        let path = parts.join("/"); // rest is path
+
+        // Remove any leading slashes from path to avoid double slashes
+        path = path.replace(/^\/+/, "");
+
+        // Update href and display text
+        link.href = `https://${domain}/${path}`;
+        link.textContent = `${domain}/${path}`;
+    });
+});
+</script>
+
+
+{% endblock content %}
+{% include "users/footer.html" %}

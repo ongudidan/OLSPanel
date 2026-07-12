@@ -1,0 +1,158 @@
+{% extends "users/base.html" %}
+{% block title %}Add new sub domain{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+  <div class="card-header">
+    <h2>Add new sub domain</h2>
+  </div>
+  <div class="card-body">
+    <form method="post" action="{% url 'users-domain' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="col-md-5">
+          <!-- Domain Field -->
+          <div class="form-group">
+            <label class="form-check-label" for="id_domain">Domain:</label>
+			 <select class="form-control" name="main_domain" id="main_domain">
+              {% for domain in domains %}
+              <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="domain" class="form-control" placeholder="Enter your domain" maxlength="255"  id="id_domain" required>
+          </div>
+<label for="subdomain" style="margin-right: 10px;">Subdomain:</label>
+
+ <div class="input-group mb-2 mr-sm-2">
+				  <input type="text" id="username" name="username" class="form-control" value="" placeholder="subdomain" required>
+            <div class="input-group-prepend">
+			
+             <input type="text" id="domainDisplay" class="form-control" readonly>
+            </div>
+            
+			
+          </div> 
+
+          <!-- Document Root Checkbox -->
+          <label class="form-check-label">Document Root (File System Location):</label>
+          <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="dtype" name="dtype">
+            <label class="small mb-1"" for="dtype">
+              Share document root (/home/{{ user.username }}/public_html).
+            </label>
+          </div>
+
+          <!-- Path Field -->
+          <div class="input-group mb-2 mr-sm-2">
+            <div class="input-group-prepend">
+              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+            </div>
+            {{ user_form.path }}
+          </div>
+
+          <!-- PHP Version Select -->
+          <div class="form-group">
+            <label class="form-check-label" for="php_version">Select PHP Version:</label>
+            <select class="form-control" name="php_version" id="php_version">
+              {% for version in php_versions %}
+              <option value="{{ version }}">{{ version }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </div>
+      </div>
+      <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Add domain</button>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript to handle checkbox and domain auto-fill -->
+<script>
+
+window.onload = function() {
+    updateEmail(); // Call updateEmail on page load
+};
+
+// Function to update the email display field
+document.getElementById('username').addEventListener('input', updateEmail);
+document.getElementById('main_domain').addEventListener('change', updateEmail);
+  const checkbox = document.getElementById("dtype");
+  const domainInput = document.getElementById("id_domain");
+  const pathInput = document.getElementById("id_path");
+  const usernameInput = document.getElementById("username");
+
+function updateEmail() {
+    var username = document.getElementById('username').value || 'user'; // Default to 'user' if username is empty
+    var domainSelect = document.getElementById('main_domain');
+    var domain = domainSelect && domainSelect.options[domainSelect.selectedIndex] ? domainSelect.options[domainSelect.selectedIndex].text : ''; // Ensure it's not undefined
+    
+    // If domain is valid, update the email display
+    if (domain) {
+        document.getElementById('domainDisplay').value = '.' + domain;
+		
+		main_domain(domain);
+    }
+}
+
+function main_domain(domain) {
+    const usernameInput = document.getElementById("username");
+    const domainInput = document.getElementById("id_domain");
+
+    if (!usernameInput || !domainInput) return;
+
+    const usernameValue = usernameInput.value.trim();
+
+    if (usernameValue.length > 0) {
+        domainInput.value = usernameValue + '.' + domain;
+        updatePath();
+    } else {
+        domainInput.value = '';  // Clear it if username is empty
+        updatePath();            // Also clear path accordingly
+    }
+}
+
+
+function updatePath() {
+    if (!pathInput || !domainInput) return;
+    if (checkbox.checked) {
+      pathInput.value = "/public_html";
+    } else {
+      let domain = domainInput.value.trim().replace(/\s+/g, '').replace(/^www\./, '');
+      if (domain) {
+        pathInput.value = `/${domain}`;
+      } else {
+        pathInput.value = "";
+      }
+    }
+  }
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+
+var domainSelect = document.getElementById('main_domain');
+    if (domainSelect && domainSelect.options.length > 0) {
+        var firstDomain = domainSelect.options[0].text; // Get the first domain
+        document.getElementById('domainDisplay').value = 'user' + '.' + firstDomain; // Set initial value
+    }
+
+
+  
+
+
+
+
+  checkbox.addEventListener("change", updatePath);
+  domainInput.addEventListener("input", function () {
+    if (!checkbox.checked) {
+      updatePath();
+    }
+  });
+
+  updatePath(); // Initial call
+});
+</script>
+
+{% endblock content %}

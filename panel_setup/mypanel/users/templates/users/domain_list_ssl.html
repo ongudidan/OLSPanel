@@ -1,0 +1,169 @@
+{% extends "users/base.html" %}
+{% block title %}My Domain{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+	
+<div class="card card-default">
+      <div class="card-header">
+        <h2>SSL Manger</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+  
+  
+<div class="d-flex justify-content-end">
+   <form action="{% url 'domain_list_ssl' %}" method="post" class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+        </div>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Filter</button>
+    </form>
+	</div>
+	
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+             <tr>
+                <th>Domain</th>
+                
+                <th>Expire</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+         <tbody id="domainTable">
+            {% for domain in domains %}
+            <tr>
+                <td><a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer">{{ domain.domain }}</a></td>
+
+                
+                 <td>{{ domain.ssl }}
+				 <br/>
+				 {{ domain.type }}</td>
+                <td>
+                     
+                        <button type="submit" name="ssl" class="btn btn-primary btn-sm" onclick="issueSSL('{{domain.id}}')">Issue SSL</button>
+
+                    
+                    
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No domains found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+  
+
+
+
+<script>
+function issueSSL(id) {
+    if (id) {
+        console.log('ID found:', id);
+        const responseDisplay = document.getElementById('responseContainer');
+        const alertContainer = document.getElementById('alertContainer');
+        const messageDisplay = document.getElementById('message');
+
+        setTimeout(function() {
+            responseDisplay.style.display = 'inline-block';
+
+            // Call the URL (replace '/your-url' with your actual URL)
+            fetch('/domain_list_ssl_first/' + id, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.text(); // Retrieve response as plain text
+            })
+            .then(data => {
+                console.log('Response:', data);
+                responseDisplay.style.display = 'none';
+
+                if (data.includes('success')) {
+                    // Set alert for success
+                    alertContainer.className = "alert alert-success alert-dismissible fade show";
+                    messageDisplay.innerText = data; // Displaying success message
+                } else {
+                    // Set alert for error
+                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                    messageDisplay.innerText = data; // Displaying error message
+                }
+
+                alertContainer.style.display = "block";
+                setTimeout(function() {
+                    window.location.href = '/domain_list_ssl'; // Change this to your desired URL
+                }, 5000); // 5000 milliseconds = 5 seconds
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 0); // 1000 milliseconds = 1 second
+
+    } else {
+        console.log('No ID parameter found.');
+    }
+}
+</script>
+
+
+
+
+{% endblock content %}
+
+{% include "users/footer.html" %}

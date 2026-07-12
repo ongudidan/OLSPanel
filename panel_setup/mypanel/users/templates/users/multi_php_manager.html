@@ -1,0 +1,96 @@
+{% extends "users/base.html" %}
+{% block title %}MultiPHP Manager{% endblock title %}
+{% block content %}
+<div class="card card-default">
+      <div class="card-header">
+        <h2>MultiPHP Manager</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+
+    <h1 class="mb-4">MultiPHP Manager</h1>
+
+    <!-- Inline Search Form -->
+    <form action="{% url 'domain_list' %}" method="post" class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+        </div>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Filter</button>
+    </form>
+ <form action="{% url 'multi_php_manager' %}" method="post" id="bulkDeleteForm">
+        {% csrf_token %}
+		<div class="form-inline mb-3 justify-content-end">
+    <label class="small mb-1" for="php_version">Select PHP Version:</label>
+    <select class="form-control ml-2" name="php_version" id="php_version">
+        {% for version in php_versions %}
+            <option value="{{ version }}">{{ version }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-danger ml-2">Apply</button>
+</div>
+
+		
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr><th><input type="checkbox" name="checkAll" onclick="checkallbox(this);"></th>
+                <th>Domain</th>
+                <th>PHP Version</th>
+               
+            </tr>
+        </thead>
+        <tbody id="domainTable">
+            {% for domain in domains %}
+            <tr>
+			<td><input type="checkbox" name="selected_domains" value="{{ domain.id }}"></td>
+                <td>{{ domain.domain }}</td>
+                <td>{{ domain.php }}</td>
+             
+         
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No domains found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+<script>
+   function checkallbox(iobj)
+{
+inputArray = document.getElementsByTagName("input");
+for(i=0; i<inputArray.length; i++)
+{
+if(inputArray[i].type.toLowerCase() == "checkbox" && inputArray[i] != iobj)
+{
+tempCheckbox = inputArray[i];
+
+if (!tempCheckbox.disabled) {
+                
+if(tempCheckbox.checked)
+{
+		tempCheckbox.checked = false;
+}
+else
+{
+		tempCheckbox.checked = true;
+}
+}   
+    
+    
+}}}  
+</script>
+{% include "users/footer.html" %}
+{% endblock content %}
+
+
+

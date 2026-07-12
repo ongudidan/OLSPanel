@@ -1,0 +1,47 @@
+{% extends "users/base.html" %}
+{% block title %}Manage domain{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Edit Domain</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post"  enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Domain:</label>
+                    <input type="text" id="path"  class="form-control" value="{{ domain }}" readonly>
+                </div>
+				 <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Document Root (File System Location):</label>
+				  <div class="input-group mb-2 mr-sm-2">
+				 
+            <div class="input-group-prepend">
+			
+              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+            </div>
+            <input type="text" id="path" name="path" class="form-control" value="{{ relevant_path }}">
+          </div>
+				 
+				
+				
+				
+            </div>
+        </div>
+        <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Save domain</button>
+    </form>
+	
+	
+	<form action="{% url 'domain_delete' domain.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this domain?');">Remove Domain</button>
+                    </form>
+</div>
+</div>
+
+{% endblock content %}
+{% include "users/footer.html" %}

@@ -1,0 +1,296 @@
+{% extends "users/base.html" %}
+{% block title %}New Backup{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Backup running do not leave this page, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+ 
+	
+	<div class="card card-default">
+	<div class="card-header"></div>
+
+<div class="card-body">
+
+
+
+
+<form action="#" method="POST">
+ 
+ <div class="form-row">
+            <div class="col-md-5">
+			
+			      <div class="form-group">
+                        <label id="lblCommonSettings" for="common_options">
+                            schedule Settings
+                        </label>
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                <select id="common_options" name="schedule" class="form-control">
+                                    <option value="now">
+                                      Now
+                                    </option>
+                                   
+                                   
+                                   
+                                    <option value="hour">
+                                        Every Hour
+                                    </option>
+                                    <option value="day">
+                                        Every Day
+                                    </option>
+                                   
+                                    <option value="week">
+                                        Every Week
+                                    </option>
+                                    <option value="month">
+                                       Every Month
+                                    </option>
+                                    
+                                </select>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            </div>
+                        </div>
+                    </div>
+           
+			
+			
+<div class="form-group">
+                        <label id="lblCommonSettings" for="common_options">
+                          Backup Format
+                        </label>
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                                <select id="common_options" name="category" class="form-control">
+                                    <option value="">
+                                        --Backup Format --
+                                    </option>
+                                   
+                                   
+                                   
+                                    <option value="default">
+                                        Default
+                                    </option>
+                                  
+                                   
+                                    <option value="cyberpanel">
+                                       CyberPanel
+                                    </option>
+                                  
+                                </select>
+                            </div>
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                            </div>
+                        </div>
+                    </div>			
+			
+			
+			
+  
+   <p><strong>Backup Type:</strong></p>
+            <label>
+                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)"> Full Backup
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="database"> Database
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="email"> Email
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="dns"> DNS
+            </label><br>
+            <label>
+                <input type="checkbox" class="backup-option" name="backup_option" value="files"> Files
+            </label><br><br>
+			
+			
+			
+			<p><strong>Backup Location:</strong></p>
+       
+            <label><input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" checked> Local Backup (<span class="mdi mdi-home"></span>/backup/)</label><br>
+            <label><input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()"> FTP Backup</label><br><br>
+            <div class="ftp-fields">
+                <label for="ftp_host">FTP Host:</label>
+                <input type="text" class="form-control" id="ftp_host" name="ftp_host"><br><br>
+
+                <label for="ftp_user">FTP User:</label>
+                <input type="text" class="form-control" id="ftp_user" name="ftp_user"><br><br>
+
+                <label for="ftp_pass">FTP Password:</label>
+                <input type="password" class="form-control" id="ftp_pass" name="ftp_pass"><br><br>
+            </div>
+{% csrf_token %}
+            <button class="btn btn-success" type="submit">Submit</button>
+        
+    </div>
+	</div>
+	
+</form>	
+	
+</div>
+	
+</div>	
+	
+	
+	
+
+<style>
+        /* Hide the FTP fields initially */
+        .ftp-fields {
+            display: none;
+        }
+    </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+        const form = document.querySelector('form'); // Replace with your form selector if different
+        const scheduleSelect = document.getElementById('common_options');
+
+        form.addEventListener('submit', function (e) {
+            if (scheduleSelect.value === 'now') {
+                e.preventDefault(); // Prevent form submission
+                
+                issuebackup();
+            }
+        });
+    });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const pathElements = document.querySelectorAll("[id^='domainPath_']");
+
+    pathElements.forEach(element => {
+        const originalPath = element.textContent;
+        const updatedPath = removeHomePrefix(originalPath);
+        element.textContent = updatedPath;
+    });
+});
+
+function removeHomePrefix(path) {
+    return path.replace(/^\/home\/{{ user.username }}/, "");
+}
+
+   function toggleFtpFields() {
+            var backupType = document.querySelector('input[name="backup_type"]:checked').value;
+            var ftpFields = document.querySelector('.ftp-fields');
+            
+            if (backupType === "ftp") {
+                ftpFields.style.display = "block";
+            } else {
+                ftpFields.style.display = "none";
+            }
+        }
+
+        // Function to toggle the form visibility
+        function toggleForm() {
+            var form = document.getElementById('backup-form');
+            form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
+        }
+		function toggleFullBackup(fullBackupCheckbox) {
+            var backupOptions = document.querySelectorAll('.backup-option');
+            backupOptions.forEach(option => {
+                option.checked = fullBackupCheckbox.checked;
+            });
+        }
+		
+		
+function issuebackup() {
+    const csrfToken = "{{ csrf_token }}";
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+    // Gather form parameters using 'name' attributes
+    const schedule = document.querySelector('[name="schedule"]').value;
+    const backupOptions = Array.from(document.querySelectorAll('input[name="backup_option"]:checked')).map(option => option.value);
+    var backupType = document.querySelector('input[name="backup_type"]:checked').value;
+    const ftpHost = document.querySelector('[name="ftp_host"]').value;
+    const ftpUser = document.querySelector('[name="ftp_user"]').value;
+    const ftpPass = document.querySelector('[name="ftp_pass"]').value;
+    const category = document.querySelector('[name="category"]').value;
+
+    setTimeout(function() {
+        responseDisplay.style.display = 'inline-block';
+
+        // Prepare form data using FormData object
+        const formData = new FormData();
+        formData.append('schedule', schedule);
+        formData.append('backup_option', backupOptions.join(','));  // Join array values as comma-separated string
+        formData.append('backup_type', backupType);
+        formData.append('ftp_host', ftpHost);
+        formData.append('ftp_user', ftpUser);
+        formData.append('ftp_pass', ftpPass);
+        formData.append('category', category);
+ 
+        // Send the form data using a POST request to the backup_now URL
+        fetch('{% url 'backup_now' %}', {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": csrfToken,
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                responseDisplay.style.display = 'none';
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.text(); // Retrieve response as plain text
+        })
+        .then(data => {
+            console.log('Response:', data);
+            responseDisplay.style.display = 'none';
+
+            if (data.includes('success')) {
+                // Set alert for success
+                alertContainer.className = "alert alert-success alert-dismissible fade show";
+                messageDisplay.innerText = data; // Displaying success message
+            } else {
+                // Set alert for error
+                alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                messageDisplay.innerText = data; // Displaying error message
+            }
+
+            alertContainer.style.display = "block";
+            setTimeout(function() {
+                //window.location.href = '/domain_list_ssl'; // Change this to your desired URL
+            }, 5000); // 5000 milliseconds = 5 seconds
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }, 0); // 1000 milliseconds = 1 second
+}
+</script>	
+	
+	
+{% endblock content %}
+
+{% include "users/footer.html" %}

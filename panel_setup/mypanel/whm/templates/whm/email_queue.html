@@ -1,0 +1,114 @@
+{% extends "whm/base.html" %}
+
+{% block title %}Email Queue{% endblock title %}
+
+{% block content %}
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-inverse">
+            <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
+            <li> 
+                <div class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </li> 
+        </ol>
+    </nav>
+</div>
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>	
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>List of Email Queue</h2>
+    </div>
+    
+    <div class="card-body">
+        <div class="row">
+            <div class="col-xl-2">
+                <!-- Button to flush the queue -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="flush" class="btn btn-warning">Flush Queue</button>
+                </form>
+				</div>
+				<div class="col-xl-2">
+                <!-- Button to delete all emails from the queue -->
+                <form method="POST" style="margin-top: 5px;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="delete_all" class="btn btn-danger">Delete All Emails</button>
+                </form>
+            </div>
+
+            <div class="col-xl-6 d-flex justify-content-end">
+                <!-- Form for filtering emails -->
+                <form action="{% url 'package_list' %}" method="post" class="form-inline mb-3">
+                    <div class="form-group mr-2">
+                        <input type="text" id="search" name="email_id" class="form-control" placeholder="Search for email...">
+                    </div>
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Filter</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Recipient</th>
+                        <th>Sender</th>
+                        <th>SUBJECT</th>
+                        <th>Size</th>
+                        <th>TIME</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if queue_data %}
+                        {% for queue in queue_data %}
+                        <tr>
+                           <td>{{ queue.recipient }}</td>
+            <td>{{ queue.sender }}</td>
+            <td>{{ queue.size }}</td>
+            <td>{{ queue.arrival_time }}</td>
+                            <td>
+                                <!-- Form to delete a specific email -->
+                                <form method="POST" action="">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="email_id" value="{{ queue.queue_id  }}">
+                                    <button type="submit" name="action" value="delete_email" class="btn btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No emails in the queue.</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center">No emails found.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

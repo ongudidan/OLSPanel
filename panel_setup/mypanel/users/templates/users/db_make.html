@@ -1,0 +1,40 @@
+{% extends "users/base.html" %}
+{% block title %}Manage Database{% endblock title %}
+{% block content %}
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Manage Database</h2>
+        
+
+      </div>
+      <div class="card-body">
+    <form method="post">
+	 <div class="form-row">
+            <div class="col-md-5">
+        {% csrf_token %}
+         <div class="input-group mb-2 mr-sm-2">
+				 
+            <div class="input-group-prepend">
+			
+              <div class="input-group-text">{{ user.username }}_</div>
+            </div>
+            
+			 <input type="text" id="dbname" name="dbname" class="form-control" value="{{ db_name }}">
+	<input type="hidden" id="action" name="action" value="edit">
+          </div>
+      
+
+        
+        <div class="form-group">
+            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">
+    {{ button|default:"Next" }}
+</button>
+
+            <!-- Delete Button as a Form -->
+                  
+        </div></div></div>
+    </form>
+</div>
+</div>
+{% endblock content %}
+{% include "users/footer.html" %}

@@ -1,0 +1,927 @@
+Package: php8.2-all
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 8
+Depends: php8.2-cli,php8.2-cgi,php8.2-dev,php8.2-sysvshm,php8.2-dom,php8.2-ldap,php8.2-xml,php8.2-pspell,php8.2-snmp,php8.2-tidy,php8.2-calendar,php8.2-filter,php8.2-shmop,php8.2-pdo,php8.2-gettext,php8.2-sysvmsg,php8.2-fileinfo,php8.2-ctype,php8.2-sqlite3,php8.2-iconv,php8.2-odbc,php8.2-sodium,php8.2-readline,php8.2-pcntl,php8.2-xsl,php8.2-bcmath,php8.2-tokenizer,php8.2-phar,php8.2-gmp,php8.2-xmlwriter,php8.2-opcache,php8.2-soap,php8.2-zlib,php8.2-mbstring,php8.2-dba,php8.2-bz2,php8.2-pgsql,php8.2-ftp,php8.2-session,php8.2-zip,php8.2-simplexml,php8.2-exif,php8.2-intl,php8.2-gd,php8.2-sysvsem,php8.2-curl,php8.2-mysql,php8.2-sockets,php8.2-openssl,php8.2-posix,php8.2-xmlreader
+Filename: ./php8.2-all_8.2.0-1_amd64.deb
+Size: 892
+MD5sum: ea3c9edddc4251ee5937b4d568b0818b
+SHA1: 0400f6fdbc9f3b5b1c1e3854851ce193a68355c2
+SHA256: 5f6b49c649d8ae035b1b9c529eecd7e68316ad5c170a8b4b2c144fd05de8c597
+Section: php
+Priority: optional
+Description: PHP 8.2 — installs all available extensions (meta-package)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-async
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 8
+Depends: php8.2-swoole,php8.2-ev,php8.2-event,php8.2-uv,php8.2-pcntl,php8.2-sockets,php8.2-posix
+Filename: ./php8.2-async_8.2.0-1_amd64.deb
+Size: 672
+MD5sum: 46fd9dfd2fb6ffe55580b3fd397f03ff
+SHA1: 57a95804f51f895b8ad53314c373588b5beb44e2
+SHA256: d1b3e24f1e23ad467e01b731740cf56fb0748aff7b97b63ec0ebde43c9ed9ada
+Section: php
+Priority: optional
+Description: PHP 8.2 meta-package for async frameworks (Swoole ReactPHP)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-bcmath
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 272
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-bcmath_8.2.0-1_amd64.deb
+Size: 72132
+MD5sum: 9a6c1776f3dcb66b181afccfea3b0209
+SHA1: f74e29559e7f6f9b070475598caefc0f06719a00
+SHA256: aba990760fd5a985d3ffdfac1d3f6c51a74e4c546000f6d3ddfd9d89f260d712
+Section: php
+Priority: optional
+Description: PHP bcmath arbitrary-precision mathematics
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-bz2
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 184
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-bz2_8.2.0-1_amd64.deb
+Size: 45280
+MD5sum: efee51b0fe657372cc360d1e03d88123
+SHA1: 054eed06d0af8826c48f7dba9cc3d2f7afd00a96
+SHA256: 292a757e54ea93ac4545c71db2cfb7185fc6b132580848fde3e9c74b0ff849db
+Section: php
+Priority: optional
+Description: PHP bz2 bzip2 compression
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-cache
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 8
+Depends: php8.2-redis,php8.2-memcached,php8.2-apcu,php8.2-igbinary,php8.2-msgpack
+Filename: ./php8.2-cache_8.2.0-1_amd64.deb
+Size: 668
+MD5sum: 2da0ca64ff60ea835f848285505d5004
+SHA1: d764409f94ba910bb552a3b7c4a5c3baa545336a
+SHA256: 0f1df60bbc3ec278553cdb01984652c3a7911185677a8d170dff0bc6243d44e1
+Section: php
+Priority: optional
+Description: PHP 8.2 meta-package for caching (Redis Memcached APCu igbinary)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-calendar
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 204
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-calendar_8.2.0-1_amd64.deb
+Size: 50332
+MD5sum: 07eee8c7a0d224cba6b601dad36598a6
+SHA1: 01cc0f916aa572eccb7ce0bac4539859c0ef20e6
+SHA256: 238451d16ff70cf76a785421c2af6c6857b629592f768c5edee4d1af504ce356
+Section: php
+Priority: optional
+Description: PHP calendar calendar system conversions
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-cgi
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 112
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-cgi_8.2.0-1_amd64.deb
+Size: 22954
+MD5sum: 751fdba302f814cf3522417cb124e2c5
+SHA1: 5bf6d64c1a1de822b0884be5eb7e3a27e752c88b
+SHA256: 373051860b499e68d8fb6ccaf9a6cc5c5e3ac0a467d143d91fc4f76fb8cb4cd4
+Section: php
+Priority: optional
+Description: PHP 8.2 CGI binary for web servers
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-cli
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 16
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-cli_8.2.0-1_amd64.deb
+Size: 670
+MD5sum: 83620c60d9f1a55ede22e61893335c6f
+SHA1: 252d61827fb096b3f3f882e3ca1742308a05ddbb
+SHA256: 5e070f6034ff77d99cfd845782649de2e4d46fb283114a59131db38ef1f72f2a
+Section: php
+Priority: optional
+Description: PHP 8.2 command-line interpreter (CLI)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-cms
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 8
+Depends: php8.2-web,php8.2-gd,php8.2-mbstring,php8.2-curl,php8.2-xml,php8.2-soap,php8.2-imagick,php8.2-exif,php8.2-pspell,php8.2-tidy,php8.2-intl,php8.2-bz2,php8.2-gettext
+Filename: ./php8.2-cms_8.2.0-1_amd64.deb
+Size: 708
+MD5sum: e8d88f04dd4a391da3c7f7a73b81be3e
+SHA1: 4f893793f6843a72f882ed66bc0eb63a6b6bf306
+SHA256: 60d8f9edefef719565965bc0a09d22aea2fe2c975939e02118af6e363344e9ed
+Section: php
+Priority: optional
+Description: PHP 8.2 meta-package for CMS (WordPress Joomla Drupal Magento)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-common
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 116
+Filename: ./php8.2-common_8.2.0-1_amd64.deb
+Size: 22958
+MD5sum: 22704918581bdffdf5d215fb872952d9
+SHA1: eceab7d5614a06e599e057dfe11c46fa809ba20e
+SHA256: 4eca35afbe0716105b10b3c153e320800ddc417edfd1a77d6e02a6d8651d6856
+Section: php
+Priority: optional
+Description: PHP 8.2 common configuration files and directory structure
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-ctype
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 112
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-ctype_8.2.0-1_amd64.deb
+Size: 14880
+MD5sum: ee96c38ed0eb21ffe1571465f991081d
+SHA1: 2486d1445d00271af0382d3e520e86a3ec681555
+SHA256: 662b09cb907eeb38ecd8bdf8dc5a34a9fbb5ef38fe08c9f928e4c40b51d44554
+Section: php
+Priority: optional
+Description: PHP ctype character type classification
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-curl
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 588
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-curl_8.2.0-1_amd64.deb
+Size: 176074
+MD5sum: da9f053f283a3cb15df04bf3d98795ba
+SHA1: 0158807852437430284d232f44134508abb30a8b
+SHA256: 6d5581210a1f38add61dd1b617ced7cc1046ee05377a16e690b9c422e777d6ad
+Section: php
+Priority: optional
+Description: PHP curl URL transfers (HTTP FTP SMTP IMAP)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-dba
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 384
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-dba_8.2.0-1_amd64.deb
+Size: 107272
+MD5sum: 6eb5a70a2f8e81a0558d8c3f07f4f765
+SHA1: 59e9f92c5538ccef24153fd64bcdef4288a878c9
+SHA256: 210ac06c43859d5cd09a9c5317a0fd036f7f5d4c8827e16844ca05d1fadf18fe
+Section: php
+Priority: optional
+Description: PHP dba database abstraction layer (gdbm ndbm)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-debug
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 8
+Depends: php8.2-dev,php8.2-xdebug,php8.2-pcov,php8.2-ast,php8.2-excimer
+Filename: ./php8.2-debug_8.2.0-1_amd64.deb
+Size: 658
+MD5sum: 6413340ff4222d02a2e695902f9efa0f
+SHA1: f2ee299772ef1eb1d1c9a38eb35bbb38c3d71639
+SHA256: ac3bfedbfa187ea92faadfc869b55646eab3a1d4443cd9e4bb38c5b2d91f99bb
+Section: php
+Priority: optional
+Description: PHP 8.2 meta-package for development and debugging
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-dev
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 32
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-dev_8.2.0-1_amd64.deb
+Size: 3554
+MD5sum: 7b609dc894f068b50f2702c924dbed43
+SHA1: b443381e0428aba6e56cd629aa21e2b5f6aedae5
+SHA256: 7125a0d14ed152f8999f7f1ee9894f9b7033822fbe1d8f65670e070f66e05f41
+Section: php
+Priority: optional
+Description: PHP 8.2 development headers, phpize, and php-config
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-dom
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 1144
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-dom_8.2.0-1_amd64.deb
+Size: 335252
+MD5sum: f8b6acefac9b431dd36fc1ea61dc5d7e
+SHA1: 4d1d2e7b07f5cdb19e9847f5c5b099bd7be625ad
+SHA256: 8c21d07fb4d484c0c2ba88f843879a94f895c7bff5a6af41502f5a506d8f88b4
+Section: php
+Priority: optional
+Description: PHP DOM Document Object Model extension
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-exif
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 324
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-exif_8.2.0-1_amd64.deb
+Size: 101808
+MD5sum: 56455b0aa61c2ad03a7d4fdd6f669086
+SHA1: 0f0e197a519819bc2f399ccf105c177bec56ca7c
+SHA256: 9de7fb32fbc59aad4d7e5e58edaea8af7dd11aa7d4d19690688eeca37b1fc5df
+Section: php
+Priority: optional
+Description: PHP exif read EXIF metadata from image files
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-fileinfo
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 7492
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-fileinfo_8.2.0-1_amd64.deb
+Size: 482504
+MD5sum: e943b31b1fc8bc2ef3f906161a6cc1d4
+SHA1: 7969deed2abca7a56062ffb83b1a52b04925d581
+SHA256: 7f336fb1de1f0692f9e0eec1da0abd9983ddd2ac2b5f20a84e16e664b484db7d
+Section: php
+Priority: optional
+Description: PHP fileinfo MIME type and file detection
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-filter
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 300
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-filter_8.2.0-1_amd64.deb
+Size: 92498
+MD5sum: 32f367943e2f4514646869f4de629646
+SHA1: 2de77bc8c2851afade7ae57fcf57ce490a0b13b4
+SHA256: fd35f8a6d6e0fc250892051bfef5fa3ccd6fa3c19a99d5b01eb5aad4837c5fef
+Section: php
+Priority: optional
+Description: PHP filter input data validation and sanitisation
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-ftp
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 304
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-ftp_8.2.0-1_amd64.deb
+Size: 87444
+MD5sum: 595c2dd0beb3b3ef7c28e85224195f38
+SHA1: c9ac68e4d5648cbc5d1904796cd6b4ab7ac6f409
+SHA256: d9f01e01418d6516ab2b92ff05c9819843f34fb25772d824b4fe32fa3dab8c24
+Section: php
+Priority: optional
+Description: PHP ftp built-in FTP client
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-gd
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 1240
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-gd_8.2.0-1_amd64.deb
+Size: 433872
+MD5sum: 8af193fc6608e672cae063bf4038a344
+SHA1: 998828ce74f2a15b8b80ade0f8ef4f6236b73720
+SHA256: f205cf7023c77291dc5d6f10d15bd5c056c3ba8d1a756655cf1870c53449b10b
+Section: php
+Priority: optional
+Description: PHP gd image processing (JPEG PNG GIF WebP AVIF)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-gettext
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 136
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-gettext_8.2.0-1_amd64.deb
+Size: 24064
+MD5sum: 1605814afde2d5c98437f812e353724e
+SHA1: b3319c4ea545dcaaac1be2d7c5e3e8b16f3b9cfd
+SHA256: 7b1d633ead6072ad743f55d5b11d2f8530e7ac6285dae57437ac77b04a92546e
+Section: php
+Priority: optional
+Description: PHP gettext native language support (NLS/i18n)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-gmp
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 300
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-gmp_8.2.0-1_amd64.deb
+Size: 79188
+MD5sum: 9f77d9855a8c8397bbd5a896244a5552
+SHA1: a5344a749944f0a8995b27892ae7501e3e18e1b7
+SHA256: 23eb9d076c589f8af797b0fb064789afcbc47c88779530adb51e5d54cd43b8ef
+Section: php
+Priority: optional
+Description: PHP gmp GNU Multiple Precision arithmetic
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-iconv
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 256
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-iconv_8.2.0-1_amd64.deb
+Size: 76248
+MD5sum: 64c0f3185a198fb2b82606f6818e090b
+SHA1: 1b58453404639835dcf0a20ab833c53519b1f226
+SHA256: 6b9bfcff15972c15005e493354416d52ba683c006ea23c54282509ab4ba96ba6
+Section: php
+Priority: optional
+Description: PHP iconv character set conversion
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-intl
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 3664
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-intl_8.2.0-1_amd64.deb
+Size: 1070188
+MD5sum: a9d17d5d358f0c1c7f32bb8bfa611657
+SHA1: 93292587fa73cb141568f86ac4fd99ea04a5eeb0
+SHA256: 110ea5306d86cd37c56351450c2240da088a3ef5555cc3db4a760d7d0a780e4c
+Section: php
+Priority: optional
+Description: PHP intl internationalization (ICU) extension
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-ldap
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 404
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-ldap_8.2.0-1_amd64.deb
+Size: 120228
+MD5sum: 8df212ed79935eb0d8b06c119dcc3d55
+SHA1: 340d3ba223f39e8fe3c9229b6169c8baa77c3b22
+SHA256: ced545549098842114622e2f186f53f365c0a906f4cd853874c0df8c2c8608a1
+Section: php
+Priority: optional
+Description: PHP ldap LDAP directory access (with SASL)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-mbstring
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 2552
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-mbstring_8.2.0-1_amd64.deb
+Size: 1002398
+MD5sum: 1d695e0b2b027cfe6e73b3f042706291
+SHA1: 2b107d0c80fc55d79ebaea6a71a3523c6bf0bbff
+SHA256: cfe1b8791f0c5379500b95e4d8f7e4c2d82dcb09e601d34c2e198fcf4f9ff0c1
+Section: php
+Priority: optional
+Description: PHP mbstring multi-byte string extension
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-mysql
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 1104
+Depends: php8.2-common (= 8.2.0-1), php8.2-pdo (= 8.2.0-1)
+Filename: ./php8.2-mysql_8.2.0-1_amd64.deb
+Size: 342466
+MD5sum: ea1a5869ed466a478b3e3d78ec697efd
+SHA1: b24c90e63a03208e92d167e5c64a8266107957a3
+SHA256: 6f1975a008a850c99ba3b19c0f38015c6865d9f8c554194580477ed1a5b5bfeb
+Section: php
+Priority: optional
+Description: PHP mysql MySQLi and PDO-MySQL via mysqlnd (no native libs)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-odbc
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 316
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-odbc_8.2.0-1_amd64.deb
+Size: 90320
+MD5sum: 6d6ae737c6abd97ebc84597d7ffc76f8
+SHA1: ba67ac2952c8ecd1ec49b59076fa7a5aa3e58290
+SHA256: b0dcdb951f8c45a9bebb75ac8944d82bfa6f6788a747487b1f979033e98cb21e
+Section: php
+Priority: optional
+Description: PHP odbc ODBC and PDO-ODBC database access
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-opcache
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 5100
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-opcache_8.2.0-1_amd64.deb
+Size: 1345142
+MD5sum: 6fc61e48238370d96f8f29f762487f4d
+SHA1: 49cd97536986356bd81f481fa5a58d04ea7243a7
+SHA256: 23ab7f2f41c190ffbe3b69ace3d89cfc9aefdd6d181410208c3d8155973d88a6
+Section: php
+Priority: optional
+Description: PHP opcache opcode cache (required for performance)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-openssl
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 908
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-openssl_8.2.0-1_amd64.deb
+Size: 298702
+MD5sum: 6549a469cc98755a7db456ea04cc9b21
+SHA1: 3abe77fae170dfe8c51a1cc5ecd903891ebe2a2e
+SHA256: 471b1279c28ffce924c18902b3376e25480bd83833aec18b10e4acd4a232b62e
+Section: php
+Priority: optional
+Description: PHP openssl SSL/TLS encryption and PKI
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-pcntl
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 256
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-pcntl_8.2.0-1_amd64.deb
+Size: 62066
+MD5sum: 9b6b1828344ec3a6d5988eb3f89c5037
+SHA1: 9fc69e232b9178bee064c294098293329b28f121
+SHA256: 2aded447e8046a524f288cb6274459a0fed1935bb218af69ca35001503f4b1fa
+Section: php
+Priority: optional
+Description: PHP pcntl process control (fork exec signal wait)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-pdo
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 620
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-pdo_8.2.0-1_amd64.deb
+Size: 206824
+MD5sum: a2986fa84cb64ab1824ddc6944009158
+SHA1: f259a08363825a1db77dc19f5f676e304ee59681
+SHA256: cdd637c4ce113c96e543a0ee209d6f530acd92c1510ecc275d48ced78a008a11
+Section: php
+Priority: optional
+Description: PHP PDO PHP Data Objects (core layer)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-pgsql
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 596
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-pgsql_8.2.0-1_amd64.deb
+Size: 182774
+MD5sum: 2a14d9ee5c429e26d7bd61ec3ba60a72
+SHA1: b17d2ce128eb57025e4a6eaf64c38e2d2ddf6f72
+SHA256: 4bcdc6c85a1ac1f31f44361bd4039d98fb8f82abdc59a6c1c71f425aa3650c84
+Section: php
+Priority: optional
+Description: PHP pgsql PostgreSQL and PDO-PostgreSQL
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-phar
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 1164
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-phar_8.2.0-1_amd64.deb
+Size: 413390
+MD5sum: 1285ed5783f6b8689634c2eab3553912
+SHA1: e918621646962ae2254c7602c21c79c3e34e2f48
+SHA256: 7c8b381f319dcb0da8b6e5ca88464b51ed73b58a119167fc132dfca4726755d2
+Section: php
+Priority: optional
+Description: PHP phar PHP Archive format
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-posix
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 236
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-posix_8.2.0-1_amd64.deb
+Size: 53606
+MD5sum: fc603a717d04db047990e2d6bbf8f56c
+SHA1: 5772728a518001cf536275e6c058a7f816a80dae
+SHA256: 3fd1c363c059702f19b3a431b361d9fdc5bc958b50c4f5303d12ca85bffc2e87
+Section: php
+Priority: optional
+Description: PHP posix POSIX functions (users groups signals)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-pspell
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 148
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-pspell_8.2.0-1_amd64.deb
+Size: 26352
+MD5sum: 1240f657a761a97230dc535405bb0cbb
+SHA1: 9837338be3b756922e55a246dd49d31fe581e9fd
+SHA256: 4786a22ea1e2654851a13e5161de958f47580f747fffbfc58d54c3e3f0f3becb
+Section: php
+Priority: optional
+Description: PHP pspell spell checking via GNU Aspell
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-readline
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 220
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-readline_8.2.0-1_amd64.deb
+Size: 58040
+MD5sum: dbb07dc0eb9eb0b633091ad776e27fe8
+SHA1: ea9a7a688fbaba2f2abfb9c7b342799c6d5263d6
+SHA256: 923a8cff1a01c757182419330c94424237e50379225968f6c703c522e2fdb735
+Section: php
+Priority: optional
+Description: PHP readline interactive terminal line input
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-session
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 512
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-session_8.2.0-1_amd64.deb
+Size: 165068
+MD5sum: cce618a4cde550893100aa9eb42ff6c1
+SHA1: 8523037f8db1e6a00a43acef6022a019d59ac12a
+SHA256: 88b2f4d7b5f1293649213aa8d64f5426e5ab5692a569f3a1565626b184ae5a84
+Section: php
+Priority: optional
+Description: PHP session HTTP session management
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-shmop
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 128
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-shmop_8.2.0-1_amd64.deb
+Size: 21742
+MD5sum: 74fb2db37cd4d6eaad34364d26da5cd2
+SHA1: 0df04730db6946daec1eaea4d65d2e8ac695e7cb
+SHA256: 9a918c53ad99bea51d54baa61cf740c86c426ffd5069d0fca0a14981fed12cb8
+Section: php
+Priority: optional
+Description: PHP shmop shared memory read and write
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-simplexml
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 284
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-simplexml_8.2.0-1_amd64.deb
+Size: 84832
+MD5sum: 6fce6a42e262a19006828d2885012d4c
+SHA1: 3ca10da61ed50ff3006a49b908eb96f9a7937d3c
+SHA256: 35c096d24cef97194ea81ff5aa15d2e2a73d17a9d393196bf4f1cb37da45b109
+Section: php
+Priority: optional
+Description: PHP simplexml simple XML object access
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-snmp
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 332
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-snmp_8.2.0-1_amd64.deb
+Size: 92854
+MD5sum: b62c5d5317b45a526b4cf1a905ed73d5
+SHA1: 0c765fd8b389c4e5e6ef2f2402c9a68dba7f4dfb
+SHA256: 30ca1a1fcb938c1c6d81078e16a0cbdca15abc316e7e3ae06c022b2a5c61dbbc
+Section: php
+Priority: optional
+Description: PHP snmp SNMP network management protocol
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-soap
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 1944
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-soap_8.2.0-1_amd64.deb
+Size: 696524
+MD5sum: 52dea0ef636c276a0c711c32c196c9f0
+SHA1: 9bfb0d75a16700060414809391e9d4f413fcb2bf
+SHA256: 3711336aff26b91ac07325d5c5f14af4b91e308dc620801d66eb3d4366191862
+Section: php
+Priority: optional
+Description: PHP soap SOAP web services extension
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-sockets
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 492
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-sockets_8.2.0-1_amd64.deb
+Size: 159754
+MD5sum: 40f16222307c82f3b4a6d3b6c75f7c98
+SHA1: 204a8410821e2ea034565176b5b91e9054d68205
+SHA256: 0c7a9c42d6a5b5ba74187dd833ea51922bde630c4bdf8bd16c35eac4e7b8d841
+Section: php
+Priority: optional
+Description: PHP sockets low-level BSD socket interface
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-sodium
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 440
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-sodium_8.2.0-1_amd64.deb
+Size: 107478
+MD5sum: 79fee0c626ef5f33ac798330e4a50c70
+SHA1: dea999c91150c8637c4bcc996052ad3b57620389
+SHA256: d4c6e3ae55d4f8a2ae1664fd5127ec715b21d693f02462dad73e63f84ae082f7
+Section: php
+Priority: optional
+Description: PHP sodium modern cryptography (libsodium)
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-sqlite3
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 328
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-sqlite3_8.2.0-1_amd64.deb
+Size: 92606
+MD5sum: 4877be27d059b5fcdf3a7195a0f0b0e7
+SHA1: 5d90d9decb0547be5a6c6c8cdc9615fe71c5a6b8
+SHA256: 7f431bf38c912f95b3730bc8126f0be490a333d11121dc8c03312e9ec14971aa
+Section: php
+Priority: optional
+Description: PHP sqlite3 SQLite3 and PDO-SQLite
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-sysvmsg
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 144
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-sysvmsg_8.2.0-1_amd64.deb
+Size: 27834
+MD5sum: b8d4f85dab60f77be051894197e872ca
+SHA1: a3fd32e1888908cd2e75737162d6dfd394f2ae23
+SHA256: c6a111d33171a73ca7e13a32c6af5ad5c0a64abd0e232f65ca3a91d986d2626f
+Section: php
+Priority: optional
+Description: PHP sysvmsg System V message queues
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-sysvsem
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 120
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-sysvsem_8.2.0-1_amd64.deb
+Size: 19974
+MD5sum: b379a82f580a421e6546f4371a305d53
+SHA1: b9fe5ee111d5390023b34a154f6fdee8692a981a
+SHA256: fb7c1e9a95d9b978591e51ba35fc7ff5996842b6d68bf6b2fb00628a41d20dd3
+Section: php
+Priority: optional
+Description: PHP sysvsem System V semaphores
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-sysvshm
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 136
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-sysvshm_8.2.0-1_amd64.deb
+Size: 24052
+MD5sum: 35bcd1dbe5bce54b07e4e16fe9c7e0f9
+SHA1: 1f8be2dcb9b6dc1d483f6e2175420794eb22cee5
+SHA256: 719959766577e731569e646126820ffaf6afdd7dd161211d25ccc013325ef4be
+Section: php
+Priority: optional
+Description: PHP sysvshm System V shared memory segments
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-tidy
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 312
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-tidy_8.2.0-1_amd64.deb
+Size: 82994
+MD5sum: b8dde5c2870a3640d02a26856b6f5d7c
+SHA1: 024f54d00324c18d3cd7903de76d152847ca5d56
+SHA256: 718d5fb618d197af2b8f323e62fc32244bcf220ca1b370fc1932ed16b7a26968
+Section: php
+Priority: optional
+Description: PHP tidy HTML and XML tidy cleanup
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-tokenizer
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 204
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-tokenizer_8.2.0-1_amd64.deb
+Size: 50486
+MD5sum: 88a0de97e62909333426cd8eea699026
+SHA1: 0594d48f780a9db1a3df8381af5dfc032d2a5983
+SHA256: 7a5190318eae291e4cc14f581277747e62a4e43cd63449454c1a0572b25fffeb
+Section: php
+Priority: optional
+Description: PHP tokenizer PHP source code tokenizer
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-web
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 8
+Depends: php8.2-cli,php8.2-cgi,php8.2-curl,php8.2-gd,php8.2-mbstring,php8.2-xml,php8.2-mysql,php8.2-pgsql,php8.2-sqlite3,php8.2-openssl,php8.2-zip,php8.2-intl,php8.2-opcache,php8.2-bcmath,php8.2-json,php8.2-session,php8.2-filter,php8.2-pdo,php8.2-sodium
+Filename: ./php8.2-web_8.2.0-1_amd64.deb
+Size: 730
+MD5sum: 26719ee452dec8601ecf6d0acf3cfd99
+SHA1: 4e82e843d41a7089c82c8ce9c6ba53aaa0e11afe
+SHA256: cff2beea52fcb3d38b2b8168d899bc91fefc3d0e1cb1b19992bd17527bd9f5bf
+Section: php
+Priority: optional
+Description: PHP 8.2 meta-package for web application stacks
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-xml
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 288
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-xml_8.2.0-1_amd64.deb
+Size: 83206
+MD5sum: 3064e603e767d223a6cffeefe7886961
+SHA1: a978152afaedc1955f33b14966423bb30f6736e8
+SHA256: bce50d2f40e38a6786eb8087e6a33b178f8a6d93cf2fd87651f2228a30ea89f7
+Section: php
+Priority: optional
+Description: PHP xml core XML parsing
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-xmlreader
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 236
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-xmlreader_8.2.0-1_amd64.deb
+Size: 56912
+MD5sum: c81c118e2622250378a6607bc0b9badc
+SHA1: d2c9f47738b80e8dfc550988d331e0ef716d1f3b
+SHA256: ec45d35034c9cb62799db24cd181072e679771ec00673f1e5d4ed05509fe2d64
+Section: php
+Priority: optional
+Description: PHP xmlreader streaming XML pull-parser
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-xmlwriter
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 200
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-xmlwriter_8.2.0-1_amd64.deb
+Size: 37676
+MD5sum: 2cfd0b6fb3003994d6ad597d8adcecbb
+SHA1: 6e3b70e44facdd58e86d0e30f09e1ce3869bc03d
+SHA256: 11b3c1ccda9af5736617c18188625ce58b038f4fbed103fe79ca0b8c14d7bb96
+Section: php
+Priority: optional
+Description: PHP xmlwriter streaming XML writer
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-xsl
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 232
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-xsl_8.2.0-1_amd64.deb
+Size: 62826
+MD5sum: fbec15539376cd214d9e3d341b0f955c
+SHA1: a947d8a6e4ce4f7c9e64af12b81b3313ff732b1f
+SHA256: f3cf22fcb58c0458b57577bb2f849688baf327bcfebd927e9e2ee64dff194a9e
+Section: php
+Priority: optional
+Description: PHP xsl XSL/XSLT transformation extension
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-zip
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 440
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-zip_8.2.0-1_amd64.deb
+Size: 125756
+MD5sum: ace837f50dceb6be433495c5b9df8321
+SHA1: 80b8a2ab851d12b6c729ef3cb1c233ed17063965
+SHA256: 50b71b6ec777f3da19b935220a694e2ad3cc3f0ff54f3fb8c7e341972b0d68c5
+Section: php
+Priority: optional
+Description: PHP zip ZIP archive read and write
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+
+Package: php8.2-zlib
+Version: 8.2.0-1
+Architecture: amd64
+Maintainer: OLSPanel Build <support@olspanel.com>
+Installed-Size: 284
+Depends: php8.2-common (= 8.2.0-1)
+Filename: ./php8.2-zlib_8.2.0-1_amd64.deb
+Size: 82580
+MD5sum: e4aac5715b90545f51aef927324296ec
+SHA1: 3e3edf5ab2f1116844e3eaba5037496936dbe3e4
+SHA256: 6232d3b5249eb6953cbad19b2f71f587a9c963e6233e2c05981a54d3b421b2db
+Section: php
+Priority: optional
+Description: PHP zlib zlib/gzip/deflate compression
+ Built from PHP 8.2.0 source. Part of the OLSPanel PHP stack.
+

@@ -1,0 +1,148 @@
+{% extends "users/base.html" %}
+{% block title %}Monthly Bandwidth Usage{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>Monthly Bandwidth Usage</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+  
+  
+<div class="table-responsive col-xl-4">
+    <div class="chart" id="chart-container">
+        <!-- Bars will be dynamically generated -->
+    </div>
+   
+   </div>
+  
+</div>
+</div>
+
+
+ <script>
+    // Bandwidth data for each month (in GB)
+    const bandwidthData = [
+        {% for bandth in bandths %}
+        { 
+            month: getMonthName("{{ bandth.date}}"), // Format the date to "Month Year"
+            usage: {{ bandth.total }} / (1024 ** 3) // Convert bytes to GB
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    // Maximum bandwidth for calculating percentages
+   const maxBandwidthMB = {{limit}};  // This is the value in MB
+
+// Convert MB to GB (1 GB = 1024 MB)
+const maxBandwidth = maxBandwidthMB / 1024// Adjust this to match your max value in GB
+
+    // Render chart dynamically
+    const chartContainer = document.getElementById('chart-container');
+
+    bandwidthData.forEach(data => {
+        const percentage = (data.usage / maxBandwidth) * 100;
+
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.innerHTML = `
+            <div class="label">${data.month}</div>
+            <div class="bar-inner">
+                <div class="bar-fill" style="width: ${percentage}%; background-color: ${getBarColor(percentage)};">
+                    <span class="bar-value">${data.usage.toFixed(2)} GB</span>
+                </div>
+            </div>
+        `;
+
+        chartContainer.appendChild(bar);
+    });
+
+    // Function to determine bar color based on percentage
+    function getBarColor(percentage) {
+        if (percentage >= 75) return '#FF5722'; // High usage (red)
+        if (percentage >= 50) return '#FFC107'; // Medium usage (yellow)
+        return '#4CAF50'; // Low usage (green)
+    }
+	
+	function getMonthName(dateString) {
+    const [monthNumber, year] = dateString.split("-"); // Split the dateString into month and year
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    
+    // Ensure the monthNumber is between 1 and 12
+    if (monthNumber >= 1 && monthNumber <= 12) {
+        return months[monthNumber - 1] +" "+year; // Adjust for zero-indexed array
+    } else {
+        return "Invalid month"; // If input is not valid
+    }
+}
+</script>
+
+  
+ <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .chart {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .label {
+            width: 20%;
+            text-align: right;
+            padding-right: 10px;
+            font-weight: bold;
+        }
+
+        .bar-inner {
+            flex-grow: 1;
+            height: 30px;
+            background-color: #f0f0f0;
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0;
+            transition: width 0.5s ease-in-out;
+        }
+
+        .bar-value {
+            position: absolute;
+            right: 10px;
+            top: 0;
+            bottom: 0;
+            line-height: 30px;
+            color: #000;
+            font-weight: bold;
+        }
+
+        h2 {
+            text-align: center;
+        }
+    </style>  
+
+
+
+{% endblock content %}
+
+{% include "users/footer.html" %}

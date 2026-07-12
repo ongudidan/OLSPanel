@@ -1,0 +1,138 @@
+{% extends "whm/base.html" %}
+{% block title %}Settings{% endblock title %}
+{% block content %}
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>
+
+<form method="post" action="">
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+            <div class="card card-default">
+                <div class="card-header">
+                    <h2>Settings</h2>
+                </div>
+                <div class="card-body">
+
+                    <div class="form-group mt-3">  
+					 <label for="maximum_backup">PHP CGI For plugin:</label>
+                        <select class="form-control" name="cgi_bin" id="cgi_bin">
+                            <option value="">PHP CGI version</option>
+                            {% for version in php_versions %}
+                                {% with path="/usr/bin/php-"|add:version %}
+                                    <option value="{{ path }}">
+                                        {{ version }}
+                                    </option>
+                                {% endwith %}
+                            {% endfor %}
+                        </select>          
+                    </div>
+
+                 
+
+<div class="form-group mt-3">
+    <label for="hour_maximum_backup">Hourly backup store:</label>
+    <input type="text" class="form-control" id="hour_maximum_backup" name="hour_maximum_backup"
+           placeholder="e.g., 24"
+           value="{{ current_settings.hour_maximum_backup|default:'' }}">
+</div>
+
+<div class="form-group mt-3">
+    <label for="day_maximum_backup">Daily backup store:</label>
+    <input type="text" class="form-control" id="day_maximum_backup" name="day_maximum_backup"
+           placeholder="e.g., 100"
+           value="{{ current_settings.day_maximum_backup|default:'' }}">
+</div>
+
+<div class="form-group mt-3">
+    <label for="week_maximum_backup">Weekly backup store:</label>
+    <input type="text" class="form-control" id="week_maximum_backup" name="week_maximum_backup"
+           placeholder="e.g., 50"
+           value="{{ current_settings.week_maximum_backup|default:'' }}">
+</div>
+
+<div class="form-group mt-3">
+    <label for="month_maximum_backup">Monthly backup store:</label>
+    <input type="text" class="form-control" id="month_maximum_backup" name="month_maximum_backup"
+           placeholder="e.g., 12"
+           value="{{ current_settings.month_maximum_backup|default:'' }}">
+</div>
+
+<div class="form-group">
+    <label for="api">System api:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox" name="api" id="api" class="switch-input form-check-input" value="1"  {% if current_settings.api == '1' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+
+<div class="form-group">
+    <label for="auto_update">OLSPanel Auto Update:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox" name="auto_update" id="auto_update" class="switch-input form-check-input" value="1"  {% if current_settings.auto_update == '1' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+<div class="form-group">
+    <label for="auto_restart_litespeed">Restart OLS on.htacess save from File Manger:</label>
+   <label class="switch switch-primary form-control-label mr-2">
+            <input type="checkbox" name="auto_restart_litespeed" id="auto_restart_litespeed" class="switch-input form-check-input" value="1"  {% if current_settings.auto_restart_litespeed == '1' %}checked{% endif %}>
+            <span class="switch-label"></span>
+            <span class="switch-handle"></span>
+          </label>
+</div>
+
+
+
+                    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const select = document.getElementById('cgi_bin');
+    if (select) {
+        for (let option of select.options) {
+            option.value = option.value.replace(/\s+/g, '');
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const savedValue = "{{ current_settings.cgi_bin|default:'' }}"; // e.g. "/usr/bin/php-cgi8.4"
+    if (!savedValue) return;
+
+    const select = document.getElementById('cgi_bin');
+    if (!select) return;
+
+    // Extract the "cgiX.X" part from savedValue, e.g. from "/usr/bin/php-cgi8.4" get "cgi8.4"
+    const match = savedValue.match(/cgi[\d\.]+$/);
+    if (!match) return;
+    const targetEnd = match[0]; // e.g. "cgi8.4"
+
+    // Loop over options and select the one whose value ends with targetEnd
+    for (let option of select.options) {
+        if (option.value.endsWith(targetEnd)) {
+            option.selected = true;
+            break;
+        }
+    }
+});
+</script>
+
+
+
+{% include "whm/footer.html" %}
+{% endblock content %}

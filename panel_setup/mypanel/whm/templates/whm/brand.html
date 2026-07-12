@@ -1,0 +1,132 @@
+{% extends "whm/base.html" %}
+{% block title %}Brand Settings{% endblock title %}
+{% block content %}
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-xs-12 col-sm-8 col-md-8 col-lg-8">
+
+            <div class="card card-default">
+                <div class="card-header">
+                    <h2>Brand Settings</h2>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- BRAND TITLE -->
+                    <div class="form-group mt-3">
+                        <label for="brand_title">Brand Title:</label>
+                        <input type="text"
+                               class="form-control"
+                               id="brand_title"
+                               name="brand_title"
+                               placeholder="Enter brand title"
+                               value="{{ current_settings.brand_title|default:'OLSPanel' }}">
+                    </div>
+
+                    <!-- BRAND COLOR -->
+                    <div class="form-group mt-3">
+                        <label for="brand_color">Brand Color:</label>
+                        <input type="color"
+                               class="form-control"
+                               id="brand_color"
+                               name="brand_color"
+                               value="{{ current_settings.brand_color|default:'#ef6d19' }}"
+                               style="height:50px;">
+                    </div>
+
+                    <!-- BRAND LOGO -->
+                    <div class="form-group mt-4">
+                        <label for="brand_image">Brand Logo:</label>
+
+                        <input type="file"
+                               class="form-control"
+                               id="brand_image"
+                               name="brand_image"
+                               accept="image/*">
+
+                        {% if current_settings.brand_image %}
+                        <div class="mt-3">
+                            <img src="{{ current_settings.brand_image }}"
+                                 alt="Brand Logo"
+                                 style="max-height:100px;
+                                        border-radius:10px;
+                                        border:1px solid #ddd;
+                                        padding:5px;">
+                        </div>
+                        {% else %}
+                        <div class="mt-3">
+                            <img src="/media/ow.png"
+                                 alt="Default Logo"
+                                 style="max-height:100px;
+                                        border-radius:10px;
+                                        border:1px solid #ddd;
+                                        padding:5px;">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- BRAND ICON / FAVICON -->
+                    <div class="form-group mt-4">
+                        <label for="brand_icon">Brand Icon (Favicon):</label>
+
+                        <input type="file"
+                               class="form-control"
+                               id="brand_icon"
+                               name="brand_icon"
+                               accept="image/png,image/x-icon,image/jpeg,image/webp">
+
+                        <small class="text-muted">
+                            Recommended size: 32x32 or 64x64
+                        </small>
+
+                        {% if current_settings.brand_icon %}
+                        <div class="mt-3">
+                            <img src="{{ current_settings.brand_icon }}"
+                                 alt="Brand Icon"
+                                 style="height:64px;
+                                        width:64px;
+                                        object-fit:cover;
+                                        border-radius:12px;
+                                        border:1px solid #ddd;
+                                        padding:5px;">
+                        </div> 
+						{% else %}
+						
+						 <div class="mt-3">
+                            <img src="/media/logo.png"
+                                 alt="Brand Icon"
+                                 style="height:64px;
+                                        width:64px;
+                                        object-fit:cover;
+                                        border-radius:12px;
+                                        border:1px solid #ddd;
+                                        padding:5px;">
+                        </div> 
+						
+                        {% endif %}
+                    </div>
+
+                    <!-- SAVE BUTTON -->
+                    <button type="submit" class="btn btn-primary mt-4">
+                        Save Branding
+                    </button>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+{% include "whm/footer.html" %}
+{% endblock content %}

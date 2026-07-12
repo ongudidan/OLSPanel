@@ -1,0 +1,148 @@
+{% extends "whm/base.html" %}
+{% block title %}My php{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">PHP Installing, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+ <div class="card card-default">
+      <div class="card-header">
+        <h2>List of PHP Version</h2>
+		
+        {% csrf_token %}
+
+      </div>
+    
+   <div class="card-body">
+  
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                
+                <th>php</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="domainTable">
+            {% for version, status in php_versions_status.items %}
+            <tr>
+                <td>{{ version }} </td>
+                <td>{% if status == 'installed' %} <span class="badge badge-success">Installed</span> {% else %} <span class="badge badge-danger">Not Installed</span>{% endif %}</td>
+                 <td>
+				 {% if status == 'uninstall' %}
+                    <button type="submit" class="btn btn-primary btn-sm" onclick="installphp('{{ version }}')">Install</button>
+{% endif %}
+                    
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No result found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+</div></div>
+
+
+<script>
+function installphp(version) {
+    if (version) {
+        console.log('ID found:', version);
+        const responseDisplay = document.getElementById('responseContainer');
+        const alertContainer = document.getElementById('alertContainer');
+        const messageDisplay = document.getElementById('message');
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        
+        setTimeout(function() {
+            responseDisplay.style.display = 'inline-block';
+
+            // Call the URL (replace '/your-url' with your actual URL)
+            fetch('{% url 'php_install_now' %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: new URLSearchParams({
+                    'php_version': version
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json(); // Retrieve response as JSON
+            })
+            .then(data => {
+                console.log('Response:', data);
+                responseDisplay.style.display = 'none';
+
+                if (data.status === 'success') {
+                    // Set alert for success
+                    alertContainer.className = "alert alert-success alert-dismissible fade show";
+                    messageDisplay.innerText = data.message; // Displaying success message
+                } else {
+                    // Set alert for error
+                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                    messageDisplay.innerText = data.message; // Displaying error message
+                }
+
+                alertContainer.style.display = "block"
+				/*;
+                setTimeout(function() {
+                    window.location.href = '{% url 'php_versions' %}'; // Change this to your desired URL
+                }, 5000); // 5000 milliseconds = 5 seconds
+*/
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 0); // 1000 milliseconds = 1 second
+
+    } else {
+        console.log('No ID parameter found.');
+    }
+}
+</script>
+
+
+
+{% endblock content %}
+
+{% include "whm/footer.html" %}

@@ -1,0 +1,263 @@
+{% extends "users/base.html" %}
+{% block title %}My Backup schedule{% endblock title %}
+{% block content %}
+
+<!-- wrap both cards in a row -->
+<div class="row align-items-start">
+
+  <!-- LEFT: main card -->
+  <div class="col-xl-8">
+    <div class="card card-default">
+      <div class="card-header">
+        <h2>List of backup schedule</h2>
+      </div>
+      <div class="card-body">
+        <a class="mb-3 btn btn-pill btn-success" href="{% url 'new_backup' %}" role="button" style="text-transform:none;">+ Add Backup</a>
+
+      
+
+        <div class="table-responsive mt-2">
+          <table class="table table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>Schedule</th>
+                <th>Type</th>
+                <th>Format</th>
+                <th>Location</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="domainTable">
+              <tr>
+                <td>All</td><td>ALL</td><td>All</td>
+                <td>Local</td>
+                <td><a href="{% url 'backup_lists' %}" class="btn btn-success btn-sm">View Backup</a></td>
+              </tr>
+              {% for backupp in backups %}
+              <tr>
+                <td>Every {{ backupp.schedule }}</td>
+                <td>{{ backupp.type }}</td>
+                <td>{{ backupp.category }}</td>
+                <td>{{ backupp.path }}</td>
+                <td>
+                  <a href="{% url 'backup_list' backupp.id %}" class="btn btn-success btn-sm">View Backup</a>
+                  <a href="{% url 'backup_delete' backupp.id %}" class="btn btn-primary btn-sm"
+                     onclick="return confirm('Are you sure?');">Delete</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center">No backup schedule found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: completely separate retention card -->
+  <div class="col-xl-4">
+    <div class="card card-default">
+      <div class="card-header">
+        <h2>Backup keep</h2>
+      </div>
+      <div class="card-body">
+	    <div id="alert-container" style="display:none;">
+          <span id="message-display"></span>
+        </div>
+	  
+	  
+        <table class="table table-bordered mb-0">
+          <tbody>
+            <tr>
+              <td class="align-middle text-muted">Hourly</td>
+              <td>
+                <select id="hourBackup" class="form-control form-control-sm">
+                 <option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="12">12</option>
+<option value="15">15</option>
+<option value="20">20</option>
+<option value="24">24</option>
+<option value="25">25</option>
+<option value="30">30</option>
+<option value="35">35</option>
+<option value="40">40</option>
+<option value="45">45</option>
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="200">200</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-middle text-muted">Daily</td>
+              <td>
+                <select id="dayBackup" class="form-control form-control-sm">
+                 <option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="12">12</option>
+<option value="15">15</option>
+<option value="20">20</option>
+<option value="24">24</option>
+<option value="25">25</option>
+<option value="30">30</option>
+<option value="35">35</option>
+<option value="40">40</option>
+<option value="45">45</option>
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="200">200</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-middle text-muted">Weekly</td>
+              <td>
+                <select id="weekBackup" class="form-control form-control-sm">
+                <option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="12">12</option>
+<option value="15">15</option>
+<option value="20">20</option>
+<option value="24">24</option>
+<option value="25">25</option>
+<option value="30">30</option>
+<option value="35">35</option>
+<option value="40">40</option>
+<option value="45">45</option>
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="200">200</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td class="align-middle text-muted">Monthly</td>
+              <td>
+                <select id="monthBackup" class="form-control form-control-sm">
+               <option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10">10</option>
+<option value="12">12</option>
+<option value="15">15</option>
+<option value="20">20</option>
+<option value="24">24</option>
+<option value="25">25</option>
+<option value="30">30</option>
+<option value="35">35</option>
+<option value="40">40</option>
+<option value="45">45</option>
+<option value="50">50</option>
+<option value="100">100</option>
+<option value="200">200</option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const csrfToken = "{{ csrf_token }}";
+
+    const hourSelect = document.getElementById('hourBackup');
+    const daySelect = document.getElementById('dayBackup');
+    const weekSelect = document.getElementById('weekBackup');
+    const monthSelect = document.getElementById('monthBackup');
+
+    const alertContainer = document.getElementById('alert-container');
+    const messageDisplay = document.getElementById('message-display');
+
+    function fetchSettings() {
+        fetch("{% url 'backup_settings' %}")
+        .then(res => res.json())
+        .then(data => {
+            if (data.hour_maximum_backup !== undefined) hourSelect.value = data.hour_maximum_backup;
+            if (data.day_maximum_backup !== undefined) daySelect.value = data.day_maximum_backup;
+            if (data.week_maximum_backup !== undefined) weekSelect.value = data.week_maximum_backup;
+            if (data.month_maximum_backup !== undefined) monthSelect.value = data.month_maximum_backup;
+        });
+    }
+
+    function updateSettings() {
+        const formData = new FormData();
+        formData.append('hour_maximum_backup', hourSelect.value);
+        formData.append('day_maximum_backup', daySelect.value);
+        formData.append('week_maximum_backup', weekSelect.value);
+        formData.append('month_maximum_backup', monthSelect.value);
+
+        fetch("{% url 'backup_settings' %}", {
+            method: 'POST',
+            headers: {
+                "X-CSRFToken": csrfToken,
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alertContainer.className = "alert alert-success";
+                messageDisplay.innerText = "Backup limits updated successfully";
+            } else {
+                alertContainer.className = "alert alert-danger";
+                messageDisplay.innerText = data.message || "Error updating settings";
+            }
+
+            alertContainer.style.display = 'block';
+            setTimeout(() => alertContainer.style.display = 'none', 3000);
+        });
+    }
+
+    // load current values
+    fetchSettings();
+
+    // auto save on change
+    [hourSelect, daySelect, weekSelect, monthSelect].forEach(el => {
+        el.addEventListener('change', updateSettings);
+    });
+});
+
+</script>
+
+
+{% endblock content %}
+
+{% include "users/footer.html" %}

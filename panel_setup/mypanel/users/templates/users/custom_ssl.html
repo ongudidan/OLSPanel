@@ -1,0 +1,262 @@
+{% extends "users/base.html" %}
+{% block title %}Custom SSl{% endblock title %}
+{% block content %}
+
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+
+
+
+
+
+<form method="post" action="">
+            {% csrf_token %}
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Custom SSL</h2>
+    </div>
+    <div class="card-body">
+	 <div class="form-group">
+	 <label for="php_version">Select Domain:</label>
+	 <div class="row align-items-stretch g-2">
+  <!-- Domain Select -->
+  <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 d-flex">
+    <select class="form-control w-100" name="php_domain" id="php_domain">
+      <option value="">Domain</option>
+      {% for domain in php_domain %}
+          <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <!-- Autofill Button -->
+  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4 d-flex">
+    <button type="button" id="autofillBtn" class="btn btn-primary w-100">Autofill by Domain</button>
+  </div>
+</div>
+
+
+ <div id="responseContainer" style="display: none;" class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</div>
+	   
+
+
+
+
+
+	   
+            <div class="tab-content mt-5" id="nav-tabContent">
+              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                
+           
+
+<div class="form-group mt-4">
+  <label for="crt">Certificate (CRT):</label>
+  <textarea class="form-control" name="crt" id="crt" rows="10" placeholder="" style="font-size: 10px;"></textarea>
+
+  <div id="certInfoCard" class="card bg-light border" style="display: none; margin-top: -1px;">
+    <div class="card-body">
+      <p><strong>Domains:</strong> <span id="certDomains">N/A</span></p>
+      <p><strong>Issuer:</strong> <span id="certIssuer">N/A</span></p>
+      <p><strong>Key Type:</strong> <span id="certKeyType">N/A</span></p>
+      <p><strong>Expiration:</strong> <span id="certExpiration">N/A</span></p>
+    </div>
+  </div>
+</div>
+
+
+<div class="form-group mt-4">
+  <label for="cabundle">Certificate Authority Bundle (CABUNDLE):</label>
+  <textarea class="form-control" name="cabundle" id="cabundle" rows="10" placeholder="" style="font-size: 10px;"></textarea>
+</div>
+
+<div class="form-group mt-4">
+  <label for="privatekey">Private Key:</label>
+  <textarea class="form-control" name="privatekey" id="privatekey" rows="10" placeholder="" style="font-size: 10px;"></textarea>
+</div>
+
+
+
+
+
+<div class="form-group">
+  <label for="renew">Disable default SSL renew:</label>
+  <label class="switch switch-primary form-control-label mr-2">
+    <input type="checkbox" name="renew" id="renew" class="switch-input form-check-input" value="On">
+    <span class="switch-label"></span>
+    <span class="switch-handle"></span>
+  </label>
+  <small id="renewNote" style="color: #d9534f; display: block; margin-top: 5px;">
+    If not checked, this certificate <strong>can be overwritten</strong> by the default SSL renew.
+  </small>
+</div>
+
+
+
+
+
+            <button type="submit" class="btn btn-primary mt-3">Save </button>
+       
+    
+	    </div>
+            
+
+          </div>
+	
+	
+	
+     
+	
+</div>
+
+ </div>
+</div>
+
+ </form>
+<script>
+  const alertContainer = document.getElementById('alertContainer');
+  const messageDisplay = document.getElementById('message');
+  const responseDisplay = document.getElementById('responseContainer');
+
+
+function fetchCertInfo(pem) {
+  if (!pem || pem.trim() === "") {
+    alert("Please provide a certificate PEM first.");
+    return;
+  }
+const csrfToken = "{{ csrf_token }}";
+  // Clear previous info display (optional)
+  document.getElementById("certDomains").textContent = "";
+  document.getElementById("certIssuer").textContent = "";
+  document.getElementById("certKeyType").textContent = "";
+  document.getElementById("certExpiration").textContent = "";
+document.getElementById("certInfoCard").style.display = 'none';
+  // Show loading indicator if you have one
+  const responseDisplay = document.getElementById('responseContainer');
+  responseDisplay.style.display = 'inline-block';
+
+  fetch('/fatch_custom_ssl_info/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded', // for form data
+      'X-CSRFToken': csrfToken  // Include CSRF token if Django CSRF middleware enabled
+    },
+    body: new URLSearchParams({ pem: pem.trim() })
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok: ' + response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+      responseDisplay.style.display = 'none';
+
+      if (data.error) {
+        //alert('Error: ' + data.error);
+        return;
+      }
+
+      // Display the certificate info in your UI - change element IDs as needed
+      document.getElementById("certDomains").textContent = data.domains ? data.domains.join(", ") : "N/A";
+      document.getElementById("certIssuer").textContent = data.issuer || "N/A";
+      document.getElementById("certKeyType").textContent = data.key_type || "N/A";
+      document.getElementById("certExpiration").textContent = data.expiration || "N/A";
+	  document.getElementById("certInfoCard").style.display = 'block';
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      responseDisplay.style.display = 'none';
+      //alert('Failed to fetch certificate info. Please try again.');
+    });
+}
+
+  function load(domain) {
+    if (domain) {
+      console.log('Selected domain:', domain);
+document.getElementById("crt").value = "";
+document.getElementById("cabundle").value = "";
+document.getElementById("privatekey").value = "";
+      responseDisplay.style.display = 'inline-block';
+
+      fetch(`/fatch_custom_ssl/?php_domain=${encodeURIComponent(domain)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Response:', data);
+          responseDisplay.style.display = 'none';
+
+          // Update your SSL input fields here (make sure IDs match)
+          if (data.crt) document.getElementById("crt").value = data.crt.trim();
+          if (data.cabundle) document.getElementById("cabundle").value = data.cabundle.trim();
+          if (data.privkey) document.getElementById("privatekey").value = data.privkey.trim();
+		  if (data.renew === 'On' ) {
+    $('#renew').prop('checked', true);
+} else {
+    $('#renew').prop('checked', false);
+}
+		  if (data.crt)fetchCertInfo(data.crt.trim());
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          responseDisplay.style.display = 'none';
+          //alert('Failed to fetch SSL data. Please try again.');
+        });
+    } else {
+      console.log('No domain selected.');
+      alert('Please select a domain first.');
+    }
+  }
+
+  // Attach click handler to your autofill button
+  document.querySelector('button[id="autofillBtn"]').addEventListener('click', function (event) {
+    event.preventDefault();  // Prevent default form submit
+
+    const domain = document.getElementById('php_domain').value;
+    load(domain);
+});
+
+
+  
+$(document).ready(function () {
+  $('#crt').on('input', function () {
+    const certValue = $(this).val().trim();
+
+    if (!certValue) {
+      $('#certInfoCard').hide();
+      return;
+    }
+
+    fetchCertInfo(certValue);
+  });
+});
+
+	
+  
+</script>
+
+  
+{% include "users/footer.html" %}
+{% endblock content %}

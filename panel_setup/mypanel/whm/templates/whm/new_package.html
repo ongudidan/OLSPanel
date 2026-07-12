@@ -1,0 +1,113 @@
+{% extends "whm/base.html" %}
+{% block title %}{{title}} Package{% endblock title %}
+
+{% block content %}
+<div class="row">
+                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+<div class="card card-default">
+<div class="card-header">
+        <h2>{{title}} Package</h2>
+        
+
+      </div>
+<div class="card-body">
+   
+    
+    <form method="post" action="">
+        {% csrf_token %}
+		
+		 <div class="form-group">
+            <label for="dns_name">Name</label>
+            <input type="text" class="form-control" id="dns_name" name="name" value="{{ pk.name }}" required>
+        </div>
+		 
+        <div class="row mb-2">
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label  for="firstName">Disk space</label>
+                <input name="disk_space" type="number" class="form-control" id="firstName" value="{{ pk.disk_space }}" placeholder="0 for unlimited" required>
+              </div>
+            </div>
+
+            <div class="col-lg-6">
+              <div class="form-group">
+                <label for="lastName">Bandwidth</label>
+                <input name="bandwidth" type="number" class="form-control" id="lastName" value="{{ pk.bandwidth }}" placeholder="0 for unlimited" required>
+              </div>
+            </div>
+          </div>
+        <div class="form-group">
+            <label for="dns_name">Email accounts</label>
+            <input type="number" class="form-control" id="dns_name" name="email_accounts" placeholder="0 for unlimited" value="{{ pk.email_accounts }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="ttl">Databases</label>
+            <input type="number" class="form-control" id="ttl" name="databases"  placeholder="0 for unlimited" value="{{ pk.databases }}" required>
+        </div>
+
+        
+        <div class="form-group" id="prio-container">
+            <label for="prio">FTP</label>
+            <input type="number" class="form-control" id="prio" name="ftp_accounts" value="{{ pk.ftp_accounts }}" placeholder="0 for unlimited">
+        </div>
+
+ <div class="form-group">
+            <label for="ttl">Domain</label>
+            <input type="number" class="form-control" id="ttl" name="allowed_domains" value="{{ pk.allowed_domains }}"  placeholder="0 for unlimited" required>
+        </div>
+		
+		<div class="form-group">
+            <label for="ttl">Sub Domain</label>
+            <input type="number" class="form-control" id="ttl" name="allowed_subdomains" value="{{ pk.allowed_subdomains }}"  placeholder="0 for unlimited" required>
+        </div>
+		<div class="form-group">
+    <label for="ttl">Limit exceeded action</label>
+    <select class="form-control" id="limit_action" name="limit_action" required>
+        <option value="0" {% if pk.enforce_disk_limits == 0 %}selected{% endif %}>Keep Active</option>
+        <option value="1" {% if pk.enforce_disk_limits == 1 %}selected{% endif %}>Suspend</option>
+    </select>
+</div>
+		
+		
+        <div class="form-group">
+		
+
+        <button type="submit" class="mb-1 btn btn-success">{{title}} Package</button>
+    </form>
+</div>
+</div></div></div>
+<script>
+    function generateStrongPassword(length = 16) {
+        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const digits = '0123456789';
+        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+        
+        const allCharacters = lowercase + uppercase + digits + specialChars;
+        let password = '';
+
+        // Ensure the password contains at least one character from each category
+        password += lowercase[Math.floor(Math.random() * lowercase.length)];
+        password += uppercase[Math.floor(Math.random() * uppercase.length)];
+        password += digits[Math.floor(Math.random() * digits.length)];
+        password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+        // Fill the rest of the password length with a mix of all characters
+        for (let i = 4; i < length; i++) {
+            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+        }
+
+        // Shuffle the password to ensure randomness
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+        return password;
+    }
+
+    function generateAndFillPassword() {
+        const password = generateStrongPassword();
+        document.getElementById('password').value = password;
+        
+        return false; // Prevent any default action (not strictly necessary here)
+    }
+</script>
+{% endblock content %}

@@ -1,0 +1,179 @@
+{% extends "whm/base.html" %}
+{% block title %}My Services{% endblock title %}
+{% block content %}
+
+
+<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
+        <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb breadcrumb-inverse">
+                   
+           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Action running, please wait.....</li> 
+			<li> <div class="sk-wave">
+            <div class="rect1"></div>
+            <div class="rect2"></div>
+            <div class="rect3"></div>
+            <div class="rect4"></div>
+            <div class="rect5"></div>
+          
+        </div>
+</li> 
+       </ol>
+                </nav>
+    </div>
+	
+	
+
+<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+
+ <div class="card card-default">
+      <div class="card-header">
+        <h2>List of services</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+   
+  <div class="row">
+    {% for custom_name, service in services.items %}
+    <div class="col-xl-3 col-sm-6 ">
+        <div class="card card-default">
+            <div class="card-header" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 15px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <h2>{{ custom_name }}</h2>
+                <div class="sub-title">
+                    <span class="mr-1">
+                        {% if service.status == 'active' %}
+                            <span class="badge badge-success">Running</span>
+                        {% elif service.status == 'inactive' %}
+                            <span class="badge badge-danger">Stopped</span>
+                        {% else %}
+                            <span class="badge badge-warning">{{ service.status }}</span>
+                        {% endif %}
+                    </span>
+                    <div class="action-icons" style="margin-top: 10px;">
+                        {% if service.status == 'active' %}
+                            <img src="/media/icon/restart.svg" alt="Restart" onclick="operateService('{{ service.system_name }}', 'restart')" style="cursor: pointer; margin-right: 10px;"/>
+                            <img src="/media/icon/stop.svg" alt="Stop" onclick="operateService('{{ service.system_name }}', 'stop')" style="cursor: pointer; margin-right: 10px;"/>
+                        {% elif service.status == 'inactive' %}
+                            <img src="/media/icon/play.svg" alt="Play" onclick="operateService('{{ service.system_name }}', 'start')" style="cursor: pointer; margin-right: 10px;"/>
+                            <img src="/media/icon/restart.svg" alt="Restart" onclick="operateService('{{ service.system_name }}', 'restart')" style="cursor: pointer; margin-right: 10px;"/>
+                        {% else %}
+                            <img src="/media/icon/play.svg" alt="Play" onclick="operateService('{{ service.system_name }}', 'start')" style="cursor: pointer; margin-right: 10px;"/>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
+   
+   
+   
+   
+   
+</div>
+</div>
+<style>
+.action-icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.action-icons img {
+    width: 40px; /* Adjust icon size */
+    height: 40px;
+    margin: 0 3px; /* Spacing between icons */
+    padding: 4px;
+    background-color: #ffffff; /* Icon background */
+    border: 1px solid #e0e0e0; /* Border */
+    border-radius: 8px; /* Rounded edges */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow effect */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Hover effect transition */
+    cursor: pointer;
+}
+
+.action-icons img:hover {
+    transform: scale(1.1); /* Slight zoom on hover */
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+}
+
+</style>
+<script>
+function operateService(serviceName, action) {
+    if (serviceName) {
+        // Generate the URL using Django's URL template tag
+        const url = "{% url 'service_action' service_name='service_name' action='action' %}"
+            .replace('service_name', serviceName)
+            .replace('action', action);
+        
+        const responseDisplay = document.getElementById('responseContainer');
+        const alertContainer = document.getElementById('alertContainer');
+        const messageDisplay = document.getElementById('message');
+
+        setTimeout(function() {
+            // Show the response container while fetching the data
+            responseDisplay.style.display = 'inline-block';
+
+            // Call the URL to execute the service operation
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json(); // Retrieve response as JSON
+            })
+            .then(data => {
+                console.log('Response:', data);
+
+                // Hide the loading indicator after receiving the response
+                responseDisplay.style.display = 'none';
+
+                // Check if the operation was successful or failed
+                if (data.status === 'success') {
+                    // Set alert for success
+                    alertContainer.className = "alert alert-success alert-dismissible fade show";
+                    messageDisplay.innerText = `${data.message}`; // Displaying success message
+                } else {
+                    // Set alert for error
+                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                    messageDisplay.innerText = `Error: ${data.message}`; // Displaying error message
+                }
+
+                // Display the alert container
+                alertContainer.style.display = "block";
+
+                // Optionally reload the page after a delay
+                setTimeout(function() {
+                    location.reload(); 
+                }, 3000); // 5000 milliseconds = 5 seconds
+
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }, 0); // 0 milliseconds = immediate action
+    } else {
+        console.log('No service name or action provided.');
+    }
+}
+
+</script>
+{% endblock content %}
+
+{% include "whm/footer.html" %}

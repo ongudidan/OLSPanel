@@ -1,0 +1,17 @@
+[powerdns-auth-43]
+name=PowerDNS repository for PowerDNS Authoritative Server - version 4.3.X (end of life)
+baseurl=http://repo.powerdns.com/el/$basearch/$releasever/auth-43
+gpgkey=https://repo.powerdns.com/FD380FBB-pub.asc
+gpgcheck=1
+enabled=1
+priority=90
+includepkg=pdns*
+
+[powerdns-auth-43-debuginfo]
+name=PowerDNS repository for PowerDNS Authoritative Server - version 4.3.X (end of life) debug symbols
+baseurl=http://repo.powerdns.com/el/$basearch/$releasever/auth-43/debug
+gpgkey=https://repo.powerdns.com/FD380FBB-pub.asc
+gpgcheck=1
+enabled=0
+priority=90
+includepkg=pdns*

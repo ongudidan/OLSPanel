@@ -1,0 +1,134 @@
+{% extends "whm/base.html" %}
+{% block title %}Panel SSL{% endblock title %}
+{% block content %}
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
+        <div class="card card-default">
+            <div class="card-header">
+                <h2>Panel SSL</h2>
+            </div>
+            <div class="card-body">
+                
+
+                <div id="ssl-form">
+                    <label class="small mb-1" for="php_version">Select Domain for issue panel SSL:</label>
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="php_version">Domain:</label>
+                        <select class="form-control" name="domainx" id="domainx">
+						 <option value="">Select domain</option>
+                            {% for domain in domains %}
+                                <option value="{{ domain.domain }}" {% if domain.domain == nowd %}selected{% endif %}>{{ domain.domain }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                   
+                </div>
+ <div class="form-group">
+                        <button id="save" class="btn btn-primary mt-3">Save</button>
+                    </div>
+                <div id="responseContainer" style="display: none;" class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+				
+				<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+    <div id="message"></div>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                  <span aria-hidden="true">×</span>
+                </button>
+</div>	
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('save').addEventListener('click', function(event) {
+    event.preventDefault(); // Prevent form submission or default action
+
+    // Call the issueSSLforpannel function
+    issueSSLforpannel();
+});
+    
+	
+	
+	
+function issueSSLforpannel() {
+    const domainSelect = document.getElementById('domainx'); // Get the select element
+    var domain = domainSelect.value; // Get the selected domain value
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+ const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+ 
+
+    setTimeout(function() {
+        responseDisplay.style.display = 'inline-block';
+
+        // Call the URL (replace '/your-url' with your actual URL)
+        fetch("{% url 'panel_ssl_update' %}", {
+            method: 'POST',
+            headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+            body: new URLSearchParams({
+                    'domain': domain
+                }),
+        })
+        .then(response => {
+		responseDisplay.style.display = 'none';
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json(); // Parse response as JSON
+        })
+        .then(data => {
+            console.log('Response:', data);
+            responseDisplay.style.display = 'none';
+
+            if (data.status === 'success') {
+                // Set alert for success
+                alertContainer.className = "alert alert-success alert-dismissible fade show";
+                messageDisplay.innerText = data.message; // Displaying success message
+            } else {
+                // Set alert for error
+                alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                messageDisplay.innerText = data.message; // Displaying error message
+            }
+
+            alertContainer.style.display = "block";
+            setTimeout(function() {
+               
+                window.location.href = "https://"+domain+":"+window.location.port;
+            
+            }, 3000); // 5000 milliseconds = 5 seconds
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+			
+                // Set alert for success
+                alertContainer.className = "alert alert-success alert-dismissible fade show";
+                messageDisplay.innerText = "successfull operation"; // Displaying success message
+            responseDisplay.style.display = 'none';
+
+            alertContainer.style.display = "block";
+            setTimeout(function() {
+                
+               window.location.href = "https://"+domain+":"+window.location.port;
+            
+            }, 3000); // 5000 milliseconds = 5 seconds
+        });
+    }, 0); // 0 milliseconds = immediately
+}
+
+	
+</script>
+
+{% include "whm/footer.html" %}
+{% endblock content %}

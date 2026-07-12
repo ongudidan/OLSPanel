@@ -1,0 +1,198 @@
+{% extends "users/base.html" %}
+{% block title %}My Domain{% endblock title %}
+{% block content %}
+
+<div id="dnsModal" class="modal-content" style="display: none;">
+    <form action="{% url 'dns_create' %}" method="post" id="dnsForm" name="edit_dns_record" novalidate>
+	{% csrf_token %}
+        <div class="modal-header">
+            <h4 id="modalTitle">Add a DNS Record</h4>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="dns_name" id="labelName">Name</label>
+                <input type="text" class="form-control" id="dns_name" name="dns_name" placeholder="example.com" required>
+                <div class="validation-message">This field is required.</div>
+            </div>
+            <div class="form-group">
+                <label for="dns_value" id="labelValue">Address</label>
+                <input type="text" class="form-control" id="dns_value" name="dns_value" placeholder="203.0.113.11" required>
+                <div class="validation-message">This field is required.</div>
+            </div>
+			<div class="form-group" id="priox" style="display:none;">
+                <label for="dns_value" id="labelValue">Priority</label>
+                <input type="text" class="form-control" id="prio" name="prio" placeholder="203.0.113.11" value="{{ dns.prio }}" required>
+                
+            </div>
+        </div>
+		
+		
+        <div class="modal-footer">
+		<input type="hidden" name="id" id="id" value=""/>
+		<input type="hidden" name="type" id="type" value=""/>
+            <button class="btn btn-primary" type="submit" id="dnsSubmit">Add Record</button>
+            <button type="button" class="btn btn-link" onclick="closeDialog()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<div class="card card-default">
+      <div class="card-header">
+        <h2>List of Domains Dns</h2>
+		
+        
+
+      </div>
+    
+   <div class="card-body">
+  
+  
+<div class="d-flex justify-content-end">
+    <form action="{% url 'dns' %}" method="post" class="form-inline mb-3">
+        <div class="form-group mr-2">
+            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+        </div>
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Filter</button>
+    </form>
+	
+	</div>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead class="thead-light">
+           <tr>
+                <th>Domain</th>
+                
+               
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="domainTable">
+            {% for domain in domains %}
+            <tr>
+                <td>{{ domain.domain }}</td>
+               
+               
+				<td class="action-buttons" data-title="Actions">
+                        <!-- ngIf: list.Features.simple || list.Features.advanced --><button type="button" onclick="openDialog('A','{{ domain.id }}','{{ domain.domain }}')" class="btn btn-outline-primary btn-sm">
+                            <span class="fas fa-plus" aria-hidden="true"></span>
+                            A Record
+                        </button><!-- end ngIf: list.Features.simple || list.Features.advanced -->
+                        <!-- ngIf: list.Features.simple || list.Features.advanced --><button type="button" onclick="openDialog('CNAME','{{ domain.id }}','{{ domain.domain }}')" class="btn btn-outline-primary btn-sm">
+                            <span class="fas fa-plus" aria-hidden="true"></span>
+                            CNAME Record
+                        </button><!-- end ngIf: list.Features.simple || list.Features.advanced -->
+                        <!-- ngIf: list.Features.mx --><button type="button" onclick="openDialog('MX','{{ domain.id }}','{{ domain.domain }}')" class="btn btn-outline-primary btn-sm">
+                            <span class="fas fa-plus" aria-hidden="true"></span>
+                            MX Record
+                        </button><!-- end ngIf: list.Features.mx -->
+                        <!-- ngIf: list.Features.dnssec -->
+                        <a href="{% url 'dns_list' domain.id %}" class="btn btn-outline-primary btn-sm"><span class="fas fa-wrench" aria-hidden="true"></span> Manage</a>
+                    </td>
+               
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center">No domains found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+    <!-- No Results Message -->
+    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+
+</div>
+</div>
+
+
+
+
+
+<style>
+.modal-content {
+    display: none; /* Hidden by default */
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+}
+
+.modal-header h4 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.modal-body {
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px
+
+
+</style>
+
+<script>
+    function openDialog(recordType,id,domain) {
+        // Show the modal
+        document.getElementById('dnsModal').style.display = 'block';
+
+        // Change the title and placeholders based on the clicked button
+        let modalTitle = document.getElementById('modalTitle');
+        let labelValue = document.getElementById('labelValue');
+        let dnsValue = document.getElementById('dns_value');
+		let idvalue = document.getElementById('id');
+		let type = document.getElementById('type');
+		let priox = document.getElementById('priox');
+		idvalue.value= id;
+		type.value= recordType;
+
+        // Update the modal content based on the record type
+        switch (recordType) {
+            case 'A':
+                modalTitle.textContent = 'Add an A Record for '+domain;
+                labelValue.textContent = 'Address';
+                dnsValue.placeholder = '203.0.113.11';
+				priox.style.display = 'none';
+                break;
+            case 'MX':
+                modalTitle.textContent = 'Add an MX Record for '+domain;
+                labelValue.textContent = 'Mail Server Address';
+                dnsValue.placeholder = 'mail.example.com';
+				priox.style.display = 'block';
+                break;
+            case 'CNAME':
+                modalTitle.textContent = 'Add a CNAME Record for '+domain;
+                labelValue.textContent = 'CNAME';
+                dnsValue.placeholder = 'example.com';
+				priox.style.display = 'none';
+                break;
+        }
+    }
+
+    function closeDialog() {
+        // Hide the modal
+        document.getElementById('dnsModal').style.display = 'none';
+    }
+</script>
+
+
+
+{% endblock content %}
+
+{% include "users/footer.html" %}
