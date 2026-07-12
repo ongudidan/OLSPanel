@@ -31,31 +31,7 @@ from datetime import datetime, timezone as dt_timezone
 logger = CpLogger()
 
 def get_license_status(request):
-    license_key = request.META.get('LICENSE_KEY')
-    license_expire_raw = request.META.get('LICENSE_EXPIRE')
-
-    if not license_key:
-        return "missing"
-
-    if not license_expire_raw:
-        return "invalid"
-
-    try:
-        normalized = license_expire_raw.strip().replace('Z', '+00:00')
-        expire_date = datetime.fromisoformat(normalized)
-
-        if expire_date.tzinfo is None:
-            expire_date = expire_date.replace(tzinfo=dt_timezone.utc)
-
-        now_time = datetime.now(tz=dt_timezone.utc)
-
-        if expire_date <= now_time:
-            return "expired"
-
-        return "active"
-
-    except Exception:
-        return "invalid"
+    return "active"
 
 
 def download_script_only(script_type: str, save_path: str) -> bool:

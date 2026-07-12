@@ -3196,10 +3196,10 @@ def web_server(request, php_file):
             service_value = get_plugin_config_value('service', plugin_name)
             if request.user:
                 user_data = get_user_data_by_id(request.user.id)
-                whm = user_data.get('whm', 0)
+                whm = user_data.get('whm', 0) if user_data else (1 if request.user.is_superuser or request.user.is_staff else 0)
             elif request.admin_user:
                 user_data = get_user_data_by_id(request.admin_user.id)
-                whm = user_data.get('whm', 0)
+                whm = user_data.get('whm', 0) if user_data else (1 if request.admin_user.is_superuser or request.admin_user.is_staff else 0)
             else:
                 whm = 0
                 

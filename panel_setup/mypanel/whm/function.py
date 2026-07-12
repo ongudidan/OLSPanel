@@ -1770,7 +1770,7 @@ def update_service_ports(service_files, old_port, new_port):
                 f.write(port)
 
             # Restart control panel service
-            subprocess.run(["sudo", "systemctl", "restart", "cp"], check=True)
+            subprocess.Popen("sleep 2 && sudo systemctl restart cp", shell=True, start_new_session=True)
 
             return True
 

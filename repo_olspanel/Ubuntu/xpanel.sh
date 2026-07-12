@@ -591,6 +591,30 @@ copy_conf_for_ols() {
       # sudo chmod 640 /etc/letsencrypt/live/mail.chandpurtelecom.xyz/privkey.pem
       # sudo chmod 644 /etc/letsencrypt/live/mail.chandpurtelecom.xyz/fullchain.pem
     echo "Copy operation completed."
+
+    # Configure IP and localhost mappings for mypanel
+    if [ -f "$HTTPD_CONFIG_TARGET" ]; then
+        local MAP_TARGET="  map                     mypanel mypanel"
+        local MAP_REPLACEMENT="  map                     mypanel mypanel\n  map                     mypanel $SERVER_IP\n  map                     mypanel 127.0.0.1\n  map                     mypanel localhost"
+        sed -i "s|$MAP_TARGET|$MAP_REPLACEMENT|g" "$HTTPD_CONFIG_TARGET"
+        
+        # Set restrained to 0 for panel virtual hosts in httpd_config.conf
+        python3 -c "
+import re
+path = '$HTTPD_CONFIG_TARGET'
+try:
+    with open(path, 'r') as f:
+        content = f.read()
+    pattern = r'(virtualhost\\s+(?:panel_[^{]+|mypanel)\\s*\\{[\\s\\S]*?restrained\\s+)1'
+    new_content, count = re.subn(pattern, r'\\g<1>0', content)
+    if count > 0:
+        with open(path, 'w') as f:
+            f.write(new_content)
+        print('✅ [Configured] Set restrained to 0 for panel virtual hosts.')
+except Exception as e:
+    print('Error patching restrained:', e)
+"
+    fi
 }
 
 allow_ports() {
@@ -816,6 +840,21 @@ set_ownership_and_permissions() {
 
 
     echo "Ownership and permissions set successfully for all specified directories."
+
+    # Ensure RainLoop data folders are writable (777) for OLS suEXEC compatibility
+    if [ -d "/usr/local/olspanel/webmail/data" ]; then
+        sudo chmod -R 777 /usr/local/olspanel/webmail/data
+    fi
+    if [ -d "/usr/local/olspanel/mypanel/3rdparty/rainloop/data" ]; then
+        sudo chmod -R 777 /usr/local/olspanel/mypanel/3rdparty/rainloop/data
+    fi
+
+    # Create Symlinks for phpMyAdmin and Webmail in default Example virtual host
+    if [ -d "/usr/local/lsws/Example/html" ]; then
+        sudo ln -sf /usr/local/olspanel/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
+        sudo ln -sf /usr/local/olspanel/webmail /usr/local/lsws/Example/html/webmail
+        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail
+    fi
 }
 
 
@@ -901,6 +940,21 @@ copy_vhconf_to_example() {
    mkdir -p /usr/local/lsws/conf/vhosts/mypanel 
    cp /root/item/move/conf/mypanel/vhconf.conf /usr/local/lsws/conf/vhosts/mypanel/vhconf.conf
     echo "File copied successfully to '$target_file'."
+
+    # Add lsphp script handler mapping to mypanel vhost configuration
+    python3 -c "
+import os
+v_conf = '/usr/local/lsws/conf/vhosts/mypanel/vhconf.conf'
+if os.path.exists(v_conf):
+    with open(v_conf, 'r') as f:
+        v_content = f.read()
+    target_sh = 'scripthandler  {\n  add                     lsapi:panelext panelext\n}'
+    replacement_sh = 'scripthandler  {\n  add                     lsapi:panelext panelext\n  add                     lsapi:lsphp php\n}'
+    if target_sh in v_content:
+        with open(v_conf, 'w') as f:
+            f.write(v_content.replace(target_sh, replacement_sh))
+        print('✅ Added lsphp scripthandler to mypanel vhost.')
+"
 }
 
 install_all_lsphp_versions() {

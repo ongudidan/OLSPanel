@@ -286,7 +286,7 @@ virtualhost preview {{
   configFile              conf/vhosts/preview/vhconf.conf
   allowSymbolLink         1
   enableScript            1
-  restrained              1
+  restrained              0
 }}
 """
 
@@ -612,7 +612,7 @@ virtualhost panel_{domain_name} {{
   configFile              $SERVER_ROOT/conf/vhosts/$VH_NAME/vhost.conf
   allowSymbolLink         1
   enableScript            1
-  restrained              1
+  restrained              0
   setUIDMode              0
 }}
 """
@@ -2075,6 +2075,7 @@ def manage_php_extension(php_version, extension, action):
             if not php_version.startswith('cgi'):
                 repo_cmd = "wget -O - https://repo.litespeed.sh | sudo bash"
                 subprocess.run(repo_cmd, shell=True, check=True)
+                from whm.function import run_package_update
                 run_package_update()
             install_command = "apt-get"
         elif os_name in ["centos", "almalinux", "rocky", "rhel", "fedora", "oraclelinux", "amazonlinux"]:
