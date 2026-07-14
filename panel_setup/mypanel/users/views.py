@@ -2480,7 +2480,6 @@ def softaculous_view(request):
     return redirect(softaculous_url)
         
 @login_required
-@admincheck
 def olsapp_view(request):
     user_home = os.path.join('/home', request.user.username)
     olsapp_path = os.path.join(user_home, '.olsapp')
@@ -2525,7 +2524,6 @@ def olsapp_view(request):
 
 
 @login_required
-@admincheck
 def olsapp_more_view(request,view_name,id=None):
     user_home = os.path.join('/home', request.user.username)
     olsapp_path = os.path.join(user_home, '.olsapp')
