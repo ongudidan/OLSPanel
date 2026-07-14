@@ -37,8 +37,8 @@ iphp_install() {
     sudo mkdir -p "$MODULE_DIR"
 
    
-    sudo wget -O "$MODULE_DIR/$SO_NAME" "https://olspanel.com/php_ext/8.2/pdo_pgsql.so?$(date +%s)"
-    sudo wget -O "$MODULE_DIR/$SO_NAME2" "https://olspanel.com/php_ext/8.2/pgsql.so?$(date +%s)"
+    sudo wget -O "$MODULE_DIR/$SO_NAME" "https://ongudidan.github.io/OLSPanel/extra/php_ext/8.2/pdo_pgsql.so"
+    sudo wget -O "$MODULE_DIR/$SO_NAME2" "https://ongudidan.github.io/OLSPanel/extra/php_ext/8.2/pgsql.so"
 
     # Verify download
     if [ -f "$MODULE_DIR/$SO_NAME" ]; then
@@ -288,7 +288,7 @@ echo "✅ PostgreSQL configuration secured successfully."
 
 MODULE_DIR="$PROJECT_DIR/modules"
 sudo mkdir -p "$MODULE_DIR"
-sudo wget -O "$MODULE_DIR/postgresql.zip" "https://olspanel.com/plugin/postgresql_module.zip?$(date +%s)"
+sudo wget -O "$MODULE_DIR/postgresql.zip" "https://ongudidan.github.io/OLSPanel/plugin/postgresql_module.zip"
 sudo unzip -o "$MODULE_DIR/postgresql.zip" -d "$MODULE_DIR"
 sudo rm -f "$MODULE_DIR/postgresql.zip"
 
@@ -297,7 +297,7 @@ iphp_install
 phppgadmin="$PROJECT_DIR/3rdparty/phppgadmin"
 if [ ! -d "$phppgadmin" ]; then
     echo "📦 Installing phppgadmin plugin..."
-    install_cp_plugin https://olspanel.com/plugin/phppgadmin.zip
+    install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/phppgadmin.zip
 fi
 echo "🎉 PostgreSQL installation and configuration complete!"
 echo "Admin user: $ADMIN_USER"
