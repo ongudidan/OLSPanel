@@ -1,6 +1,8 @@
 from datetime import timedelta, datetime
 from django.utils import timezone
 import os
+import subprocess
+import ipaddress
 import time
 import re
 from .models import *
@@ -88,24 +90,48 @@ def save_offset(OFFSET_FILE,offset):
 
 def temp_block_ip(ip,TEMP_BLOCK_DURATION):
     global firewall_changed
-    os.system(f"ufw insert 1 deny from {ip} comment 'auto_temp_block'")
-    firewall_changed = True
-    logger.info(f"[TEMP BLOCK] {ip} blocked for {TEMP_BLOCK_DURATION.total_seconds() / 60} minutes.")
-    print(f"[TEMP BLOCK] {ip} blocked for {TEMP_BLOCK_DURATION.total_seconds() / 60} minutes.")
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        logger.error(f"Invalid IP address format: {ip}")
+        return
+    try:
+        subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_temp_block"], check=True)
+        firewall_changed = True
+        logger.info(f"[TEMP BLOCK] {ip} blocked for {TEMP_BLOCK_DURATION.total_seconds() / 60} minutes.")
+        print(f"[TEMP BLOCK] {ip} blocked for {TEMP_BLOCK_DURATION.total_seconds() / 60} minutes.")
+    except Exception as e:
+        logger.error(f"Error running ufw block for {ip}: {e}")
 
 def perm_block_ip(ip):
     global firewall_changed
-    os.system(f"ufw insert 1 deny from {ip} comment 'auto_permanently_block'")
-    firewall_changed = True
-    logger.info(f"[PERM BLOCK] {ip} permanently blocked.")
-    print(f"[PERM BLOCK] {ip} permanently blocked.")
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        logger.error(f"Invalid IP address format: {ip}")
+        return
+    try:
+        subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_permanently_block"], check=True)
+        firewall_changed = True
+        logger.info(f"[PERM BLOCK] {ip} permanently blocked.")
+        print(f"[PERM BLOCK] {ip} permanently blocked.")
+    except Exception as e:
+        logger.error(f"Error running ufw perm block for {ip}: {e}")
 
 def remove_firewall_rule(ip):
     global firewall_changed
-    os.system(f"ufw delete deny from {ip} comment 'auto_temp_block'")
-    firewall_changed = True
-    logger.info(f"[TEMP BLOCK REMOVED] {ip} block removed.")
-    print(f"[TEMP BLOCK REMOVED] {ip} block removed.")
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        logger.error(f"Invalid IP address format: {ip}")
+        return
+    try:
+        subprocess.run(["ufw", "delete", "deny", "from", ip, "comment", "auto_temp_block"], check=True)
+        firewall_changed = True
+        logger.info(f"[TEMP BLOCK REMOVED] {ip} block removed.")
+        print(f"[TEMP BLOCK REMOVED] {ip} block removed.")
+    except Exception as e:
+        logger.error(f"Error removing ufw block for {ip}: {e}")
 
 
 def monitor_failed_ssh_logins(LOG_FILE,OFFSET_FILE,keywords,TEMP_BLOCK_DURATION,TEMP_BLOCK_THRESHOLD,PERM_BLOCK_THRESHOLD,PERM_WINDOW,TEMP_WINDOW,IGNORE_IP,TYPE):
@@ -550,5 +576,8 @@ def run_monitor():
     second_filter_attempt_ips() 
     if firewall_changed:
         print("[*] Reloading UFW rules...")
-        os.system("ufw reload")
+        try:
+            subprocess.run(["ufw", "reload"], check=True)
+        except Exception as e:
+            logger.error(f"Error reloading ufw: {e}")
 

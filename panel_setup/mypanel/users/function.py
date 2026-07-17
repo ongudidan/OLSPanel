@@ -984,29 +984,40 @@ def password_save_file(username, data):
         return f"Error: An unexpected error occurred: {e}"
         
 
+def get_fernet():
+    from cryptography.fernet import Fernet
+    import hashlib
+    secret_key = getattr(settings, 'SECRET_KEY', 'default_secret_key')
+    key_bytes = hashlib.sha256(secret_key.encode('utf-8')).digest()
+    fernet_key = base64.urlsafe_b64encode(key_bytes)
+    return Fernet(fernet_key)
+
 def encode(data: str) -> str:
-    
-    # Convert the string to bytes
-    data_bytes = data.encode('utf-8')
-    # Encode the bytes to Base64
-    base64_bytes = base64.b64encode(data_bytes)
-    # Convert Base64 bytes back to string
-    base64_str = base64_bytes.decode('utf-8')
-    # Generate a random 5-character string of lowercase letters
+    # Encrypt the string using Fernet
+    f = get_fernet()
+    encrypted_bytes = f.encrypt(data.encode('utf-8'))
+    # Prepend a random 5-character string for structural compatibility
     random_string = ''.join(random.choices(string.ascii_lowercase, k=5))
-    # Prepend the random string to the Base64 string
-    return random_string + base64_str
+    return random_string + encrypted_bytes.decode('utf-8')
 
 def decode(base64_data: str) -> str:
+    from cryptography.fernet import InvalidToken
+    # Remove the first 5 characters (random string)
+    payload_str = base64_data[5:]
     
-    # Remove the first 5 characters (random string) from the string
-    base64_str = base64_data[5:]
-    # Convert Base64 string to bytes
-    base64_bytes = base64_str.encode('utf-8')
-    # Decode the Base64 bytes back to original bytes
-    decoded_bytes = base64.b64decode(base64_bytes)
-    # Convert bytes back to string
-    return decoded_bytes.decode('utf-8')
+    # Try Fernet decryption first
+    try:
+        f = get_fernet()
+        decrypted_bytes = f.decrypt(payload_str.encode('utf-8'))
+        return decrypted_bytes.decode('utf-8')
+    except (InvalidToken, Exception):
+        # Fallback to legacy base64 decoding
+        try:
+            payload_bytes = payload_str.encode('utf-8')
+            decoded_bytes = base64.b64decode(payload_bytes)
+            return decoded_bytes.decode('utf-8')
+        except Exception as e:
+            return f"An error occurred during decoding: {str(e)}"
     
     
 def get_auto_login_password(username):

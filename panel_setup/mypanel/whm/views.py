@@ -1682,6 +1682,22 @@ def firewall_port(request):
 @csrf_exempt  # Disable CSRF for this view
 @xframe_options_exempt  # Allow iframe embedding
 def configservercsfiframe(request):
+    from urllib.parse import urlparse
+    from django.http import HttpResponseForbidden
+
+    if request.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+        host = request.get_host()
+        origin = request.META.get('HTTP_ORIGIN')
+        referer = request.META.get('HTTP_REFERER')
+        if origin:
+            parsed_origin = urlparse(origin)
+            if parsed_origin.netloc != host:
+                return HttpResponseForbidden("CSRF Origin check failed.")
+        elif referer:
+            parsed_referer = urlparse(referer)
+            if parsed_referer.netloc != host:
+                return HttpResponseForbidden("CSRF Referer check failed.")
+
     if request.method == 'GET':
         qs = request.GET.urlencode()
     elif request.method == 'POST':
@@ -3359,6 +3375,9 @@ def install_plugin_run(request, plugin_id):
         # DATA
         # =========================
         plugin_url = plugin.get("url") or ""
+        if "olspanel.com" in plugin_url:
+            plugin_url = plugin_url.replace("https://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
+            plugin_url = plugin_url.replace("http://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
         plugin_name = plugin.get("name") or "Plugin"
 
         # =========================

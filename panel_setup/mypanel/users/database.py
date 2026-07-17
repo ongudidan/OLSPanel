@@ -26,18 +26,28 @@ from django.contrib.auth.models import User
 
 logger = CpLogger()
 
+def clean_mysql_identifier(identifier: str) -> str:
+    """
+    Validates and cleans MySQL database/user identifiers.
+    Only allows alphanumeric characters and underscores.
+    """
+    if not identifier:
+        raise ValueError("Identifier cannot be empty.")
+    if not re.match(r'^[a-zA-Z0-9_]+$', identifier):
+        raise ValueError(f"Invalid characters in database/user identifier: '{identifier}'")
+    safe_name = identifier.replace("`", "``")
+    return f"`{safe_name}`"
+
 def encode2(data: str) -> str:
-    
-    # Convert the string to bytes
-    data_bytes = data.encode('utf-8')
-    # Encode the bytes to Base64
-    base64_bytes = base64.b64encode(data_bytes)
-    # Convert Base64 bytes back to string
-    base64_str = base64_bytes.decode('utf-8')
-    # Generate a random 5-character string of lowercase letters
+    from cryptography.fernet import Fernet
+    import hashlib
+    secret_key = getattr(settings, 'SECRET_KEY', 'default_secret_key')
+    key_bytes = hashlib.sha256(secret_key.encode('utf-8')).digest()
+    fernet_key = base64.urlsafe_b64encode(key_bytes)
+    f = Fernet(fernet_key)
+    encrypted_bytes = f.encrypt(data.encode('utf-8'))
     random_string = ''.join(random.choices(string.ascii_lowercase, k=5))
-    # Prepend the random string to the Base64 string
-    return random_string + base64_str
+    return random_string + encrypted_bytes.decode('utf-8')
     
     
 def password_save_file2(username, data):
@@ -425,6 +435,10 @@ def get_server_ipv6():
 
 def create_database(username, db_name):
     prefixed_db_name = f"{username}_{db_name}"
+    try:
+        safe_db_name = clean_mysql_identifier(prefixed_db_name)
+    except ValueError as e:
+        return False, str(e)
     with connection.cursor() as cursor:
         try:
             # Check if the database already exists
@@ -435,7 +449,7 @@ def create_database(username, db_name):
                 return False, error_message  # Return False and the error message
 
             # Construct the SQL command to create a new database
-            sql = f"CREATE DATABASE {prefixed_db_name};"
+            sql = f"CREATE DATABASE {safe_db_name};"
             cursor.execute(sql)
             print(f"Database '{prefixed_db_name}' created successfully.")
             return True, None  # Return True if successful, None for no error message
@@ -471,6 +485,11 @@ def create_database_and_user(request, username, db_name, db_user, db_pass, is_ba
     common_user = f"{username}"  # Common user name
     django_root = settings.BASE_DIR
 
+    try:
+        safe_db_name = clean_mysql_identifier(prefixed_db_name)
+    except ValueError as e:
+        return str(e)
+
     # Construct the correct source and destination file paths
     common_user_password_file = os.path.join(django_root, 'etc', f"phpmyadmin_{username}")
 
@@ -501,13 +520,13 @@ def create_database_and_user(request, username, db_name, db_user, db_pass, is_ba
             cursor.execute(create_user_sql, [db_user, db_pass])
 
             # Create the database if it doesn't already exist
-            create_db_sql = f"CREATE DATABASE IF NOT EXISTS `{prefixed_db_name}`;"
+            create_db_sql = f"CREATE DATABASE IF NOT EXISTS {safe_db_name};"
             cursor.execute(create_db_sql)
 
             # Grant all privileges to the user for their specific database only
             grant_privileges_sql = f"""
                 GRANT ALL PRIVILEGES 
-                ON `{prefixed_db_name}`.* TO %s@'localhost';
+                ON {safe_db_name}.* TO %s@'localhost';
             """
             cursor.execute(grant_privileges_sql, [db_user])
 
@@ -520,7 +539,7 @@ def create_database_and_user(request, username, db_name, db_user, db_pass, is_ba
 
             # Grant privileges to the common user for their specific database only
             grant_common_privileges_sql = f"""
-                GRANT ALL PRIVILEGES ON `{prefixed_db_name}`.* TO %s@'localhost';
+                GRANT ALL PRIVILEGES ON {safe_db_name}.* TO %s@'localhost';
             """
             cursor.execute(grant_common_privileges_sql, [common_user])
 
@@ -755,11 +774,21 @@ def update_db_user_credentials(username, current_db, db_user, new_password=None)
     new_username = f"{username}_{db_user}"
     
     try:
+        if not re.match(r'^[a-zA-Z0-9_]+$', current_db_name):
+            raise ValueError("Invalid characters in current database user name")
+        if not re.match(r'^[a-zA-Z0-9_]+$', new_username):
+            raise ValueError("Invalid characters in new database user name")
+    except ValueError as e:
+        return False, str(e)
+        
+    try:
         # Use the default database connection
         with connection.cursor() as cursor:
             # Step 1: Rename the user if the username has changed
             if new_username != current_db_name:
                 try:
+                    # Parameterization is not supported for account management statements in MySQL,
+                    # but we strictly validated identifiers using regex.
                     rename_query = f"RENAME USER '{current_db_name}'@'localhost' TO '{new_username}'@'localhost'"
                     cursor.execute(rename_query)
                 except OperationalError as e:
@@ -768,7 +797,16 @@ def update_db_user_credentials(username, current_db, db_user, new_password=None)
             # Step 2: Update the password if provided
             if new_password:
                 try:
-                    password_query = f"ALTER USER '{new_username}'@'localhost' IDENTIFIED BY '{new_password}'"
+                    # Safely escape the password to prevent injection in ALTER USER statement
+                    escaped_password = new_password.replace('\\', '\\\\').replace("'", "\\'")
+                    if hasattr(connection, 'connection') and connection.connection:
+                        try:
+                            escaped_password = connection.connection.escape_string(new_password)
+                            if isinstance(escaped_password, bytes):
+                                escaped_password = escaped_password.decode('utf-8')
+                        except Exception:
+                            pass
+                    password_query = f"ALTER USER '{new_username}'@'localhost' IDENTIFIED BY '{escaped_password}'"
                     cursor.execute(password_query)
                 except OperationalError as e:
                     return False, f"Error updating password: {e}"
@@ -784,7 +822,11 @@ def delete_db_user_credentials(username, db_user):
     db_user = replace_first_with_underscore(db_user)
     full_db_user = f"{username}_{db_user}"
     try:
-        
+        if not re.match(r'^[a-zA-Z0-9_]+$', full_db_user):
+            raise ValueError("Invalid characters in database user name")
+    except ValueError as e:
+        return False, str(e)
+    try:
         with connection.cursor() as cursor:
             # Drop the user from the database (only for localhost)
             drop_user_query = f"DROP USER IF EXISTS '{full_db_user}'@'localhost'"
@@ -803,8 +845,22 @@ def rename_database(username_string,old_db_name, new_db_name):
     old_db_name = f"{username_string}_{current_db}"
     new_db_name = f"{username_string}_{new_db_name}"
     
+    try:
+        if not re.match(r'^[a-zA-Z0-9_]+$', old_db_name):
+            raise ValueError("Invalid characters in old database name")
+        if not re.match(r'^[a-zA-Z0-9_]+$', new_db_name):
+            raise ValueError("Invalid characters in new database name")
+    except ValueError as e:
+        return f"Error: {e}"
+
     username = connection.settings_dict['USER']
     password = connection.settings_dict['PASSWORD']
+
+    try:
+        safe_new_db = f"`{new_db_name}`"
+        safe_old_db = f"`{old_db_name}`"
+    except ValueError as e:
+        return f"Error: {e}"
 
     try:
         with connection.cursor() as cursor:
@@ -818,30 +874,44 @@ def rename_database(username_string,old_db_name, new_db_name):
             if cursor.fetchone():
                 return f"Error: The database '{new_db_name}' already exists."
 
-            # Step 3: Backup the existing database
-            backup_command = f"mysqldump -u {username} -p{password} {old_db_name} > {old_db_name}_backup.sql"
-            os.system(backup_command)
+            # Step 3: Backup the existing database using secure subprocess list & env MYSQL_PWD
+            backup_file = f"{old_db_name}_backup.sql"
+            env = os.environ.copy()
+            env["MYSQL_PWD"] = password
+            
+            with open(backup_file, "w") as f:
+                subprocess.run(
+                    ["mysqldump", "-u", username, old_db_name],
+                    env=env,
+                    stdout=f,
+                    check=True
+                )
 
             # Step 4: Create the new database
-            cursor.execute(f"CREATE DATABASE `{new_db_name}`;")
+            cursor.execute(f"CREATE DATABASE {safe_new_db};")
 
             # Step 5: Import the data from the old database to the new database
-            import_command = f"mysql -u {username} -p{password} {new_db_name} < {old_db_name}_backup.sql"
-            os.system(import_command)
+            with open(backup_file, "r") as f:
+                subprocess.run(
+                    ["mysql", "-u", username, new_db_name],
+                    env=env,
+                    stdin=f,
+                    check=True
+                )
 
-            # Step 6: Transfer user privileges
+            # Step 6: Transfer user privileges using parameterized db filtering
             cursor.execute(f"""
-                SELECT CONCAT('GRANT ALL PRIVILEGES ON `{new_db_name}`.* TO ''', user, '''@''', host, ''';')
+                SELECT CONCAT('GRANT ALL PRIVILEGES ON {safe_new_db}.* TO ''', user, '''@''', host, ''';')
                 FROM mysql.db
-                WHERE db = '{old_db_name}';
-            """)
+                WHERE db = %s;
+            """, [old_db_name])
             grant_queries = cursor.fetchall()
 
             for grant_query in grant_queries:
                 cursor.execute(grant_query[0])
 
             # Step 7: Drop the old database
-            cursor.execute(f"DROP DATABASE `{old_db_name}`;")
+            cursor.execute(f"DROP DATABASE {safe_old_db};")
 
         return f"Database renamed successfully from '{old_db_name}' to '{new_db_name}' with privileges transferred."
 
@@ -855,11 +925,17 @@ def rename_database(username_string,old_db_name, new_db_name):
 def delete_database(username_string,database_name):
     database_name = replace_first_with_underscore(database_name)
     database_namex = f"{username_string}_{database_name}"
+    try:
+        if not re.match(r'^[a-zA-Z0-9_]+$', database_namex):
+            raise ValueError("Invalid characters in database name")
+        safe_db_name = f"`{database_namex}`"
+    except ValueError as e:
+        return str(e)
     """Delete the specified database."""
     with connection.cursor() as cursor:
         try:
             # Execute the DROP DATABASE command
-            cursor.execute(f"DROP DATABASE IF EXISTS {database_namex}")
+            cursor.execute(f"DROP DATABASE IF EXISTS {safe_db_name}")
             connection.commit()  # Commit the changes to ensure the database is deleted
             return f"Database '{database_namex}' has been deleted successfully."
         except Exception as e:
@@ -941,12 +1017,7 @@ def get_main_domain(domain_name):
 
 def domain_check(domain_name):
     try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM domain WHERE domain = %s", [domain_name])
-            count = cursor.fetchone()[0]
-
-            return count > 0   # True if count >= 1, otherwise False
-
+        return Domain.objects.filter(domain=domain_name).exists()
     except Exception as e:
         # Log the error if needed
         print("Error:", e)
@@ -1138,17 +1209,40 @@ def import_database(username, file_path, db_name):
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
     
-    # Check if the file is compressed (ends with .gz)
-    if file_path.endswith('.gz'):
-        # Decompress and import the .gz file
-        command = f"gunzip -c {file_path} | mysql -u root -p{db_password} {db_name}"
-    else:
-        # Direct import if not compressed
-        command = f"mysql -u root -p{db_password} {db_name} < {file_path}"
-    
     try:
-        # Run the command using subprocess
-        subprocess.run(command, shell=True, check=True)
+        if not re.match(r'^[a-zA-Z0-9_]+$', db_name):
+            raise ValueError("Invalid characters in database name")
+    except ValueError as e:
+        raise Exception(str(e))
+        
+    env = os.environ.copy()
+    env["MYSQL_PWD"] = db_password
+
+    try:
+        if file_path.endswith('.gz'):
+            # Decompress and import the .gz file without shell=True
+            gunzip_proc = subprocess.Popen(["gunzip", "-c", file_path], stdout=subprocess.PIPE)
+            mysql_proc = subprocess.Popen(
+                ["mysql", "-u", "root", db_name],
+                env=env,
+                stdin=gunzip_proc.stdout,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            # Allow gunzip_proc to receive a SIGPIPE if mysql_proc exits
+            gunzip_proc.stdout.close()
+            stdout, stderr = mysql_proc.communicate()
+            if mysql_proc.returncode != 0:
+                raise subprocess.CalledProcessError(mysql_proc.returncode, "mysql", stderr)
+        else:
+            # Direct import if not compressed
+            with open(file_path, "r") as f:
+                subprocess.run(
+                    ["mysql", "-u", "root", db_name],
+                    env=env,
+                    stdin=f,
+                    check=True
+                )
     except subprocess.CalledProcessError as e:
         raise Exception(f"Error importing database: {e}")
         
@@ -1158,12 +1252,23 @@ def export_database(username, file_path, db_name):
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
     
-    # The command to export the database to a file using mysqldump
-    command = f"mysqldump -u root -p{db_password} {db_name} > {file_path}"
+    try:
+        if not re.match(r'^[a-zA-Z0-9_]+$', db_name):
+            raise ValueError("Invalid characters in database name")
+    except ValueError as e:
+        raise Exception(str(e))
+        
+    env = os.environ.copy()
+    env["MYSQL_PWD"] = db_password
     
     try:
-        # Run the command using subprocess
-        subprocess.run(command, shell=True, check=True)
+        with open(file_path, "w") as f:
+            subprocess.run(
+                ["mysqldump", "-u", "root", db_name],
+                env=env,
+                stdout=f,
+                check=True
+            )
     except subprocess.CalledProcessError as e:
         raise Exception(f"Error exporting database: {e}")   
 
@@ -1172,12 +1277,21 @@ def repair_database(username, db_name):
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
     
-    # The command to repair the database using mysqlcheck
-    command = f"mysqlcheck -u root -p{db_password} --repair --databases {db_name}"
+    try:
+        if not re.match(r'^[a-zA-Z0-9_]+$', db_name):
+            raise ValueError("Invalid characters in database name")
+    except ValueError as e:
+        raise Exception(str(e))
+        
+    env = os.environ.copy()
+    env["MYSQL_PWD"] = db_password
     
     try:
-        # Run the repair command
-        subprocess.run(command, shell=True, check=True)
+        subprocess.run(
+            ["mysqlcheck", "-u", "root", "--repair", "--databases", db_name],
+            env=env,
+            check=True
+        )
         print(f"Database {db_name} repaired successfully.")
     except subprocess.CalledProcessError as e:
         raise Exception(f"Error repairing database: {e}")

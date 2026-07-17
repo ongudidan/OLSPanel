@@ -1996,7 +1996,7 @@ def reload_openlitespeed():
     Gracefully reload OpenLiteSpeed without dropping active connections.
     """
     try:
-        os.system('/usr/local/lsws/bin/lswsctrl reload')
+        subprocess.run(['/usr/local/lsws/bin/lswsctrl', 'reload'], check=True)
     except Exception as e:
         print(f"Error reloading OpenLiteSpeed: {e}")
     
@@ -2016,7 +2016,7 @@ def save_vhost_fun(domain, content):
     try:
         # Optional: create backup before saving
         backup_path = vhost + ".bak"
-        os.system(f'cp {vhost} {backup_path}')
+        shutil.copy2(vhost, backup_path)
 
         # Write new content
         with open(vhost, 'w') as f:
@@ -2056,6 +2056,10 @@ def manage_php_extension(php_version, extension, action):
     try:
         os_name = getattr(settings, "MY_OS_NAME", "linux").lower()
 
+        # Sanitize extension input
+        if not re.match(r'^[a-zA-Z0-9_-]+$', extension):
+            return {'status': 'error', 'message': 'Invalid extension characters.'}
+
         # Determine if CGI or lsphp version
         if php_version.startswith('cgi'):
             # Extract version number with dot, e.g. '7.4'
@@ -2069,12 +2073,19 @@ def manage_php_extension(php_version, extension, action):
             version_num = php_version.replace('.', '')
             pkg_prefix = f'lsphp{version_num}-'  # e.g. lsphp74-mbstring
 
+        if not re.match(r'^[a-zA-Z0-9.]+$', version_num):
+            return {'status': 'error', 'message': 'Invalid PHP version format.'}
+
         # Determine package manager & repo setup
         if os_name in ["ubuntu", "debian"]:
             # Add LiteSpeed repo only for lsphp packages (optional: skip for system php)
             if not php_version.startswith('cgi'):
-                repo_cmd = "wget -O - https://repo.litespeed.sh | sudo bash"
-                subprocess.run(repo_cmd, shell=True, check=True)
+                wget_proc = subprocess.Popen(["wget", "-O", "-", "https://repo.litespeed.sh"], stdout=subprocess.PIPE)
+                bash_proc = subprocess.Popen(["sudo", "bash"], stdin=wget_proc.stdout)
+                wget_proc.stdout.close()
+                bash_proc.communicate()
+                if bash_proc.returncode != 0:
+                    raise subprocess.CalledProcessError(bash_proc.returncode, "sudo bash")
                 from whm.function import run_package_update
                 run_package_update()
             install_command = "apt-get"
@@ -2086,13 +2097,18 @@ def manage_php_extension(php_version, extension, action):
         pkg_name = f"{pkg_prefix}{extension}"
 
         if action == "install":
-            command = f"sudo {install_command} install {pkg_name} -y"
+            action_arg = "install"
         elif action == "uninstall":
-            command = f"sudo {install_command} remove {pkg_name} -y"
+            action_arg = "remove"
         else:
             return {'status': 'error', 'message': f'Unknown action: {action}'}
 
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(
+            ["sudo", install_command, action_arg, pkg_name, "-y"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
 
         if result.returncode == 0:
             return {'status': 'success', 'message': f'Extension {extension} {action}ed successfully.'}
@@ -2173,6 +2189,9 @@ def fetch_php_extensions(php_version):
 
 def install_php(versions):
     version = versions.replace('.', '')
+    if not re.match(r'^[a-zA-Z0-9]+$', version):
+        return {'status': 'error', 'message': 'Invalid PHP version input.'}
+        
     os_name = getattr(settings, "MY_OS_NAME", "linux")
     os_f = getattr(settings, 'MY_OS_VERSION', 'linux')
 
@@ -2187,19 +2206,19 @@ def install_php(versions):
     try:
         # Step 1: Add necessary repositories based on the OS
         if os_name == "ubuntu" or os_name == "debian":
-            subprocess.run("sudo apt-get install -y software-properties-common", shell=True, check=True)
-            subprocess.run("sudo add-apt-repository ppa:openlitespeed/php", shell=True, check=True)
-            subprocess.run("sudo apt-get update", shell=True, check=True)
+            subprocess.run(["sudo", "apt-get", "install", "-y", "software-properties-common"], check=True)
+            subprocess.run(["sudo", "add-apt-repository", "ppa:openlitespeed/php", "-y"], check=True)
+            subprocess.run(["sudo", "apt-get", "update"], check=True)
         elif os_name in ["centos", "almalinux", "rocky", "rhel", "fedora", "oraclelinux", "amazonlinux"]:
             # Additional repository setup for CentOS/AlmaLinux/RHEL
-            subprocess.run(f"sudo {install_command} install -y epel-release", shell=True, check=True)
-            subprocess.run(f"sudo {install_command} install -y lsphp{version} lsphp{version}-common lsphp{version}-mysqlnd", shell=True, check=True)
+            subprocess.run(["sudo", install_command, "install", "-y", "epel-release"], check=True)
+            subprocess.run(["sudo", install_command, "install", "-y", f"lsphp{version}", f"lsphp{version}-common", f"lsphp{version}-mysqlnd"], check=True)
 
         # Step 2: Install PHP and dependencies based on the OS
         if os_name == "ubuntu":
-            subprocess.run(f"sudo {install_command} install -y lsphp{version} lsphp{version}-common lsphp{version}-mysqlnd", shell=True, check=True)
+            subprocess.run(["sudo", install_command, "install", "-y", f"lsphp{version}", f"lsphp{version}-common", f"lsphp{version}-mysqlnd"], check=True)
         elif os_name in ["centos", "almalinux", "rocky", "rhel", "fedora", "oraclelinux", "amazonlinux"]:
-            subprocess.run(f"sudo {install_command} install -y lsphp{version} lsphp{version}-common lsphp{version}-mysqlnd", shell=True, check=True)
+            subprocess.run(["sudo", install_command, "install", "-y", f"lsphp{version}", f"lsphp{version}-common", f"lsphp{version}-mysqlnd"], check=True)
 
         # Return success message
         return {'status': 'success', 'message': f'PHP {version} installed successfully.'}
@@ -2484,7 +2503,7 @@ def get_config_value_mod(name):
 def restart_lsphp():
     try:
         # Kill all lsphp processes
-        subprocess.run("sudo pkill lsphp", shell=True, check=True)
+        subprocess.run(["sudo", "pkill", "lsphp"], check=True)
         print("lsphp processes killed successfully. LiteSpeed will restart them automatically.")
         return True
     except subprocess.CalledProcessError as e:

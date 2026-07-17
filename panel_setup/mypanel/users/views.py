@@ -205,7 +205,6 @@ def handler403(request, exception=None):
     
 
 
-@method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginView(LoginView):
     form_class = LoginForm
 
@@ -2680,7 +2679,11 @@ def app_install(request, name):
             config_path_source = os.path.join(django_root, 'app', name)
             if name == 'wordpress':
                 source_item = os.path.join(target_path, 'wordpress')
-                subprocess.run(f'mv {source_item}/* {target_path}/', shell=True, check=True, executable='/bin/bash')
+                if os.path.exists(source_item) and os.path.isdir(source_item):
+                    for item_name in os.listdir(source_item):
+                        s_path = os.path.join(source_item, item_name)
+                        t_path = os.path.join(target_path, item_name)
+                        shutil.move(s_path, t_path)
                 wp_config_path = os.path.join(target_path, "wp-config.php")
                 
             if name == 'joomla':
@@ -2688,7 +2691,13 @@ def app_install(request, name):
                 
 
             if os.path.exists(config_path_source):
-                subprocess.run(f'cp -r {config_path_source}/.??* {config_path_source}/* {target_path}/',shell=True, check=True, executable='/bin/bash')
+                for item_name in os.listdir(config_path_source):
+                    s_path = os.path.join(config_path_source, item_name)
+                    t_path = os.path.join(target_path, item_name)
+                    if os.path.isdir(s_path):
+                        shutil.copytree(s_path, t_path, dirs_exist_ok=True)
+                    else:
+                        shutil.copy2(s_path, t_path)
 
             db_password = generate_strong_random_password()
             ran = f"{name}{generate_random_5_digit()}"
@@ -3104,6 +3113,19 @@ def fatch_php_ini_u(request):
 @csrf_exempt
 @xframe_options_exempt
 def web_server(request, php_file):
+    if request.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+        host = request.get_host()
+        origin = request.META.get('HTTP_ORIGIN')
+        referer = request.META.get('HTTP_REFERER')
+        if origin:
+            parsed_origin = urlparse(origin)
+            if parsed_origin.netloc != host:
+                return HttpResponseForbidden("CSRF Origin check failed.")
+        elif referer:
+            parsed_referer = urlparse(referer)
+            if parsed_referer.netloc != host:
+                return HttpResponseForbidden("CSRF Referer check failed.")
+
     custom_cookies = get_custom_cookies(request, prefix="CUSTOMCOOK_")
     for header_name, header_value in custom_cookies.items():
         request.META[header_name] = header_value

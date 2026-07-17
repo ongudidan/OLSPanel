@@ -50,8 +50,12 @@ def change_hostname(old_hostname, new_hostname):
         with open("/etc/hosts", "w") as f:
             f.write(hosts_content)
 
+        if not re.match(r'^[a-zA-Z0-9.-]+$', new_hostname):
+            print(f"Invalid hostname format: {new_hostname}")
+            return
+
         # Run the hostname command to apply changes immediately
-        os.system(f"hostnamectl set-hostname {new_hostname}")
+        subprocess.run(["hostnamectl", "set-hostname", new_hostname], check=True)
 
         print(f"Hostname successfully changed from {old_hostname} to {new_hostname}")
     except PermissionError:
@@ -70,24 +74,25 @@ def install_panel_update():
 
     try:
         print("Step 1: Downloading upgrade.sh...")
-        subprocess.run(f"wget -O {upgrade_script_path} {upgrade_script_url}", shell=True, check=True)
+        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
 
         print("Step 2: Removing Windows-style line endings from upgrade.sh...")
-        subprocess.run(f"sed -i 's/\\r$//' {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
 
         print("Step 3: Running upgrade.sh...")
-        subprocess.run(f"chmod +x {upgrade_script_path} && bash {upgrade_script_path}", shell=True)
+        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
+        subprocess.run(["bash", upgrade_script_path], check=True)
 
         print("Step 4: Downloading update file...")
         cache_buster = int(time.time())
-        #subprocess.run(f"wget -O {download_path} '{update_url}?{cache_buster}'", shell=True, check=True)
+        #subprocess.run(["wget", "-O", download_path, f"{update_url}?{cache_buster}"], check=True)
 
         if not os.path.isfile(download_path):
             print("Error: Downloaded file not found, the download may have failed.")
             return "Error: Downloaded file not found, the download may have failed."
 
         print("Step 5: Extracting update file...")
-        #subprocess.run(f"sudo unzip -o {download_path} -d {extract_path}", shell=True, check=True)
+        #subprocess.run(["sudo", "unzip", "-o", download_path, "-d", extract_path], check=True)
 
         print("Step 6: Cleaning up...")
         os.remove(download_path)
@@ -103,9 +108,6 @@ def install_panel_update():
         
         
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"An error occurred during the update installation: {e}")
-        return f"An error occurred during the update installation: {e}"
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return f"Unexpected error: {e}"
@@ -114,7 +116,7 @@ def install_softaculous_now():
     """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
     
     set_api_status("api_status", 1)
-    upgrade_script_url = "https://olspanel.com/softaculous/softaculous.sh"
+    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/softaculous/softaculous.sh"
     extract_path = settings.BASE_DIR.parent
     upgrade_script_path = f"{settings.BASE_DIR.parent}/softaculous.sh"
     download_path = f"{settings.BASE_DIR.parent}/softaculous.zip"
@@ -122,15 +124,16 @@ def install_softaculous_now():
     try:
         # Step 1: Download and run the upgrade.sh script
         print("Step 1: Downloading softaculous.sh...")
-        subprocess.run(f"wget -O {upgrade_script_path} {upgrade_script_url}", shell=True, check=True)
+        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
 
         # Step 2: Remove Windows-style line endings (if any) from the upgrade.sh file
         print("Step 2: Removing Windows-style line endings from softaculous.sh...")
-        subprocess.run(f"sed -i 's/\\r$//' {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
         
         # Step 3: Running softaculous.sh
         print("Step 3: Running softaculous.sh...")
-        subprocess.run(f"chmod +x {upgrade_script_path} && {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
+        subprocess.run([upgrade_script_path], check=True)
 
         
 
@@ -154,7 +157,7 @@ def install_olsapp_now():
     """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
     
     set_api_status("api_status", 1)
-    upgrade_script_url = "https://olspanel.com/olsapp/olsapp.sh"
+    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/olsapp/olsapp.sh"
     extract_path = settings.BASE_DIR.parent
     upgrade_script_path = f"{settings.BASE_DIR.parent}/olsapp.sh"
     download_path = f"{settings.BASE_DIR.parent}/olsapp.zip"
@@ -162,15 +165,16 @@ def install_olsapp_now():
     try:
         # Step 1: Download and run the upgrade.sh script
         print("Step 1: Downloading olsapp.sh...")
-        subprocess.run(f"wget -O {upgrade_script_path} {upgrade_script_url}", shell=True, check=True)
+        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
 
         # Step 2: Remove Windows-style line endings (if any) from the upgrade.sh file
         print("Step 2: Removing Windows-style line endings from olsapp.sh...")
-        subprocess.run(f"sed -i 's/\\r$//' {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
         
         # Step 3: Running olsapp.sh
         print("Step 3: Running olsapp.sh...")
-        subprocess.run(f"chmod +x {upgrade_script_path} && {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
+        subprocess.run([upgrade_script_path], check=True)
 
         
 
@@ -200,15 +204,16 @@ def install_imunifyfav_now():
     try:
         # Step 1: Download and run the upgrade.sh script
         print("Step 1: Downloading imunifyfav.sh...")
-        subprocess.run(f"wget -O {upgrade_script_path} {upgrade_script_url}", shell=True, check=True)
+        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
 
         # Step 2: Remove Windows-style line endings (if any) from the upgrade.sh file
         print("Step 2: Removing Windows-style line endings from imunifyfav.sh...")
-        subprocess.run(f"sed -i 's/\\r$//' {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
         
         # Step 3: Running imunifyfav.sh
         print("Step 3: Running imunifyfav.sh...")
-        subprocess.run(f"chmod +x {upgrade_script_path} && {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
+        subprocess.run([upgrade_script_path], check=True)
 
         
 
@@ -231,15 +236,14 @@ def install_imunifyfav_now():
 def download_softaculous_pkg():
     """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
     
-    # Command to execute
-    cron = f"/usr/local/lsws/lsphp81/bin/php {settings.BASE_DIR.parent}/softaculous/cron.php"
+    cron_cmd = ["/usr/local/lsws/lsphp81/bin/php", f"{settings.BASE_DIR.parent}/softaculous/cron.php"]
     
     try:
         # Step 1: Run the cron.php script
         print("Step 1: Running cron.php script...")
         
         # Run the command and capture output
-        result = subprocess.run(cron, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(cron_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         # Capture stdout and stderr from the process
         logger.info(f"Output: {result.stdout.decode('utf-8')}")
@@ -444,7 +448,7 @@ def replace_config_value(name, new_value):
             f.write(content)
             f.truncate()
             
-        subprocess.run("sudo csf -r", shell=True, check=True)    
+        subprocess.run(["sudo", "csf", "-r"], check=True)    
         return True
     except Exception as e:
         print("Error replacing value:", e)
@@ -848,18 +852,18 @@ def fetch_php_extensionsxc(php_version):
 def run_package_update():
     # Check for package manager existence
     if shutil.which('apt-get'):
-        cmd = 'sudo apt-get update'
+        cmd = ['sudo', 'apt-get', 'update']
     elif shutil.which('dnf'):
-        cmd = 'sudo dnf makecache'
+        cmd = ['sudo', 'dnf', 'makecache']
     elif shutil.which('yum'):
-        cmd = 'sudo yum makecache'
+        cmd = ['sudo', 'yum', 'makecache']
     elif shutil.which('zypper'):
-        cmd = 'sudo zypper refresh'
+        cmd = ['sudo', 'zypper', 'refresh']
     else:
         return {'status': 'error', 'message': 'No supported package manager found'}
 
     try:
-        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode == 0:
             return {'status': 'success', 'message': 'Package lists updated successfully'}
         else:
@@ -879,12 +883,20 @@ def manage_php_extensionxold(php_version, extension, action):
         else:
             return {'status': 'error', 'message': f'Unsupported OS: {os_name}'}
             
-        if action == "install":
-            command = f"sudo {install_command} install lsphp{new_php_version}-{extension} -y"
-        elif action == "uninstall":
-            command = f"sudo {install_command} remove lsphp{new_php_version}-{extension} -y"
+        if not re.match(r'^[a-zA-Z0-9_-]+$', extension):
+            return {'status': 'error', 'message': 'Invalid extension characters.'}
+        if not re.match(r'^[0-9]+$', new_php_version):
+            return {'status': 'error', 'message': 'Invalid PHP version.'}
+
+        action_arg = "install" if action == "install" else "remove"
+        pkg_name = f"lsphp{new_php_version}-{extension}"
         
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(
+            ["sudo", install_command, action_arg, pkg_name, "-y"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
         
         if result.returncode == 0:
             return f'Extension {extension} {action}ed successfully.'
@@ -897,15 +909,17 @@ def manage_php_extensionxold(php_version, extension, action):
    
 def install_phpold(versions):
     version = versions.replace('.', '')
+    if not re.match(r'^[a-zA-Z0-9]+$', version):
+        return {'status': 'error', 'message': 'Invalid PHP version.'}
     
     try:
         # Step 1: Add necessary repositories
-        subprocess.run("sudo apt-get install -y software-properties-common", shell=True, check=True)
-        subprocess.run("sudo add-apt-repository ppa:openlitespeed/php", shell=True, check=True)
-        subprocess.run("sudo apt-get update", shell=True, check=True)
+        subprocess.run(["sudo", "apt-get", "install", "-y", "software-properties-common"], check=True)
+        subprocess.run(["sudo", "add-apt-repository", "ppa:openlitespeed/php", "-y"], check=True)
+        subprocess.run(["sudo", "apt-get", "update"], check=True)
 
         # Step 2: Install PHP and dependencies
-        subprocess.run(f"sudo apt-get install -y lsphp{version} lsphp{version}-common lsphp{version}-mysql", shell=True, check=True)
+        subprocess.run(["sudo", "apt-get", "install", "-y", f"lsphp{version}", f"lsphp{version}-common", f"lsphp{version}-mysql"], check=True)
 
         # Return success message
         return {'status': 'success', 'message': f'PHP {version} installed successfully.'}
@@ -1082,8 +1096,7 @@ def get_process_list():
 
     try:
         # Execute the 'top' command in batch mode to retrieve process data
-        command = "top -b -n 1"  # Run top in batch mode for one iteration
-        result = subprocess.check_output(command, shell=True, text=True)
+        result = subprocess.check_output(["top", "-b", "-n", "1"], text=True)
 
         # Split the result into lines
         lines = result.strip().split("\n")
@@ -1375,8 +1388,8 @@ def get_allowed_ports_from_ufw():
     try:
         # Execute the command to get UFW rules
         result = subprocess.run(
-            "sudo ufw status numbered", 
-            shell=True, capture_output=True, text=True, check=True
+            ["sudo", "ufw", "status", "numbered"], 
+            capture_output=True, text=True, check=True
         )
 
         allowed_ports = []
@@ -1421,23 +1434,23 @@ def install_csf(ports_to_allow=None):
         
 
         print("Step 3: Stopping and disabling UFW...")
-        subprocess.run("sudo systemctl stop ufw", shell=True, check=True)
-        subprocess.run("sudo systemctl disable ufw", shell=True, check=True)
+        subprocess.run(["sudo", "systemctl", "stop", "ufw"], check=True)
+        subprocess.run(["sudo", "systemctl", "disable", "ufw"], check=True)
 
         print("Step 4: Downloading CSF...")
-        subprocess.run("wget https://olspanel.com/plugin/csf.tgz", shell=True, check=True)
+        subprocess.run(["wget", "https://ongudidan.github.io/OLSPanel/plugin/csf.tgz"], check=True)
 
         print("Step 5: Extracting CSF...")
-        subprocess.run("tar -xzf csf.tgz", shell=True, check=True)
+        subprocess.run(["tar", "-xzf", "csf.tgz"], check=True)
 
         print("Step 6: Installing CSF...")
-        subprocess.run("cd csf && sudo sh install.sh", shell=True, check=True)
+        subprocess.run(["sudo", "sh", "install.sh"], cwd="csf", check=True)
 
       
 
         print("Step 8: Starting and enabling CSF...")
-        subprocess.run("sudo systemctl start csf", shell=True, check=True)
-        subprocess.run("sudo systemctl enable csf", shell=True, check=True)
+        subprocess.run(["sudo", "systemctl", "start", "csf"], check=True)
+        subprocess.run(["sudo", "systemctl", "enable", "csf"], check=True)
 
         print("Step 9: Configuring CSF to allow ports...")
         if not os.path.exists("/sbin/iptables"):
@@ -1528,35 +1541,34 @@ def uninstall_csf():
         UDP_IN = get_config_value('UDP_IN')
         
         print("Step 1: Stopping CSF and LFD...")
-        subprocess.run("sudo systemctl stop csf lfd", shell=True, check=True)
+        subprocess.run(["sudo", "systemctl", "stop", "csf", "lfd"], check=True)
 
         print("Step 2: Disabling CSF and LFD...")
-        subprocess.run("sudo systemctl disable csf lfd", shell=True, check=True)
+        subprocess.run(["sudo", "systemctl", "disable", "csf", "lfd"], check=True)
 
         print("Step 3: Running CSF uninstaller...")
-        subprocess.run("sudo bash /etc/csf/uninstall.sh", shell=True, check=True)
+        subprocess.run(["sudo", "bash", "/etc/csf/uninstall.sh"], check=True)
 
         print("Step 4: Re-enabling UFW...")
-        subprocess.run("sudo systemctl enable ufw", shell=True, check=True)
-        subprocess.run("sudo systemctl start ufw", shell=True, check=True)
+        subprocess.run(["sudo", "systemctl", "enable", "ufw"], check=True)
+        subprocess.run(["sudo", "systemctl", "start", "ufw"], check=True)
 
         print("Step 5: Setting UFW defaults and opening common ports...")
-        subprocess.run("sudo ufw default deny incoming", shell=True, check=True)
-        subprocess.run("sudo ufw default allow outgoing", shell=True, check=True)
+        subprocess.run(["sudo", "ufw", "default", "deny", "incoming"], check=True)
+        subprocess.run(["sudo", "ufw", "default", "allow", "outgoing"], check=True)
        
         tcp_in_ports = [p.strip() for p in TCP_IN.split(',') if p.strip()]
         udp_in_ports = [p.strip() for p in UDP_IN.split(',') if p.strip()]
         
         for port in tcp_in_ports:
-            subprocess.run(f"sudo ufw allow {port}/tcp", shell=True)
+            if re.match(r'^[\d:]+$', port):
+                subprocess.run(["sudo", "ufw", "allow", f"{port}/tcp"])
     
         for port in udp_in_ports:
-            subprocess.run(f"sudo ufw allow {port}/udp", shell=True)
+            if re.match(r'^[\d:]+$', port):
+                subprocess.run(["sudo", "ufw", "allow", f"{port}/udp"])
 
-
-    
-    
-        subprocess.run("sudo ufw reload", shell=True)
+        subprocess.run(["sudo", "ufw", "reload"])
         print("Firewall is now managed by UFW. CSF uninstalled successfully.")
         return "CSF has been uninstalled and UFW reactivated."
 
@@ -1570,16 +1582,15 @@ def ufw_port_add(type, ports):
         protocol = "tcp" if type in ["TCP_IN", "TCP_OUT"] else "udp"
 
         for port in in_ports:
-            if ':' in port:
-                subprocess.run(f"sudo ufw allow {port}/{protocol}", shell=True, check=True)
+            if ':' in port and re.match(r'^\d+:\d+$', port):
+                subprocess.run(["sudo", "ufw", "allow", f"{port}/{protocol}"], check=True)
             elif port.isdigit():
-                subprocess.run(f"sudo ufw allow {port}/{protocol}", shell=True, check=True)
+                subprocess.run(["sudo", "ufw", "allow", f"{port}/{protocol}"], check=True)
             else:
                 print(f"Skipping invalid port entry: {port}")
 
         # Reload or enable UFW after rule changes
-        subprocess.run("sudo ufw reload", shell=True)
-        #subprocess.run("sudo ufw --force enable", shell=True)
+        subprocess.run(["sudo", "ufw", "reload"], check=True)
 
         return "Ports added to UFW and firewall reloaded successfully."
 
@@ -1604,14 +1615,14 @@ def execute_csf_command(qs):
             tmp_file_path = tmp.name
 
         if not check_csf_installed():
-            command = f"sudo /usr/bin/perl /usr/local/ufw/ufw.pl '{tmp_file_path}'"
+            cmd = ["sudo", "/usr/bin/perl", "/usr/local/ufw/ufw.pl", tmp_file_path]
         else:
-            command = f"sudo /usr/bin/perl /usr/local/csf/bin/panel.pl '{tmp_file_path}'"
+            cmd = ["sudo", "/usr/bin/perl", "/usr/local/csf/bin/panel.pl", tmp_file_path]
             
 
         try:
             # Capture output as bytes (text=False)
-            result = subprocess.run(command, shell=True, capture_output=True, text=False, check=True)
+            result = subprocess.run(cmd, capture_output=True, text=False, check=True)
             # Decode output with fallback
             try:
                 output = result.stdout.decode('utf-8')
@@ -1770,7 +1781,14 @@ def update_service_ports(service_files, old_port, new_port):
                 f.write(port)
 
             # Restart control panel service
-            subprocess.Popen("sleep 2 && sudo systemctl restart cp", shell=True, start_new_session=True)
+            def restart_cp_deferred():
+                time.sleep(2)
+                try:
+                    subprocess.run(["sudo", "systemctl", "restart", "cp"], check=True)
+                except Exception as ex:
+                    logger.error(f"Async CP restart failed: {ex}")
+
+            threading.Thread(target=restart_cp_deferred, daemon=True).start()
 
             return True
 
@@ -2496,14 +2514,14 @@ def install_composer_global():
                 return {"status": "error", "message": "PHP CLI not found"}
 
             subprocess.run(
-                "cd /root && curl -sS https://getcomposer.org/installer -o composer-setup.php",
-                shell=True,
+                ["curl", "-sS", "https://getcomposer.org/installer", "-o", "composer-setup.php"],
+                cwd="/root",
                 check=True
             )
 
             subprocess.run(
-                f"cd /root && sudo {php_path} composer-setup.php --install-dir=/usr/bin/ --filename=composer",
-                shell=True,
+                ["sudo", php_path, "composer-setup.php", "--install-dir=/usr/bin/", "--filename=composer"],
+                cwd="/root",
                 check=True
             )
 
@@ -2617,7 +2635,7 @@ def download_license_file(download_url: str, save_path="/etc/olspanel/license.ke
                 
 def restart_cp_command():
     try:
-        subprocess.run("sudo systemctl restart cp", shell=True, check=True)
+        subprocess.run(["sudo", "systemctl", "restart", "cp"], check=True)
     except Exception as e:
         print(f"CP restart failed: {e}")
 
@@ -2642,13 +2660,14 @@ def install_cgroup():
 
     try:
         print("Step 1: Downloading upgrade.sh...")
-        subprocess.run(f"wget -O {upgrade_script_path} {upgrade_script_url}", shell=True, check=True)
+        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
 
         print("Step 2: Removing Windows-style line endings from upgrade.sh...")
-        subprocess.run(f"sed -i 's/\\r$//' {upgrade_script_path}", shell=True, check=True)
+        subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
 
         print("Step 3: Running upgrade.sh...")
-        subprocess.run(f"chmod +x {upgrade_script_path} && bash {upgrade_script_path}", shell=True)
+        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
+        subprocess.run(["bash", upgrade_script_path], check=True)
 
 
         print("Step 6: Cleaning up...")
@@ -2661,19 +2680,15 @@ def install_cgroup():
         
         
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"An error occurred during the update installation: {e}")
-        return f"An error occurred during the update installation: {e}"
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return f"Unexpected error: {e}"
  
 
 
-def run_cmd(cmd: str) -> str:
+def run_cmd(cmd_list) -> str:
     result = subprocess.run(
-        cmd,
-        shell=True,
+        cmd_list,
         capture_output=True,
         text=True
     )
@@ -2684,7 +2699,7 @@ def run_cmd(cmd: str) -> str:
 
 def get_user_limit(user):
     try:
-        out = run_cmd(f"{USERLIMIT_BIN} status {shlex.quote(user)}")
+        out = run_cmd([USERLIMIT_BIN, "status", user])
         if not out:
             return None
         return json.loads(out)
@@ -2694,12 +2709,12 @@ def get_user_limit(user):
 
 def remove_user_limit(user: str) -> str:
     """Remove existing limit."""
-    return run_cmd(f"{USERLIMIT_BIN} remove {shlex.quote(user)}")
+    return run_cmd([USERLIMIT_BIN, "remove", user])
 
 
 def add_user_limit(user: str, cpu: int, ram_mb: int) -> str:
     """Add new limit."""
-    return run_cmd(f"{USERLIMIT_BIN} add {shlex.quote(user)} {cpu} {ram_mb}M")
+    return run_cmd([USERLIMIT_BIN, "add", user, str(cpu), f"{ram_mb}M"])
 
 
 def set_user_limit(user: str, cpu: int, ram_mb: int) -> str:
