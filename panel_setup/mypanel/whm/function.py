@@ -1583,14 +1583,24 @@ def ufw_port_add(type, ports):
 
         for port in in_ports:
             if ':' in port and re.match(r'^\d+:\d+$', port):
+                # UFW rule
                 subprocess.run(["sudo", "ufw", "allow", f"{port}/{protocol}"], check=True)
+                # iptables rule (OCI/legacy compatibility)
+                subprocess.run(["sudo", "iptables", "-I", "INPUT", "1", "-p", protocol, "--dport", port, "-j", "ACCEPT"], check=True)
             elif port.isdigit():
+                # UFW rule
                 subprocess.run(["sudo", "ufw", "allow", f"{port}/{protocol}"], check=True)
+                # iptables rule (OCI/legacy compatibility)
+                subprocess.run(["sudo", "iptables", "-I", "INPUT", "1", "-p", protocol, "--dport", port, "-j", "ACCEPT"], check=True)
             else:
                 print(f"Skipping invalid port entry: {port}")
 
-        # Reload or enable UFW after rule changes
+        # Reload UFW
         subprocess.run(["sudo", "ufw", "reload"], check=True)
+
+        # Make iptables rules persistent if rules.v4 is present
+        if os.path.exists("/etc/iptables/rules.v4"):
+            subprocess.run("sudo sh -c 'iptables-save > /etc/iptables/rules.v4'", shell=True, check=True)
 
         return "Ports added to UFW and firewall reloaded successfully."
 
