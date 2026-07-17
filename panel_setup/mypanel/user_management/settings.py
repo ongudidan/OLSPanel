@@ -120,8 +120,10 @@ def get_db_password(file_path):
         with open(full_path, 'r') as file:
             password = file.read().strip()  # Read the password and remove any surrounding whitespace
             return password
+    except FileNotFoundError:
+        return None
     except Exception as e:
-        print(f"Error reading password file: {e}")
+        print(f"Error reading file {file_path}: {e}")
         return None  # Return None if there's an error
 
 db_password = get_db_password('etc/mysqlPassword')

@@ -152,7 +152,26 @@ class Command(BaseCommand):
             # --- NEW: Look for install.cmd and run it ---
             cmd_file = os.path.join(base_3rdparty, 'plugin.cmd')
             if os.path.isfile(cmd_file):
-                self.stdout.write(f"⚙️ Found plugin.cmd, running...")
+                self.stdout.write(f"⚙️ Found plugin.cmd, rewriting paths and running...")
+                try:
+                    with open(cmd_file, 'r', encoding='utf-8') as f:
+                        cmd_content = f.read()
+                    
+                    # Replace mypanel project path
+                    legacy_project_path = "/usr/local/lsws/Example/html/mypanel"
+                    current_project_path = str(settings.BASE_DIR).rstrip('/')
+                    cmd_content = cmd_content.replace(legacy_project_path, current_project_path)
+                    
+                    # Replace ols parent html path
+                    legacy_html_path = "/usr/local/lsws/Example/html"
+                    current_html_path = str(os.path.dirname(settings.BASE_DIR)).rstrip('/')
+                    cmd_content = cmd_content.replace(legacy_html_path, current_html_path)
+
+                    with open(cmd_file, 'w', encoding='utf-8') as f:
+                        f.write(cmd_content)
+                except Exception as e:
+                    self.stderr.write(f"⚠️ Warning: failed to rewrite paths in plugin.cmd: {e}")
+
                 sed_cmd = f"sed -i 's/\\r$//' {cmd_file}"
                 subprocess.run(sed_cmd, shell=True, check=True)
 
