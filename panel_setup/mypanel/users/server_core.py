@@ -6,6 +6,8 @@ import shutil
 import stat
 import pwd
 import grp
+import socket
+import time
 from datetime import datetime
 from django.contrib import messages
 
@@ -888,7 +890,7 @@ rewrite  {{
 }}
 
 context /.well-known/acme-challenge {{
-  location                /usr/local/lsws/{domain_name}/html/.well-known/acme-challenge
+  location                /home/{username}/{document_root}/.well-known/acme-challenge
   allowBrowse             1
 }}
 
@@ -1581,18 +1583,65 @@ def get_ssl_issuer_org(cert_path: str) -> str:
         return f"Error: {str(e)}"
 
       
+def _check_domain_resolves(domain: str) -> bool:
+    """Check if the domain resolves via DNS. Returns True if it resolves to any IP."""
+    try:
+        socket.gethostbyname(domain)
+        return True
+    except socket.gaierror:
+        return False
+
+
+def _cleanup_acme_state(domain: str):
+    """Remove stale acme.sh state directories that can block retries."""
+    acme_dirs = [
+        f"/root/.acme.sh/{domain}_ecc",
+        f"/root/.acme.sh/{domain}",
+    ]
+    for acme_dir in acme_dirs:
+        if os.path.exists(acme_dir):
+            try:
+                shutil.rmtree(acme_dir)
+                print(f"Cleaned up stale acme.sh state: {acme_dir}")
+            except Exception as e:
+                print(f"Warning: could not clean {acme_dir}: {e}")
+
+
 def issue_ssl_certificate(domain: str, webroot_path: str) -> bool:
     if domain.startswith("www."):
         alias = domain
         domain = domain[4:]
         domains_list = [domain, alias]
     else:
-        domains_list = [domain]        
-     
+        domains_list = [domain]
+
+    # --- Step 1: Wait for DNS to resolve (up to ~90 seconds) ---
+    max_dns_checks = 4
+    dns_wait_seconds = 30
+    dns_resolved = False
+    for attempt in range(1, max_dns_checks + 1):
+        if _check_domain_resolves(domains_list[0]):
+            dns_resolved = True
+            print(f"DNS resolved for {domains_list[0]} on attempt {attempt}.")
+            break
+        if attempt < max_dns_checks:
+            print(f"DNS not resolved for {domains_list[0]}, waiting {dns_wait_seconds}s (attempt {attempt}/{max_dns_checks})...")
+            time.sleep(dns_wait_seconds)
+
+    if not dns_resolved:
+        logger.error(f"DNS does not resolve for {domains_list[0]} after {max_dns_checks} attempts. Skipping SSL issuance.")
+        print(f"DNS does not resolve for {domains_list[0]}. Cannot issue SSL.")
+        return False
+
+    # --- Step 2: Ensure the .well-known/acme-challenge directory exists in the webroot ---
+    challenge_dir = os.path.join(webroot_path, '.well-known', 'acme-challenge')
+    os.makedirs(challenge_dir, exist_ok=True)
+
+    # --- Step 3: Build the acme.sh command ---
     domain_args = []
     for d in domains_list:
         domain_args.extend(['-d', d])
-     
+
     command = [
         '/root/.acme.sh/acme.sh',
         '--issue',
@@ -1606,22 +1655,45 @@ def issue_ssl_certificate(domain: str, webroot_path: str) -> bool:
         '--debug'
     ]
 
-    try:
-        # Execute the command
-        create_letsencrypt_if_not_exist(domain);
-        result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        email_ssl(domain)
-        add_ssl_smtp_mail(domain)
-        panel_virtual_host(domain)  # Call to manage_virtual_host             
-        panel_listener_mapping("add", domain)
-        create_panel_vhost_file(domain) 
-        print(result.stdout.decode())
-        logger.info(f"SSL issued successfully for {domain}:\n{result.stdout}")
-        return True  # Return True if command executes successfully
-    except subprocess.CalledProcessError as e:
-        logger.error(f"An error occurred while issuing SSL for {domain}:\n{e.stderr}")
-        print(f"An error occurred: {e.stderr.decode()}")
-        return False  # Return False if command fails    
+    # --- Step 4: Attempt SSL issuance with retries ---
+    max_retries = 3
+    retry_delay = 30  # seconds between retries
+    create_letsencrypt_if_not_exist(domain)
+
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            # Clean up stale acme.sh state before each attempt
+            _cleanup_acme_state(domain)
+
+            print(f"SSL issuance attempt {attempt}/{max_retries} for {domain}...")
+            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            # Success — configure email SSL, SMTP, panel vhost, and listener
+            email_ssl(domain)
+            add_ssl_smtp_mail(domain)
+            panel_virtual_host(domain)
+            panel_listener_mapping("add", domain)
+            create_panel_vhost_file(domain)
+            print(result.stdout.decode())
+            logger.info(f"SSL issued successfully for {domain} on attempt {attempt}:\n{result.stdout}")
+            return True
+
+        except subprocess.CalledProcessError as e:
+            last_error = e
+            error_output = e.stderr.decode() if e.stderr else 'No error output'
+            logger.error(f"SSL attempt {attempt}/{max_retries} failed for {domain}: {error_output}")
+            print(f"SSL attempt {attempt}/{max_retries} failed: {error_output}")
+
+            if attempt < max_retries:
+                print(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+
+    # All retries exhausted
+    logger.error(f"All {max_retries} SSL attempts failed for {domain}.")
+    if last_error and last_error.stderr:
+        print(f"Final error: {last_error.stderr.decode()}")
+    return False
 
 
 def get_dovecot_version():
