@@ -639,7 +639,7 @@ virtualhost panel_{domain_name} {{
     # If not found, append the new virtual host configuration
     try:
         with open(config_file_path, "a") as config_file:
-            config_file.write(vhost_config.strip() + "\n")  # Ensure a new line at the end
+            config_file.write("\n" + vhost_config.strip() + "\n")  # Ensure proper separation from previous block
             print(f"Added virtual host for '{domain_name}'.")  # Debug message
             return True  # Indicate success
     except Exception as e:
@@ -804,7 +804,7 @@ virtualhost {domain_name} {{
     # If not found, append the new virtual host configuration
     try:
         with open(config_file_path, "a") as config_file:
-            config_file.write(vhost_config.strip() + "\n")  # Ensure a new line at the end
+            config_file.write("\n" + vhost_config.strip() + "\n")  # Ensure proper separation from previous block
             print(f"Added virtual host for '{domain_name}'.")  # Debug message
             return True  # Indicate success
     except Exception as e:
