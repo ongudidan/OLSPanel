@@ -17,4 +17,10 @@ $cfg['Servers'][$i]['hide_db'] = 'panel';
 
 $cfg['UploadDir'] = '';
 $cfg['SaveDir'] = '';
-$cfg['TempDir'] = '/tmp';
+
+$pma_user = function_exists('posix_getpwuid') ? posix_getpwuid(posix_geteuid())['name'] : 'default';
+$pma_temp_dir = '/tmp/pma_temp_' . $pma_user;
+if (!is_dir($pma_temp_dir)) {
+    @mkdir($pma_temp_dir, 0700, true);
+}
+$cfg['TempDir'] = $pma_temp_dir;
