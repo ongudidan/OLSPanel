@@ -78,10 +78,13 @@
                         <td>{{ database.size_display }}</td>
                         <td>
                             {% for p_user in database.privileged_users_list %}
-                            <span class="badge badge-secondary p-2 mb-1 mr-1" style="font-size: 13px;">
-                                <a href="{% url 'db_privileges' database.db_name p_user %}" class="text-white" title="Manage Privileges">{{ p_user }}</a>
-                                <a href="{% url 'db_revoke_user' database.db_name p_user %}" class="text-danger ml-2" onclick="return confirm('Are you sure you want to unlink {{ p_user }} from {{ database.db_name }}?');" title="Revoke Access" style="font-weight: bold;">&times;</a>
-                            </span>
+                            <div class="d-flex align-items-center justify-content-between mb-2 p-1 border rounded bg-light" style="min-width: 200px;">
+                                <span style="font-size: 13px; font-weight: 500; margin-left: 5px; color: #333;">{{ p_user }}</span>
+                                <div style="margin-left: 10px;">
+                                    <a href="{% url 'db_privileges' database.db_name p_user %}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 11px; text-transform: none;">Privileges</a>
+                                    <a href="{% url 'db_revoke_user' database.db_name p_user %}" class="btn btn-danger btn-sm py-0 px-2" onclick="return confirm('Are you sure you want to unlink {{ p_user }} from {{ database.db_name }}?');" style="font-size: 11px; text-transform: none;">Unlink</a>
+                                </div>
+                            </div>
                             {% empty %}
                             <span class="text-muted" style="font-style: italic;">None</span>
                             {% endfor %}
