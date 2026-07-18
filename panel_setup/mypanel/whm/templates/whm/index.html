@@ -71,7 +71,7 @@
                           <div class="infotitle">Hostname</div>
                          <div class="infovalue">
     {{ host_name }}
-    <a href="{% url 'change_hostname' %}" style="color:#ef6d19; margin-left: 8px;">
+    <a href="{% url 'change_hostname' %}" style="color:{{ branding.brand_color|default:'#ef6d19' }}; margin-left: 8px;">
         <i class="mdi mdi-square-edit-outline"></i> change
     </a>
 </div>
