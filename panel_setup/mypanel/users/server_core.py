@@ -903,6 +903,10 @@ context /webmail {{
     allow                 *
   }}
   addDefaultCharset       off
+
+  phpIniOverride  {{
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/"
+  }}
 }}
 
 context /phpmyadmin {{
@@ -914,6 +918,10 @@ context /phpmyadmin {{
     allow                 *
   }}
   addDefaultCharset       off
+
+  phpIniOverride  {{
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/"
+  }}
 }}
 
 vhssl  {{
