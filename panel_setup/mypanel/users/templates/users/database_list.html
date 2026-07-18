@@ -1,104 +1,227 @@
 {% extends "users/base.html" %}
-{% block title %}List of Database{% endblock title %}
+{% block title %}MySQL Databases{% endblock title %}
 {% block content %}
 
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Exporting, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
+<div id="responseContainer" style="position: relative; display: none;">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb breadcrumb-inverse">
+            <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Exporting, please wait.....</li> 
+            <li> 
+                <div class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </li> 
+        </ol>
+    </nav>
+</div>
+
 <div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
     <div id="message"></div>
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of Database</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'db_make' %}" role="button" style="text-transform: none;">+ Add Database</a>
+        <span aria-hidden="true">×</span>
+    </button>
 </div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for record...">
+
+<!-- SECTION 1: Create Database -->
+<div class="card card-default mb-4">
+    <div class="card-header">
+        <h2>Create New Database</h2>
+    </div>
+    <div class="card-body">
+        <form action="{% url 'db_make' %}" method="post">
+            {% csrf_token %}
+            <div class="form-row align-items-center">
+                <div class="col-md-6 mb-2">
+                    <label for="dbname">Database Name</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">{{ user.username }}_</div>
+                        </div>
+                        <input type="text" id="dbname" name="dbname" class="form-control" placeholder="dbname" required>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-success" style="text-transform: none;">Create Database</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- SECTION 2: List of Databases -->
+<div class="card card-default mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h2>Current Databases</h2>
+        <div class="form-group mb-0">
+            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="Search databases...">
         </div>
-    </form>
-	</div>
-	</div>
-	
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-             <tr>
-                <th>Database</th>
-				<th>Size</th>
-				<th>Privileged Users</th>
-				
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for database in databases %}
-            <tr>
-                <td>{{ database.db_name }}</td>
-				<td>{{ database.size_display }}</td>
-            <td>{{ database.privileged_users }}</td>
-			{% if db %}
-                <td>
-				<a href="{% url 'db_import' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Import</a>
-                  
-                    
-                </td>
-				{% else %}
-				<td>
-				<a href="{% url 'db_edit' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Manage</a>
-                   <form action="{% url 'db_edit' database.db_name %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-						<input type="hidden" id="action" name="action" value="delete">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Database?');" style="text-transform: none;">Delete</button>
-                    </form>
-
-                    
-                        <button type="submit" class="btn btn-info btn-sm" onclick="exportdb('{{database.db_name}}')" style="text-transform: none;">Export</button>
-                 <a href="{% url 'db_repair' database.db_name %}" class="btn btn-success btn-sm" style="text-transform: none;">Repair</a>
-					
-                </td>
-				{% endif %}
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                     <tr>
+                        <th>Database</th>
+                        <th>Size</th>
+                        <th>Privileged Users</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="domainTable">
+                    {% for database in databases %}
+                    <tr>
+                        <td>{{ database.db_name }}</td>
+                        <td>{{ database.size_display }}</td>
+                        <td>
+                            {% for p_user in database.privileged_users_list %}
+                            <span class="badge badge-secondary p-2 mb-1 mr-1" style="font-size: 13px;">
+                                <a href="{% url 'db_privileges' database.db_name p_user %}" class="text-white" title="Manage Privileges">{{ p_user }}</a>
+                                <a href="{% url 'db_revoke_user' database.db_name p_user %}" class="text-danger ml-2" onclick="return confirm('Are you sure you want to unlink {{ p_user }} from {{ database.db_name }}?');" title="Revoke Access" style="font-weight: bold;">&times;</a>
+                            </span>
+                            {% empty %}
+                            <span class="text-muted" style="font-style: italic;">None</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if db %}
+                            <a href="{% url 'db_import' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Import</a>
+                            {% else %}
+                            <a href="{% url 'db_edit' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Rename</a>
+                            <form action="{% url 'db_edit' database.db_name %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Database?');" style="text-transform: none;">Delete</button>
+                            </form>
+                            <button class="btn btn-info btn-sm" onclick="exportdb('{{database.db_name}}')" style="text-transform: none;">Export</button>
+                            <a href="{% url 'db_repair' database.db_name %}" class="btn btn-success btn-sm" style="text-transform: none;">Repair</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No databases found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+    </div>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
 
+<!-- SECTION 3: Create Database User & Assign Section -->
+<div class="row">
+    <!-- Card Left: Create User -->
+    <div class="col-lg-6">
+        <div class="card card-default mb-4">
+            <div class="card-header">
+                <h2>Create New Database User</h2>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'db_user_add' %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="dbuser">Username</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">{{ user.username }}_</div>
+                            </div>
+                            <input type="text" id="dbuser" name="dbuser" class="form-control" placeholder="user" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dbpass">Password</label>
+                        <div class="input-group">
+                            <input type="text" id="dbpass" name="dbpass" class="form-control" required>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-primary" onclick="generateAndFillPassword();">Generate</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="dbpassc">Confirm Password</label>
+                        <input type="text" id="dbpassc" name="dbpassc" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="text-transform: none;">Create User</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Right: Add User To Database -->
+    <div class="col-lg-6">
+        <div class="card card-default mb-4">
+            <div class="card-header">
+                <h2>Add User To Database</h2>
+            </div>
+            <div class="card-body">
+                <form action="{% url 'db_assign_user' %}" method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="assign_user">User</label>
+                        <select name="dbuser" id="assign_user" class="form-control" required>
+                            <option value="">-- Select User --</option>
+                            {% for userlist in userlists %}
+                            <option value="{{ userlist }}">{{ userlist }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="assign_db">Database</label>
+                        <select name="dbname" id="assign_db" class="form-control" required>
+                            <option value="">-- Select Database --</option>
+                            {% for database in databases %}
+                            <option value="{{ database.db_name }}">{{ database.db_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="text-transform: none;">Add User</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- SECTION 4: Current Users List -->
+<div class="card card-default">
+    <div class="card-header">
+        <h2>Current Database Users</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>User</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for userlist in userlists %}
+                    <tr>
+                        <td>{{ userlist }}</td>
+                        <td>
+                            <form action="{% url 'database_userlist' %}" method="post" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="dbuser" value="{{ userlist }}">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');" style="text-transform: none;">Delete</button>
+                            </form>
+                            <a href="{% url 'db_user_edit' userlist %}" class="btn btn-primary btn-sm" style="text-transform: none;">Change Password</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="text-center">No database users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -132,23 +255,16 @@ function exportdb(id) {
                     responseDisplay.style.display = 'none';
 
                     if (data.status === 'success') {
-                        // Set alert for success
-                        alertContainer.className =
-                            'alert alert-success alert-dismissible fade show';
+                        alertContainer.className = 'alert alert-success alert-dismissible fade show';
                         messageDisplay.innerText = 'Database export successful!';
-
-                        // Construct the download URL using the file_path from JSON
                         const filePath = data.file_path;
                         window.open(download_url + `?file=${encodeURIComponent(filePath)}`, '_blank');
                     } else {
-                        // Set alert for error
-                        alertContainer.className =
-                            'alert alert-danger alert-dismissible fade show';
+                        alertContainer.className = 'alert alert-danger alert-dismissible fade show';
                         messageDisplay.innerText = data.message;
                     }
 
                     alertContainer.style.display = 'block';
-                    
                 })
                 .catch((error) => {
                     console.error('Error:', error);
@@ -159,43 +275,62 @@ function exportdb(id) {
     }
 }
 
-  
-    document.addEventListener("DOMContentLoaded", function() {
-        const searchInput = document.getElementById('search');
-        const tableRows = document.querySelectorAll('#domainTable tr');
-        const noResults = document.getElementById('noResults');
+function generateStrongPassword(length = 16) {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+    
+    const allCharacters = lowercase + uppercase + digits + specialChars;
+    let password = '';
 
-        // Function to filter the table based on search query
-        function filterTable() {
-            const searchQuery = searchInput.value.trim().toLowerCase();
-            let visibleRows = 0;
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += digits[Math.floor(Math.random() * digits.length)];
+    password += specialChars[Math.floor(Math.random() * specialChars.length)];
 
-            tableRows.forEach(row => {
-                const dbName = row.cells[0]?.textContent.toLowerCase() || '';
-                const matchesSearch = dbName.includes(searchQuery);
+    for (let i = 4; i < length; i++) {
+        password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    }
 
-                if (matchesSearch || searchQuery === '') {
-                    row.style.display = '';  // Show the row
-                    visibleRows++;
-                } else {
-                    row.style.display = 'none';  // Hide the row
-                }
-            });
+    password = password.split('').sort(() => Math.random() - 0.5).join('');
+    return password;
+}
 
-            // Show or hide the "No results" message based on visible rows
-            noResults.style.display = visibleRows === 0 ? 'block' : 'none';
-        }
+function generateAndFillPassword() {
+    const password = generateStrongPassword();
+    document.getElementById('dbpass').value = password;
+    document.getElementById('dbpassc').value = password;
+}
 
-        // Filter table when the search input changes
-        searchInput.addEventListener('input', filterTable);
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById('search');
+    const tableRows = document.querySelectorAll('#domainTable tr');
+    const noResults = document.getElementById('noResults');
 
-        // Trigger the filter initially in case there's a pre-filled search
-        filterTable();
-    });
+    function filterTable() {
+        const searchQuery = searchInput.value.trim().toLowerCase();
+        let visibleRows = 0;
+
+        tableRows.forEach(row => {
+            const dbName = row.cells[0]?.textContent.toLowerCase() || '';
+            const matchesSearch = dbName.includes(searchQuery);
+
+            if (matchesSearch || searchQuery === '') {
+                row.style.display = '';  
+                visibleRows++;
+            } else {
+                row.style.display = 'none';  
+            }
+        });
+
+        noResults.style.display = visibleRows === 0 ? 'block' : 'none';
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    filterTable();
+});
 </script>
 
-
-
 {% endblock content %}
-
 {% include "users/footer.html" %}

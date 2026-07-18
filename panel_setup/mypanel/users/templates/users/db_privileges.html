@@ -1,0 +1,76 @@
+{% extends "users/base.html" %}
+{% block title %}MySQL Privileges{% endblock title %}
+{% block content %}
+
+<div class="card card-default">
+    <div class="card-header">
+        <h2>MySQL User Privileges</h2>
+        <p class="mt-2 text-muted">
+            Manage privileges for user <strong class="text-primary">{{ db_user }}</strong> on database <strong class="text-primary">{{ db }}</strong>.
+        </p>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Master Checkbox -->
+            <div class="custom-control custom-checkbox mb-4" style="font-size: 16px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+                <input type="checkbox" class="custom-control-input" id="all_privileges" name="all_privileges" onchange="toggleAllPrivileges(this);">
+                <label class="custom-control-label font-weight-bold" for="all_privileges">ALL PRIVILEGES</label>
+            </div>
+
+            <!-- Privileges Grid -->
+            <div class="row">
+                <!-- Privilege Checkbox list -->
+                {% for key, val in current_privs.items %}
+                <div class="col-md-4 mb-3">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input privilege-checkbox" 
+                               id="priv_{{ key }}" name="{{ key }}" 
+                               {% if val %}checked{% endif %}
+                               onchange="checkMasterCheckbox();">
+                        <label class="custom-control-label" for="priv_{{ key }}">
+                            {{ key|upper }}
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Form Buttons -->
+            <div class="form-group mt-4 pt-3" style="border-top: 1px solid #eee;">
+                <button type="submit" class="btn btn-success px-4" style="text-transform: none;">Make Changes</button>
+                <a href="{% url 'database_list' %}" class="btn btn-secondary px-4 ml-2" style="text-transform: none;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleAllPrivileges(master) {
+    const checkboxes = document.querySelectorAll('.privilege-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = master.checked;
+    });
+}
+
+function checkMasterCheckbox() {
+    const checkboxes = document.querySelectorAll('.privilege-checkbox');
+    const master = document.getElementById('all_privileges');
+    let allChecked = true;
+    checkboxes.forEach(cb => {
+        if (!cb.checked) {
+            allChecked = false;
+        }
+    });
+    master.checked = allChecked;
+}
+
+// Initial run to check master if all are selected
+document.addEventListener("DOMContentLoaded", function() {
+    checkMasterCheckbox();
+});
+</script>
+
+{% endblock content %}
+{% include "users/footer.html" %}

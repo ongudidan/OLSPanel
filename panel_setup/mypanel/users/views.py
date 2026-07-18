@@ -806,7 +806,7 @@ def db_make(request):
         db_name = request.POST.get('dbname')  # Get the database name from the form
         username_string = request.user.username
         user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
-        db_count = count_users_by_prefix(username_string)
+        db_count = len(list_db_by_prefix(username_string))
 
         # Validate the database name
         if not db_name:
@@ -827,66 +827,183 @@ def db_make(request):
 
         if success:
             messages.success(request, 'Database created successfully.')
-            return redirect('/db_user_make/' + db_name)  # Redirect to the user creation page
+            return redirect('/database_list/')  # Redirect to the database list page
         else:
             messages.error(request, error_message)  # Show the specific error message returned from the function
 
     return render(request, 'users/db_make.html')  # Render the database creation form
 
 
-    
 @login_required
 @admincheck
 def db_user_make(request, db):
+    # This wizard view can remain as fallback, but redirecting to database list
     if request.method == 'POST':
         db_user = request.POST.get('dbuser')  # Get the database user from the form
         db_pass = request.POST.get('dbpass')  # Get the database password from the form
         db_passc = request.POST.get('dbpassc')  # Get the confirm password from the form
         
-        
-
         # Validate inputs
         if not db_user or not db_pass or not db_passc:
             messages.error(request, 'All fields are required.')
-            return render(request, 'users/db_user_make.html')  # Re-render the form with the error message
+            return render(request, 'users/db_user_make.html')
 
         if len(db_user) < 2:
             messages.error(request, 'Username must be at least 2 characters long.')
-            return render(request, 'users/db_user_make.html')  # Re-render the form with the error message
+            return render(request, 'users/db_user_make.html')
 
         if len(db_pass) < 8:
             messages.error(request, 'Password must be at least 8 characters long.')
-            return render(request, 'users/db_user_make.html')  # Re-render the form with the error message
+            return render(request, 'users/db_user_make.html')
 
         if db_pass != db_passc:
             messages.error(request, 'Passwords do not match.')
-            return render(request, 'users/db_user_make.html')  # Re-render the form with the error message
-            
-           
-            
+            return render(request, 'users/db_user_make.html')
 
         username_string = request.user.username
-
-        # Create the database user
-        
         creation_result = create_database_and_user(request, username_string, db, db_user, db_pass)
 
         if creation_result is True:
             messages.success(request, 'Database user created successfully.')
-            return redirect('/database_list')  # Redirect to the user profile page
+            return redirect('/database_list')
         else:
-            messages.error(request, creation_result)  # Show specific error message
+            messages.error(request, creation_result)
 
-    return render(request, 'users/db_user_make.html')  # Render the database creation form
-    
-    
+    return render(request, 'users/db_user_make.html')
+
+
 @login_required
 @admincheck
-def database_list(request,db=None):
-    db_username = request.user.username  # Get the logged-in user's username
-    database_names = get_user_database_info(db_username)  # Get the list of user databases
+def db_user_add(request):
+    if request.method == 'POST':
+        db_user = request.POST.get('dbuser')
+        db_pass = request.POST.get('dbpass')
+        db_passc = request.POST.get('dbpassc')
+        
+        if not db_user or not db_pass or not db_passc:
+            messages.error(request, 'All fields are required.')
+            return redirect('/database_list/')
+            
+        if len(db_user) < 2:
+            messages.error(request, 'Username must be at least 2 characters long.')
+            return redirect('/database_list/')
+            
+        if len(db_pass) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return redirect('/database_list/')
+            
+        if db_pass != db_passc:
+            messages.error(request, 'Passwords do not match.')
+            return redirect('/database_list/')
+            
+        username_string = request.user.username
+        success, error_msg = create_mysql_user(username_string, db_user, db_pass)
+        if success:
+            messages.success(request, 'Database user created successfully.')
+        else:
+            messages.error(request, error_msg or 'Failed to create database user.')
+            
+    return redirect('/database_list/')
 
-    return render(request, 'users/database_list.html', {'databases': database_names, 'db': db })
+
+@login_required
+@admincheck
+def db_assign_user(request):
+    if request.method == 'POST':
+        db_user = request.POST.get('dbuser')
+        db_name = request.POST.get('dbname')
+        
+        if not db_user or not db_name:
+            messages.error(request, 'Please select both a user and a database.')
+            return redirect('/database_list/')
+            
+        # Redirect to the privilege editing view
+        return redirect('db_privileges', db=db_name, db_user=db_user)
+        
+    return redirect('/database_list/')
+
+
+@login_required
+@admincheck
+def db_privileges(request, db, db_user):
+    username = request.user.username
+    username_prefix = f"{username}_"
+    
+    # Security check: ensure both db and db_user match user's prefix
+    if not db.startswith(username_prefix) or not db_user.startswith(username_prefix):
+        messages.error(request, 'You are not authorized to manage privileges for this database/user.')
+        return redirect('/database_list/')
+        
+    # Fetch current privileges
+    current_privs = get_user_db_privileges(username, db_user, db)
+    
+    if request.method == 'POST':
+        # Collect all checked privileges
+        priv_list = [
+            'select', 'insert', 'update', 'delete', 'create', 'drop',
+            'references', 'index', 'alter', 'create temporary tables', 'lock tables',
+            'create view', 'show view', 'create routine', 'alter routine',
+            'execute', 'event', 'trigger'
+        ]
+        
+        selected_privs = []
+        for priv in priv_list:
+            if request.POST.get(priv):
+                selected_privs.append(priv)
+                
+        if request.POST.get('all_privileges'):
+            selected_privs = ['ALL PRIVILEGES']
+            
+        success, msg = grant_user_privileges(username, db_user, db, selected_privs)
+        if success:
+            messages.success(request, f'Privileges updated successfully for {db_user} on {db}.')
+            return redirect('/database_list/')
+        else:
+            messages.error(request, f'Failed to update privileges: {msg}')
+            
+    return render(request, 'users/db_privileges.html', {
+        'db': db,
+        'db_user': db_user,
+        'current_privs': current_privs
+    })
+
+
+@login_required
+@admincheck
+def db_revoke_user(request, db, db_user):
+    username = request.user.username
+    username_prefix = f"{username}_"
+    
+    if not db.startswith(username_prefix) or not db_user.startswith(username_prefix):
+        messages.error(request, 'You are not authorized to revoke access for this database/user.')
+        return redirect('/database_list/')
+        
+    success, msg = revoke_user_privileges(username, db_user, db)
+    if success:
+        messages.success(request, f'User {db_user} unlinked from database {db} successfully.')
+    else:
+        messages.error(request, f'Failed to unlink user: {msg}')
+        
+    return redirect('/database_list/')
+
+
+@login_required
+@admincheck
+def database_list(request, db=None):
+    db_username = request.user.username  # Get the logged-in user's username
+    databases = get_user_database_info(db_username)  # Get the list of user databases
+    user_list = list_users_by_prefix(db_username)  # Get the list of user database users
+
+    # Parse privileged users into a list for easy template loop
+    for database in databases:
+        p_users = database.get('privileged_users', '')
+        database['privileged_users_list'] = [u.strip() for u in p_users.split(',')] if p_users else []
+
+    return render(request, 'users/database_list.html', {
+        'databases': databases,
+        'userlists': user_list,
+        'db': db
+    })
     
     
 @login_required
@@ -923,7 +1040,7 @@ def database_userlist(request):
         # Check if the database name starts with the user's prefix
         if not db_user.startswith(username_prefix):
             messages.error(request, 'You are not authorized to delete this database user.')
-            return redirect('/database_userlist')  # Redirect to the database user list
+            return redirect('/database_list/')  # Redirect to the database user list
 
         dbx = replace_first_with_underscore(db_user)  # Modify the database user if needed
         db_username = request.user.username
@@ -932,7 +1049,7 @@ def database_userlist(request):
 
         if delete_result:
             messages.success(request, f'Database user {full_db_user} deleted successfully.')
-            return redirect('/database_userlist')  # Redirect to the user profile page
+            return redirect('/database_list/')  # Redirect to the user profile page
         else:
             messages.error(request, f'Error deleting database user {full_db_user}.')
 

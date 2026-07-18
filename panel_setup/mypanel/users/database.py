@@ -451,6 +451,14 @@ def create_database(username, db_name):
             # Construct the SQL command to create a new database
             sql = f"CREATE DATABASE {safe_db_name};"
             cursor.execute(sql)
+            
+            # Ensure the common user exists and has privileges
+            create_database_common_user(username)
+            common_user = f"{username}"
+            grant_common_privileges_sql = f"GRANT ALL PRIVILEGES ON {safe_db_name}.* TO %s@'localhost';"
+            cursor.execute(grant_common_privileges_sql, [common_user])
+            cursor.execute("FLUSH PRIVILEGES;")
+            
             print(f"Database '{prefixed_db_name}' created successfully.")
             return True, None  # Return True if successful, None for no error message
         except OperationalError as e:
@@ -458,6 +466,110 @@ def create_database(username, db_name):
             error_message = f"Error creating database '{prefixed_db_name}': {str(e)}"
             print(error_message)
             return False, error_message  # Return False and the error message
+
+def create_mysql_user(username, db_user, db_pass):
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    if not re.match(r'^[a-zA-Z0-9_]+$', full_db_user):
+        return False, "Invalid database user name"
+    if len(db_pass) < 8:
+        return False, "Password must be at least 8 characters long"
+    try:
+        with connection.cursor() as cursor:
+            # Check if user already exists
+            cursor.execute("SELECT EXISTS(SELECT 1 FROM mysql.user WHERE user = %s);", [full_db_user])
+            if cursor.fetchone()[0]:
+                return False, "User already exists"
+            create_query = "CREATE USER %s@'localhost' IDENTIFIED BY %s;"
+            cursor.execute(create_query, [full_db_user, db_pass])
+            cursor.execute("FLUSH PRIVILEGES;")
+        return True, None
+    except Exception as e:
+        logger.error(e)
+        return False, str(e)
+
+def grant_user_privileges(username, db_user, db_name, privileges_list):
+    full_db_name = f"{username}_{replace_first_with_underscore(db_name)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    
+    if not re.match(r'^[a-zA-Z0-9_]+$', full_db_name):
+        return False, "Invalid database name"
+    if not re.match(r'^[a-zA-Z0-9_]+$', full_db_user):
+        return False, "Invalid database user"
+        
+    valid_privs = {
+        'select', 'insert', 'update', 'delete', 'create', 'drop',
+        'references', 'index', 'alter', 'create temporary tables', 'lock tables',
+        'create view', 'show view', 'create routine', 'alter routine',
+        'execute', 'event', 'trigger'
+    }
+    
+    privs_to_grant = []
+    for priv in privileges_list:
+        p_clean = priv.lower().strip()
+        if p_clean == 'all privileges' or p_clean == 'all':
+            privs_to_grant = ['ALL PRIVILEGES']
+            break
+        if p_clean in valid_privs:
+            privs_to_grant.append(p_clean.upper())
+            
+    if not privs_to_grant:
+        return revoke_user_privileges(username, db_user, db_name)
+        
+    privs_str = ", ".join(privs_to_grant)
+    
+    try:
+        with connection.cursor() as cursor:
+            try:
+                cursor.execute(f"REVOKE ALL PRIVILEGES ON `{full_db_name}`.* FROM '{full_db_user}'@'localhost';")
+            except Exception:
+                pass
+            grant_query = f"GRANT {privs_str} ON `{full_db_name}`.* TO '{full_db_user}'@'localhost';"
+            cursor.execute(grant_query)
+            cursor.execute("FLUSH PRIVILEGES;")
+        return True, "Privileges granted successfully"
+    except Exception as e:
+        logger.error(e)
+        return False, str(e)
+
+def revoke_user_privileges(username, db_user, db_name):
+    full_db_name = f"{username}_{replace_first_with_underscore(db_name)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    
+    if not re.match(r'^[a-zA-Z0-9_]+$', full_db_name):
+        return False, "Invalid database name"
+    if not re.match(r'^[a-zA-Z0-9_]+$', full_db_user):
+        return False, "Invalid database user"
+        
+    try:
+        with connection.cursor() as cursor:
+            revoke_query = f"REVOKE ALL PRIVILEGES ON `{full_db_name}`.* FROM '{full_db_user}'@'localhost';"
+            cursor.execute(revoke_query)
+            cursor.execute("FLUSH PRIVILEGES;")
+        return True, "Privileges revoked successfully"
+    except Exception as e:
+        logger.error(e)
+        return False, str(e)
+
+def get_user_db_privileges(username, db_user, db_name):
+    full_db_name = f"{username}_{replace_first_with_underscore(db_name)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    
+    priv_cols = [
+        'Select_priv', 'Insert_priv', 'Update_priv', 'Delete_priv', 'Create_priv', 'Drop_priv',
+        'References_priv', 'Index_priv', 'Alter_priv', 'Create_tmp_table_priv', 'Lock_tables_priv',
+        'Create_view_priv', 'Show_view_priv', 'Create_routine_priv', 'Alter_routine_priv',
+        'Execute_priv', 'Event_priv', 'Trigger_priv'
+    ]
+    
+    query = f"SELECT {', '.join(priv_cols)} FROM mysql.db WHERE Db = %s AND User = %s;"
+    
+    with connection.cursor() as cursor:
+        cursor.execute(query, [full_db_name, full_db_user])
+        row = cursor.fetchone()
+        if row:
+            return {col.lower().replace('_priv', ''): (val == 'Y') for col, val in zip(priv_cols, row)}
+        
+    return {col.lower().replace('_priv', ''): False for col in priv_cols}
 
 def database_exists(username, db_name):
     prefixed_db_name = db_name
