@@ -25,22 +25,27 @@
 
   <link id="main-css-href" rel="stylesheet" href="/media/css/style.css?v=2.3.17" />
     <title>{% block title %} {% endblock %} </title>
+    
+    <style>
+        :root {
+            --brand-color: {{ branding.brand_color|default:"#ef6d19" }} !important;
+            --primary: {{ branding.brand_color|default:"#ef6d19" }} !important;
+        }
+        .brand-name font, .app-brand font, .app-brand span font {
+            color: {{ branding.brand_color|default:"#ef6d19" }} !important;
+        }
+        .sidebar-dark .sidebar-inner .nav > li.active > a i, 
+        .sidebar-dark .sidebar-inner .nav > li.active > a span,
+        .sidebar-dark .sidebar-inner .nav > li.active > a img {
+            color: {{ branding.brand_color|default:"#ef6d19" }} !important;
+        }
+    </style>
+
 {% if branding.brand_color != "#ef6d19" %}   
 <script>
 (function() {
     const brandColor = "{{ branding.brand_color }}";
     if (brandColor === "#ef6d19") return;
-
-    // Apply CSS overrides immediately
-    const style = document.createElement('style');
-    style.innerHTML = `
-        :root { --brand-color: ${brandColor} !important; }
-        .brand-name font, .app-brand font, .app-brand span font { color: ${brandColor} !important; }
-        .sidebar-dark .sidebar-inner .nav > li.active > a i, 
-        .sidebar-dark .sidebar-inner .nav > li.active > a span,
-        .sidebar-dark .sidebar-inner .nav > li.active > a img { color: ${brandColor} !important; }
-    `;
-    document.head.appendChild(style);
 
     function processImage(img) {
         const src = img.src;
@@ -132,7 +137,7 @@
             <div class="app-brand">
               <a href="/whm">
                 <img src="{{ branding.brand_icon }}" alt="{{ branding.brand_title }}">
-                <span class="brand-name"><font color="#ef6d19">{{ branding.brand_title }}</font></span>
+                <span class="brand-name"><font color="{{ branding.brand_color|default:'#ef6d19' }}">{{ branding.brand_title }}</font></span>
               </a>
             </div>
             
