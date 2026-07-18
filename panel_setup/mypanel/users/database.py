@@ -959,6 +959,9 @@ def rename_database(username_string,old_db_name, new_db_name):
     old_db_name = f"{username_string}_{current_db}"
     new_db_name = f"{username_string}_{new_db_name}"
     
+    if old_db_name == new_db_name:
+        return "Database renamed successfully."
+    
     try:
         if not re.match(r'^[a-zA-Z0-9_]+$', old_db_name):
             raise ValueError("Invalid characters in old database name")
