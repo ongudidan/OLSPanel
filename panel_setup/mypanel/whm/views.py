@@ -1843,10 +1843,10 @@ def phpmyadmin_view_admin(request):
     """
     Redirect users to the phpMyAdmin URL using the base URL without the port.
     """
-    # Use proxy headers if present to get correct public origin (e.g. port 4263)
     scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
     host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
-    sport = f"{scheme}://{host}"
+    server_host = host.split(':')[0]
+    sport = f"{scheme}://{server_host}"
     
     db_password = get_phpmyadmin_password('admin') 
 
