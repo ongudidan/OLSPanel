@@ -42,8 +42,10 @@ $username = $decrypted_data['user'];
 $password = $decrypted_data['pass'];
 $port = $decrypted_data['port'];
 $_SESSION['PMA_PORT'] = $port;
-//print_r($decrypted_data);
-//exit;
+
+$db = isset($decrypted_data['db']) ? $decrypted_data['db'] : '';
+$_SESSION['PMA_single_signon_only_db'] = $db;
+
     $_SESSION['PMA_single_signon_user'] = $username;
     $_SESSION['PMA_single_signon_password'] = $password;
     $_SESSION['PMA_single_signon_host'] = 'localhost';

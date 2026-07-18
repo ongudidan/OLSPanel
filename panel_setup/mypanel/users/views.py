@@ -2545,6 +2545,14 @@ def phpmyadmin_view(request):
         )
 
     json_data = {"user": request.user.username, "pass": db_password, "port": sport}
+    
+    db_name = request.GET.get('db')
+    if db_name:
+        databases = get_user_database_info(request.user.username)
+        if not any(d.get('db_name') == db_name for d in databases):
+            return HttpResponseForbidden("You do not have access to this database.")
+        json_data["db"] = db_name
+
     encrypted_json = encode_json_to_base64(json_data)
 
     try:

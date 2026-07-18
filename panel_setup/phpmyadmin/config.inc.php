@@ -24,3 +24,12 @@ if (!is_dir($pma_temp_dir)) {
     @mkdir($pma_temp_dir, 0700, true);
 }
 $cfg['TempDir'] = $pma_temp_dir;
+
+// Restrict database view to a single database if specified in session
+if (isset($_SESSION['PMA_single_signon_only_db']) && !empty($_SESSION['PMA_single_signon_only_db'])) {
+    $cfg['Servers'][$i]['only_db'] = $_SESSION['PMA_single_signon_only_db'];
+}
+
+// Disallow database creation and dropping globally within phpMyAdmin
+$cfg['ShowCreateDb'] = false;
+$cfg['AllowUserDropDatabase'] = false;

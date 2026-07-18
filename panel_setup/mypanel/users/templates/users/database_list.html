@@ -90,6 +90,7 @@
                             {% if db %}
                             <a href="{% url 'db_import' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Import</a>
                             {% else %}
+                            <a href="{% url 'phpmyadmin' %}?db={{ database.db_name }}" target="_blank" class="btn btn-warning btn-sm" style="text-transform: none; background-color: #ff9800; border-color: #ff9800; color: white;">phpMyAdmin</a>
                             <a href="{% url 'db_edit' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Rename</a>
                             <form action="{% url 'db_edit' database.db_name %}" method="post" style="display:inline;">
                                 {% csrf_token %}
