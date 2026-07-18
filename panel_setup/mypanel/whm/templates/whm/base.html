@@ -39,6 +39,14 @@
         .sidebar-dark .sidebar-inner .nav > li.active > a img {
             color: {{ branding.brand_color|default:"#ef6d19" }} !important;
         }
+        #custom-search .search-icon-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            padding: 0;
+        }
     </style>
 
 {% if branding.brand_color != "#ef6d19" %}   
