@@ -547,6 +547,8 @@ def revoke_user_privileges(username, db_user, db_name):
             cursor.execute("FLUSH PRIVILEGES;")
         return True, "Privileges revoked successfully"
     except Exception as e:
+        if "1141" in str(e) or "no such grant" in str(e).lower():
+            return True, "Privileges revoked successfully"
         logger.error(e)
         return False, str(e)
 
