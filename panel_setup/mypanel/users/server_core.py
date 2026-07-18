@@ -909,7 +909,37 @@ context /webmail {{
   }}
 }}
 
+context /3rdparty/rainloop {{
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {{
+    allow                 *
+  }}
+  addDefaultCharset       off
+
+  phpIniOverride  {{
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/"
+  }}
+}}
+
 context /phpmyadmin {{
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {{
+    allow                 *
+  }}
+  addDefaultCharset       off
+
+  phpIniOverride  {{
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/"
+  }}
+}}
+
+context /3rdparty/phpmyadmin {{
   location                /usr/local/lsws/Example/html/phpmyadmin
   allowBrowse             1
   indexFiles              index.php
