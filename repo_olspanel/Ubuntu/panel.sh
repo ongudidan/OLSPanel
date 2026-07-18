@@ -907,7 +907,8 @@ set_ownership_and_permissions() {
     if [ -d "/usr/local/lsws/Example/html" ]; then
         sudo ln -sf /usr/local/olspanel/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
         sudo ln -sf /usr/local/olspanel/webmail /usr/local/lsws/Example/html/webmail
-        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty /usr/local/lsws/Example/html/3rdparty
+        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail /usr/local/lsws/Example/html/3rdparty
     fi
 }
 

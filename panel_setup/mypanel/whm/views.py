@@ -1867,9 +1867,9 @@ def phpmyadmin_view_admin(request):
         if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
             # Redirect to OLS on port 443 (which can serve PHP), not the Django panel port
             server_host = request.META.get('HTTP_HOST', 'localhost').split(':')[0]
-            phpmyadmin_url = f"https://{server_host}/phpmyadmin/auto_login.php?password={encrypted_json}"
+            phpmyadmin_url = f"https://{server_host}/3rdparty/phpmyadmin/auto_login.php?password={encrypted_json}"
         else:
-            phpmyadmin_url = f"/phpmyadmin/auto_login.php?password={encrypted_json}"
+            phpmyadmin_url = f"/3rdparty/phpmyadmin/auto_login.php?password={encrypted_json}"
             
             
         
