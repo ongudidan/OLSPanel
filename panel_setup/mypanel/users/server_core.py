@@ -894,6 +894,28 @@ context /.well-known/acme-challenge {{
   allowBrowse             1
 }}
 
+context /webmail {{
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {{
+    allow                 *
+  }}
+  addDefaultCharset       off
+}}
+
+context /phpmyadmin {{
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {{
+    allow                 *
+  }}
+  addDefaultCharset       off
+}}
+
 vhssl  {{
   keyFile                 /etc/letsencrypt/live/{domain_name}/privkey.pem
   certFile                /etc/letsencrypt/live/{domain_name}/fullchain.pem
