@@ -48,65 +48,89 @@
     if (brandColor === "#ef6d19") return;
 
     function processImage(img) {
-        const src = img.src;
-        if (!src.endsWith('.svg')) return;
+        const src = img.getAttribute('src');
+        if (!src || !src.endsWith('.svg')) return;
 
-        function replaceImg(svgText) {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(svgText, "image/svg+xml");
-            const svg = doc.querySelector("svg");
-            if (!svg) return;
-
-            Array.from(img.attributes).forEach(attr => {
-                if (attr.name !== "src") {
-                    svg.setAttribute(attr.name, attr.value);
-                }
-            });
-
-            if (!svg.getAttribute("width")) svg.setAttribute("width", img.getAttribute("width") || "40px");
-            if (!svg.getAttribute("height")) svg.setAttribute("height", img.getAttribute("height") || "40px");
-
-            svg.style.cssText = img.style.cssText;
-            svg.style.color = brandColor;
-            svg.setAttribute("fill", "currentColor");
-
-            svg.querySelectorAll("*").forEach(el => {
-                if (el.getAttribute("fill") && el.getAttribute("fill") !== "none") {
-                    el.setAttribute("fill", "currentColor");
-                }
-                if (el.getAttribute("stroke") && el.getAttribute("stroke") !== "none") {
-                    el.setAttribute("stroke", "currentColor");
-                }
-            });
-
-            img.replaceWith(svg);
-        }
+        // Prevent processing multiple times
+        if (img.getAttribute('data-svg-processed')) return;
+        img.setAttribute('data-svg-processed', 'true');
 
         const cached = localStorage.getItem('svg_' + src);
         if (cached) {
-            replaceImg(cached);
+            replaceImg(img, cached);
         } else {
+            img.style.opacity = '0';
             fetch(src)
                 .then(r => r.text())
                 .then(svgText => {
                     try {
                         localStorage.setItem('svg_' + src, svgText);
                     } catch(e) {}
-                    replaceImg(svgText);
+                    replaceImg(img, svgText);
                 })
-                .catch(err => console.error("SVG load failed:", err));
+                .catch(err => {
+                    img.style.opacity = '1';
+                });
         }
     }
 
-    function init() {
-        document.querySelectorAll('#search_here img[src$=".svg"], #left-sidebar img[src$=".svg"]').forEach(processImage);
+    function replaceImg(img, svgText) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgText, "image/svg+xml");
+        const svg = doc.querySelector("svg");
+        if (!svg) {
+            img.style.opacity = '1';
+            return;
+        }
+
+        Array.from(img.attributes).forEach(attr => {
+            if (attr.name !== "src" && attr.name !== "data-svg-processed") {
+                svg.setAttribute(attr.name, attr.value);
+            }
+        });
+
+        if (!svg.getAttribute("width")) svg.setAttribute("width", img.getAttribute("width") || "40px");
+        if (!svg.getAttribute("height")) svg.setAttribute("height", img.getAttribute("height") || "40px");
+
+        svg.style.cssText = img.style.cssText;
+        svg.style.color = brandColor;
+        svg.setAttribute("fill", "currentColor");
+
+        svg.querySelectorAll("*").forEach(el => {
+            if (el.getAttribute("fill") && el.getAttribute("fill") !== "none") {
+                el.setAttribute("fill", "currentColor");
+            }
+            if (el.getAttribute("stroke") && el.getAttribute("stroke") !== "none") {
+                el.setAttribute("stroke", "currentColor");
+            }
+        });
+
+        svg.style.opacity = '1';
+        img.replaceWith(svg);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    // Process existing elements
+    document.querySelectorAll('#search_here img[src$=".svg"], #left-sidebar img[src$=".svg"]').forEach(processImage);
+
+    // Observe future elements during parsing to swap them immediately before paint
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            for (const node of mutation.addedNodes) {
+                if (node.nodeType === 1) { // ELEMENT_NODE
+                    if (node.tagName === 'IMG') {
+                        processImage(node);
+                    } else {
+                        node.querySelectorAll('img[src$=".svg"]').forEach(processImage);
+                    }
+                }
+            }
+        }
+    });
+
+    observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+    });
 })();
 </script>
 {% endif %}
@@ -689,74 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
     </script>
                     
-{% if branding.brand_color != "#ef6d19" %}   
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const brandColor = "{{ branding.brand_color }}";
-  
-    if (brandColor === "#ef6d19") {
-        return;
-    }
-
-    document.querySelectorAll(
-        '#search_here img[src$=".svg"], #left-sidebar img[src$=".svg"]'
-    ).forEach(img => {
-        fetch(img.src)
-            .then(r => r.text())
-            .then(svgText => {
-                const parser = new DOMParser();
-                const svg = parser
-                    .parseFromString(svgText, "image/svg+xml")
-                    .querySelector("svg");
-
-                // Copy ALL attributes from IMG to SVG
-                Array.from(img.attributes).forEach(attr => {
-                    if (attr.name !== "src") {
-                        svg.setAttribute(attr.name, attr.value);
-                    }
-                });
-
-                // Preserve width & height if not already set
-                if (!svg.getAttribute("width")) {
-                    svg.setAttribute("width", img.getAttribute("width") || "40px");
-                }
-
-                if (!svg.getAttribute("height")) {
-                    svg.setAttribute("height", img.getAttribute("height") || "40px");
-                }
-
-                // Preserve inline styles
-                svg.style.cssText = img.style.cssText;
-
-                // Apply branding color
-                svg.style.color = brandColor;
-
-                // Colorize SVG elements
-                svg.querySelectorAll("*").forEach(el => {
-                    if (
-                        el.getAttribute("fill") &&
-                        el.getAttribute("fill") !== "none"
-                    ) {
-                        el.setAttribute("fill", "currentColor");
-                    }
-                    if (
-                        el.getAttribute("stroke") &&
-                        el.getAttribute("stroke") !== "none"
-                    ) {
-                        el.setAttribute("stroke", "currentColor");
-                    }
-                });
-
-                svg.setAttribute("fill", "currentColor");
-
-                img.replaceWith(svg);
-            })
-            .catch(err => console.error("SVG load failed:", err));
-    });
-});
-</script>               
-                   		  
-{% endif %}                          
+                          
                    		  
 				  
  {% if messages %}
