@@ -3782,7 +3782,7 @@ def api_keys_view(request):
         token = "olsp_" + secrets.token_hex(24)
         # Save key
         ApiKey.objects.create(
-            user=request.user,
+            user=request.admin_user,
             name=name,
             token=token,
             is_active=True
