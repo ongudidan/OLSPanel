@@ -47,6 +47,22 @@
             box-shadow: none;
             padding: 0;
         }
+        /* Minified Brand Styles */
+        .brand-minified-icon {
+            display: none !important;
+        }
+        .sidebar-minified .left-sidebar .brand-full-logo {
+            display: none !important;
+        }
+        .sidebar-minified .left-sidebar .brand-minified-icon {
+            display: block !important;
+        }
+        .sidebar-minified .left-sidebar:hover .brand-full-logo {
+            display: block !important;
+        }
+        .sidebar-minified .left-sidebar:hover .brand-minified-icon {
+            display: none !important;
+        }
     </style>
 
 {% if branding.brand_color != "#ef6d19" %}   
@@ -167,14 +183,17 @@
               
             <!-- Aplication Brand -->
             <div class="app-brand">
+              {% if branding.brand_title %}
               <a href="/whm">
-                {% if branding.brand_title %}
                 <img src="{{ branding.brand_icon }}" alt="{{ branding.brand_title }}">
                 <span class="brand-name"><font color="{{ branding.brand_color|default:'#ef6d19' }}">{{ branding.brand_title }}</font></span>
-                {% else %}
-                <img src="{{ branding.brand_image }}" alt="Brand Logo" style="max-height: 40px; max-width: 100%; object-fit: contain;">
-                {% endif %}
               </a>
+              {% else %}
+              <a href="/whm" style="padding-left: 0; justify-content: center; width: 100%;">
+                <img class="brand-full-logo" src="{{ branding.brand_image }}" alt="Brand Logo" style="max-height: 55px; max-width: 90%; object-fit: contain;">
+                <img class="brand-minified-icon" src="{{ branding.brand_icon }}" alt="Brand Icon" style="max-height: 40px; max-width: 40px; object-fit: contain;">
+              </a>
+              {% endif %}
             </div>
             
             <!-- begin sidebar scrollbar -->
