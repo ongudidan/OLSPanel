@@ -79,6 +79,7 @@ urlpatterns = [
     path('settings/', panel_settings, name='settings'),
     path('csf_remove/', csf_remove, name='csf_remove'),
     path('ufw/', ufw, name='ufw'),
+    path('unblock_ip/<int:ip_id>/', unblock_ip, name='unblock_ip'),
     path('node_versions/', node_versions, name='node_versions'),
     path('node_install_now/', node_install_now, name='node_install_now'),
     path('node_module_manage/', node_module_manage, name='node_module_manage'),

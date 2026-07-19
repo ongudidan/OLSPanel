@@ -122,6 +122,23 @@ def perm_block_ip(ip):
     except Exception as e:
         logger.error(f"Error running ufw perm block for {ip}: {e}")
 
+def remove_perm_firewall_rule(ip):
+    global firewall_changed
+    try:
+        ipaddress.ip_address(ip)
+    except ValueError:
+        logger.error(f"Invalid IP address format: {ip}")
+        return
+    try:
+        subprocess.run(["ufw", "delete", "deny", "from", ip, "comment", "auto_permanently_block"], check=True)
+        # Remove fallback raw iptables drop rule
+        subprocess.run(["iptables", "-D", "INPUT", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", "auto_permanently_block"], check=True)
+        firewall_changed = True
+        logger.info(f"[PERM BLOCK REMOVED] {ip} block removed.")
+        print(f"[PERM BLOCK REMOVED] {ip} block removed.")
+    except Exception as e:
+        logger.error(f"Error removing perm block for {ip}: {e}")
+
 def remove_firewall_rule(ip):
     global firewall_changed
     try:

@@ -42,6 +42,7 @@ from users.google_authenticator import GoogleAuthenticator
 from django.utils import timezone
 from datetime import datetime, timezone as dt_timezone
 from users.decorators import * 
+from users.firewall import remove_firewall_rule, remove_perm_firewall_rule
 
 
 authenticator = GoogleAuthenticator()
@@ -1620,8 +1621,32 @@ def ufw(request):
     else:
         csf ="yes"
         
+    blocked_ips = BlockedIP.objects.filter(block_type__in=["TEMP", "PERM"])
     
-    return render(request, 'whm/ufw.html',{'csf': csf})
+    return render(request, 'whm/ufw.html', {'csf': csf, 'blocked_ips': blocked_ips})
+
+
+@alogin_required
+def unblock_ip(request, ip_id):
+    blocked_ip = get_object_or_404(BlockedIP, id=ip_id)
+    ip = blocked_ip.ip_address
+    
+    if blocked_ip.block_type == "PERM":
+        remove_perm_firewall_rule(ip)
+    else:
+        remove_firewall_rule(ip)
+        
+    # Reload UFW to apply changes immediately
+    try:
+        subprocess.run(["sudo", "ufw", "reload"], check=True)
+    except Exception:
+        pass
+        
+    # Delete from database
+    blocked_ip.delete()
+    
+    messages.success(request, f"IP address {ip} has been successfully unblocked.")
+    return redirect('ufw')
 
 
 @alogin_required

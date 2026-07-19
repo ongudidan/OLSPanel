@@ -49,6 +49,67 @@
         <div class="table-responsive">
             <iframe border="0" name="myiframe" id="myiframe" src="{% url 'configservercsfiframe' %}" style="width: 100%;" frameborder="0" onload="resizeIframe(this);"></iframe>
         </div>
+
+        <div class="card card-default mt-5">
+            <div class="card-header">
+                <h2>Blocked IP Addresses</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>IP Address</th>
+                                <th>Block Type</th>
+                                <th>Trigger / Service</th>
+                                <th>Failed Attempts</th>
+                                <th>Last Detected</th>
+                                <th>Block Expires</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ip in blocked_ips %}
+                            <tr>
+                                <td><strong class="text-dark">{{ ip.ip_address }}</strong></td>
+                                <td>
+                                    {% if ip.block_type == "TEMP" %}
+                                        <span class="badge badge-warning">Temporary Block</span>
+                                    {% elif ip.block_type == "PERM" %}
+                                        <span class="badge badge-danger">Permanent Block</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ ip.block_type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge badge-info text-uppercase">{{ ip.type }}</span></td>
+                                <td><span class="badge badge-light">{{ ip.attempts }}</span></td>
+                                <td>{{ ip.last_detected|date:"Y-m-d H:i:s" }}</td>
+                                <td>
+                                    {% if ip.temp_block_expires %}
+                                        <span class="text-warning">{{ ip.temp_block_expires|date:"Y-m-d H:i:s" }}</span>
+                                    {% else %}
+                                        <span class="text-danger font-weight-bold">Never (Permanent)</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{% url 'unblock_ip' ip.id %}" method="post" onsubmit="return confirm('Are you sure you want to unblock IP {{ ip.ip_address }}?');" style="margin:0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-success btn-sm">
+                                            <i class="mdi mdi-lock-open-outline"></i> Unblock
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No IP addresses are currently blocked by the brute-force protection system.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         {% endif %}
 
     </div>
