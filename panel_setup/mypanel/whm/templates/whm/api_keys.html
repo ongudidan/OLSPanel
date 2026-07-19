@@ -1,0 +1,121 @@
+{% extends "whm/base.html" %}
+{% block title %}Manage API Keys{% endblock title %}
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">×</span>
+            </button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if new_key_token %}
+    <div class="alert alert-success alert-highlight" role="alert" style="border-left: 5px solid #28a745;">
+        <h4 class="alert-heading mb-2"><i class="mdi mdi-key-plus"></i> API Key Generated Successfully!</h4>
+        <p class="mb-3">For security reasons, this key will <strong>only be shown once</strong>. Please copy it now and store it in a safe place.</p>
+        <div class="input-group mb-0">
+            <input type="text" class="form-control bg-light font-weight-bold" id="newKeyField" value="{{ new_key_token }}" readonly style="font-family: monospace; font-size: 1.1rem; color: #333;">
+            <div class="input-group-append">
+                <button class="btn btn-primary" type="button" onclick="copyKeyToClipboard()">
+                    <i class="mdi mdi-content-copy"></i> Copy Key
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function copyKeyToClipboard() {
+        var copyText = document.getElementById("newKeyField");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value).then(function() {
+            alert("API Key copied to clipboard!");
+        });
+    }
+    </script>
+{% endif %}
+
+<div class="row">
+    <!-- Generate Key Column -->
+    <div class="col-xl-4 col-lg-12">
+        <div class="card card-default">
+            <div class="card-header">
+                <h2>Generate New API Key</h2>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">API Keys allow external systems (like WHMCS) to connect securely without exposing your main administrator password.</p>
+                <form method="post" action="{% url 'api_keys' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="key_name">Key Label / Name</label>
+                        <input type="text" class="form-control" name="name" id="key_name" placeholder="e.g. WHMCS Server 1" required>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">
+                        <i class="mdi mdi-plus-circle"></i> Generate Key
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Keys Column -->
+    <div class="col-xl-8 col-lg-12">
+        <div class="card card-default">
+            <div class="card-header">
+                <h2>Active API Keys</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name / Label</th>
+                                <th>Token Preview</th>
+                                <th>Created At</th>
+                                <th>Last Used</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key in keys %}
+                            <tr>
+                                <td class="font-weight-bold">{{ key.name }}</td>
+                                <td style="font-family: monospace;">
+                                    <code>{{ key.token|slice:":12" }}...</code>
+                                </td>
+                                <td>{{ key.created_at|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    {% if key.last_used %}
+                                        {{ key.last_used|date:"Y-m-d H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">Never used</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="post" action="{% url 'revoke_api_key' key.id %}" onsubmit="return confirm('Are you sure you want to revoke this API Key? Any system currently using it will be disconnected immediately.');" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="mdi mdi-delete-forever"></i> Revoke
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No active API keys found. Generate one to connect with WHMCS or other external tools.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% include "whm/footer.html" %}

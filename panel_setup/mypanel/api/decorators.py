@@ -63,16 +63,35 @@ def api_login_required(view_func):
         if not username or (not apikey and not password_plain):
             return JsonResponse({'error': 'Username and API key or password required'}, status=200)
 
-        # Decide source of password
-        if apikey:
+        user = None
+        # Try API Key authentication
+        token_to_check = apikey if (apikey and apikey.startswith('olsp_')) else (password_plain if (password_plain and password_plain.startswith('olsp_')) else None)
+        
+        if username and token_to_check:
+            from users.models import ApiKey
+            from django.utils import timezone
             try:
-                password = decode(apikey)
+                from django.contrib.auth.models import User
+                u = User.objects.get(username=username)
+                api_key = ApiKey.objects.get(user=u, token=token_to_check, is_active=True)
+                api_key.last_used = timezone.now()
+                api_key.save()
+                user = u
             except Exception:
-                return JsonResponse({'error': 'Invalid API key format'}, status=200)
-        else:
-            password = password_plain
+                pass
+                
+        # Fallback to legacy password/apikey auth
+        if user is None:
+            # Decide source of password
+            if apikey and not apikey.startswith('olsp_'):
+                try:
+                    password = decode(apikey)
+                except Exception:
+                    return JsonResponse({'error': 'Invalid API key format'}, status=200)
+            else:
+                password = password_plain
 
-        user = authenticate(username=username, password=password)
+            user = authenticate(username=username, password=password)
         if user is None:
             ip = get_client_ip(request)
             logger.error(f"Login failed attempt in api from IP: {ip}")

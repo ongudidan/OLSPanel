@@ -3764,3 +3764,46 @@ def user_limit_set(request, userid):
             "status": "error",
             "message": str(e)
         })
+
+
+@alogin_required
+def api_keys_view(request):
+    from users.models import ApiKey
+    import secrets
+    
+    keys = ApiKey.objects.filter(is_active=True).order_by('-created_at')
+    new_key_token = None
+    
+    if request.method == 'POST':
+        name = request.POST.get('name', 'WHMCS').strip()
+        if not name:
+            name = 'WHMCS'
+        # Generate token
+        token = "olsp_" + secrets.token_hex(24)
+        # Save key
+        ApiKey.objects.create(
+            user=request.user,
+            name=name,
+            token=token,
+            is_active=True
+        )
+        new_key_token = token
+        messages.success(request, f"API Key '{name}' generated successfully. Make sure to copy it now, as you won't be able to see it again.")
+        
+    return render(request, 'whm/api_keys.html', {
+        'keys': keys,
+        'new_key_token': new_key_token
+    })
+
+
+@alogin_required
+def revoke_api_key(request, key_id):
+    from users.models import ApiKey
+    if request.method == 'POST':
+        try:
+            key = ApiKey.objects.get(id=key_id)
+            key.delete()
+            messages.success(request, f"API Key '{key.name}' revoked successfully.")
+        except ApiKey.DoesNotExist:
+            messages.error(request, "API Key not found.")
+    return redirect('api_keys')

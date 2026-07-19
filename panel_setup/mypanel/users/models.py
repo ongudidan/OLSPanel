@@ -261,3 +261,18 @@ class Apps(models.Model):
 
     def __str__(self):
         return self.apps            
+
+
+class ApiKey(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_keys')
+    name = models.CharField(max_length=255, default='WHMCS')
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'api_keys'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"

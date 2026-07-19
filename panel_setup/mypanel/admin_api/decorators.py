@@ -34,11 +34,30 @@ def admin_api_login_required(view_func):
 
         username = request.headers.get('username')
         password = request.headers.get('password')
+        apikey = request.headers.get('apikey')
 
-        if not username or not password:
-            return JsonResponse({'error': 'Username and password required'}, status=200)
+        if not username or (not password and not apikey):
+            return JsonResponse({'error': 'Username and password/apikey required'}, status=200)
 
-        user = authenticate(username=username, password=password)
+        user = None
+        # Try API Key authentication
+        token_to_check = apikey if (apikey and apikey.startswith('olsp_')) else (password if (password and password.startswith('olsp_')) else None)
+        
+        if username and token_to_check:
+            from users.models import ApiKey
+            from django.utils import timezone
+            try:
+                from django.contrib.auth.models import User
+                u = User.objects.get(username=username)
+                api_key = ApiKey.objects.get(user=u, token=token_to_check, is_active=True)
+                api_key.last_used = timezone.now()
+                api_key.save()
+                user = u
+            except Exception:
+                pass
+
+        if user is None and username and password:
+            user = authenticate(username=username, password=password)
         
 
         if user is None:
