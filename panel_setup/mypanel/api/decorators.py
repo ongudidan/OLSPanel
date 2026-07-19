@@ -76,6 +76,11 @@ def api_login_required(view_func):
         if user is None:
             ip = get_client_ip(request)
             logger.error(f"Login failed attempt in api from IP: {ip}")
+            try:
+                from users.firewall import register_panel_failed_login
+                register_panel_failed_login(ip)
+            except Exception as e:
+                logger.error(f"Error registering api failed login: {e}")
             return JsonResponse({'error': 'Invalid credentials'}, status=200)
 
         request.user = user

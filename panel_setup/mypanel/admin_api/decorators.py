@@ -43,12 +43,21 @@ def admin_api_login_required(view_func):
 
         if user is None:
             logger.error(f"Login failed attempt in api from IP: {ip}")
+            try:
+                from users.firewall import register_panel_failed_login
+                register_panel_failed_login(ip)
+            except Exception as e:
+                logger.error(f"Error registering admin api failed login: {e}")
             return JsonResponse({'error': 'Invalid credentials'}, status=200)
             
         whm = get_user_data_by_id(user.id).get('whm')
         if whm != 1:
-            
             logger.error(f"Login failed attempt in api from IP: {ip}")
+            try:
+                from users.firewall import register_panel_failed_login
+                register_panel_failed_login(ip)
+            except Exception as e:
+                logger.error(f"Error registering admin api failed login: {e}")
             return JsonResponse({'error': 'Invalid credentials'}, status=200)    
 
         request.user = user  # Attach the user manually

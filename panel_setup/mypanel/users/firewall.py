@@ -350,6 +350,36 @@ def extract_syslog_timestamp(line):
     return None
 
 
+def register_panel_failed_login(ip):
+    try:
+        conf_file = "/usr/local/ufw/config/olspanel.conf"
+        if not os.path.exists(conf_file):
+            return
+        conf_data = load_config(conf_file)
+        STATUS = conf_data.get("STATUS", 0)
+        if STATUS != 1:
+            return
+            
+        TEMP_BLOCK_DURATION = conf_data["TEMP_BLOCK_DURATION"]
+        TEMP_BLOCK_THRESHOLD = conf_data["TEMP_BLOCK_THRESHOLD"]
+        TEMP_WINDOW = conf_data["TEMP_WINDOW"]
+        PERM_BLOCK_THRESHOLD = conf_data["PERM_BLOCK_THRESHOLD"]
+        PERM_WINDOW = conf_data["PERM_WINDOW"]
+        IGNORE_IP = conf_data["IGNORE_IP"]
+        
+        if is_local_ip(ip, IGNORE_IP):
+            return
+            
+        timestamp = make_aware(datetime.now())
+        register_failed_attempt(
+            ip, timestamp,
+            TEMP_BLOCK_DURATION, TEMP_BLOCK_THRESHOLD,
+            PERM_BLOCK_THRESHOLD, PERM_WINDOW, TEMP_WINDOW, "olspanel"
+        )
+    except Exception as e:
+        logger.error(f"Error registering panel failed login for {ip}: {e}")
+
+
 def find_keyword_in_line(line, keywords):
     
     for keyword in keywords:

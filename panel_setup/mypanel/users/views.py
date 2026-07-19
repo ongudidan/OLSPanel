@@ -318,6 +318,11 @@ class CustomLoginView(LoginView):
     def form_invalid(self, form):
         ip = self.get_client_ip()
         logger.error(f"Login failed attempt from IP: {ip}")
+        try:
+            from users.firewall import register_panel_failed_login
+            register_panel_failed_login(ip)
+        except Exception as e:
+            logger.error(f"Error registering panel failed login from views: {e}")
         messages.error(self.request, "Login failed. Please check your username and password.")
         return super().form_invalid(form)
 
