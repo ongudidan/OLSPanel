@@ -30,7 +30,7 @@
                                id="brand_title"
                                name="brand_title"
                                placeholder="Enter brand title"
-                               value="{{ current_settings.brand_title|default:'OLSPanel' }}">
+                               value="{% if current_settings.brand_title is not None %}{{ current_settings.brand_title }}{% else %}OLSPanel{% endif %}">
                     </div>
 
                     <!-- BRAND COLOR -->
