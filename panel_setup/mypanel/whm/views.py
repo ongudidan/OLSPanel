@@ -2328,12 +2328,18 @@ def change_hostname_view(request):
     last_insert_id= None;
 
     if request.method == 'POST':
-        host = request.POST.get('host')
-        domain_name = normalize_domain(host)
-
-        if not domain_name:
+        host = request.POST.get('host', '').strip()
+        host_clean = re.sub(r'^https?://', '', host)
+        host_clean = re.sub(r'^www\.', '', host_clean)
+        
+        # Regex allowing both FQDN (e.g. panel.domain.com) and single-label local hostnames (e.g. olspanel-tutorial-771337)
+        hostname_regex = r'^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9]))*$'
+        
+        if not re.match(hostname_regex, host_clean):
             messages.error(request, "Invalid host format. Please enter a valid host name.")
             return redirect('/whm/change_hostname')
+            
+        domain_name = host_clean
 
         # If domain doesn't exist, proceed with adding it
         if not Domain.objects.filter(domain=domain_name).exists():
