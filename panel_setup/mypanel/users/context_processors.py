@@ -40,8 +40,11 @@ def branding(request):
     for item in qs:
         value = item.setting_value
 
-        # strict safe check (important)
-        if value and str(value).strip():
-            branding_data[item.setting_key] = value
+        if item.setting_key == 'brand_title':
+            branding_data[item.setting_key] = value if value is not None else ""
+        else:
+            # strict safe check (important)
+            if value and str(value).strip():
+                branding_data[item.setting_key] = value
 
     return {"branding": branding_data}

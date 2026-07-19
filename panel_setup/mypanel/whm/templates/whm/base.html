@@ -168,8 +168,12 @@
             <!-- Aplication Brand -->
             <div class="app-brand">
               <a href="/whm">
+                {% if branding.brand_title %}
                 <img src="{{ branding.brand_icon }}" alt="{{ branding.brand_title }}">
                 <span class="brand-name"><font color="{{ branding.brand_color|default:'#ef6d19' }}">{{ branding.brand_title }}</font></span>
+                {% else %}
+                <img src="{{ branding.brand_image }}" alt="Brand Logo" style="max-height: 40px; max-width: 100%; object-fit: contain;">
+                {% endif %}
               </a>
             </div>
             

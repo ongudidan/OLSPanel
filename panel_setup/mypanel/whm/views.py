@@ -3536,7 +3536,7 @@ def panel_brand(request):
         # SAVE SETTINGS
         # -------------------------
         filtered_post = {
-            'brand_title': request.POST.get('brand_title', 'OLSPanel'),
+            'brand_title': request.POST.get('brand_title', '').strip(),
             'brand_image': brand_image_path,
             'brand_icon': brand_icon_path,
             'brand_color': request.POST.get('brand_color', '#0d6efd'),
