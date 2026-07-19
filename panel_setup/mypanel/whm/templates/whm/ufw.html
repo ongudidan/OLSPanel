@@ -117,14 +117,25 @@
 
  <script>
   function resizeIframe(obj) {
-    obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
-	window.scrollTo(0,0);
+    try {
+      const doc = obj.contentDocument || obj.contentWindow.document;
+      if (doc && doc.body) {
+        // Set initial height
+        obj.style.height = doc.body.scrollHeight + 'px';
+
+        // Set up ResizeObserver to dynamically update height when content changes
+        const resizeObserver = new ResizeObserver(() => {
+          obj.style.height = doc.body.scrollHeight + 'px';
+        });
+        resizeObserver.observe(doc.body);
+      }
+    } catch (e) {
+      // Fallback direct height check
+      obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
+    }
+    window.scrollTo(0,0);
   }
   window.parent.parent.scrollTo(0,0);
-  
-  
-  
-
 </script>
 {% endblock content %}
 
