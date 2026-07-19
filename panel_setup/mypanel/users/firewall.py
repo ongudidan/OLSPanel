@@ -97,6 +97,8 @@ def temp_block_ip(ip,TEMP_BLOCK_DURATION):
         return
     try:
         subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_temp_block"], check=True)
+        # Fallback raw iptables drop at top to override any high-priority raw ACCEPT rules
+        subprocess.run(["iptables", "-I", "INPUT", "1", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", "auto_temp_block"], check=True)
         firewall_changed = True
         logger.info(f"[TEMP BLOCK] {ip} blocked for {TEMP_BLOCK_DURATION.total_seconds() / 60} minutes.")
         print(f"[TEMP BLOCK] {ip} blocked for {TEMP_BLOCK_DURATION.total_seconds() / 60} minutes.")
@@ -112,6 +114,8 @@ def perm_block_ip(ip):
         return
     try:
         subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_permanently_block"], check=True)
+        # Fallback raw iptables drop at top to override any high-priority raw ACCEPT rules
+        subprocess.run(["iptables", "-I", "INPUT", "1", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", "auto_permanently_block"], check=True)
         firewall_changed = True
         logger.info(f"[PERM BLOCK] {ip} permanently blocked.")
         print(f"[PERM BLOCK] {ip} permanently blocked.")
@@ -127,6 +131,8 @@ def remove_firewall_rule(ip):
         return
     try:
         subprocess.run(["ufw", "delete", "deny", "from", ip, "comment", "auto_temp_block"], check=True)
+        # Remove fallback raw iptables drop rule
+        subprocess.run(["iptables", "-D", "INPUT", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", "auto_temp_block"], check=True)
         firewall_changed = True
         logger.info(f"[TEMP BLOCK REMOVED] {ip} block removed.")
         print(f"[TEMP BLOCK REMOVED] {ip} block removed.")
