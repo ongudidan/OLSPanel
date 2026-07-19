@@ -2,7 +2,7 @@
 /* =========================
    CONFIG
 ========================= */
-const OLS_NOTICE_URL = "https://cp.olspanel.com/notices.js";
+const OLS_NOTICE_URL = "/media/js/notices.js";
 const OLS_TIMEOUT = 2500;
 
 /* =========================
