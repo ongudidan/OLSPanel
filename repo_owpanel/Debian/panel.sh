@@ -763,7 +763,7 @@ setup_cp_service_with_port() {
     
 
     # Generate a random 4-digit port between 1000 and 9999
-    local new_port=$(shuf -i 1000-9999 -n 1)
+    local new_port=2087
 
     # Save the new port to the port file
     echo "Saving the new port '$new_port' to '$port_file'..."
