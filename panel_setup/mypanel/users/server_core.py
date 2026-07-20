@@ -899,6 +899,10 @@ context /webmail {{
   allowBrowse             1
   indexFiles              index.php
 
+  rewrite  {{
+    enable                0
+  }}
+
   accessControl  {{
     allow                 *
   }}
@@ -913,6 +917,10 @@ context /3rdparty/rainloop {{
   location                /usr/local/lsws/Example/html/webmail
   allowBrowse             1
   indexFiles              index.php
+
+  rewrite  {{
+    enable                0
+  }}
 
   accessControl  {{
     allow                 *
@@ -929,6 +937,10 @@ context /phpmyadmin {{
   allowBrowse             1
   indexFiles              index.php
 
+  rewrite  {{
+    enable                0
+  }}
+
   accessControl  {{
     allow                 *
   }}
@@ -943,6 +955,10 @@ context /3rdparty/phpmyadmin {{
   location                /usr/local/lsws/Example/html/phpmyadmin
   allowBrowse             1
   indexFiles              index.php
+
+  rewrite  {{
+    enable                0
+  }}
 
   accessControl  {{
     allow                 *
