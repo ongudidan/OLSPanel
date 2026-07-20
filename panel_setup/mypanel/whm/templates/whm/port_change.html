@@ -13,8 +13,10 @@
             
                 <div class="form-group">
                 <label for="dns_name" id="labelName">Panel port</label>
-                <input type="text" class="form-control" id="port" name="port"  value="{{ port }}" required>
-                
+                 <input type="text" class="form-control" id="port" name="port"  value="{{ port }}" required>
+                 <small class="form-text text-muted mt-2">
+                     <strong>Cloudflare Compatibility:</strong> If your domain is proxied through Cloudflare (orange-clouded), the panel will only load over Cloudflare-supported HTTPS ports: <code>443</code>, <code>2053</code>, <code>2083</code>, <code>2087</code> (default), <code>2096</code>, and <code>8443</code>. Using any other port will result in infinite loading or connection timeouts when proxied.
+                 </small>
             </div>
           
 			
