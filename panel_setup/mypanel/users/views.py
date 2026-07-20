@@ -2531,7 +2531,8 @@ def phpmyadmin_view(request):
     """
     Redirect users to the phpMyAdmin URL using the base URL without the port.
     """
-    scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    raw_scheme = request.META.get('HTTP_X_FORWARDED_PROTO', 'https')
+    scheme = 'https' if 'https' in raw_scheme else 'http'
     host = request.META.get('HTTP_X_FORWARDED_HOST', request.META.get('HTTP_HOST', 'localhost:4263'))
     server_host = host.split(':')[0]
     sport = f"{scheme}://{server_host}"
