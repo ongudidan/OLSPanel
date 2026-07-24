@@ -191,13 +191,13 @@ def monitor_failed_ssh_logins(LOG_FILE,OFFSET_FILE,keywords,TEMP_BLOCK_DURATION,
             found, matched_keyword = find_keyword_in_line(line, keywords)
             if found:
                 timestamp = extract_syslog_timestamp(line)
-                timestamp = make_aware(timestamp) 
-                print(f"Extracted datetime: {timestamp}")
-                ips = extract_ips(line)
-                filtered_ips = [ip for ip in ips if not is_local_ip(ip,IGNORE_IP)]
-                if filtered_ips:
-                    for ip in filtered_ips:
-                        if timestamp:
+                if timestamp:
+                    timestamp = make_aware(timestamp) 
+                    print(f"Extracted datetime: {timestamp}")
+                    ips = extract_ips(line)
+                    filtered_ips = [ip for ip in ips if not is_local_ip(ip,IGNORE_IP)]
+                    if filtered_ips:
+                        for ip in filtered_ips:
                             register_failed_attempt(ip, timestamp,TEMP_BLOCK_DURATION,TEMP_BLOCK_THRESHOLD,PERM_BLOCK_THRESHOLD,PERM_WINDOW,TEMP_WINDOW,TYPE)
             
                         
@@ -208,6 +208,8 @@ def monitor_failed_ssh_logins(LOG_FILE,OFFSET_FILE,keywords,TEMP_BLOCK_DURATION,
     
     
 def make_aware(dt):
+    if dt is None:
+        return None
     if settings.USE_TZ:
         if timezone.is_naive(dt):
             return timezone.make_aware(dt, timezone.get_current_timezone())
@@ -315,6 +317,8 @@ def extract_syslog_timestamp(line):
     # A list of regex patterns and their corresponding datetime formats.
     # The order is important: start with the most specific patterns.
     patterns_and_formats = [
+        # Example: '2026-07-24T07:22:10.683067+00:00'
+        (r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}(?:[+-]\d{2}:\d{2}|Z))", "iso"),
         # Example: '2025-08-05 01:15:02.113502'
         (r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{6})", "%Y-%m-%d %H:%M:%S.%f"),
         # Example: '2025-08-05 01:15:02'
@@ -326,8 +330,13 @@ def extract_syslog_timestamp(line):
     for pattern_str, fmt in patterns_and_formats:
         match = re.search(pattern_str, line)
         if match:
+            if fmt == "iso":
+                try:
+                    return datetime.fromisoformat(match.group(1))
+                except ValueError:
+                    continue
             # For the syslog format, we need to add the current year.
-            if fmt == "%b %d %H:%M:%S":
+            elif fmt == "%b %d %H:%M:%S":
                 try:
                     month_str, day_str, time_str = match.groups()
                     current_year = datetime.now().year
