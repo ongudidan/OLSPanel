@@ -1139,19 +1139,17 @@ def auto_login_by_admin(request, rid):
     # Retrieve the user to update
     usr = get_object_or_404(User, id=rid)
     
-    passw=get_auto_login_password(usr.username)
-          
-
-       
-            
-
+    if request.admin_user and request.admin_user.is_authenticated:
+        user = usr
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+    else:
+        passw = get_auto_login_password(usr.username)
         # Authenticate the user
-    user = authenticate(request, username=usr.username, password=passw)
+        user = authenticate(request, username=usr.username, password=passw)
 
     if user is not None:
-        if request.admin_user.is_authenticated:
+        if request.admin_user and request.admin_user.is_authenticated:
             logout(request)
-            
             
         login(request, user)
         request.session.set_expiry(0)
@@ -1159,18 +1157,10 @@ def auto_login_by_admin(request, rid):
         return redirect('/')  # Redirect to home or any desired page
     else:
         messages.warning(request, "Invalid username or password")
-            #return redirect('/login')
-            
-
-    # Generate CSRF token for the for
-
-    
 
     # Render form with the existing user data
     return render(request, 'whm/auto_login.html', {
         'username': usr.username,
-        
-        
     })
     
     
