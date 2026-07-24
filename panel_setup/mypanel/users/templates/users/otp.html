@@ -1,12 +1,12 @@
 {% extends "users/base.html" %}
-{% block title %}Verify OTP | OLS Panel{% endblock title %}
+{% block title %}Verify OTP | {{ branding.brand_title }}{% endblock title %}
 {% block content %}
 
 <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
     <div class="card shadow-lg border-0 rounded-4" style="max-width: 420px; width: 100%;">
         <div class="card-body p-4 p-md-5 text-center">
             <a href="/" class="d-block mb-4">
-                <img src="/media/ow.png" width="220" alt="OLS Panel" class="img-fluid">
+                <img src="{{ branding.brand_image }}?v=1.0.7" width="220" alt="{{ branding.brand_title }}" class="img-fluid">
             </a>
 
             <h4 class="fw-bold mb-3 text-primary">Two-Step Verification</h4>
