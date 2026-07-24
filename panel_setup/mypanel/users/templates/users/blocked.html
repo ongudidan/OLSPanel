@@ -1,0 +1,49 @@
+{% extends "users/base.html" %}
+{% block title %}Access Denied | {{ branding.brand_title }}{% endblock title %}
+{% block content %}
+
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="col-12" style="max-width: 450px;">
+        <div class="card card-default shadow-lg border-0 rounded-4">
+            <div class="card-header pb-0">
+                <div class="w-100 d-flex justify-content-center border-bottom-0">
+                    <a class="w-auto pl-0" href="/" style="margin-bottom:10px">
+                        <img src="{{ branding.brand_image }}?v=1.0.7" width="300px" alt="{{ branding.brand_title }}">
+                    </a>
+                </div>
+            </div>
+            <div class="card-body px-5 pb-5 pt-3 text-center">
+                <div class="mb-4 text-danger">
+                    <!-- Warning shield icon -->
+                    <i class="mdi mdi-shield-alert" style="font-size: 3.5rem; color: #ef4444;"></i>
+                </div>
+                
+                <h4 class="fw-bold mb-3 text-danger" style="color: #ef4444 !important;">Access Denied</h4>
+                <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.5;">Your IP address has been blocked by the firewall due to multiple failed login attempts.</p>
+                
+                <div class="alert alert-danger text-left mb-4" role="alert" style="font-size: 0.9rem; background-color: #fdf2f2; border-color: #fde8e8; color: #9b1c1c; text-align: left;">
+                    <div class="d-flex justify-content-between mb-1" style="display: flex; justify-content: space-between;">
+                        <span class="text-muted" style="color: #6b7280 !important;">Your IP:</span>
+                        <strong style="font-weight: 600;">{{ ip }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1" style="display: flex; justify-content: space-between;">
+                        <span class="text-muted" style="color: #6b7280 !important;">Block Type:</span>
+                        <strong style="font-weight: 600;">{{ block_type }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between" style="display: flex; justify-content: space-between;">
+                        <span class="text-muted" style="color: #6b7280 !important;">Expires In:</span>
+                        <strong style="font-weight: 600;">{{ expires_in }}</strong>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3" style="line-height: 1.5; color: #6b7280;">
+                    <small>
+                        If you believe this is an error, please contact your <strong>system administrator</strong> to request unblocking.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
