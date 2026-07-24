@@ -22,7 +22,7 @@ def branding(request):
 
     # defaults
     branding_data = {
-        "brand_title": "OLS Panel",
+        "brand_title": "Fortune Developers",
         "brand_image": "/media/ow.png",
         "brand_icon": "/media/logo.png",
         "brand_color": "#ef6d19",
