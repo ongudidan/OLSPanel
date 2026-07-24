@@ -1527,7 +1527,8 @@ if [ "$IS_UPDATE" = true ]; then
             PYTHON_BIN="/root/venv/bin/python3"
         fi
     fi
-    $PYTHON_BIN /usr/local/olspanel/mypanel/manage.py migrate --noinput
+    $PYTHON_BIN /usr/local/olspanel/mypanel/manage.py migrate --fake-initial --noinput
+
     
     # 6. Restart backend panel and OpenLiteSpeed
     echo "Restarting services..."
