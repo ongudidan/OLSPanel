@@ -220,6 +220,12 @@ def monitor_failed_ssh_logins(LOG_FILE,OFFSET_FILE,keywords,TEMP_BLOCK_DURATION,
     
     
     
+def get_current_datetime():
+    if settings.USE_TZ:
+        return timezone.now()
+    else:
+        return datetime.now()
+
 def make_aware(dt):
     if dt is None:
         return None
@@ -229,8 +235,13 @@ def make_aware(dt):
         else:
             return dt
     else:
-        # Strip timezone info if any, because DB expects naive datetime
+        # Strip timezone info if any, converting to local timezone first
         if not timezone.is_naive(dt):
+            try:
+                local_tz = timezone.get_current_timezone()
+                dt = dt.astimezone(local_tz)
+            except Exception:
+                pass
             return dt.replace(tzinfo=None)
         return dt    
 
@@ -468,7 +479,7 @@ def register_failed_attempt(ip, timestamp,TEMP_BLOCK_DURATION,TEMP_BLOCK_THRESHO
 
 
 def cleanup_expired_temp_blocks(TEMP_WINDOW,TYPE):
-    now = timezone.now()
+    now = get_current_datetime()
     print(f"now {now} last {TEMP_WINDOW}.")
     inactive_blocks = BlockedIP.objects.filter(
         last_detected__lte=now - TEMP_WINDOW,
@@ -549,7 +560,7 @@ def register_second_failed_attempt(ip, attempts=1,temp_block_count=0):
     temp_block_ip(ip, temp_block_duration)
     
 def second_filter_attempt_ips(window_hours=24, threshold=30):
-    cutoff_time = timezone.now() - timedelta(hours=window_hours)
+    cutoff_time = get_current_datetime() - timedelta(hours=window_hours)
     cutoff_time = make_aware(cutoff_time)  # just to be sure
 
     old_ips = FilterBlockedIP.objects.filter(first_attempt_time__lte=cutoff_time)
