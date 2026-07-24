@@ -1494,6 +1494,51 @@ fi
 
 }
 
+# Check if OLSPanel is already installed
+IS_UPDATE=false
+if [ -d "/usr/local/olspanel/mypanel" ] && [ -f "/usr/local/olspanel/mypanel/manage.py" ]; then
+    IS_UPDATE=true
+    echo "🔍 Existing OLSPanel installation detected! Running in UPDATE/UPGRADE mode..."
+fi
+
+if [ "$IS_UPDATE" = true ]; then
+    echo "🚀 Performing safe OLSPanel update..."
+    
+    # 1. Install zip/tar if missing
+    install_zip_and_tar
+    
+    # 2. Download requirements and install/update Python dependencies
+    install_python_dependencies
+    
+    # 3. Download and extract updated files
+    unzip_and_move
+    
+    # 4. Set correct permissions
+    set_ownership_and_permissions
+    
+    # 5. Run Django migrations to align database schema
+    echo "Running database migrations..."
+    if [ -f "/etc/olspanel/PYTHON_PATH" ]; then
+        PYTHON_BIN=$(cat /etc/olspanel/PYTHON_PATH)
+    else
+        if [[ ("$OS_NAME" == "centos" || "$OS_NAME" == "almalinux") && ("$OS_VERSION" == "7" || "$OS_VERSION" == "8") ]]; then
+            PYTHON_BIN="/root/venv/bin/python3.12"
+        else
+            PYTHON_BIN="/root/venv/bin/python3"
+        fi
+    fi
+    $PYTHON_BIN /usr/local/olspanel/mypanel/manage.py migrate --noinput
+    
+    # 6. Restart backend panel and OpenLiteSpeed
+    echo "Restarting services..."
+    sudo systemctl daemon-reload
+    sudo systemctl restart cp
+    sudo /usr/local/lsws/bin/lswsctrl restart
+    
+    echo "🎉 OLSPanel updated successfully without breaking any websites or mail configurations!"
+    exit 0
+fi
+
 sudo ${PACKAGE_MANAGER} install -y rsync
 disable_kernel_message
 # Directory to save the password
