@@ -96,7 +96,9 @@ def temp_block_ip(ip,TEMP_BLOCK_DURATION):
         logger.error(f"Invalid IP address format: {ip}")
         return
     try:
-        subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_temp_block"], check=True)
+        res = subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_temp_block"], capture_output=True, text=True)
+        if "Invalid position" in res.stderr or res.returncode != 0:
+            subprocess.run(["ufw", "deny", "from", ip, "comment", "auto_temp_block"], check=True)
         # Fallback raw iptables drop at top to override any high-priority raw ACCEPT rules
         subprocess.run(["iptables", "-I", "INPUT", "1", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", "auto_temp_block"], check=True)
         firewall_changed = True
@@ -113,7 +115,9 @@ def perm_block_ip(ip):
         logger.error(f"Invalid IP address format: {ip}")
         return
     try:
-        subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_permanently_block"], check=True)
+        res = subprocess.run(["ufw", "insert", "1", "deny", "from", ip, "comment", "auto_permanently_block"], capture_output=True, text=True)
+        if "Invalid position" in res.stderr or res.returncode != 0:
+            subprocess.run(["ufw", "deny", "from", ip, "comment", "auto_permanently_block"], check=True)
         # Fallback raw iptables drop at top to override any high-priority raw ACCEPT rules
         subprocess.run(["iptables", "-I", "INPUT", "1", "-s", ip, "-j", "DROP", "-m", "comment", "--comment", "auto_permanently_block"], check=True)
         firewall_changed = True
@@ -190,6 +194,15 @@ def monitor_failed_ssh_logins(LOG_FILE,OFFSET_FILE,keywords,TEMP_BLOCK_DURATION,
 
             found, matched_keyword = find_keyword_in_line(line, keywords)
             if found:
+                line_lower = line.lower()
+                # Prevent cross-service matching
+                if TYPE == "ftp" and ("sshd" in line_lower or "ssh" in line_lower or "dropbear" in line_lower):
+                    continue
+                if TYPE == "mail" and ("sshd" in line_lower or "ssh" in line_lower or "dropbear" in line_lower):
+                    continue
+                if TYPE == "ssh" and ("pure-ftpd" in line_lower or "proftpd" in line_lower or "vsftpd" in line_lower):
+                    continue
+
                 timestamp = extract_syslog_timestamp(line)
                 if timestamp:
                     timestamp = make_aware(timestamp) 
