@@ -16,6 +16,15 @@ class FirewallMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        path = request.path_info.lower()
+        # Bypass static/media files and common asset extensions
+        if (
+            path.startswith('/static/') or 
+            path.startswith('/media/') or 
+            any(path.endswith(ext) for ext in ['.css', '.js', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.otf'])
+        ):
+            return self.get_response(request)
+
         ip = get_client_ip(request)
         if ip:
             blocked_entry = BlockedIP.objects.filter(ip_address=ip, block_type__in=["TEMP", "PERM"]).first()
