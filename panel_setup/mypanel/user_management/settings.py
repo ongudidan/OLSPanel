@@ -73,6 +73,7 @@ if os.path.isdir(MODULES_DIR):
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'users.middleware.FirewallMiddleware.FirewallMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware', 
     'whm.middleware.admin_dual_session.SeparateAdminSessionMiddleware',    
     'django.middleware.common.CommonMiddleware',
