@@ -71,7 +71,7 @@ def php_server(request, php_file, PHP_USER='root', PHP_GROUP='root'):
     env["HTTP_SEC_FETCH_DEST"] = "iframe"
     env["HTTP_SEC_FETCH_MODE"] = "navigate"
     env["HTTP_SEC_FETCH_SITE"] = "same-origin"
-    env["REMOTE_ADDR"] = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '127.0.0.1'))
+    env["REMOTE_ADDR"] = request.META.get('HTTP_CF_CONNECTING_IP', request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '127.0.0.1'))).split(',')[0].strip()
     env["PANEL_USERNAME"] = panel_user
     env["SERVER_ADDR"] = get_server_ip()
     env["SERVER_NAME"] = request.get_host().split(':')[0]
@@ -272,7 +272,7 @@ def php_serverx(request, php_file, PHP_USER='root', PHP_GROUP='root'):
     env["HTTP_SEC_FETCH_DEST"] = "iframe"
     env["HTTP_SEC_FETCH_MODE"] = "navigate"
     env["HTTP_SEC_FETCH_SITE"] = "same-origin"
-    env["REMOTE_ADDR"] = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '127.0.0.1'))
+    env["REMOTE_ADDR"] = request.META.get('HTTP_CF_CONNECTING_IP', request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', '127.0.0.1'))).split(',')[0].strip()
     env["PANEL_USERNAME"] = panel_user
     env["SERVER_ADDR"] = get_server_ip()
     env["SERVER_NAME"] = request.get_host().split(':')[0]

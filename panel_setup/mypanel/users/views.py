@@ -328,6 +328,9 @@ class CustomLoginView(LoginView):
 
     def get_client_ip(self):
         request = self.request
+        cf_ip = request.META.get('HTTP_CF_CONNECTING_IP')
+        if cf_ip:
+            return cf_ip.strip()
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         return x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR')
 
