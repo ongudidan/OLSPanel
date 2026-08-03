@@ -1915,6 +1915,32 @@ def change_ssh_port(port):
             sed_command.insert(0, sudo_command)
         subprocess.run(sed_command, check=True)
 
+        # Ensure 'Port <port>' exists in sshd_config
+        check_port_command = ["grep", "-q", f"^Port {port}", ssh_config_file]
+        if sudo_command:
+            check_port_command.insert(0, sudo_command)
+        if subprocess.run(check_port_command).returncode != 0:
+            append_command = ["bash", "-c", f"echo 'Port {port}' >> {ssh_config_file}"]
+            if sudo_command:
+                append_command.insert(0, sudo_command)
+            subprocess.run(append_command, check=True)
+
+        # Reload systemd manager configuration (essential for systemd socket activation on Ubuntu 22.10+)
+        daemon_reload_cmd = ["systemctl", "daemon-reload"]
+        if sudo_command:
+            daemon_reload_cmd.insert(0, sudo_command)
+        subprocess.run(daemon_reload_cmd, stderr=subprocess.PIPE)
+
+        # Check if systemd ssh.socket is active / present and restart it
+        socket_check_cmd = ["systemctl", "is-active", "--quiet", "ssh.socket"]
+        if sudo_command:
+            socket_check_cmd.insert(0, sudo_command)
+        if subprocess.run(socket_check_cmd).returncode == 0:
+            restart_socket_cmd = ["systemctl", "restart", "ssh.socket"]
+            if sudo_command:
+                restart_socket_cmd.insert(0, sudo_command)
+            subprocess.run(restart_socket_cmd, stderr=subprocess.PIPE)
+
         # Try restarting ssh first
         restart_command = ["systemctl", "restart", "ssh"]
         if sudo_command:
