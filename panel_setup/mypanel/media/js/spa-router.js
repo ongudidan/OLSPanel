@@ -31,7 +31,7 @@
                 if (!bar) {
                     bar = document.createElement('div');
                     bar.id = 'spa-top-loader';
-                    bar.style.cssText = 'position:fixed;top:0;left:0;height:2.5px;width:0%;z-index:9999999;background:linear-gradient(90deg,var(--brand-color,#ef6d19),#f97316,#fb923c);box-shadow:0 0 8px rgba(239,109,25,0.7);transition:width 0.15s cubic-bezier(0.1,0.85,0.25,1),opacity 0.15s ease;opacity:0;pointer-events:none;';
+                    bar.style.cssText = 'position:fixed;top:0;left:0;height:2.5px;width:0%;z-index:9999999;background:#000000;box-shadow:0 0 6px rgba(0,0,0,0.5);transition:width 0.15s cubic-bezier(0.1,0.85,0.25,1),opacity 0.15s ease;opacity:0;pointer-events:none;';
                     document.body.appendChild(bar);
                 }
                 this.element = bar;
