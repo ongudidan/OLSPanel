@@ -1,79 +1,102 @@
 {% extends "users/base.html" %}
 {% block title %}Set Default Email Address{% endblock title %}
-{% block content %}
 
-<div class="max-w-3xl space-y-5">
-    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
-            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                <i class="mdi mdi-email-sync-outline text-brand text-base"></i> Set Default (Catch-All) Email Address
-            </h4>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-email-sync-outline text-lg"></i>
+            </div>
             <div>
-                <a href="{% url 'default_email_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
-                    <i class="mdi mdi-arrow-left"></i> Back to Default Emails
-                </a>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Default (Catch-All) Email Handler</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Intercept and route all unassigned domain mail addresses to a designated fallback inbox or script processor</p>
             </div>
         </div>
+        <a href="{% url 'default_email_list' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Default Emails List</span>
+        </a>
+    </div>
 
-        <div class="p-5">
-            <form method="post" class="space-y-4 max-w-xl">
-                {% csrf_token %}
+    <!-- Main Creation Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-filter-variant text-brand text-sm"></i> Catch-All Configuration
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Domain Wildcard Routing</span>
+        </div>
 
-                <!-- Domain Selector -->
-                <div>
-                    <label for="domainx" class="block text-xs font-semibold text-slate-700 mb-1">Domain</label>
-                    <select id="domainx" name="domain" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+        <form method="post" class="p-4 space-y-3">
+            {% csrf_token %}
+
+            <!-- Domain Selector -->
+            <div class="space-y-1">
+                <label for="domainx" class="block text-[11px] font-semibold text-slate-700">Domain Name</label>
+                <div class="relative">
+                    <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <select id="domainx" name="domain" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
                         {% for domain in domains %}
                             <option value="{{ domain.id }}">{{ domain.domain }}</option>
                         {% endfor %}
                     </select>
                 </div>
+            </div>
 
-                <!-- Type Selector Radio Tiles -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-2">Forwarding Destination Type</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2.5 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer select-none transition-colors" id="labelEmailForward">
-                            <input type="radio" id="emailForward" name="forwardType" value="email" class="rounded-full border-slate-300 text-brand focus:ring-brand" checked>
-                            <div>
-                                <span class="block text-xs font-bold text-slate-800">Forward to Email</span>
-                                <span class="block text-[11px] text-slate-400">Route all unmatched mail to an inbox</span>
-                            </div>
-                        </label>
-                        <label class="flex items-center gap-2.5 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer select-none transition-colors" id="labelPipeForward">
-                            <input type="radio" id="pipeForward" name="forwardType" value="pipe" class="rounded-full border-slate-300 text-brand focus:ring-brand">
-                            <div>
-                                <span class="block text-xs font-bold text-slate-800">Pipe to Script</span>
-                                <span class="block text-[11px] text-slate-400">Process incoming mail with a script</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
+            <!-- Type Selector Radio Tiles -->
+            <div class="space-y-1.5 pt-1">
+                <label class="block text-[11px] font-bold text-slate-900 uppercase tracking-wider">Forwarding Target Mode</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <label class="flex items-center gap-2.5 p-2.5 bg-white border border-slate-200 rounded hover:bg-slate-50/80 cursor-pointer select-none transition-colors" id="labelEmailForward">
+                        <input type="radio" id="emailForward" name="forwardType" value="email" class="w-4 h-4 text-brand focus:ring-brand cursor-pointer" checked>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">Forward to Email Address</span>
+                            <span class="block text-[10px] text-slate-500">Route all unmatched messages to a specific mailbox</span>
+                        </div>
+                    </label>
 
-                <!-- Email Forward Field -->
-                <div id="emailForwardFields">
-                    <label for="email" class="block text-xs font-semibold text-slate-700 mb-1">Forward to Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="catchall@example.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                    <label class="flex items-center gap-2.5 p-2.5 bg-white border border-slate-200 rounded hover:bg-slate-50/80 cursor-pointer select-none transition-colors" id="labelPipeForward">
+                        <input type="radio" id="pipeForward" name="forwardType" value="pipe" class="w-4 h-4 text-brand focus:ring-brand cursor-pointer">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">Pipe to Handler Script</span>
+                            <span class="block text-[10px] text-slate-500">Execute background script on incoming mail</span>
+                        </div>
+                    </label>
                 </div>
+            </div>
 
-                <!-- Pipe Forward Field -->
-                <div id="pipeForwardFields" style="display: none;">
-                    <label for="path" class="block text-xs font-semibold text-slate-700 mb-1">Script File Location (Relative to Document Root)</label>
-                    <div class="flex items-center rounded-md shadow-xs">
-                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md font-mono">
-                            <i class="mdi mdi-code-tags text-sm"></i>
-                        </span>
-                        <input type="text" id="path" name="path" placeholder="catchall_pipe.php" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                    </div>
+            <!-- Email Forward Field -->
+            <div id="emailForwardFields" class="space-y-1 pt-1">
+                <label for="email" class="block text-[11px] font-semibold text-slate-700">Fallback Mailbox Address</label>
+                <div class="relative">
+                    <i class="mdi mdi-email-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="email" id="email" name="email" placeholder="catchall@yourdomain.com" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
                 </div>
+            </div>
 
-                <div class="pt-2">
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
-                        <i class="mdi mdi-check"></i> Save Default Email
-                    </button>
+            <!-- Pipe Forward Field -->
+            <div id="pipeForwardFields" style="display: none;" class="space-y-1 pt-1">
+                <label for="path" class="block text-[11px] font-semibold text-slate-700">Script Path (Relative to Document Root)</label>
+                <div class="relative">
+                    <i class="mdi mdi-code-tags absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="path" name="path" placeholder="catchall_pipe.php" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'default_email_list' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-check text-xs"></i>
+                    <span>Save Default Email</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -98,6 +121,4 @@ document.addEventListener("DOMContentLoaded", function() {
     if (pipeRadio) pipeRadio.addEventListener('change', syncType);
 });
 </script>
-
-{% include "users/footer.html" %}
 {% endblock content %}

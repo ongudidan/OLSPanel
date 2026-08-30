@@ -1,8 +1,8 @@
-{% extends "users/base.html" %}
+{% extends base_template|default:"users/base.html" %}
 {% block title %}Passkeys &amp; Security Keys{% endblock title %}
 
 {% block content %}
-<div class="space-y-3 max-w-4xl mx-auto">
+<div class="space-y-3 w-full">
 
     <!-- Top Compact Header -->
     <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
@@ -102,7 +102,7 @@
     </div>
 </div>
 
-<!-- Modal: Add Passkey -->
+<!-- Modal: Add Passkey (Reusable) -->
 <div id="passkeyModal" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
         <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
@@ -137,6 +137,10 @@
 </div>
 
 <script>
+const regOptionsUrl = "{{ api_reg_options_url|default:'/api/passkey/register/options/' }}";
+const regVerifyUrl = "{{ api_reg_verify_url|default:'/api/passkey/register/verify/' }}";
+const delPrefixUrl = "{{ api_del_prefix|default:'/api/passkey/delete/' }}";
+
 function openAddPasskeyModal() {
     document.getElementById('passkeyModal').classList.remove('hidden');
     document.getElementById('passkeyStatus').classList.add('hidden');
@@ -187,7 +191,7 @@ async function startPasskeyRegistration() {
         statusDiv.classList.remove('hidden');
 
         // 1. Fetch options from server
-        const optRes = await fetch('{% url "passkey_register_options" %}');
+        const optRes = await fetch(regOptionsUrl);
         if (!optRes.ok) throw new Error('Failed to obtain registration options.');
         const options = await optRes.json();
 
@@ -217,7 +221,7 @@ async function startPasskeyRegistration() {
 
         // 4. Verify with server
         const csrfToken = '{{ csrf_token }}';
-        const verifyRes = await fetch('{% url "passkey_register_verify" %}', {
+        const verifyRes = await fetch(regVerifyUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -251,7 +255,7 @@ async function deletePasskey(passkeyId, passkeyName) {
     const csrfToken = '{{ csrf_token }}';
 
     try {
-        const res = await fetch(`/api/passkey/delete/${passkeyId}/`, {
+        const res = await fetch(`${delPrefixUrl}${passkeyId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

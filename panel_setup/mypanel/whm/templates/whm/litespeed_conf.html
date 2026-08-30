@@ -1,112 +1,125 @@
 {% extends "whm/base.html" %}
 {% block title %}LiteSpeed Configuration{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-<div class="max-w-3xl space-y-5">
-    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
-            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                <i class="mdi mdi-server-network text-brand text-base"></i> OpenLiteSpeed Global Configuration
-            </h4>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-server-network text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">OpenLiteSpeed Global Configuration</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Tune server worker connections, keep-alive timers, GZIP compression, and LSCache engine limits</p>
+            </div>
         </div>
+        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
 
-        <div class="p-5">
-            <form method="post" action="" class="space-y-6">
-                {% csrf_token %}
+    <!-- Main Configuration Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <form method="post" action="" class="p-4 space-y-4">
+            {% csrf_token %}
 
-                <!-- Section 1: Server Connections & Performance -->
-                <div>
-                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
-                        <i class="mdi mdi-speedometer text-brand"></i> Server Connections & Tuning
-                    </h5>
-                    
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="maxConnections" class="block text-xs font-semibold text-slate-700 mb-1">Max Connections</label>
-                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxConnections" name="maxConnections" placeholder="e.g., 2000" value="{{ current_settings.maxConnections }}">
-                        </div>
-
-                        <div>
-                            <label for="maxSSLConnections" class="block text-xs font-semibold text-slate-700 mb-1">Max SSL Connections</label>
-                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxSSLConnections" name="maxSSLConnections" placeholder="e.g., 1000" value="{{ current_settings.maxSSLConnections }}">
-                        </div>
-
-                        <div>
-                            <label for="connTimeout" class="block text-xs font-semibold text-slate-700 mb-1">Connection Timeout (sec)</label>
-                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="connTimeout" name="connTimeout" placeholder="e.g., 60" value="{{ current_settings.connTimeout }}">
-                        </div>
-
-                        <div>
-                            <label for="keepAliveTimeout" class="block text-xs font-semibold text-slate-700 mb-1">Keep-Alive Timeout (sec)</label>
-                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="keepAliveTimeout" name="keepAliveTimeout" placeholder="e.g., 5" value="{{ current_settings.keepAliveTimeout }}">
-                        </div>
+            <!-- Section 1: Server Connections & Performance -->
+            <div class="space-y-2">
+                <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5 pb-1.5 border-b border-slate-100">
+                    <i class="mdi mdi-speedometer text-brand text-sm"></i> Server Connections &amp; Tuning
+                </h5>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div class="space-y-1">
+                        <label for="maxConnections" class="block text-[11px] font-semibold text-slate-700">Max Connections</label>
+                        <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxConnections" name="maxConnections" placeholder="e.g. 2000" value="{{ current_settings.maxConnections }}">
                     </div>
 
-                    <div class="mt-4 p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
-                        <div>
-                            <span class="block text-xs font-bold text-slate-800">Enable GZIP Compression</span>
-                            <span class="block text-[11px] text-slate-500">Compresses static assets (HTML, CSS, JS) over the wire to reduce bandwidth.</span>
-                        </div>
-                        <input type="checkbox" name="enableGzipCompress" id="enableGzipCompress" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.enableGzipCompress == '1' %}checked{% endif %}>
+                    <div class="space-y-1">
+                        <label for="maxSSLConnections" class="block text-[11px] font-semibold text-slate-700">Max SSL Conns</label>
+                        <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxSSLConnections" name="maxSSLConnections" placeholder="e.g. 1000" value="{{ current_settings.maxSSLConnections }}">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="connTimeout" class="block text-[11px] font-semibold text-slate-700">Conn Timeout (s)</label>
+                        <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="connTimeout" name="connTimeout" placeholder="e.g. 60" value="{{ current_settings.connTimeout }}">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="keepAliveTimeout" class="block text-[11px] font-semibold text-slate-700">Keep-Alive (s)</label>
+                        <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="keepAliveTimeout" name="keepAliveTimeout" placeholder="e.g. 5" value="{{ current_settings.keepAliveTimeout }}">
                     </div>
                 </div>
 
-                <!-- Section 2: LSCache Acceleration Engine -->
-                <div>
-                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
-                        <i class="mdi mdi-flash text-brand"></i> LiteSpeed Cache (LSCache) Module
-                    </h5>
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-800">Enable GZIP Compression</span>
+                        <span class="block text-[11px] text-slate-500">Compresses static assets (HTML, CSS, JS) over the wire to optimize throughput.</span>
+                    </div>
+                    <input type="checkbox" name="enableGzipCompress" id="enableGzipCompress" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer" {% if current_settings.enableGzipCompress == '1' %}checked{% endif %}>
+                </div>
+            </div>
 
-                    <div class="space-y-4">
-                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
-                            <div>
-                                <span class="block text-xs font-bold text-slate-800">Enable LSCache Module</span>
-                                <span class="block text-[11px] text-slate-500">Enables server-level page caching for ultra-fast WordPress, Laravel, and dynamic PHP performance.</span>
-                            </div>
-                            <input type="checkbox" name="ls_enabled" id="ls_enabled" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.ls_enabled == '1' %}checked{% endif %}>
+            <!-- Section 2: LSCache Acceleration Engine -->
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+                <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5 pb-1.5 border-b border-slate-100">
+                    <i class="mdi mdi-flash text-brand text-sm"></i> LiteSpeed Cache (LSCache) Acceleration
+                </h5>
+
+                <div class="space-y-2.5">
+                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">Enable LSCache Module</span>
+                            <span class="block text-[11px] text-slate-500">Server-level page caching module for high-speed WordPress &amp; dynamic apps.</span>
+                        </div>
+                        <input type="checkbox" name="ls_enabled" id="ls_enabled" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer" {% if current_settings.ls_enabled == '1' %}checked{% endif %}>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div class="space-y-1">
+                            <label for="totalInMemCacheSize" class="block text-[11px] font-semibold text-slate-700">In-Memory Cache (MB)</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="totalInMemCacheSize" name="totalInMemCacheSize" placeholder="e.g. 64M" value="{{ current_settings.totalInMemCacheSize }}">
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <label for="totalInMemCacheSize" class="block text-xs font-semibold text-slate-700 mb-1">In-Memory Cache (MB)</label>
-                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="totalInMemCacheSize" name="totalInMemCacheSize" placeholder="e.g., 64M" value="{{ current_settings.totalInMemCacheSize }}">
-                            </div>
-
-                            <div>
-                                <label for="expireInSeconds" class="block text-xs font-semibold text-slate-700 mb-1">Public Expire (sec)</label>
-                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="expireInSeconds" name="expireInSeconds" placeholder="e.g., 86400" value="{{ current_settings.expireInSeconds }}">
-                            </div>
-
-                            <div>
-                                <label for="privateExpireInSeconds" class="block text-xs font-semibold text-slate-700 mb-1">Private Expire (sec)</label>
-                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="privateExpireInSeconds" name="privateExpireInSeconds" placeholder="e.g., 1800" value="{{ current_settings.privateExpireInSeconds }}">
-                            </div>
+                        <div class="space-y-1">
+                            <label for="expireInSeconds" class="block text-[11px] font-semibold text-slate-700">Public Expire (sec)</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="expireInSeconds" name="expireInSeconds" placeholder="e.g. 86400" value="{{ current_settings.expireInSeconds }}">
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-700">Public Page Cache</span>
-                                <input type="checkbox" name="enableCache" id="enableCache" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.enableCache == '1' %}checked{% endif %}>
-                            </div>
+                        <div class="space-y-1">
+                            <label for="privateExpireInSeconds" class="block text-[11px] font-semibold text-slate-700">Private Expire (sec)</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="privateExpireInSeconds" name="privateExpireInSeconds" placeholder="e.g. 1800" value="{{ current_settings.privateExpireInSeconds }}">
+                        </div>
+                    </div>
 
-                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-700">Private User Cache</span>
-                                <input type="checkbox" name="enablePrivateCache" id="enablePrivateCache" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.enablePrivateCache == '1' %}checked{% endif %}>
-                            </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-700">Enable Public Cache</span>
+                            <input type="checkbox" name="enableCache" id="enableCache" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer" {% if current_settings.enableCache == '1' %}checked{% endif %}>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 border border-slate-200 rounded flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-700">Enable Private User Cache</span>
+                            <input type="checkbox" name="enablePrivateCache" id="enablePrivateCache" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer" {% if current_settings.enablePrivateCache == '1' %}checked{% endif %}>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Submit Button -->
-                <div class="pt-2">
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
-                        <i class="mdi mdi-content-save-outline"></i> Save LiteSpeed Settings
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'whm_home' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-content-save text-xs"></i>
+                    <span>Save LiteSpeed Config</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
-
-{% include "whm/footer.html" %}
 {% endblock content %}

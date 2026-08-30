@@ -367,20 +367,21 @@ def change_password(request):
         new_password1 = request.POST.get('new_password1')
         new_password2 = request.POST.get('new_password2')
         
+        context = {'base_template': 'users/base.html', 'dashboard_url': '/', 'form_title': 'Change Account Password'}
         # Validate the old password
         user = authenticate(username=request.user.username, password=old_password)
         if user is None:
             messages.error(request, "Your old password was entered incorrectly. Please enter it again.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'common/change_password.html', context)
         
         # Validate the new passwords
         if new_password1 != new_password2:
             messages.error(request, "The new passwords do not match. Please enter them again.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'common/change_password.html', context)
         
         if len(new_password1) < 6:
             messages.error(request, "The new password must be at least 6 characters long.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'common/change_password.html', context)
         
         # Update the user's password
         user.set_password(new_password1)
@@ -399,7 +400,7 @@ def change_password(request):
         return redirect(reverse_lazy('users-home'))
     else:
         # Render the change password template for GET requests
-        return render(request, 'users/change_password.html')
+        return render(request, 'common/change_password.html', {'base_template': 'users/base.html', 'dashboard_url': '/', 'form_title': 'Change Account Password'})
     
 @login_required
 @admincheck
@@ -3843,7 +3844,9 @@ def google_otp(request):
             messages.error(request, "Invalid authentication code. Please try again.")
             return redirect("google_otp")
 
-    return render(request, "users/setup_2fa.html", {
+    return render(request, "common/setup_2fa.html", {
+        "base_template": "users/base.html",
+        "dashboard_url": "/",
         "qr_url": qr_url,
         "secret": secret,
         "is_enabled": settings.two_step,
@@ -3854,7 +3857,12 @@ def google_otp(request):
 @admincheck
 def users_passkeys(request):
     passkeys = UserPasskey.objects.filter(user=request.user).order_by("-created_at")
-    return render(request, "users/passkeys.html", {
+    return render(request, "common/passkeys.html", {
+        "base_template": "users/base.html",
+        "dashboard_url": "/",
+        "api_reg_options_url": "/api/passkey/register/options/",
+        "api_reg_verify_url": "/api/passkey/register/verify/",
+        "api_del_prefix": "/api/passkey/delete/",
         "passkeys": passkeys,
     })
 

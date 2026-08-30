@@ -1,56 +1,68 @@
 {% extends "whm/base.html" %}
 {% block title %}PHP Modules{% endblock title %}
-{% block content %}
 
-<div class="max-w-2xl space-y-5">
-    <!-- Main Card -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-        <!-- Header -->
-        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-base font-semibold text-slate-800">Install PHP PECL / APT Module</h1>
-                    <p class="text-xs text-slate-500">Compile or install PHP extension modules dynamically</p>
-                </div>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-cube-send text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Install PHP PECL / APT Module</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Compile and link extension modules dynamically with real-time build streaming</p>
             </div>
         </div>
+        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
 
-        <div class="p-6 space-y-5">
-            <form id="phpModulesForm" method="post" autocomplete="off" class="space-y-4">
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-tools text-brand text-sm"></i> Module Build Parameters
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">PECL &amp; System APT Compilers</span>
+        </div>
+
+        <div class="p-4 space-y-3">
+            <form id="phpModulesForm" method="post" autocomplete="off" class="space-y-3">
                 {% csrf_token %}
 
-                <div>
-                    <label for="php_version" class="block text-xs font-semibold text-slate-700 mb-1.5">PHP Version</label>
-                    <select name="php_version" id="php_version" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all cursor-pointer">
-                        {% for version in php_versions %}
-                            <option value="{{ version }}">PHP {{ version }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="php_version" class="block text-[11px] font-semibold text-slate-700">Target PHP Version</label>
+                        <select name="php_version" id="php_version" required class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            {% for version in php_versions %}
+                                <option value="{{ version }}">PHP {{ version }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="ext" class="block text-[11px] font-semibold text-slate-700">Module / Extension Name</label>
+                        <div class="relative">
+                            <i class="mdi mdi-puzzle-plus absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="ext" name="ext" placeholder="e.g. redis, mongodb, imagick, memcached, grpc" required class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label for="ext" class="block text-xs font-semibold text-slate-700 mb-1.5">Module Name</label>
-                    <input type="text" id="ext" name="ext" placeholder="e.g. redis, mongodb, imagick, memcached" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
-                    <p class="text-[11px] text-slate-500 mt-1">Module will be installed and configured in the PHP extension directory.</p>
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" id="installBtn" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        <span>Install PHP Module</span>
+                <div class="pt-1 flex justify-end">
+                    <button type="submit" id="installBtn" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-download text-xs"></i>
+                        <span>Compile &amp; Install Module</span>
                     </button>
                 </div>
             </form>
 
             <!-- Live Output Terminal Box -->
-            <pre id="outputBox" class="hidden bg-zinc-950 text-cyan-400 font-mono text-xs p-4 rounded-lg max-h-72 overflow-y-auto whitespace-pre-wrap border border-zinc-800"></pre>
+            <pre id="outputBox" class="hidden bg-slate-950 text-emerald-400 font-mono text-[11px] p-3.5 rounded-lg max-h-72 overflow-y-auto whitespace-pre-wrap border border-slate-800 leading-relaxed shadow-inner"></pre>
         </div>
     </div>
 </div>
@@ -71,9 +83,9 @@ function installPhpModule() {
     if (!phpVersion || !ext) return;
 
     installBtn.disabled = true;
-    installBtn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Installing...</span>`;
+    installBtn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 inline mr-1 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Compiling...</span>`;
     outputBox.classList.remove('hidden');
-    outputBox.innerText = `> Installing ${ext} for PHP ${phpVersion}...\n`;
+    outputBox.innerText = `> Initializing module installation for ${ext} (PHP ${phpVersion})...\n`;
 
     fetch("{% url 'install_php_modules' %}", {
         method: 'POST',
@@ -90,10 +102,10 @@ function installPhpModule() {
         function readChunk() {
             reader.read().then(({ done, value }) => {
                 if (done) {
-                    outputBox.innerText += "\n✓ Installation finished.";
+                    outputBox.innerText += "\n✓ Build process finished.";
                     outputBox.scrollTop = outputBox.scrollHeight;
                     installBtn.disabled = false;
-                    installBtn.innerHTML = `<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install PHP Module</span>`;
+                    installBtn.innerHTML = `<i class="mdi mdi-download text-xs"></i> <span>Compile &amp; Install Module</span>`;
                     return;
                 }
                 const chunk = decoder.decode(value, { stream: true });
@@ -104,12 +116,11 @@ function installPhpModule() {
         }
         readChunk();
     })
-    .catch(error => {
-        outputBox.innerText += "\n✗ Error: " + error.message;
+    .catch(err => {
+        outputBox.innerText += `\nError: ${err}`;
         installBtn.disabled = false;
-        installBtn.innerHTML = `<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install PHP Module</span>`;
+        installBtn.innerHTML = `<i class="mdi mdi-download text-xs"></i> <span>Compile &amp; Install Module</span>`;
     });
 }
 </script>
-
 {% endblock content %}

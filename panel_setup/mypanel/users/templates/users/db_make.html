@@ -1,44 +1,67 @@
 {% extends "users/base.html" %}
 {% block title %}Manage Database{% endblock title %}
-{% block content %}
 
-<div class="max-w-2xl space-y-5">
-    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
-            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                <i class="mdi mdi-database-edit-outline text-brand text-base"></i> Manage Database: <span class="font-mono text-brand">{{ db_name }}</span>
-            </h4>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-database-edit text-lg"></i>
+            </div>
             <div>
-                <a href="{% url 'database_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
-                    <i class="mdi mdi-arrow-left"></i> Back to Databases
-                </a>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Manage Database Configuration</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Configure database naming and identity properties</p>
             </div>
         </div>
-
-        <div class="p-5">
-            <form method="post" class="space-y-4 max-w-xl">
-                {% csrf_token %}
-                <input type="hidden" id="action" name="action" value="edit">
-
-                <div>
-                    <label for="dbname" class="block text-xs font-semibold text-slate-700 mb-1">Database Name</label>
-                    <div class="flex items-center rounded-md shadow-xs">
-                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md font-mono font-semibold">
-                            {{ user.username }}_
-                        </span>
-                        <input type="text" id="dbname" name="dbname" value="{{ db_name }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                    </div>
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
-                        <i class="mdi mdi-content-save-outline"></i> {{ button|default:"Save Changes"|title }}
-                    </button>
-                </div>
-            </form>
+        <div class="flex items-center gap-2">
+            {% if db_name %}
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                Current: {{ db_name }}
+            </span>
+            {% endif %}
+            <a href="{% url 'database_list' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                <i class="mdi mdi-arrow-left text-xs"></i>
+                <span>Databases List</span>
+            </a>
         </div>
     </div>
-</div>
 
-{% include "users/footer.html" %}
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-database-outline text-brand text-sm"></i> Database Details
+            </h5>
+            <span class="text-[10px] text-slate-400 font-mono">Scoped prefix: {{ user.username }}_</span>
+        </div>
+
+        <form method="post" class="p-4 space-y-3">
+            {% csrf_token %}
+            <input type="hidden" id="action" name="action" value="edit">
+
+            <div class="space-y-1">
+                <label for="dbname" class="block text-[11px] font-semibold text-slate-700">Database Name</label>
+                <div class="flex rounded shadow-2xs">
+                    <span class="inline-flex items-center px-2.5 py-1.5 border border-r-0 border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono font-bold rounded-l select-none">
+                        {{ user.username }}_
+                    </span>
+                    <input type="text" id="dbname" name="dbname" value="{{ db_name }}" required placeholder="dbname" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-r text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'database_list' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-content-save-outline text-xs"></i>
+                    <span>{{ button|default:"Save Changes"|title }}</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock content %}

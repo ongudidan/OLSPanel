@@ -1,159 +1,197 @@
 {% extends "whm/base.html" %}
-{% block title %}Restore Backup{% endblock title %}
+{% block title %}Restore Account Backup{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
-    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-    <span>Backup restore running. Do not navigate away, please wait...</span>
-</div>
-
-<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
-    <div id="message"></div>
-    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
-</div>
-
-<div class="max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
-    <div class="px-4 py-3 bg-white border-b border-slate-200">
-        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-backup-restore text-brand"></i> Restore Account Backup
-        </h4>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-backup-restore text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Restore Account Backup</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Restore full cPanel, CyberPanel, Plesk, or OLSPanel backup archives into active accounts</p>
+            </div>
+        </div>
+        <a href="{% url 'backup_whm' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Backups List</span>
+        </a>
     </div>
-    <div class="p-5">
-        <form action="#" method="POST" id="restoreBackupForm" onsubmit="event.preventDefault(); return false;" class="space-y-5">
+
+    <!-- Active Running Alert -->
+    <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
+        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        <span class="font-semibold">Backup restore in progress. Please do not close or navigate away from this tab...</span>
+    </div>
+
+    <!-- Feedback Message Alert -->
+    <div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between shadow-xs">
+        <div id="message" class="font-medium"></div>
+        <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-base font-bold bg-transparent border-0 leading-none">&times;</button>
+    </div>
+
+    <!-- Main Restore Wizard Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-cloud-download-outline text-brand text-sm"></i> Archive Source &amp; Configuration
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Select source location</span>
+        </div>
+
+        <form action="#" method="POST" id="restoreBackupForm" onsubmit="event.preventDefault(); return false;" class="p-4 space-y-4">
             {% csrf_token %}
 
-            <!-- Section 1: Backup Location -->
+            <!-- Step 1: Source Selection Tabs / Radio Cards -->
+            <div class="space-y-1.5">
+                <label class="block text-[11px] font-semibold text-slate-700">1. Backup Source Location</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
+                        <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
+                        <i class="mdi mdi-folder-home-outline text-sm text-brand"></i>
+                        <span>Local Disk</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
+                        <input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
+                        <i class="mdi mdi-upload text-sm text-brand"></i>
+                        <span>File Upload</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
+                        <input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
+                        <i class="mdi mdi-link-variant text-sm text-brand"></i>
+                        <span>Direct URL</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
+                        <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
+                        <i class="mdi mdi-server-network text-sm text-brand"></i>
+                        <span>Remote FTP</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Dynamic Source Panels -->
             <div>
-                <div class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 mb-3 border-b border-slate-100 flex items-center gap-1.5">
-                    <i class="mdi mdi-map-marker-path text-brand text-sm"></i> 1. Backup Location &amp; Source
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3">
-                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
-                        <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
-                        <span class="truncate"><i class="mdi mdi-folder-home-outline text-brand"></i> Local</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
-                        <input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
-                        <span class="truncate"><i class="mdi mdi-upload text-brand"></i> Upload</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
-                        <input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
-                        <span class="truncate"><i class="mdi mdi-link-variant text-brand"></i> From URL</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
-                        <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
-                        <span class="truncate"><i class="mdi mdi-server-network text-indigo-600"></i> FTP</span>
-                    </label>
-                </div>
-
                 <!-- Local Backup File Selector -->
-                <div id="sbackup" style="display: none;" class="mt-3">
-                    <label for="backup-files-select" class="block text-xs font-semibold text-slate-700 mb-1">Select Local Backup Archive</label>
-                    <select id="backup-files-select" name="backup-files-select" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                    </select>
+                <div id="sbackup" style="display: none;" class="space-y-1">
+                    <label for="backup-files-select" class="block text-[11px] font-semibold text-slate-700">Select Local Backup Archive</label>
+                    <div class="relative">
+                        <i class="mdi mdi-file-archive-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <select id="backup-files-select" name="backup-files-select" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                        </select>
+                    </div>
                 </div>
 
-                <!-- FTP Fields -->
-                <div class="ftp-fields mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" style="display: none;">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label for="ftp_host" class="block font-semibold text-slate-700 mb-1">FTP Host</label>
-                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
+                <!-- FTP Credentials Panel -->
+                <div class="ftp-fields p-3 bg-slate-50 border border-slate-200 rounded space-y-2.5" style="display: none;">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div class="space-y-1">
+                            <label for="ftp_host" class="block text-[11px] font-semibold text-slate-700">FTP Server Host</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
                         </div>
-                        <div>
-                            <label for="ftp_user" class="block font-semibold text-slate-700 mb-1">FTP Username</label>
-                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_user" name="ftp_user" placeholder="username">
+                        <div class="space-y-1">
+                            <label for="ftp_user" class="block text-[11px] font-semibold text-slate-700">FTP Username</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_user" name="ftp_user" placeholder="username">
                         </div>
-                        <div>
-                            <label for="ftp_pass" class="block font-semibold text-slate-700 mb-1">FTP Password</label>
-                            <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
+                        <div class="space-y-1">
+                            <label for="ftp_pass" class="block text-[11px] font-semibold text-slate-700">FTP Password</label>
+                            <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
                         </div>
                     </div>
-                    <div class="mt-3 text-right">
-                        <button class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors" type="button" onclick="fatchbackup('ftp');">
-                            <i class="mdi mdi-download"></i> Fetch Backup Files
+                    <div class="flex justify-end">
+                        <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" type="button" onclick="fatchbackup('ftp');">
+                            <i class="mdi mdi-download text-xs"></i>
+                            <span>Fetch Backup Files</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Upload File -->
-                <div id="upload" style="display: none;" class="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
-                    <label for="bk_up" class="block font-semibold text-slate-700">Upload Backup Archive (.zip, .tar, .tar.gz)</label>
-                    <div class="flex items-center rounded-md shadow-xs">
-                        <input type="file" id="bk_up" name="bk_up" accept=".zip,.tar,.gz" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand transition-all">
-                        <button type="button" id="upload-button" class="inline-flex items-center gap-1 px-3.5 py-2 bg-brand hover:bg-brand/90 text-white border border-l-0 border-brand rounded-r-md text-xs font-semibold whitespace-nowrap transition-colors">
-                            <i class="mdi mdi-upload"></i> Start Upload &amp; Restore
+                <!-- Upload File Panel -->
+                <div id="upload" style="display: none;" class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                    <label for="bk_up" class="block text-[11px] font-semibold text-slate-700">Upload Backup Archive (.zip, .tar, .tar.gz)</label>
+                    <div class="flex items-center rounded overflow-hidden border border-slate-200 bg-white">
+                        <input type="file" id="bk_up" name="bk_up" accept=".zip,.tar,.gz" class="w-full px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none">
+                        <button type="button" id="upload-button" class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0">
+                            <i class="mdi mdi-upload text-xs"></i>
+                            <span>Upload &amp; Restore</span>
                         </button>
                     </div>
-                    <div id="file-preview" class="file-preview mt-2"></div>
+                    <div id="file-preview" class="file-preview"></div>
                 </div>
 
-                <!-- URL Import -->
-                <div id="curl" style="display: none;" class="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
-                    <label for="url-input" class="block font-semibold text-slate-700">Import Backup from Direct URL</label>
-                    <div class="flex items-center rounded-md shadow-xs">
-                        <input type="text" id="url-input" name="url-input" placeholder="https://example.com/backup.zip" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand transition-all">
-                        <button type="button" id="upload-button-url" class="inline-flex items-center gap-1 px-3.5 py-2 bg-brand hover:bg-brand/90 text-white border border-l-0 border-brand rounded-r-md text-xs font-semibold whitespace-nowrap transition-colors">
-                            <i class="mdi mdi-cloud-download"></i> Fetch &amp; Restore
+                <!-- URL Import Panel -->
+                <div id="curl" style="display: none;" class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                    <label for="url-input" class="block text-[11px] font-semibold text-slate-700">Import Backup from Direct URL</label>
+                    <div class="flex items-center rounded overflow-hidden border border-slate-200 bg-white">
+                        <input type="text" id="url-input" name="url-input" placeholder="https://example.com/backup.tar.gz" class="w-full px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none">
+                        <button type="button" id="upload-button-url" class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0">
+                            <i class="mdi mdi-cloud-download text-xs"></i>
+                            <span>Fetch &amp; Restore</span>
                         </button>
                     </div>
-                    <div class="upload-item mt-2">
+                    <div class="upload-item">
                         <div id="prog" class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" style="display: none;">
                             <div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
                         </div>
-                        <div class="progress-percentage text-[11px] text-slate-500 font-semibold mt-1" style="display: none;">0%</div>
+                        <div class="progress-percentage text-[10px] text-slate-500 font-semibold mt-1" style="display: none;">0%</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Section 2: Format & Scope -->
-            <div>
-                <div class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 mb-3 border-b border-slate-100 flex items-center gap-1.5">
-                    <i class="mdi mdi-format-list-checks text-brand text-sm"></i> 2. Backup Format &amp; Scope
-                </div>
+            <!-- Step 2: Format & Scope -->
+            <div class="space-y-3 pt-2 border-t border-slate-100">
+                <label class="block text-[11px] font-semibold text-slate-700">2. Archive Format &amp; Credentials</label>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
-                    <div>
-                        <label for="common_options" class="block text-xs font-semibold text-slate-700 mb-1">Backup Archive Format</label>
-                        <select id="common_options" name="category" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <option value="default">Default</option>
-                            <option value="cpanel">cPanel Archive</option>
-                            <option value="cyberpanel">CyberPanel</option>
-                            <option value="pleask">Plesk Panel</option>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="common_options" class="block text-[11px] font-semibold text-slate-700">Backup Format Type</label>
+                        <select id="common_options" name="category" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            <option value="default">OLSPanel Default Backup</option>
+                            <option value="cpanel">cPanel Archive (cpmove-*.tar.gz)</option>
+                            <option value="cyberpanel">CyberPanel Backup</option>
+                            <option value="pleask">Plesk Panel Backup</option>
                         </select>
                     </div>
-                    <div>
-                        <label for="dbpassc" class="block text-xs font-semibold text-slate-700 mb-1">New Account Password</label>
-                        <div class="flex items-center rounded-md shadow-xs">
-                            <input type="text" id="dbpassc" name="dbpassc" placeholder="{{ tips|default:'Set new password...' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand transition-all">
-                            <button id="gen" type="button" onclick="generateAndFillPassword();" class="inline-flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-l-0 border-slate-200 rounded-r-md text-xs font-semibold whitespace-nowrap transition-colors">
-                                <i class="mdi mdi-refresh"></i> Generate
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <label for="dbpassc" class="block text-[11px] font-semibold text-slate-700">New Account Password</label>
+                            <span class="text-[10px] text-slate-400">Optional override</span>
+                        </div>
+                        <div class="flex rounded border border-slate-200 overflow-hidden focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-white">
+                            <input type="text" id="dbpassc" name="dbpassc" placeholder="Set or generate password" class="w-full px-2.5 py-1.5 bg-transparent border-0 text-xs text-slate-800 font-mono focus:outline-none">
+                            <button id="gen" type="button" onclick="generateAndFillPassword();" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border-l border-slate-200 transition-colors flex items-center gap-1 shrink-0 cursor-pointer">
+                                <i class="mdi mdi-key-variant text-xs text-brand"></i>
+                                <span>Generate</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Restore Scope</label>
-                    <div class="flex flex-wrap gap-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold text-slate-900">
-                            <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="rounded border-slate-300 text-brand focus:ring-brand">
+                <!-- Restore Scope -->
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-semibold text-slate-700">Restore Scope Components</label>
+                    <div class="flex flex-wrap items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded text-xs">
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold text-slate-900 select-none">
+                            <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand">
                             <span>Full Backup</span>
                         </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
+                        <span class="text-slate-300">|</span>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
                             <span>Database</span>
                         </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
                             <span>Email</span>
                         </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
                             <span>DNS</span>
                         </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
                             <span>Files</span>
                         </label>
                     </div>
@@ -161,9 +199,13 @@
             </div>
 
             <!-- Action Button for Local / Fetched file -->
-            <div id="file_name" class="pt-2" style="display: none;">
-                <button class="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md shadow-xs transition-colors" type="button" onclick="issuebackup();">
-                    <i class="mdi mdi-play"></i> Start Backup Restore
+            <div id="file_name" class="pt-2 border-t border-slate-100 flex items-center justify-between" style="display: none;">
+                <a href="{% url 'backup_whm' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" type="button" onclick="issuebackup();">
+                    <i class="mdi mdi-play text-xs"></i>
+                    <span>Start Backup Restore</span>
                 </button>
             </div>
         </form>
@@ -196,7 +238,7 @@ function toggleFtpFields() {
         if (ftpFields) ftpFields.style.display = 'block';
     } else if (backupType === 'local') {
         if (sbackup) sbackup.style.display = 'block';
-        if (localFileSelect) localFileSelect.style.display = 'block';
+        if (localFileSelect) localFileSelect.style.display = 'flex';
         fatchbackup('local');
     } else if (backupType === 'upload') {
         if (uploadSection) uploadSection.style.display = 'block';
@@ -268,10 +310,10 @@ function issuebackup(backupfile) {
         var message = responseData.message || "Operation completed.";
         if (alertContainer) alertContainer.style.display = "flex";
         if (responseData.status === 'success') {
-            alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
             messageDisplay.innerText = message;
         } else {
-            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
             messageDisplay.innerText = message;
         }
     })
@@ -279,7 +321,7 @@ function issuebackup(backupfile) {
         if (responseDisplay) responseDisplay.style.display = 'none';
         if (alertContainer) {
             alertContainer.style.display = "flex";
-            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
             messageDisplay.innerText = error.toString();
         }
     });
@@ -317,7 +359,7 @@ function fatchbackup(type) {
     .then(function(data) {
         if (responseDisplay) responseDisplay.style.display = 'none';
         if (data.status === 'success' && data.files && data.files.length > 0) {
-            if (file_id) file_id.style.display = "block";
+            if (file_id) file_id.style.display = "flex";
             var selectElement = document.getElementById('backup-files-select');
             selectElement.innerHTML = '';
             data.files.forEach(function(file) {
@@ -329,7 +371,7 @@ function fatchbackup(type) {
         } else {
             if (alertContainer) {
                 alertContainer.style.display = "flex";
-                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
                 messageDisplay.innerText = data.message || "No backup files found in this location.";
             }
         }
@@ -338,7 +380,7 @@ function fatchbackup(type) {
         if (responseDisplay) responseDisplay.style.display = 'none';
         if (alertContainer) {
             alertContainer.style.display = "flex";
-            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
             messageDisplay.innerText = "Failed to fetch backup files. Please try again.";
         }
     });
@@ -374,12 +416,12 @@ function uploadFile(file) {
     formData.append('target_name', 'backup');
 
     $('#file-preview').html(
-        '<div id="uploadingFileProgress" class="p-3 border border-slate-200 rounded-lg bg-white text-xs">' +
-            '<div class="flex justify-between font-bold text-slate-800 mb-1.5">' +
+        '<div id="uploadingFileProgress" class="p-2.5 border border-slate-200 rounded bg-white text-xs space-y-1.5">' +
+            '<div class="flex justify-between font-bold text-slate-800">' +
                 '<span class="truncate font-mono">' + file.name + '</span>' +
                 '<span class="progress-percentage text-brand font-semibold">0%</span>' +
             '</div>' +
-            '<div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">' +
+            '<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">' +
                 '<div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>' +
             '</div>' +
         '</div>'
@@ -491,5 +533,4 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
-
 {% endblock content %}

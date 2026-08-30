@@ -1,130 +1,113 @@
 {% extends "users/base.html" %}
 {% block title %}Email Accounts{% endblock title %}
-{% block content %}
 
-<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
-    <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
-        <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-email-outline text-brand text-base"></i> Email Accounts
-        </h4>
-    </div>
-    <div class="p-4">
-        <!-- Top Toolbar -->
-        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
-            <div>
-                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'email_accounts_create' %}">
-                    <i class="mdi mdi-plus"></i> Create Email Account
-                </a>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-email-multiple-outline text-lg"></i>
             </div>
             <div>
-                <form id="emailSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
-                    <div class="relative w-64">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                        </span>
-                        <input type="text" id="emailSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search email accounts..." autocomplete="off">
-                        <button type="button" id="clearEmailSearchBtn" onclick="clearEmailSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
-                    </div>
-                </form>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Email Inboxes &amp; Mailboxes</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Manage domain email accounts, storage quotas, password credentials, and webmail access</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {{ emails|length }} Account{{ emails|length|pluralize }}
+            </span>
+            <a href="{% url 'email_accounts_create' %}" class="px-2.5 py-1 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1">
+                <i class="mdi mdi-plus text-xs"></i>
+                <span>Create Email</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Table Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-mailbox-open-outline text-brand text-sm"></i> Configured Accounts
+            </h5>
+            <div class="relative w-full sm:w-60">
+                <i class="mdi mdi-magnify absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="emailSearchInput" class="w-full pl-8 pr-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Search email accounts..." autocomplete="off">
             </div>
         </div>
 
-        <!-- Emails Table -->
-        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+        <div class="overflow-x-auto">
             <table class="w-full text-xs text-left text-slate-700">
-                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                     <tr>
-                        <th class="px-3.5 py-2.5">Email Address</th>
-                        <th class="px-3.5 py-2.5">Storage Quota</th>
-                        <th class="px-3.5 py-2.5 text-right">Actions</th>
+                        <th class="px-3 py-2">Email Address</th>
+                        <th class="px-3 py-2 w-48">Storage Consumption</th>
+                        <th class="px-3 py-2 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="emailTableBody" class="divide-y divide-slate-100">
                     {% for email in emails %}
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-3.5 py-2.5 font-bold text-slate-900 flex items-center gap-2">
-                            <div class="w-6 h-6 rounded bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-3 py-2 font-mono font-bold text-slate-900 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-emerald-50 text-brand flex items-center justify-center shrink-0 border border-emerald-100">
                                 <i class="mdi mdi-at text-xs"></i>
                             </div>
-                            <span class="font-mono">{{ email.email }}</span>
+                            <span>{{ email.email }}</span>
                         </td>
-                        <td class="px-3.5 py-2.5">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                        <td class="px-3 py-2">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                 {{ email.disk_usage }} / {{ email.DiskUsage }}
                             </span>
                         </td>
-                        <td class="px-3.5 py-2.5 text-right space-x-1 whitespace-nowrap">
-                            <a href="{% url 'email_edit' email.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors">
-                                <i class="mdi mdi-square-edit-outline"></i> Manage
+                        <td class="px-3 py-2 text-right space-x-1 whitespace-nowrap">
+                            <a href="{% url 'email_edit' email.id %}" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors">
+                                <i class="mdi mdi-key-outline text-xs"></i> Password &amp; Quota
                             </a>
-                            <a href="{% url 'webmail_service' email.email %}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-xs transition-colors">
-                                <i class="mdi mdi-email-open-outline"></i> Check Webmail
+                            <a href="{% url 'email_delete' email.id %}" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors" onclick="return confirm('Are you sure you want to delete mailbox {{ email.email }}? All saved messages and folders will be removed.');">
+                                <i class="mdi mdi-delete-outline text-xs"></i> Delete
                             </a>
-                            <form action="{% url 'email_delete' email.id %}" method="post" class="inline m-0">
-                                {% csrf_token %}
-                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors cursor-pointer" onclick="return confirm('Are you sure you want to delete {{ email.email }}?');">
-                                    <i class="mdi mdi-delete-outline"></i> Delete
-                                </button>
-                            </form>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="3" class="px-3.5 py-6 text-center text-slate-400">No email accounts found.</td>
+                        <td colspan="3" class="px-3 py-6 text-center text-slate-400 italic">No email accounts created yet.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <div id="noEmailResults" class="text-center text-slate-400 text-xs py-4" style="display:none;">No matching email accounts found.</div>
+        <div id="noResults" class="text-center text-slate-400 text-xs py-4" style="display:none;">No matching email accounts found.</div>
     </div>
 </div>
 
 <script>
-const emailSearchInput = document.getElementById("emailSearchInput");
-const clearEmailBtn = document.getElementById("clearEmailSearchBtn");
-const emailTableBody = document.getElementById("emailTableBody");
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById('emailSearchInput');
+    const tableRows = document.querySelectorAll('#emailTableBody tr');
+    const noResults = document.getElementById('noResults');
 
-function performEmailFilter() {
-    const q = (emailSearchInput ? emailSearchInput.value : "").trim().toLowerCase();
-    const rows = emailTableBody ? Array.from(emailTableBody.querySelectorAll("tr")) : [];
-    let visibleCount = 0;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const q = searchInput.value.trim().toLowerCase();
+            let visible = 0;
 
-    if (clearEmailBtn) {
-        clearEmailBtn.style.display = q ? "block" : "none";
+            tableRows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if (!q || text.includes(q)) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (noResults) {
+                noResults.style.display = (visible === 0 && tableRows.length > 0) ? 'block' : 'none';
+            }
+        });
     }
-
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        if (!q || text.includes(q)) {
-            row.style.display = "";
-            visibleCount++;
-        } else {
-            row.style.display = "none";
-        }
-    });
-
-    const noResults = document.getElementById("noEmailResults");
-    if (noResults) {
-        noResults.style.display = (visibleCount === 0 && rows.length > 0) ? "block" : "none";
-    }
-}
-
-function clearEmailSearch() {
-    if (emailSearchInput) {
-        emailSearchInput.value = "";
-        performEmailFilter();
-        emailSearchInput.focus();
-    }
-}
-
-if (emailSearchInput) {
-    emailSearchInput.addEventListener("input", performEmailFilter);
-}
+});
 </script>
-
-{% include "users/footer.html" %}
 {% endblock content %}

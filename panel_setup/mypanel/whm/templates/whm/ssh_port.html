@@ -1,32 +1,66 @@
 {% extends "whm/base.html" %}
-{% block title %}SSH Port{% endblock title %}
-{% block content %}
+{% block title %}Change SSH Port{% endblock title %}
 
-<div class="max-w-xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
-    <div class="px-4 py-3 bg-white border-b border-slate-200">
-        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-console-network text-brand"></i> Change SSH Port
-        </h4>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-console-network text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Change SSH Port</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Update OpenSSH daemon listening port and reconfigure firewall rules</p>
+            </div>
+        </div>
+        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Dashboard</span>
+        </a>
     </div>
-    <div class="p-5">
-        <form method="post" enctype="multipart/form-data" class="space-y-4">
+
+    <!-- Main SSH Port Form Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-shield-key-outline text-brand text-sm"></i> Daemon Listening Port
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Default: Port 22</span>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="p-4 space-y-3">
             {% csrf_token %}
 
-            <div>
-                <label for="port" class="block text-xs font-semibold text-slate-700 mb-1">SSH Port</label>
-                <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="port" name="port" value="{{ port }}" required>
-                <div class="text-[11px] text-slate-500 mt-2">
-                    Default SSH port is <code class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800 border border-slate-200">22</code>. Changing to a custom port (e.g. <code class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800 border border-slate-200">2222</code> or <code class="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-800 border border-slate-200">30</code>) enhances security by mitigating automated brute-force attacks.
+            <div class="space-y-1">
+                <label for="port" class="block text-[11px] font-semibold text-slate-700">SSH Port Number</label>
+                <div class="relative">
+                    <i class="mdi mdi-pound absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="port" name="port" value="{{ port }}" placeholder="22" required min="1" max="65535">
                 </div>
             </div>
 
-            <div class="pt-2">
-                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
-                    <i class="mdi mdi-content-save-outline"></i> Save SSH Port
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded text-xs text-slate-600 space-y-1">
+                <div class="flex items-center gap-1.5 font-semibold text-slate-800">
+                    <i class="mdi mdi-information-outline text-brand text-sm"></i> Security Best Practice
+                </div>
+                <p class="text-[11px] text-slate-500 m-0 leading-relaxed">
+                    Changing the default port from <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-800 font-bold">22</code> to a custom port (e.g. <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-800">2222</code> or <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200 text-slate-800">30</code>) significantly reduces automated bot brute-force attempts on your server.
+                </p>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'whm_home' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-content-save text-xs"></i>
+                    <span>Save SSH Port</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
-
 {% endblock content %}

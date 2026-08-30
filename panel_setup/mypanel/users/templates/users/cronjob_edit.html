@@ -1,150 +1,176 @@
 {% extends "users/base.html" %}
 {% block title %}Edit Cron Job{% endblock title %}
-{% block content %}
 
-<div class="max-w-3xl space-y-5">
-    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
-            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                <i class="mdi mdi-clock-edit-outline text-brand text-base"></i> Edit Cron Job
-            </h4>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-clock-edit-outline text-lg"></i>
+            </div>
             <div>
-                <a href="{% url 'cronjob_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
-                    <i class="mdi mdi-arrow-left"></i> Back to Cron Jobs
-                </a>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Edit Scheduled Cron Task</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Update cron timing intervals and command execution payload</p>
             </div>
         </div>
+        <a href="{% url 'cronjob_list' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Cron Jobs List</span>
+        </a>
+    </div>
 
-        <div class="p-5">
-            <form method="post" class="space-y-4 max-w-2xl">
-                {% csrf_token %}
+    <!-- Main Form Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-calendar-edit text-brand text-sm"></i> Modify Schedule &amp; Command
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Standard 5-part crontab syntax</span>
+        </div>
 
-                <!-- Common Settings Preset -->
-                <div>
-                    <label for="common_options" class="block text-xs font-semibold text-slate-700 mb-1">Common Presets</label>
-                    <select id="common_options" onchange="select_common_option()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                        <option value="--">-- Select a Common Setting Preset --</option>
-                        <option value="* * * * *">Once Per Minute (* * * * *)</option>
-                        <option value="*/5 * * * *">Once Per Five Minutes (*/5 * * * *)</option>
+        <form method="post" class="p-4 space-y-3">
+            {% csrf_token %}
+
+            <!-- Common Settings Preset -->
+            <div class="space-y-1">
+                <label for="common_options" class="block text-[11px] font-semibold text-slate-700">Quick Schedule Presets</label>
+                <div class="relative">
+                    <i class="mdi mdi-flash-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <select id="common_options" onchange="select_common_option()" class="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                        <option value="--">-- Choose a Common Schedule Preset --</option>
+                        <option value="* * * * *">Every Minute (* * * * *)</option>
+                        <option value="*/5 * * * *">Every 5 Minutes (*/5 * * * *)</option>
                         <option value="0,30 * * * *">Twice Per Hour (0,30 * * * *)</option>
                         <option value="0 * * * *">Once Per Hour (0 * * * *)</option>
                         <option value="0 0,12 * * *">Twice Per Day (0 0,12 * * *)</option>
-                        <option value="0 0 * * *">Once Per Day (0 0 * * *)</option>
-                        <option value="0 0 * * 0">Once Per Week (0 0 * * 0)</option>
-                        <option value="0 0 1,15 * *">On the 1st and 15th of the Month (0 0 1,15 * *)</option>
-                        <option value="0 0 1 * *">Once Per Month (0 0 1 * *)</option>
-                        <option value="0 0 1 1 *">Once Per Year (0 0 1 1 *)</option>
+                        <option value="0 0 * * *">Once Per Day at Midnight (0 0 * * *)</option>
+                        <option value="0 0 * * 0">Once Per Week on Sunday (0 0 * * 0)</option>
+                        <option value="0 0 1,15 * *">1st and 15th of the Month (0 0 1,15 * *)</option>
+                        <option value="0 0 1 * *">1st Day of Every Month (0 0 1 * *)</option>
+                        <option value="0 0 1 1 *">Once Per Year on Jan 1st (0 0 1 1 *)</option>
                     </select>
                 </div>
+            </div>
 
-                <!-- 5 Cron Fields Grid -->
-                <div class="space-y-3 pt-2">
-                    <!-- Minute -->
-                    <div>
-                        <label for="minute" class="block text-xs font-semibold text-slate-700 mb-1">Minute</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                            <input id="minute" name="minute" type="text" value="{{ cronjob.minute|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <select id="minute_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('minute')">
-                                <option value="--">-- Quick Presets --</option>
-                                <option value="*">Once Per Minute (*)</option>
-                                <option value="*/2">Once Per Two Minutes (*/2)</option>
-                                <option value="*/5">Once Per Five Minutes (*/5)</option>
-                                <option value="*/10">Once Per Ten Minutes (*/10)</option>
-                                <option value="*/15">Once Per Fifteen Minutes (*/15)</option>
-                                <option value="0,30">Once Per Thirty Minutes (0,30)</option>
-                                <option value="0">:00 At beginning of hour (0)</option>
-                                <option value="15">:15 At quarter past hour (15)</option>
-                                <option value="30">:30 At half past hour (30)</option>
-                                <option value="45">:45 At quarter to hour (45)</option>
-                            </select>
-                        </div>
-                    </div>
+            <!-- 5 Cron Fields Grid -->
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+                <span class="block text-[11px] font-bold text-slate-900 uppercase tracking-wider">Cron Schedule Specification</span>
 
-                    <!-- Hour -->
-                    <div>
-                        <label for="hour" class="block text-xs font-semibold text-slate-700 mb-1">Hour</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                            <input id="hour" name="hour" type="text" value="{{ cronjob.hour|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <select id="hour_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('hour')">
-                                <option value="--">-- Quick Presets --</option>
-                                <option value="*">Every Hour (*)</option>
-                                <option value="*/2">Every Other Hour (*/2)</option>
-                                <option value="*/3">Every Third Hour (*/3)</option>
-                                <option value="*/4">Every Fourth Hour (*/4)</option>
-                                <option value="*/6">Every Sixth Hour (*/6)</option>
-                                <option value="0,12">Every Twelve Hours (0,12)</option>
-                                <option value="0">12:00 AM Midnight (0)</option>
-                                <option value="6">6:00 AM (6)</option>
-                                <option value="12">12:00 PM Noon (12)</option>
-                                <option value="18">6:00 PM (18)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Day -->
-                    <div>
-                        <label for="day" class="block text-xs font-semibold text-slate-700 mb-1">Day of Month</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                            <input id="day" name="day" type="text" value="{{ cronjob.day|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <select id="day_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('day')">
-                                <option value="--">-- Quick Presets --</option>
-                                <option value="*">Every Day (*)</option>
-                                <option value="*/2">Every Other Day (*/2)</option>
-                                <option value="1,15">On 1st and 15th (1,15)</option>
-                                <option value="1">1st of month (1)</option>
-                                <option value="15">15th of month (15)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Month -->
-                    <div>
-                        <label for="month" class="block text-xs font-semibold text-slate-700 mb-1">Month</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                            <input id="month" name="month" type="text" value="{{ cronjob.month|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <select id="month_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('month')">
-                                <option value="--">-- Quick Presets --</option>
-                                <option value="*">Every Month (*)</option>
-                                <option value="*/2">Every Other Month (*/2)</option>
-                                <option value="*/4">Every Quarter (*/4)</option>
-                                <option value="1,7">Every Six Months (1,7)</option>
-                                <option value="1">January (1)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Weekday -->
-                    <div>
-                        <label for="weekday" class="block text-xs font-semibold text-slate-700 mb-1">Weekday</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                            <input id="weekday" name="weekday" type="text" value="{{ cronjob.weekday|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <select id="weekday_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('weekday')">
-                                <option value="--">-- Quick Presets --</option>
-                                <option value="*">Every Day (*)</option>
-                                <option value="1-5">Every Weekday Mon-Fri (1-5)</option>
-                                <option value="0,6">Every Weekend Day Sat-Sun (0,6)</option>
-                                <option value="1,3,5">Every Mon, Wed, Fri (1,3,5)</option>
-                                <option value="2,4">Every Tue, Thu (2,4)</option>
-                                <option value="0">Sunday (0)</option>
-                                <option value="1">Monday (1)</option>
-                            </select>
-                        </div>
+                <!-- Minute -->
+                <div class="space-y-1">
+                    <label for="minute" class="block text-[11px] font-semibold text-slate-700">Minute (0 - 59)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input id="minute" name="minute" type="text" value="{{ cronjob.minute|default:'*' }}" required class="sm:col-span-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-center font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        <select id="minute_options" class="sm:col-span-3 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" onchange="select_single_option('minute')">
+                            <option value="--">-- Quick Presets --</option>
+                            <option value="*">Every Minute (*)</option>
+                            <option value="*/2">Every 2 Minutes (*/2)</option>
+                            <option value="*/5">Every 5 Minutes (*/5)</option>
+                            <option value="*/10">Every 10 Minutes (*/10)</option>
+                            <option value="*/15">Every 15 Minutes (*/15)</option>
+                            <option value="0,30">Every 30 Minutes (0,30)</option>
+                            <option value="0">At Top of Hour :00 (0)</option>
+                            <option value="15">At Quarter Past :15 (15)</option>
+                            <option value="30">At Half Past :30 (30)</option>
+                            <option value="45">At Quarter To :45 (45)</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Command Input -->
-                <div class="pt-2">
-                    <label for="command" class="block text-xs font-semibold text-slate-700 mb-1">Command to Execute</label>
-                    <input type="text" id="command" name="comm" value="{{ cronjob.command }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                <!-- Hour -->
+                <div class="space-y-1">
+                    <label for="hour" class="block text-[11px] font-semibold text-slate-700">Hour (0 - 23)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input id="hour" name="hour" type="text" value="{{ cronjob.hour|default:'*' }}" required class="sm:col-span-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-center font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        <select id="hour_options" class="sm:col-span-3 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" onchange="select_single_option('hour')">
+                            <option value="--">-- Quick Presets --</option>
+                            <option value="*">Every Hour (*)</option>
+                            <option value="*/2">Every Other Hour (*/2)</option>
+                            <option value="*/3">Every 3 Hours (*/3)</option>
+                            <option value="*/4">Every 4 Hours (*/4)</option>
+                            <option value="*/6">Every 6 Hours (*/6)</option>
+                            <option value="0,12">Every 12 Hours (0,12)</option>
+                            <option value="0">12:00 AM Midnight (0)</option>
+                            <option value="6">6:00 AM (6)</option>
+                            <option value="12">12:00 PM Noon (12)</option>
+                            <option value="18">6:00 PM (18)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div class="pt-3">
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
-                        <i class="mdi mdi-content-save-outline"></i> Update Cron Job
-                    </button>
+                <!-- Day -->
+                <div class="space-y-1">
+                    <label for="day" class="block text-[11px] font-semibold text-slate-700">Day of Month (1 - 31)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input id="day" name="day" type="text" value="{{ cronjob.day|default:'*' }}" required class="sm:col-span-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-center font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        <select id="day_options" class="sm:col-span-3 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" onchange="select_single_option('day')">
+                            <option value="--">-- Quick Presets --</option>
+                            <option value="*">Every Day (*)</option>
+                            <option value="*/2">Every Other Day (*/2)</option>
+                            <option value="1,15">On 1st and 15th (1,15)</option>
+                            <option value="1">1st of Month (1)</option>
+                            <option value="15">15th of Month (15)</option>
+                        </select>
+                    </div>
                 </div>
-            </form>
-        </div>
+
+                <!-- Month -->
+                <div class="space-y-1">
+                    <label for="month" class="block text-[11px] font-semibold text-slate-700">Month (1 - 12)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input id="month" name="month" type="text" value="{{ cronjob.month|default:'*' }}" required class="sm:col-span-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-center font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        <select id="month_options" class="sm:col-span-3 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" onchange="select_single_option('month')">
+                            <option value="--">-- Quick Presets --</option>
+                            <option value="*">Every Month (*)</option>
+                            <option value="*/2">Every Other Month (*/2)</option>
+                            <option value="*/4">Every Quarter (*/4)</option>
+                            <option value="1,7">Every Six Months (1,7)</option>
+                            <option value="1">January Only (1)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Weekday -->
+                <div class="space-y-1">
+                    <label for="weekday" class="block text-[11px] font-semibold text-slate-700">Weekday (0 - 6, Sun=0)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <input id="weekday" name="weekday" type="text" value="{{ cronjob.weekday|default:'*' }}" required class="sm:col-span-1 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-center font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        <select id="weekday_options" class="sm:col-span-3 px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" onchange="select_single_option('weekday')">
+                            <option value="--">-- Quick Presets --</option>
+                            <option value="*">Every Day (*)</option>
+                            <option value="1-5">Weekdays Mon-Fri (1-5)</option>
+                            <option value="0,6">Weekend Sat-Sun (0,6)</option>
+                            <option value="1,3,5">Mon, Wed, Fri (1,3,5)</option>
+                            <option value="2,4">Tue, Thu (2,4)</option>
+                            <option value="0">Sunday (0)</option>
+                            <option value="1">Monday (1)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Command Input -->
+            <div class="space-y-1 pt-2 border-t border-slate-100">
+                <label for="command" class="block text-[11px] font-semibold text-slate-700">Command to Execute</label>
+                <div class="relative">
+                    <i class="mdi mdi-console-line absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="command" name="comm" value="{{ cronjob.command }}" required placeholder="/usr/bin/php /home/{{ user.username }}/public_html/cron.php" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'cronjob_list' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-content-save-outline text-xs"></i>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -186,6 +212,4 @@ function select_single_option(fieldId) {
     }
 }
 </script>
-
-{% include "users/footer.html" %}
 {% endblock content %}

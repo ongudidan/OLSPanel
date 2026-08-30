@@ -1,83 +1,102 @@
 {% extends "whm/base.html" %}
 {% block title %}Add New Domain{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-<div class="max-w-2xl">
-    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
-            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                <i class="mdi mdi-plus-circle-outline text-brand text-base"></i> Add New Domain
-            </h4>
-            <a href="{% url 'domain_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
-                <i class="mdi mdi-arrow-left"></i> Back to Domains
-            </a>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-web-plus text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Create Virtual Host / Add Domain</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Configure a new domain vhost listener mapping, web root directory, and PHP runtime</p>
+            </div>
+        </div>
+        <a href="{% url 'domain_list_all' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Domains List</span>
+        </a>
+    </div>
+
+    <!-- Main Domain Creation Form Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-server-network text-brand text-sm"></i> Virtual Host Parameters
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Auto-configures OpenLiteSpeed and PowerDNS</span>
         </div>
 
-        <div class="p-5">
-            <form method="post" enctype="multipart/form-data" class="space-y-4">
-                {% csrf_token %}
+        <form method="post" enctype="multipart/form-data" class="p-4 space-y-3">
+            {% csrf_token %}
 
-                <!-- Owner Account Selection -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="xuser">Domain Owner Account</label>
-                    <select name="user" id="xuser" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        {% for auser in all_user %}
-                            <option value="{{ auser.username }}">{{ auser.username }}</option>
-                        {% endfor %}
-                    </select>
-                    <p class="text-[11px] text-slate-400 mt-1">Assign domain ownership and root home directory permissions.</p>
-                </div>
-
-                <!-- Domain Name -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="id_domain">Domain Name</label>
-                    <div class="flex items-center rounded-md shadow-xs">
-                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md">
-                            <i class="mdi mdi-web text-xs"></i>
-                        </span>
-                        {{ user_form.domain }}
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Enter fully qualified domain name (e.g. example.com).</p>
-                </div>
-
-                <!-- Document Root Options -->
-                <div class="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-lg space-y-3">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" id="dtype" name="dtype">
-                        <label class="text-xs font-semibold text-slate-700 cursor-pointer m-0 select-none" for="dtype" id="docRootLabel">
-                            Share root directory (/home/username/public_html)
-                        </label>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Document Root Path</label>
-                        <div class="flex items-center rounded-md shadow-xs">
-                            <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-white text-slate-500 text-xs rounded-l-md">
-                                <i class="mdi mdi-folder-outline text-xs"></i>
-                            </span>
-                            {{ user_form.path }}
-                        </div>
+            <!-- Row 1: Owner Account & PHP Version -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-semibold text-slate-700" for="xuser">Domain Owner Account</label>
+                    <div class="relative">
+                        <i class="mdi mdi-account-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <select name="user" id="xuser" required class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            {% for auser in all_user %}
+                                <option value="{{ auser.username }}">{{ auser.username }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
 
-                <!-- PHP Version -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="php_version">PHP Handler Version</label>
-                    <select name="php_version" id="php_version" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        {% for version in php_versions %}
-                            <option value="{{ version }}">{{ version }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-semibold text-slate-700" for="php_version">PHP Handler Version</label>
+                    <div class="relative">
+                        <select name="php_version" id="php_version" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            {% for version in php_versions %}
+                                <option value="{{ version }}">PHP {{ version }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2: Fully Qualified Domain Name -->
+            <div class="space-y-1">
+                <label class="block text-[11px] font-semibold text-slate-700" for="id_domain">Domain Name (FQDN)</label>
+                <div class="relative">
+                    <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" name="domain" id="id_domain" required placeholder="example.com" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                </div>
+            </div>
+
+            <!-- Row 3: Document Root Options -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2.5">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" class="w-3.5 h-3.5 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer" id="dtype" name="dtype">
+                    <label class="text-xs font-semibold text-slate-700 cursor-pointer m-0 select-none" for="dtype" id="docRootLabel">
+                        Share primary root directory (/home/username/public_html)
+                    </label>
                 </div>
 
-                <!-- Action Button -->
-                <div class="pt-2">
-                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
-                        <i class="mdi mdi-plus-circle-outline"></i> Add Domain
-                    </button>
+                <div class="space-y-1">
+                    <label class="block text-[11px] font-semibold text-slate-700" for="id_path">Relative Document Root</label>
+                    <div class="relative">
+                        <i class="mdi mdi-folder-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" name="path" id="id_path" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="/public_html">
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'domain_list_all' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-plus-circle text-xs"></i>
+                    <span>Add Domain</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -88,15 +107,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const pathInput = document.getElementById("id_path");
     const userSelect = document.getElementById("xuser");
     const label = document.getElementById("docRootLabel");
-
-    // Enhance standard form fields with Tailwind styles
-    if (domainInput) {
-        domainInput.className = "w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all";
-        domainInput.placeholder = "example.com";
-    }
-    if (pathInput) {
-        pathInput.className = "w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all";
-    }
 
     function updatePath() {
         if (!pathInput || !domainInput) return;
@@ -115,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateLabel() {
         if (!userSelect || !label) return;
         const selectedUser = userSelect.value || "user";
-        label.textContent = `Share root directory (/home/${selectedUser}/public_html)`;
+        label.textContent = `Share primary root directory (/home/${selectedUser}/public_html)`;
     }
 
     checkbox?.addEventListener("change", updatePath);
@@ -131,6 +141,4 @@ document.addEventListener("DOMContentLoaded", function () {
     updateLabel();
 });
 </script>
-
-{% include "whm/footer.html" %}
 {% endblock content %}

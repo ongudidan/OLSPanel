@@ -1,0 +1,137 @@
+{% extends base_template|default:"users/base.html" %}
+{% block title %}PHP Error Configuration{% endblock title %}
+
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-alert-box-outline text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Domain PHP Error Reporting</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Configure runtime error reporting levels, display triggers, and log file destinations per virtual host</p>
+            </div>
+        </div>
+        <a href="{% if back_url %}{% url back_url %}{% else %}{% url 'domain_list' %}{% endif %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Domains List</span>
+        </a>
+    </div>
+
+    <!-- Active Loading Alert -->
+    <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
+        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        <span class="font-semibold">Loading domain PHP error configuration...</span>
+    </div>
+
+    <!-- Main Configuration Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-bug-outline text-brand text-sm"></i> Error Handling Directives
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Applied per-vhost</span>
+        </div>
+
+        <form method="post" action="" class="p-4 space-y-3">
+            {% csrf_token %}
+
+            <!-- Row 1: Domain & Reporting Level -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="space-y-1">
+                    <label for="php_domain" class="block text-[11px] font-semibold text-slate-700">Select Domain</label>
+                    <div class="relative">
+                        <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <select name="php_domain" id="php_domain" onchange="loadPhpErrors(this.value)" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            <option value="">-- Choose a domain --</option>
+                            {% for domain in php_domain %}
+                                <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="error_reporting" class="block text-[11px] font-semibold text-slate-700">Error Reporting Level</label>
+                    <div class="relative">
+                        <select name="error_reporting" id="error_reporting" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            <option value="0">Off (Suppress all errors in production)</option>
+                            <option value="32767">All Errors (E_ALL - Full Debugging)</option>
+                            <option value="32759">All Except Notices (E_ALL &amp; ~E_NOTICE)</option>
+                            <option value="1">Fatal Errors Only (E_ERROR)</option>
+                            <option value="2">Warnings (E_WARNING)</option>
+                            <option value="4">Parse Errors (E_PARSE)</option>
+                            <option value="8">Notices (E_NOTICE)</option>
+                            <option value="8192">Deprecated Warnings (E_DEPRECATED)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toggles (Compact) -->
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+                <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-800">Write Errors to Domain Error Log</span>
+                        <span class="block text-[10px] text-slate-500">Safely log all exceptions and PHP warnings to disk without exposing them to visitors.</span>
+                    </div>
+                    <input type="checkbox" name="log_errors" id="log_errors" value="On" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer">
+                </label>
+
+                <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-800">Display Errors on Webpage Output</span>
+                        <span class="block text-[10px] text-slate-500">Prints trace stacks directly on the browser screen (recommended only during active staging).</span>
+                    </div>
+                    <input type="checkbox" name="display_errors" id="display_errors" value="On" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand cursor-pointer">
+                </label>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% if back_url %}{% url back_url %}{% else %}{% url 'domain_list' %}{% endif %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-content-save text-xs"></i>
+                    <span>Save Error Settings</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const fetchUrl = "{{ fetch_url|default:'/fatch_php_error/' }}";
+
+function loadPhpErrors(selectedDomain) {
+    if (!selectedDomain) return;
+    const responseDisplay = document.getElementById('responseContainer');
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+
+    fetch(`${fetchUrl}?php_domain=${encodeURIComponent(selectedDomain)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+    })
+    .then(response => {
+        if (response.error_reporting) {
+            document.getElementById('error_reporting').value = response.error_reporting.trim();
+        }
+        document.getElementById('log_errors').checked = (response.log_errors === 'On' || response.log_errors === '1');
+        document.getElementById('display_errors').checked = (response.display_errors === 'On' || response.display_errors === '1');
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        console.error('Error fetching PHP error settings:', error);
+    });
+}
+</script>
+{% endblock content %}

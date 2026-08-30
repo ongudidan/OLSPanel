@@ -1,89 +1,96 @@
 {% extends "whm/base.html" %}
 {% block title %}PHP Versions{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-<div class="max-w-2xl space-y-5">
-    <!-- Response / Alert notifications -->
-    <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-700 rounded-lg text-xs flex items-center gap-2">
-        <svg class="animate-spin h-4 w-4 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-        <span>Installing PHP version packages, please wait...</span>
-    </div>
-
-    <div id="alertContainer" class="hidden p-4 rounded-xl border text-xs" role="alert">
-        <div class="flex items-center justify-between">
-            <div id="message" class="font-medium"></div>
-            <button type="button" onclick="this.parentElement.parentElement.classList.add('hidden');" class="text-slate-400 hover:text-slate-600 cursor-pointer text-base leading-none">&times;</button>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-cube-scan text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">PHP Versions Manager</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Install and manage supported LiteSpeed PHP runtime binaries</p>
+            </div>
         </div>
+        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Dashboard</span>
+        </a>
     </div>
 
-    <!-- Main Card -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+    <!-- Active Loading Alert -->
+    <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
+        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        <span class="font-semibold">Installing PHP version packages from repository, please wait...</span>
+    </div>
+
+    <!-- Feedback Alert -->
+    <div id="alertContainer" class="hidden p-3 rounded-lg border text-xs flex items-center justify-between shadow-xs" role="alert">
+        <div id="message" class="font-medium"></div>
+        <button type="button" onclick="this.parentElement.classList.add('hidden');" class="text-slate-400 hover:text-slate-600 cursor-pointer text-base leading-none">&times;</button>
+    </div>
+
+    <!-- Main Versions Table Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-server-plus text-brand text-sm"></i> Supported PHP Binaries
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">LiteSpeed PHP Packages</span>
+        </div>
+
         {% csrf_token %}
-        <!-- Header -->
-        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-base font-semibold text-slate-800">Available PHP Versions</h1>
-                    <p class="text-xs text-slate-500">Install and manage supported PHP binary versions</p>
-                </div>
-            </div>
-        </div>
 
-        <div class="p-6">
-            <!-- Table -->
-            <div class="overflow-x-auto border border-slate-200 rounded-lg">
-                <table class="w-full text-left text-xs text-slate-600">
-                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                        <tr>
-                            <th class="px-4 py-3">Version</th>
-                            <th class="px-4 py-3">Installation Status</th>
-                            <th class="px-4 py-3 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for version, status in php_versions_status.items %}
-                        <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-4 py-3 font-semibold text-slate-800">PHP {{ version }}</td>
-                            <td class="px-4 py-3">
-                                {% if status == 'installed' %}
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-600 text-white shadow-xs">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                        <span>Installed</span>
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-rose-600 text-white shadow-xs">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        <span>Not Installed</span>
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="px-4 py-3 text-right">
-                                {% if status == 'uninstall' %}
-                                    <button type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-lg shadow-xs transition-colors cursor-pointer" onclick="installphp('{{ version }}', this)">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                        <span>Install</span>
-                                    </button>
-                                {% else %}
-                                    <span class="text-slate-400 text-xs">&mdash;</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="px-4 py-8 text-center text-slate-400">No PHP versions found.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2">Runtime Version</th>
+                        <th class="px-3.5 py-2">Installation Status</th>
+                        <th class="px-3.5 py-2 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for version, status in php_versions_status.items %}
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-3.5 py-2 font-semibold text-slate-900 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                                <i class="mdi mdi-language-php text-xs"></i>
+                            </div>
+                            <span>PHP {{ version }}</span>
+                        </td>
+                        <td class="px-3.5 py-2">
+                            {% if status == 'installed' %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Installed
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Not Installed
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3.5 py-2 text-right">
+                            {% if status == 'uninstall' %}
+                                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" onclick="installphp('{{ version }}', this)">
+                                    <i class="mdi mdi-download text-xs"></i>
+                                    <span>Install</span>
+                                </button>
+                            {% else %}
+                                <span class="text-slate-400 text-[11px]">&mdash;</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs">No PHP versions configured.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -99,12 +106,12 @@ function installphp(version, btn) {
 
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `<svg class="animate-spin h-3 w-3 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Installing...</span>`;
+        btn.innerHTML = `<svg class="animate-spin h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Installing...</span>`;
     }
-    if (responseDisplay) responseDisplay.classList.remove('hidden');
-    if (alertContainer) alertContainer.classList.add('hidden');
 
-    fetch('{% url 'php_install_now' %}', {
+    if (responseDisplay) responseDisplay.classList.remove('hidden');
+
+    fetch("{% url 'php_install_now' %}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -112,39 +119,35 @@ function installphp(version, btn) {
         },
         body: new URLSearchParams({ 'php_version': version })
     })
-    .then(response => {
-        if (!response.ok) throw new Error('Network error: ' + response.statusText);
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (responseDisplay) responseDisplay.classList.add('hidden');
         if (alertContainer && messageDisplay) {
-            alertContainer.className = (data.status === 'success') 
-                ? "p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs" 
-                : "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-xs";
-            messageDisplay.innerText = data.message;
+            alertContainer.className = (data.status === 'success')
+                ? "p-3 rounded-lg border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shadow-xs"
+                : "p-3 rounded-lg border bg-rose-50 border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-xs";
+            messageDisplay.innerText = data.message || 'Operation completed.';
             alertContainer.classList.remove('hidden');
         }
         if (data.status === 'success') {
-            setTimeout(() => { location.reload(); }, 2000);
+            setTimeout(() => location.reload(), 1500);
         } else if (btn) {
             btn.disabled = false;
-            btn.innerHTML = `<svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install</span>`;
+            btn.innerHTML = `<i class="mdi mdi-download text-xs"></i> <span>Install</span>`;
         }
     })
     .catch(error => {
         if (responseDisplay) responseDisplay.classList.add('hidden');
         if (alertContainer && messageDisplay) {
-            alertContainer.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-xs";
-            messageDisplay.innerText = "Error: " + error.toString();
+            alertContainer.className = "p-3 rounded-lg border bg-rose-50 border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-xs";
+            messageDisplay.innerText = 'Error: ' + error.message;
             alertContainer.classList.remove('hidden');
         }
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = `<svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install</span>`;
+            btn.innerHTML = `<i class="mdi mdi-download text-xs"></i> <span>Install</span>`;
         }
     });
 }
 </script>
-
 {% endblock content %}

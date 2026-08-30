@@ -2,77 +2,154 @@
 {% block title %}{{ title }} Package{% endblock title %}
 
 {% block content %}
-<div class="max-w-2xl bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
-    <div class="px-4 py-3 bg-white border-b border-slate-200">
-        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-package-variant-closed text-brand"></i> {{ title }} Package
-        </h4>
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-package-variant-closed text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">{{ title }} Hosting Package</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Define tenant disk storage quotas, bandwidth allowances, database, and domain limits</p>
+            </div>
+        </div>
+        <a href="{% url 'package_list' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Packages List</span>
+        </a>
     </div>
-    <div class="p-5">
-        <form method="post" action="" class="space-y-4">
+
+    <!-- Package Configuration Form Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-tune-vertical text-brand text-sm"></i> Resource Limits &amp; Quotas
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Enter 0 for unlimited allocation</span>
+        </div>
+        
+        <form method="post" action="" class="p-4 space-y-3">
             {% csrf_token %}
             
-            <div>
-                <label for="pkg_name" class="block text-xs font-semibold text-slate-700 mb-1">Package Name <span class="text-rose-500">*</span></label>
-                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="pkg_name" name="name" value="{{ pk.name|default:'' }}" placeholder="e.g. Standard" required>
+            <!-- Row 1: Name and Limit Action -->
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div class="sm:col-span-8 space-y-1">
+                    <label for="pkg_name" class="block text-[11px] font-semibold text-slate-700">Package Name</label>
+                    <div class="relative">
+                        <i class="mdi mdi-tag-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="pkg_name" name="name" value="{{ pk.name|default:'' }}" placeholder="e.g. Starter Plan" required>
+                    </div>
+                </div>
+
+                <div class="sm:col-span-4 space-y-1">
+                    <label for="limit_action" class="block text-[11px] font-semibold text-slate-700">Quota Exceeded Action</label>
+                    <div class="relative">
+                        <select class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" id="limit_action" name="limit_action" required>
+                            <option value="0" {% if pk.enforce_disk_limits == 0 %}selected{% endif %}>Keep Active (Notify Only)</option>
+                            <option value="1" {% if pk.enforce_disk_limits == 1 %}selected{% endif %}>Suspend Account Automatically</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
+            <!-- Row 2: Storage & Bandwidth -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label for="disk_space" class="block text-xs font-semibold text-slate-700 mb-1">Disk Space (MB)</label>
-                    <input name="disk_space" type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="disk_space" value="{{ pk.disk_space|default:'0' }}" placeholder="0 for unlimited" required>
-                    <span class="text-slate-400 text-[11px]">Enter 0 for Unlimited</span>
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="disk_space" class="block text-[11px] font-semibold text-slate-700">Disk Space Quota (MB)</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-harddisk absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input name="disk_space" type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="disk_space" value="{{ pk.disk_space|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
-                <div>
-                    <label for="bandwidth" class="block text-xs font-semibold text-slate-700 mb-1">Bandwidth (MB)</label>
-                    <input name="bandwidth" type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="bandwidth" value="{{ pk.bandwidth|default:'0' }}" placeholder="0 for unlimited" required>
-                    <span class="text-slate-400 text-[11px]">Enter 0 for Unlimited</span>
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="bandwidth" class="block text-[11px] font-semibold text-slate-700">Monthly Bandwidth (MB)</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-swap-vertical absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input name="bandwidth" type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="bandwidth" value="{{ pk.bandwidth|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
             </div>
 
+            <!-- Row 3: Mail & Databases -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label for="email_accounts" class="block text-xs font-semibold text-slate-700 mb-1">Email Accounts</label>
-                    <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="email_accounts" name="email_accounts" placeholder="0 for unlimited" value="{{ pk.email_accounts|default:'0' }}" required>
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="email_accounts" class="block text-[11px] font-semibold text-slate-700">Email Accounts Limit</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-email-multiple-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="email_accounts" name="email_accounts" value="{{ pk.email_accounts|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
-                <div>
-                    <label for="databases" class="block text-xs font-semibold text-slate-700 mb-1">Databases</label>
-                    <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="databases" name="databases" placeholder="0 for unlimited" value="{{ pk.databases|default:'0' }}" required>
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="databases" class="block text-[11px] font-semibold text-slate-700">MySQL Databases Limit</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-database-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="databases" name="databases" value="{{ pk.databases|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
             </div>
 
+            <!-- Row 4: FTP & Domains -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label for="ftp_accounts" class="block text-xs font-semibold text-slate-700 mb-1">FTP Accounts</label>
-                    <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="ftp_accounts" name="ftp_accounts" value="{{ pk.ftp_accounts|default:'0' }}" placeholder="0 for unlimited" required>
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="ftp_accounts" class="block text-[11px] font-semibold text-slate-700">FTP Accounts Limit</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-folder-key-network-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_accounts" name="ftp_accounts" value="{{ pk.ftp_accounts|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
-                <div>
-                    <label for="allowed_domains" class="block text-xs font-semibold text-slate-700 mb-1">Allowed Domains</label>
-                    <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="allowed_domains" name="allowed_domains" value="{{ pk.allowed_domains|default:'0' }}" placeholder="0 for unlimited" required>
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="allowed_domains" class="block text-[11px] font-semibold text-slate-700">Allowed Addon Domains</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="allowed_domains" name="allowed_domains" value="{{ pk.allowed_domains|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label for="allowed_subdomains" class="block text-xs font-semibold text-slate-700 mb-1">Allowed Sub Domains</label>
-                    <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="allowed_subdomains" name="allowed_subdomains" value="{{ pk.allowed_subdomains|default:'0' }}" placeholder="0 for unlimited" required>
+            <!-- Row 5: Subdomains -->
+            <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                    <label for="allowed_subdomains" class="block text-[11px] font-semibold text-slate-700">Allowed Subdomains</label>
+                    <span class="text-[10px] text-slate-400">0 = Unlimited</span>
                 </div>
-                <div>
-                    <label for="limit_action" class="block text-xs font-semibold text-slate-700 mb-1">Limit Exceeded Action</label>
-                    <select class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" id="limit_action" name="limit_action" required>
-                        <option value="0" {% if pk.enforce_disk_limits == 0 %}selected{% endif %}>Keep Active</option>
-                        <option value="1" {% if pk.enforce_disk_limits == 1 %}selected{% endif %}>Suspend</option>
-                    </select>
+                <div class="relative">
+                    <i class="mdi mdi-domain absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="allowed_subdomains" name="allowed_subdomains" value="{{ pk.allowed_subdomains|default:'0' }}" placeholder="0" required>
                 </div>
             </div>
 
-            <div class="pt-3 flex items-center gap-2">
-                <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md shadow-sm transition-all">
-                    <i class="mdi mdi-check mr-1"></i> {{ title }} Package
-                </button>
-                <a href="{% url 'package_list' %}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-all">
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'package_list' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
                     Cancel
                 </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-check text-xs"></i>
+                    <span>{{ title }} Package</span>
+                </button>
             </div>
         </form>
     </div>

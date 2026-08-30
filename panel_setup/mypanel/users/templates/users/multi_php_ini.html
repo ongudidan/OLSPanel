@@ -1,124 +1,179 @@
 {% extends "users/base.html" %}
 {% block title %}MultiPHP INI Editor{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
-    <div id="message"></div>
-    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
-</div>
-
-<div class="max-w-2xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
-    <div class="px-4 py-3 bg-white border-b border-slate-200">
-        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-language-php text-brand"></i> MultiPHP INI Configuration
-        </h4>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-tune-vertical text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">MultiPHP INI Configuration</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Manage per-domain PHP execution limits, upload capacities, and runtime environment directives</p>
+            </div>
+        </div>
+        <a href="{% url 'domain_list' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Domains List</span>
+        </a>
     </div>
-    <div class="p-5">
-        <form method="post" action="" class="space-y-4">
+
+    <!-- Active Loading Alert -->
+    <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
+        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        <span class="font-semibold">Fetching domain PHP settings, please wait...</span>
+    </div>
+
+    <!-- Feedback Message Alert -->
+    <div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between shadow-xs">
+        <div id="message" class="font-medium"></div>
+        <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-base font-bold bg-transparent border-0 leading-none">&times;</button>
+    </div>
+
+    <!-- Main INI Form Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                <i class="mdi mdi-language-php text-brand text-sm"></i> Domain INI Directives
+            </h5>
+            <span class="text-[10px] text-slate-400 font-medium">Applied per Virtual Host</span>
+        </div>
+
+        <form method="post" action="" class="p-4 space-y-3">
             {% csrf_token %}
 
-            <div>
-                <label for="php_domain" class="block text-xs font-semibold text-slate-700 mb-1">Select Domain</label>
-                <select name="php_domain" id="php_domain" onchange="load(this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                    <option value="">-- Choose Domain --</option>
-                    {% for domain in php_domain %}
-                        <option value="{{ domain.domain }}">{{ domain.domain }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2">
-                <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                <span>Fetching domain PHP settings, please wait...</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="memory_limit" class="block text-xs font-semibold text-slate-700 mb-1">Memory Limit</label>
-                    <input type="text" id="memory_limit" name="memory_limit" placeholder="e.g. 256M" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                </div>
-                <div>
-                    <label for="upload_max_filesize" class="block text-xs font-semibold text-slate-700 mb-1">Upload Max Filesize</label>
-                    <input type="text" id="upload_max_filesize" name="upload_max_filesize" placeholder="e.g. 64M" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="post_max_size" class="block text-xs font-semibold text-slate-700 mb-1">Post Max Size</label>
-                    <input type="text" id="post_max_size" name="post_max_size" placeholder="e.g. 64M" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                </div>
-                <div>
-                    <label for="max_execution_time" class="block text-xs font-semibold text-slate-700 mb-1">Max Execution Time (seconds)</label>
-                    <input type="text" id="max_execution_time" name="max_execution_time" placeholder="e.g. 300" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label for="max_input_time" class="block text-xs font-semibold text-slate-700 mb-1">Max Input Time (seconds)</label>
-                    <input type="text" id="max_input_time" name="max_input_time" placeholder="e.g. 60" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                </div>
-                <div>
-                    <label for="error_reporting" class="block text-xs font-semibold text-slate-700 mb-1">Error Reporting Level</label>
-                    <select name="error_reporting" id="error_reporting" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                        <option value="0">Off (No Errors)</option>
-                        <option value="32767">All Errors (E_ALL)</option>
-                        <option value="32759">All Except Notices (E_ALL &amp; ~E_NOTICE)</option>
-                        <option value="1">Fatal Errors (E_ERROR)</option>
-                        <option value="2">Warnings (E_WARNING)</option>
-                        <option value="4">Parse Errors (E_PARSE)</option>
-                        <option value="8">Notices (E_NOTICE)</option>
-                        <option value="8192">Deprecated Notices (E_DEPRECATED)</option>
+            <!-- Domain Select -->
+            <div class="space-y-1">
+                <label for="php_domain" class="block text-[11px] font-semibold text-slate-700">Target Virtual Host / Domain</label>
+                <div class="relative">
+                    <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <select name="php_domain" id="php_domain" onchange="load(this.value)" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                        <option value="">-- Select a Domain to Configure --</option>
+                        {% for domain in php_domain %}
+                            <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>
 
-            <div class="space-y-2 pt-1">
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                    <span class="text-xs font-bold text-slate-800">allow_url_fopen</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="allow_url_fopen" id="allow_url_fopen" class="sr-only peer" value="On">
-                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-                    </label>
+            <!-- Limit Fields Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-1">
+                <div class="space-y-1">
+                    <label for="memory_limit" class="block text-[11px] font-semibold text-slate-700">memory_limit</label>
+                    <div class="relative">
+                        <i class="mdi mdi-memory absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="memory_limit" name="memory_limit" placeholder="e.g. 256M" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                    <span class="text-xs font-bold text-slate-800">allow_url_include</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="allow_url_include" id="allow_url_include" class="sr-only peer" value="On">
-                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-                    </label>
+                <div class="space-y-1">
+                    <label for="upload_max_filesize" class="block text-[11px] font-semibold text-slate-700">upload_max_filesize</label>
+                    <div class="relative">
+                        <i class="mdi mdi-cloud-upload-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="upload_max_filesize" name="upload_max_filesize" placeholder="e.g. 64M" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                    <span class="text-xs font-bold text-slate-800">file_uploads</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="file_uploads" id="file_uploads" class="sr-only peer" value="On">
-                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-                    </label>
+                <div class="space-y-1">
+                    <label for="post_max_size" class="block text-[11px] font-semibold text-slate-700">post_max_size</label>
+                    <div class="relative">
+                        <i class="mdi mdi-file-upload-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="post_max_size" name="post_max_size" placeholder="e.g. 64M" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                    <span class="text-xs font-bold text-slate-800">Log Errors to File</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="log_errors" id="log_errors" class="sr-only peer" value="On">
-                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
-                    </label>
+                <div class="space-y-1">
+                    <label for="max_execution_time" class="block text-[11px] font-semibold text-slate-700">max_execution_time (sec)</label>
+                    <div class="relative">
+                        <i class="mdi mdi-timer-sand absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="max_execution_time" name="max_execution_time" placeholder="e.g. 300" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
-                    <span class="text-xs font-bold text-slate-800">Display Errors on Page</span>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" name="display_errors" id="display_errors" class="sr-only peer" value="On">
-                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+                <div class="space-y-1">
+                    <label for="max_input_time" class="block text-[11px] font-semibold text-slate-700">max_input_time (sec)</label>
+                    <div class="relative">
+                        <i class="mdi mdi-clock-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="max_input_time" name="max_input_time" placeholder="e.g. 60" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="error_reporting" class="block text-[11px] font-semibold text-slate-700">error_reporting</label>
+                    <div class="relative">
+                        <i class="mdi mdi-alert-circle-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <select name="error_reporting" id="error_reporting" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            <option value="0">Off (0 - No Errors)</option>
+                            <option value="32767">All Errors (E_ALL)</option>
+                            <option value="32759">All Except Notices (E_ALL &amp; ~E_NOTICE)</option>
+                            <option value="1">Fatal Errors (E_ERROR)</option>
+                            <option value="2">Warnings (E_WARNING)</option>
+                            <option value="4">Parse Errors (E_PARSE)</option>
+                            <option value="8">Notices (E_NOTICE)</option>
+                            <option value="8192">Deprecated (E_DEPRECATED)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toggles & Switches Grid -->
+            <div class="pt-2 border-t border-slate-100 space-y-2">
+                <span class="block text-[11px] font-bold text-slate-900 uppercase tracking-wider">Features &amp; Error Directives</span>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">allow_url_fopen</span>
+                            <span class="block text-[10px] text-slate-500">Allow remote file access</span>
+                        </div>
+                        <input type="checkbox" name="allow_url_fopen" id="allow_url_fopen" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">allow_url_include</span>
+                            <span class="block text-[10px] text-slate-500">Allow remote file includes</span>
+                        </div>
+                        <input type="checkbox" name="allow_url_include" id="allow_url_include" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">file_uploads</span>
+                            <span class="block text-[10px] text-slate-500">Enable HTTP file uploads</span>
+                        </div>
+                        <input type="checkbox" name="file_uploads" id="file_uploads" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">log_errors</span>
+                            <span class="block text-[10px] text-slate-500">Write errors to domain log</span>
+                        </div>
+                        <input type="checkbox" name="log_errors" id="log_errors" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/70 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">display_errors</span>
+                            <span class="block text-[10px] text-slate-500">Show error output in HTML</span>
+                        </div>
+                        <input type="checkbox" name="display_errors" id="display_errors" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
                     </label>
                 </div>
             </div>
 
-            <div class="pt-2">
-                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
-                    <i class="mdi mdi-content-save-outline"></i> Save Settings
+            <!-- Action Controls -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a href="{% url 'domain_list' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="mdi mdi-content-save-outline text-xs"></i>
+                    <span>Apply INI Changes</span>
                 </button>
             </div>
         </form>
@@ -157,15 +212,13 @@ function load(selectedDomain) {
         $('#file_uploads').prop('checked', data.file_uploads === '1' || String(data.file_uploads).toLowerCase() === 'on');
 
         if (data.error_reporting) $('#error_reporting').val(data.error_reporting.trim());
-        $('#log_errors').prop('checked', data.log_errors === 'On');
-        $('#display_errors').prop('checked', data.display_errors === 'On');
+        $('#log_errors').prop('checked', data.log_errors === 'On' || data.log_errors === '1');
+        $('#display_errors').prop('checked', data.display_errors === 'On' || data.display_errors === '1');
     })
     .catch(error => {
         if (responseDisplay) responseDisplay.style.display = 'none';
-        console.error('Error:', error);
+        console.error('Error loading INI settings:', error);
     });
 }
 </script>
-
-{% include "users/footer.html" %}
 {% endblock content %}

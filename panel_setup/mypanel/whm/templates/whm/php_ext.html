@@ -1,75 +1,72 @@
 {% extends "whm/base.html" %}
 {% block title %}PHP Extensions{% endblock title %}
-{% block content %}
 
-<div class="max-w-4xl space-y-5">
-    <!-- Main Card -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
-        <!-- Header -->
-        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-base font-semibold text-slate-800">PHP Extension Manager</h1>
-                    <p class="text-xs text-slate-500">Install and manage modules and extensions for PHP versions</p>
-                </div>
+{% block content %}
+<div class="space-y-3 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-puzzle-outline text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">PHP Extension Manager</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Install, manage, and remove compiled extensions and libraries across installed PHP versions</p>
             </div>
         </div>
+        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
 
-        <div class="p-6 space-y-4">
-            {% csrf_token %}
+    <!-- Active Loading Alert -->
+    <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
+        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        <span class="font-semibold">Loading PHP extensions from package repository...</span>
+    </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                <div>
-                    <label for="php_version" class="block text-xs font-semibold text-slate-700 mb-1.5">Select PHP Version</label>
-                    <select name="php_version" id="php_version" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all cursor-pointer">
+    <!-- Main Extension Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <label for="php_version" class="text-xs font-bold text-slate-900 m-0">PHP Version:</label>
+                <div class="relative">
+                    <select name="php_version" id="php_version" class="px-2.5 py-1 bg-white border border-slate-200 rounded text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
                         <option value="">-- Choose PHP Version --</option>
                         {% for version in php_versions %}
                             <option value="{{ version }}">PHP {{ version }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div id="extSearchCol" class="hidden">
-                    <label for="extSearchInput" class="block text-xs font-semibold text-slate-700 mb-1.5">Filter Extensions</label>
-                    <div class="relative">
-                        <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        <input type="text" id="extSearchInput" class="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="Search extension..." oninput="filterExtTable(this.value)">
-                    </div>
-                </div>
             </div>
 
-            <!-- Loading response -->
-            <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-700 rounded-lg text-xs flex items-center gap-2">
-                <svg class="animate-spin h-4 w-4 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
-                <span>Loading extensions from package repository, please wait...</span>
+            <!-- Search Filter -->
+            <div id="extSearchCol" class="hidden relative w-48">
+                <i class="mdi mdi-magnify absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" id="extSearchInput" class="w-full pl-7 pr-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand" placeholder="Filter extension..." oninput="filterExtTable(this.value)">
             </div>
+        </div>
 
-            <!-- Table -->
-            <div class="overflow-x-auto border border-slate-200 rounded-lg">
-                <table class="w-full text-left text-xs text-slate-600">
-                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                        <tr>
-                            <th class="px-4 py-3">Extension Name</th>
-                            <th class="px-4 py-3">Status</th>
-                            <th class="px-4 py-3 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="extension-list" class="divide-y divide-slate-100">
-                        <tr>
-                            <td colspan="3" class="px-4 py-8 text-center text-slate-400">Select a PHP version above to load available extensions.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        {% csrf_token %}
+
+        <!-- Extensions Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2">Extension Module</th>
+                        <th class="px-3.5 py-2">Status</th>
+                        <th class="px-3.5 py-2 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="extension-list" class="divide-y divide-slate-100">
+                    <tr>
+                        <td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs">Select a PHP version above to load available extensions.</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -83,7 +80,7 @@ document.getElementById('php_version').addEventListener('change', function () {
     const extSearchCol = document.getElementById('extSearchCol');
 
     if (!version) {
-        extensionList.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">Select a PHP version above to load available extensions.</td></tr>';
+        extensionList.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs">Select a PHP version above to load available extensions.</td></tr>';
         if (extSearchCol) extSearchCol.classList.add('hidden');
         return;
     }
@@ -109,16 +106,20 @@ document.getElementById('php_version').addEventListener('change', function () {
 
             available.forEach(ext => {
                 html += `<tr data-ext="${ext.toLowerCase()}" class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-4 py-3 font-semibold text-slate-800">${ext}</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-600 text-white shadow-xs">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            <span>Installed</span>
+                    <td class="px-3.5 py-2 font-semibold text-slate-900 flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                            <i class="mdi mdi-puzzle text-xs"></i>
+                        </div>
+                        <span>${ext}</span>
+                    </td>
+                    <td class="px-3.5 py-2">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Installed
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-right">
-                        <button type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-xs transition-colors cursor-pointer" onclick="manageExtension('uninstall', '${ext}', '${data.selected_version}', this)">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <td class="px-3.5 py-2 text-right">
+                        <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded border border-rose-200 transition-colors cursor-pointer" onclick="manageExtension('uninstall', '${ext}', '${data.selected_version}', this)">
+                            <i class="mdi mdi-trash-can-outline text-xs"></i>
                             <span>Uninstall</span>
                         </button>
                     </td>
@@ -127,29 +128,34 @@ document.getElementById('php_version').addEventListener('change', function () {
 
             not_available.forEach(ext => {
                 html += `<tr data-ext="${ext.toLowerCase()}" class="hover:bg-slate-50/80 transition-colors">
-                    <td class="px-4 py-3 text-slate-700">${ext}</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-semibold bg-slate-600 text-white shadow-xs">
+                    <td class="px-3.5 py-2 text-slate-700 flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-slate-50 text-slate-400 border border-slate-200 flex items-center justify-center shrink-0">
+                            <i class="mdi mdi-puzzle-outline text-xs"></i>
+                        </div>
+                        <span>${ext}</span>
+                    </td>
+                    <td class="px-3.5 py-2">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
                             Available
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-right">
-                        <button type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-lg shadow-xs transition-colors cursor-pointer" onclick="manageExtension('install', '${ext}', '${data.selected_version}', this)">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <td class="px-3.5 py-2 text-right">
+                        <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" onclick="manageExtension('install', '${ext}', '${data.selected_version}', this)">
+                            <i class="mdi mdi-download text-xs"></i>
                             <span>Install</span>
                         </button>
                     </td>
                 </tr>`;
             });
 
-            extensionList.innerHTML = html || '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">No extensions found for this version.</td></tr>';
+            extensionList.innerHTML = html || '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs">No extensions found for this version.</td></tr>';
         } else {
-            extensionList.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400">No extensions found.</td></tr>';
+            extensionList.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs">No extensions found.</td></tr>';
         }
     })
     .catch(error => {
         if (responseContainer) responseContainer.classList.add('hidden');
-        extensionList.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-rose-500">Error loading extensions: ' + error.toString() + '</td></tr>';
+        extensionList.innerHTML = '<tr><td colspan="3" class="px-4 py-8 text-center text-rose-500 text-xs">Error loading extensions: ' + error.toString() + '</td></tr>';
     });
 });
 
@@ -166,7 +172,7 @@ function manageExtension(action, extension, php_version, btn) {
     const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
     btn.disabled = true;
     const oldText = btn.innerHTML;
-    btn.innerHTML = `<svg class="animate-spin h-3 w-3 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>${action === 'install' ? 'Installing...' : 'Uninstalling...'}</span>`;
+    btn.innerHTML = `<svg class="animate-spin h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>${action === 'install' ? 'Installing...' : 'Uninstalling...'}</span>`;
 
     fetch("{% url 'php_ext_manage' %}", {
         method: 'POST',
@@ -197,5 +203,4 @@ function manageExtension(action, extension, php_version, btn) {
     });
 }
 </script>
-
 {% endblock content %}

@@ -1,109 +1,123 @@
 {% extends "whm/base.html" %}
-{% block title %}Backup Schedule{% endblock title %}
-{% block content %}
+{% block title %}Backup Schedules &amp; Automation{% endblock title %}
 
-<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
-    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
-        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-archive-outline text-brand"></i> Backup Schedule Management
-        </h4>
+{% block content %}
+<div class="space-y-3 max-w-5xl mx-auto">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-archive-sync-outline text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Backup Schedules &amp; Automation</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Configure automated daily/weekly backup cron tasks, archive components, and offsite FTP retention</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'backup_restore' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-brand border border-emerald-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                <i class="mdi mdi-backup-restore text-xs"></i>
+                <span>Restore Backup</span>
+            </a>
+        </div>
     </div>
-    <div class="p-4">
+
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
         <form action="" method="post" id="backupScheduleForm">
             {% csrf_token %}
 
-            <!-- Top Toolbar -->
-            <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
-                <div class="flex items-center gap-2.5">
-                    <button type="button" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors" onclick="toggleAllUsersCheckbox();">
-                        <i class="mdi mdi-checkbox-multiple-marked-outline"></i> Toggle All
+            <!-- Table Subheader / Search Bar -->
+            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded transition-colors cursor-pointer" onclick="toggleAllUsersCheckbox();">
+                        <i class="mdi mdi-checkbox-multiple-marked-outline text-brand"></i>
+                        <span>Select All</span>
                     </button>
-                    <span class="text-slate-500 text-xs font-medium">Select users to apply automated backup schedules</span>
+                    <span class="text-slate-500 text-[11px]">Select accounts below to apply schedule</span>
                 </div>
-                <div>
-                    <div class="relative w-60">
-                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                            </svg>
-                        </span>
-                        <input type="text" id="userSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search user..." value="{{ search_query|default:'' }}" autocomplete="off">
-                        <button type="button" id="clearUserSearchBtn" onclick="clearUserSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
-                    </div>
+
+                <div class="relative w-52">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                        <i class="mdi mdi-magnify text-xs"></i>
+                    </span>
+                    <input type="text" id="userSearchInput" class="w-full pl-7 pr-6 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Search user..." value="{{ search_query|default:'' }}" autocomplete="off">
+                    <button type="button" id="clearUserSearchBtn" onclick="clearUserSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-xs bg-transparent border-0">&times;</button>
                 </div>
             </div>
 
-            <!-- Users Table -->
-            <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <!-- Users Table (Compact High-Density) -->
+            <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left text-slate-700">
-                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
                         <tr>
-                            <th class="w-10 px-3 py-2.5 text-center">
-                                <input type="checkbox" id="checkAllHead" onclick="checkallbox(this);" class="rounded border-slate-300 text-brand focus:ring-brand">
+                            <th class="w-8 px-3 py-2 text-center">
+                                <input type="checkbox" id="checkAllHead" onclick="checkallbox(this);" class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand">
                             </th>
-                            <th class="px-3.5 py-2.5">User</th>
-                            <th class="px-3.5 py-2.5">Schedule</th>
-                            <th class="px-3.5 py-2.5">Components</th>
-                            <th class="px-3.5 py-2.5">Format</th>
-                            <th class="px-3.5 py-2.5">Location</th>
+                            <th class="px-3 py-2">User Account</th>
+                            <th class="px-3 py-2">Schedule</th>
+                            <th class="px-3 py-2">Components</th>
+                            <th class="px-3 py-2">Format</th>
+                            <th class="px-3 py-2">Destination</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody" class="divide-y divide-slate-100">
                         {% for user in users %}
-                        <tr data-username="{{ user.username|lower }}" class="hover:bg-slate-50 transition-colors">
-                            <td class="w-10 px-3 py-2.5 text-center">
-                                <input type="checkbox" name="selected_users" value="{{ user.id }}" class="user-select-cb rounded border-slate-300 text-brand focus:ring-brand">
+                        <tr data-username="{{ user.username|lower }}" class="hover:bg-slate-50/80 transition-colors">
+                            <td class="w-8 px-3 py-2 text-center">
+                                <input type="checkbox" name="selected_users" value="{{ user.id }}" class="user-select-cb w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
                             </td>
-                            <td class="px-3.5 py-2.5 font-bold text-slate-900">{{ user.username }}</td>
+                            <td class="px-3 py-2 font-mono font-semibold text-slate-900">{{ user.username }}</td>
                             {% if user.latest_backup %}
-                                <td class="px-3.5 py-2.5">
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">
-                                        <i class="mdi mdi-clock-outline"></i> Every {{ user.latest_backup.schedule }}
+                                <td class="px-3 py-2">
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="mdi mdi-clock-outline text-[11px]"></i>
+                                        <span>Every {{ user.latest_backup.schedule }}</span>
                                     </span>
                                 </td>
-                                <td class="px-3.5 py-2.5">
-                                    <code class="font-mono text-[11px] text-slate-800">{{ user.latest_backup.type }}</code>
+                                <td class="px-3 py-2">
+                                    <code class="font-mono text-[11px] text-slate-700 bg-slate-100 px-1 py-0.5 rounded">{{ user.latest_backup.type }}</code>
                                 </td>
-                                <td class="px-3.5 py-2.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ user.latest_backup.category }}</span>
+                                <td class="px-3 py-2">
+                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ user.latest_backup.category }}</span>
                                 </td>
-                                <td class="px-3.5 py-2.5 text-slate-500 font-mono text-[11px]">
+                                <td class="px-3 py-2 text-slate-600 font-mono text-[11px]">
                                     {% if user.latest_backup.path == 'ftp' %}
-                                        <span class="inline-flex items-center gap-1"><i class="mdi mdi-server-network text-indigo-600"></i> FTP ({{ user.latest_backup.host }})</span>
+                                        <span class="inline-flex items-center gap-1 text-indigo-600"><i class="mdi mdi-server-network"></i> FTP ({{ user.latest_backup.host }})</span>
                                     {% else %}
-                                        <span class="inline-flex items-center gap-1"><i class="mdi mdi-folder-home-outline text-brand"></i> /backup/</span>
+                                        <span class="inline-flex items-center gap-1 text-slate-600"><i class="mdi mdi-folder-home-outline text-brand"></i> /backup/</span>
                                     {% endif %}
                                 </td>
                             {% else %}
-                                <td class="px-3.5 py-2.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">No Backup</span>
+                                <td class="px-3 py-2">
+                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">Disabled</span>
                                 </td>
-                                <td class="px-3.5 py-2.5 text-slate-400">&mdash;</td>
-                                <td class="px-3.5 py-2.5 text-slate-400">&mdash;</td>
-                                <td class="px-3.5 py-2.5 text-slate-400">&mdash;</td>
+                                <td class="px-3 py-2 text-slate-400">&mdash;</td>
+                                <td class="px-3 py-2 text-slate-400">&mdash;</td>
+                                <td class="px-3 py-2 text-slate-400">&mdash;</td>
                             {% endif %}
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="px-3.5 py-6 text-center text-slate-400">No users found.</td>
+                            <td colspan="6" class="px-3 py-6 text-center text-slate-400">No users found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
 
-            <!-- Configuration Section -->
-            <div class="mt-5 p-4 bg-slate-50 border border-slate-200 rounded-lg">
-                <div class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 mb-3 border-b border-slate-200 flex items-center gap-1.5">
-                    <i class="mdi mdi-cog-outline text-brand text-sm"></i> Schedule &amp; Storage Settings
-                </div>
+            <!-- Configuration & Storage Section (Compact) -->
+            <div class="p-4 bg-slate-50/70 border-t border-slate-200 space-y-3">
+                <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                    <i class="mdi mdi-cog-outline text-brand text-sm"></i> Apply Schedule &amp; Storage Settings
+                </h5>
 
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div class="md:col-span-3">
-                        <label for="common_schedule" class="block text-xs font-semibold text-slate-700 mb-1">Schedule Frequency</label>
-                        <select id="common_schedule" name="schedule" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
-                            <option value="no">No Backup (Disabled)</option>
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <div class="md:col-span-3 space-y-1">
+                        <label for="common_schedule" class="block text-[11px] font-semibold text-slate-700">Frequency</label>
+                        <select id="common_schedule" name="schedule" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                            <option value="no">Disabled (No Backup)</option>
                             <option value="hour">Every Hour</option>
                             <option value="day" selected>Every Day</option>
                             <option value="week">Every Week</option>
@@ -111,75 +125,79 @@
                         </select>
                     </div>
 
-                    <div class="md:col-span-3">
-                        <label for="common_category" class="block text-xs font-semibold text-slate-700 mb-1">Backup Format</label>
-                        <select id="common_category" name="category" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                    <div class="md:col-span-3 space-y-1">
+                        <label for="common_category" class="block text-[11px] font-semibold text-slate-700">Format</label>
+                        <select id="common_category" name="category" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
                             <option value="default">Default</option>
                             <option value="cyberpanel">CyberPanel</option>
                         </select>
                     </div>
 
-                    <div class="md:col-span-6">
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Included Components</label>
-                        <div class="flex flex-wrap gap-3 p-2 bg-white border border-slate-200 rounded-md text-xs">
-                            <label class="inline-flex items-center gap-1 cursor-pointer font-bold text-slate-900">
-                                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="rounded border-slate-300 text-brand focus:ring-brand">
+                    <div class="md:col-span-6 space-y-1">
+                        <label class="block text-[11px] font-semibold text-slate-700">Included Components</label>
+                        <div class="flex flex-wrap items-center gap-3 p-1.5 bg-white border border-slate-200 rounded text-xs">
+                            <label class="inline-flex items-center gap-1 cursor-pointer font-bold text-slate-900 select-none">
+                                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand">
                                 <span>Full</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700">
-                                <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
+                            <span class="text-slate-300">|</span>
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
                                 <span>Database</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700">
-                                <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
                                 <span>Email</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700">
-                                <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
                                 <span>DNS</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700">
-                                <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
+                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
                                 <span>Files</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-t border-slate-200">
-                    <label class="block text-xs font-semibold text-slate-700 mb-2">Destination Location</label>
+                <!-- Destination Location -->
+                <div class="pt-2 border-t border-slate-200 space-y-2">
+                    <label class="block text-[11px] font-semibold text-slate-700">Destination Storage Location</label>
                     <div class="flex items-center gap-4 text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-800 font-medium">
-                            <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" checked class="text-brand focus:ring-brand">
-                            <span><i class="mdi mdi-folder-home-outline text-brand"></i> Local Storage (/backup/)</span>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-800 font-medium select-none">
+                            <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" checked class="w-3.5 h-3.5 text-brand focus:ring-brand">
+                            <span><i class="mdi mdi-folder-home-outline text-brand"></i> Local Disk (/backup/)</span>
                         </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-800 font-medium">
-                            <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
-                            <span><i class="mdi mdi-server-network text-indigo-600"></i> Remote FTP</span>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-800 font-medium select-none">
+                            <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
+                            <span><i class="mdi mdi-server-network text-indigo-600"></i> Remote FTP Server</span>
                         </label>
                     </div>
 
-                    <div class="ftp-fields mt-3 p-3 bg-white border border-slate-200 rounded-md text-xs" style="display: none;">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label for="ftp_host" class="block font-semibold text-slate-700 mb-1">FTP Host</label>
-                                <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
+                    <div class="ftp-fields p-2.5 bg-white border border-slate-200 rounded text-xs" style="display: none;">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div class="space-y-1">
+                                <label for="ftp_host" class="block text-[11px] font-semibold text-slate-700">FTP Host</label>
+                                <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
                             </div>
-                            <div>
-                                <label for="ftp_user" class="block font-semibold text-slate-700 mb-1">FTP Username</label>
-                                <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_user" name="ftp_user" placeholder="username">
+                            <div class="space-y-1">
+                                <label for="ftp_user" class="block text-[11px] font-semibold text-slate-700">FTP Username</label>
+                                <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_user" name="ftp_user" placeholder="username">
                             </div>
-                            <div>
-                                <label for="ftp_pass" class="block font-semibold text-slate-700 mb-1">FTP Password</label>
-                                <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
+                            <div class="space-y-1">
+                                <label for="ftp_pass" class="block text-[11px] font-semibold text-slate-700">FTP Password</label>
+                                <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-4 text-right">
-                    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors" type="submit">
-                        <i class="mdi mdi-content-save-outline"></i> Save Backup Schedule
+                <!-- Submit Action Footer -->
+                <div class="pt-2 border-t border-slate-200 flex justify-end">
+                    <button class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" type="submit">
+                        <i class="mdi mdi-content-save-outline text-xs"></i>
+                        <span>Save Backup Schedules</span>
                     </button>
                 </div>
             </div>
@@ -300,5 +318,4 @@ function toggleFullBackup(fullBackupCheckbox) {
     });
 }
 </script>
-
 {% endblock content %}

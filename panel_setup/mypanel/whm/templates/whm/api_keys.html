@@ -1,214 +1,170 @@
 {% extends "whm/base.html" %}
 {% block title %}API Keys{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-{% if new_key_token %}
-<!-- Generated Key One-Time Modal / Alert -->
-<div class="mb-5 p-4 bg-emerald-50 border border-emerald-200 rounded-lg shadow-xs">
-    <div class="flex items-start gap-3">
-        <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-            <i class="mdi mdi-key-plus text-lg"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-            <h4 class="text-sm font-bold text-emerald-900 m-0">API Key Generated Successfully!</h4>
-            <p class="text-xs text-emerald-700 mt-1 mb-3">
-                For security reasons, this secret key will <strong>only be shown once</strong>. Please copy it now and store it in a safe place.
-            </p>
-            
-            <div class="flex items-center gap-2 max-w-2xl">
-                <div class="relative flex-1">
-                    <input type="text" id="newKeyField" value="{{ new_key_token }}" readonly class="w-full px-3 py-2 bg-white border border-emerald-300 rounded-md font-mono text-xs font-bold text-slate-800 focus:outline-none select-all shadow-xs">
-                </div>
-                <button type="button" onclick="copyNewApiKey()" id="copyKeyBtn" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer flex-shrink-0">
-                    <i class="mdi mdi-content-copy text-xs" id="copyIcon"></i> <span id="copyBtnText">Copy Key</span>
-                </button>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-key-plus text-lg"></i>
+            </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">System REST API Keys</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Provision secure bearer authentication tokens for WHMCS billing modules, SDKs, and CLI tools</p>
             </div>
         </div>
-    </div>
-</div>
-
-<script>
-function copyNewApiKey() {
-    const input = document.getElementById("newKeyField");
-    input.select();
-    input.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(input.value).then(function() {
-        const btnText = document.getElementById("copyBtnText");
-        const icon = document.getElementById("copyIcon");
-        btnText.textContent = "Copied!";
-        icon.className = "mdi mdi-check text-xs";
-        setTimeout(function() {
-            btnText.textContent = "Copy Key";
-            icon.className = "mdi mdi-content-copy text-xs";
-        }, 2500);
-    });
-}
-</script>
-{% endif %}
-
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-    <!-- Generate New Key Column -->
-    <div class="lg:col-span-4">
-        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden sticky top-4">
-            <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
-                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                    <i class="mdi mdi-key-plus text-brand text-base"></i> Generate API Key
-                </h4>
-            </div>
-
-            <div class="p-4">
-                <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-                    API Keys allow external automation, billing systems (like WHMCS modules), and CLI tools to securely interact with your server API.
-                </p>
-
-                <form method="post" action="{% url 'api_keys' %}" class="space-y-4">
-                    {% csrf_token %}
-                    <div>
-                        <label for="key_name" class="block text-xs font-semibold text-slate-700 mb-1">Key Label / Application Name</label>
-                        <input type="text" name="name" id="key_name" placeholder="e.g. WHMCS Billing Production" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        <p class="text-[11px] text-slate-400 mt-1">A memorable description to identify who is using this key.</p>
-                    </div>
-
-                    <button type="submit" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
-                        <i class="mdi mdi-plus-circle-outline"></i> Generate API Key
-                    </button>
-                </form>
-
-                <div class="mt-5 pt-4 border-t border-slate-100">
-                    <h6 class="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1">
-                        <i class="mdi mdi-shield-check text-emerald-600"></i> Best Practices
-                    </h6>
-                    <ul class="text-[11px] text-slate-500 space-y-1.5 pl-4 list-disc">
-                        <li>Generate a separate API key for each connected application.</li>
-                        <li>Immediately revoke compromised or deprecated keys.</li>
-                        <li>Never commit keys into public git repositories.</li>
-                    </ul>
-                </div>
-            </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {{ keys|length }} Active Key{{ keys|length|pluralize }}
+            </span>
         </div>
     </div>
 
-    <!-- Active Keys Column -->
-    <div class="lg:col-span-8">
-        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-            <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
-                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                    <i class="mdi mdi-key-outline text-brand text-base"></i> Active API Keys
-                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                        {{ keys|length }}
-                    </span>
-                </h4>
+    {% if new_key_token %}
+    <!-- Generated Key One-Time Modal / Alert -->
+    <div class="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-lg shadow-xs space-y-2">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                <i class="mdi mdi-check-circle text-emerald-600 text-sm"></i> API Secret Key Generated!
+            </span>
+            <span class="text-[10px] text-emerald-700 font-semibold uppercase tracking-wider">Copy Now &bull; Shown Only Once</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="relative flex-1">
+                <input type="text" id="newKeyField" value="{{ new_key_token }}" readonly class="w-full px-2.5 py-1.5 bg-white border border-emerald-300 rounded font-mono text-xs font-bold text-slate-800 focus:outline-none select-all shadow-2xs">
+            </div>
+            <button type="button" onclick="copyNewApiKey()" id="copyKeyBtn" class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded shadow-xs transition-colors cursor-pointer shrink-0">
+                <i class="mdi mdi-content-copy text-xs" id="copyIcon"></i> <span id="copyBtnText">Copy Secret</span>
+            </button>
+        </div>
+    </div>
 
-                <div class="w-full sm:w-56">
-                    <div class="relative">
-                        <input type="text" id="apiKeySearch" placeholder="Filter keys..." class="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        <i class="mdi mdi-magnify absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+    <script>
+    function copyNewApiKey() {
+        const input = document.getElementById("newKeyField");
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value).then(function() {
+            const btnText = document.getElementById("copyBtnText");
+            const icon = document.getElementById("copyIcon");
+            btnText.textContent = "Copied!";
+            icon.className = "mdi mdi-check text-xs";
+            setTimeout(function() {
+                btnText.textContent = "Copy Secret";
+                icon.className = "mdi mdi-content-copy text-xs";
+            }, 2500);
+        });
+    }
+    </script>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+        <!-- Generate New Key Column (4 cols) -->
+        <div class="lg:col-span-4">
+            <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+                <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                        <i class="mdi mdi-plus-circle-outline text-brand text-sm"></i> Generate Key
+                    </h5>
+                </div>
+
+                <div class="p-3.5 space-y-3">
+                    <form method="post" action="{% url 'api_keys' %}" class="space-y-2.5">
+                        {% csrf_token %}
+                        <div class="space-y-1">
+                            <label for="key_name" class="block text-[11px] font-semibold text-slate-700">Application Label</label>
+                            <input type="text" name="name" id="key_name" placeholder="e.g. WHMCS Production Module" required class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        </div>
+
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded shadow-xs transition-colors cursor-pointer">
+                            <i class="mdi mdi-key-plus text-xs"></i>
+                            <span>Generate API Key</span>
+                        </button>
+                    </form>
+
+                    <div class="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-500">
+                        <span class="font-bold text-slate-700 flex items-center gap-1">
+                            <i class="mdi mdi-shield-check text-emerald-600 text-xs"></i> Best Practices
+                        </span>
+                        <ul class="list-disc pl-4 space-y-0.5 text-[10px]">
+                            <li>Create a separate key for each integration.</li>
+                            <li>Revoke inactive or deprecated tokens immediately.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-700" id="apiKeyTable">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[10px] tracking-wider">
-                        <tr>
-                            <th class="py-2.5 px-4">Label / Name</th>
-                            <th class="py-2.5 px-4">Token Preview</th>
-                            <th class="py-2.5 px-4">Created Date</th>
-                            <th class="py-2.5 px-4">Last Activity</th>
-                            <th class="py-2.5 px-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for key in keys %}
-                        <tr class="hover:bg-slate-50/60 transition-colors key-row">
-                            <td class="py-3 px-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded bg-brand/10 text-brand flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                        <i class="mdi mdi-key text-xs"></i>
-                                    </div>
-                                    <span class="font-semibold text-slate-900 key-name">{{ key.name }}</span>
-                                </div>
-                            </td>
-                            <td class="py-3 px-4">
-                                <code class="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-mono text-[11px] font-semibold">
-                                    {{ key.token|slice:":10" }}••••••••••••••••
-                                </code>
-                            </td>
-                            <td class="py-3 px-4 text-slate-500 font-mono text-[11px]">
-                                {{ key.created_at|date:"M d, Y H:i" }}
-                            </td>
-                            <td class="py-3 px-4">
-                                {% if key.last_used %}
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    {{ key.last_used|date:"M d, Y H:i" }}
-                                </span>
-                                {% else %}
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                                    Never used
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td class="py-3 px-4 text-right">
-                                <form method="post" action="{% url 'revoke_api_key' key.id %}" onsubmit="return confirm('Are you sure you want to revoke the API Key \'{{ key.name }}\'? Any integration using this token will be disconnected immediately.');" class="inline m-0">
-                                    {% csrf_token %}
-                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-red-600 hover:text-white hover:bg-red-600 border border-red-200 hover:border-red-600 rounded text-[11px] font-semibold transition-all cursor-pointer shadow-xs" title="Revoke this API Key">
-                                        <i class="mdi mdi-trash-can-outline"></i> Revoke
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr id="emptyRow">
-                            <td colspan="5" class="py-8 text-center text-slate-400">
-                                <div class="flex flex-col items-center justify-center gap-2">
-                                    <i class="mdi mdi-key-variant text-3xl text-slate-300"></i>
-                                    <p class="text-xs text-slate-500 m-0">No active API keys found.</p>
-                                    <p class="text-[11px] text-slate-400 m-0">Generate your first key using the form on the left to connect external services.</p>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
         </div>
 
-        <!-- Quick API Documentation Sample -->
-        <div class="mt-5 bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-            <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
-                <h5 class="text-xs font-bold text-slate-800 m-0 flex items-center gap-2">
-                    <i class="mdi mdi-code-braces text-slate-500"></i> API Authentication Example
-                </h5>
-            </div>
-            <div class="p-4 space-y-2">
-                <p class="text-xs text-slate-500 m-0">Pass your API Key in the HTTP Request Header when making REST calls:</p>
-                <div class="p-3 bg-slate-900 rounded-md font-mono text-[11px] text-slate-200 overflow-x-auto">
-                    <span class="text-emerald-400">curl</span> -X GET <span class="text-amber-300">"https://fortunedevs.site:2087/api/v1/domains"</span> \<br>
-                    &nbsp;&nbsp;-H <span class="text-sky-300">"X-API-KEY: olsp_your_secret_token_here"</span>
+        <!-- Active Keys Table (8 cols) -->
+        <div class="lg:col-span-8">
+            <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+                <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                        <i class="mdi mdi-key-outline text-brand text-sm"></i> Active API Keys
+                    </h5>
+                    <span class="text-[10px] text-slate-400 font-medium">Header: Authorization: Bearer &lt;key&gt;</span>
+                </div>
+
+                <div>
+                    {% if keys %}
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left text-slate-700">
+                                <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-3.5 py-2">Application / Label</th>
+                                        <th class="px-3.5 py-2">Prefix</th>
+                                        <th class="px-3.5 py-2">Created</th>
+                                        <th class="px-3.5 py-2">Last Used</th>
+                                        <th class="px-3.5 py-2 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for key in keys %}
+                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                            <td class="px-3.5 py-2 font-semibold text-slate-900 flex items-center gap-2">
+                                                <div class="w-6 h-6 rounded bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                                                    <i class="mdi mdi-api text-xs"></i>
+                                                </div>
+                                                <span>{{ key.name }}</span>
+                                            </td>
+                                            <td class="px-3.5 py-2">
+                                                <code class="font-mono text-[11px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 border border-slate-200">{{ key.prefix }}...</code>
+                                            </td>
+                                            <td class="px-3.5 py-2 text-slate-500 font-mono text-[11px]">{{ key.created_at|date:"M d, Y" }}</td>
+                                            <td class="px-3.5 py-2 text-slate-500 font-mono text-[11px]">
+                                                {% if key.last_used_at %}
+                                                    {{ key.last_used_at|date:"M d, H:i" }}
+                                                {% else %}
+                                                    <span class="text-slate-400">Never</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="px-3.5 py-2 text-right">
+                                                <a href="{% url 'revoke_api_key' key.id %}" onclick="return confirm('Are you sure you want to permanently revoke this API key?');" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 rounded border border-rose-200 transition-colors">
+                                                    <i class="mdi mdi-delete-outline text-xs"></i>
+                                                    <span>Revoke</span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-6 text-center space-y-2">
+                            <div class="w-10 h-10 rounded-full bg-slate-50 text-slate-400 border border-slate-200 mx-auto flex items-center justify-center">
+                                <i class="mdi mdi-key-variant text-xl"></i>
+                            </div>
+                            <h5 class="text-xs font-bold text-slate-800 m-0">No Active API Keys</h5>
+                            <p class="text-[11px] text-slate-500 max-w-sm mx-auto m-0">
+                                Use the form on the left to generate your first API bearer token.
+                            </p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-document.getElementById('apiKeySearch')?.addEventListener('input', function() {
-    const filter = this.value.toLowerCase().trim();
-    const rows = document.querySelectorAll('#apiKeyTable tbody tr.key-row');
-    let visibleCount = 0;
-
-    rows.forEach(function(row) {
-        const nameText = row.querySelector('.key-name')?.textContent.toLowerCase() || '';
-        if (!filter || nameText.includes(filter)) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
-        }
-    });
-});
-</script>
-
-{% include "whm/footer.html" %}
 {% endblock content %}

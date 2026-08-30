@@ -1,10 +1,10 @@
-{% extends "whm/base.html" %}
+{% extends base_template|default:"users/base.html" %}
 {% block title %}Two-Factor Authentication (TOTP){% endblock title %}
 
 {% block content %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<div class="space-y-3 max-w-2xl mx-auto">
+<div class="space-y-3 w-full">
 
     <!-- Top Compact Header -->
     <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
@@ -80,7 +80,7 @@
                         </div>
                         <div>
                             <span class="block text-xs font-bold text-emerald-900 leading-tight">Authenticator App Protection Active</span>
-                            <span class="block text-[11px] text-emerald-700 leading-tight">You will be prompted for a 6-digit TOTP code on every administrator login.</span>
+                            <span class="block text-[11px] text-emerald-700 leading-tight">You will be prompted for a 6-digit TOTP code on every login.</span>
                         </div>
                     </div>
                     <form method="post" onsubmit="return confirm('Are you sure you want to disable Authenticator App Two-Factor authentication?');" class="m-0">

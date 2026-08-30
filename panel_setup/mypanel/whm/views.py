@@ -203,20 +203,21 @@ def change_password_all(request):
         new_password1 = request.POST.get('new_password1')
         new_password2 = request.POST.get('new_password2')
         
+        context = {'base_template': 'whm/base.html', 'dashboard_url': '/whm/', 'form_title': 'Change WHM Master Password'}
         # Validate the old password
         user = authenticate(username=request.admin_user.username, password=old_password)
         if user is None:
             messages.error(request, "Your old password was entered incorrectly. Please enter it again.")
-            return render(request, 'whm/change_password.html')
+            return render(request, 'common/change_password.html', context)
         
         # Validate the new passwords
         if new_password1 != new_password2:
             messages.error(request, "The new passwords do not match. Please enter them again.")
-            return render(request, 'whm/change_password.html')
+            return render(request, 'common/change_password.html', context)
         
         if len(new_password1) < 6:
             messages.error(request, "The new password must be at least 6 characters long.")
-            return render(request, 'whm/change_password.html')
+            return render(request, 'common/change_password.html', context)
         
         # Update the user's password
         user.set_password(new_password1)
@@ -235,7 +236,7 @@ def change_password_all(request):
         return redirect('/whm/whm-password-change/')
     else:
         # Render the change password template for GET requests
-        return render(request, 'whm/change_password.html')   
+        return render(request, 'common/change_password.html', {'base_template': 'whm/base.html', 'dashboard_url': '/whm/', 'form_title': 'Change WHM Master Password'})   
 
 @alogin_required
 def domain_list_all(request):
@@ -1081,18 +1082,20 @@ def update_user(request, rid):
     packages = Package.objects.all()  # Fetch all packages
 
     # Fetch user data (assumes `get_user_data` returns a list of dictionaries)
-    users = get_user_data('username', usr.username)
-    for user in users:
-        # Add package name to user data if `pkg_id` exists
-        pkg_id = user.get('pkg_id')
-        if pkg_id:
-            try:
-                package = Package.objects.get(id=pkg_id)
-                user['pkg'] = package.name
-            except Package.DoesNotExist:
+    users = get_user_data('username', usr.username) or []
+    pkg_id = None
+    if users:
+        for user in users:
+            # Add package name to user data if `pkg_id` exists
+            pkg_id = user.get('pkg_id')
+            if pkg_id:
+                try:
+                    package = Package.objects.get(id=pkg_id)
+                    user['pkg'] = package.name
+                except Package.DoesNotExist:
+                    user['pkg'] = 'Unknown'
+            else:
                 user['pkg'] = 'Unknown'
-        else:
-            user['pkg'] = 'Unknown'
 
     if request.method == 'POST':
         # Retrieve form data
@@ -1123,8 +1126,9 @@ def update_user(request, rid):
         profile.save()
 
         # Update related fields (e.g., package or custom fields)
-        update_fields = {'pkg_id': pkg_id}
-        update_user_data(usr.id, update_fields)
+        if pkg_id:
+            update_fields = {'pkg_id': pkg_id}
+            update_user_data(usr.id, update_fields)
 
         # Display a success message and redirect
         messages.success(request, 'User has been updated successfully.')
@@ -1135,7 +1139,7 @@ def update_user(request, rid):
         'pkg': packages,
         'usr': usr,  # Pass the User instance
         'users': users,
-        'pkg_id':pkg_id,
+        'pkg_id': pkg_id,
     })
 
 
@@ -3046,7 +3050,9 @@ def whm_google_otp(request):
             messages.error(request, "Invalid authentication code. Please try again.")
             return redirect("/whm/whm_google_otp")
 
-    return render(request, "whm/setup_2fa.html", {
+    return render(request, "common/setup_2fa.html", {
+        "base_template": "whm/base.html",
+        "dashboard_url": "/whm/",
         "qr_url": qr_url,
         "secret": secret,
         "is_enabled": settings.two_step,
@@ -3056,7 +3062,12 @@ def whm_google_otp(request):
 @alogin_required
 def whm_passkeys(request):
     passkeys = UserPasskey.objects.filter(user=request.admin_user).order_by("-created_at")
-    return render(request, "whm/passkeys.html", {
+    return render(request, "common/passkeys.html", {
+        "base_template": "whm/base.html",
+        "dashboard_url": "/whm/",
+        "api_reg_options_url": "/whm/api/passkey/register/options/",
+        "api_reg_verify_url": "/whm/api/passkey/register/verify/",
+        "api_del_prefix": "/whm/api/passkey/delete/",
         "passkeys": passkeys,
     })
 
