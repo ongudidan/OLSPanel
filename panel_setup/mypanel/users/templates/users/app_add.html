@@ -2,63 +2,53 @@
 {% block title %}{% if edit_mode %}Edit {{ name }}{% else %}Add {{ name }}{% endif %}{% endblock title %}
 {% block content %}
 
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Action running, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
+<div class="max-w-2xl space-y-5">
+    <!-- Action Running Indicator Banner -->
+    <div id="responseContainer" style="display: none;" class="p-3.5 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center justify-between shadow-xs">
+        <div class="flex items-center gap-2.5">
+            <svg class="animate-spin h-4 w-4 text-sky-600 flex-shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+            <span class="font-medium">Executing application action, please wait...</span>
         </div>
-</li> 
-       </ol>
-                </nav>
     </div>
-	
-<div class="card card-default">
-    <div class="card-header">
-        <h2>{% if edit_mode %}Edit {{ name }}{% else %}Add {{ name }}{% endif %}</h2>
-    </div>
-    <div class="card-body">
-        <form method="post" action="">
-            {% csrf_token %}
-			{% if edit_mode %}
-<div class="form-group">
-			
-            <!-- Submit Button -->
-         
-              <button id="install" onclick="restart()" class="btn btn-outline-success">
-                   <i class="mdi mdi-restart"></i> Restart app  
-			
-			
-                </button>
-				
-			<button id="install" onclick="npm_install()" class="btn btn-outline-primary">
-                   <i class="mdi mdi-play"></i> Run NPM Install  
-			
-			
-                </button>
 
-				
-				
-            </div>
-			<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
+    <!-- Alert Container -->
+    <div id="alertContainer" style="display: none;" class="p-3.5 rounded-lg text-xs flex items-center justify-between shadow-xs">
+        <div id="message" class="font-medium"></div>
+        <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0 cursor-pointer">&times;</button>
+    </div>
+
+    <!-- App Configuration Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-application-outline text-brand text-base"></i>
+                {% if edit_mode %}Edit {{ name }} Application{% else %}Add New {{ name }} App{% endif %}
+            </h4>
+            <a href="{% url 'apps_list' main_type %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Apps
+            </a>
+        </div>
+
+        <div class="p-5">
+            {% if edit_mode %}
+            <!-- Quick Actions Toolbar in Edit Mode -->
+            <div class="mb-5 p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2 flex-wrap">
+                <button type="button" onclick="restart(event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-md text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-restart"></i> Restart App
                 </button>
-</div>	
-			{% endif %}
-            <!-- Select Domain -->
-            <div class="col-md-5 mb-3">
-                <label class="small mb-1" for="domainx">Select Domain:</label>
-                <div class="form-group">
-                    <select class="form-control" name="domain_name" id="domainx" {% if edit_mode %}disabled{% endif %}>
+                <button type="button" onclick="npm_install(event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 rounded-md text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-package-variant-closed"></i> Run NPM Install
+                </button>
+            </div>
+            {% endif %}
+
+            <form method="post" action="" class="space-y-4">
+                {% csrf_token %}
+
+                <!-- Select Domain -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="domainx">Target Domain</label>
+                    <select name="domain_name" id="domainx" {% if edit_mode %}disabled{% endif %} class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all">
                         {% for domain in domains %}
                             <option value="{{ domain.domain }}" 
                                 {% if edit_mode and app.domain_id == domain.id %}
@@ -71,13 +61,11 @@
                         {% endfor %}
                     </select>
                 </div>
-            </div>
 
-            <!-- Select App Version -->
-            <div class="col-md-5 mb-3">
-                <label class="small mb-1" for="app_version">Select {{ name }} Version:</label>
-                <div class="form-group">
-                    <select class="form-control" name="app_version" id="app_version">
+                <!-- Select App Version -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="app_version">Runtime / Version</label>
+                    <select name="app_version" id="app_version" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
                         {% for app_version in app_versions %}
                             <option value="{{ app_version }}" 
                                 {% if edit_mode and app.version == app_version %}
@@ -90,196 +78,138 @@
                         {% endfor %}
                     </select>
                 </div>
-            </div>
 
-            <!-- Document Root -->
-            <div class="col-md-5 mb-3">
-                <label class="small mb-1" for="path">Document Root (File System Location):</label>
-                <div class="input-group mb-2 mr-sm-2">
-                    <div class="input-group-prepend">
-                        <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+                <!-- Document Root -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="path">Application Root Path</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md">
+                            <i class="mdi mdi-folder-outline text-xs"></i>
+                        </span>
+                        <input type="text" id="path" name="target_name" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{% if edit_mode %}{{ app_path }}{% else %}{{ target_name_simple }}{% endif %}" required>
                     </div>
-                    <input type="text" id="path" name="target_name" class="form-control"
-                           value="{% if edit_mode %}{{ app_path }}{% else %}{{ target_name_simple }}{% endif %}">
                 </div>
-            </div>
 
-            <!-- Startup File -->
-            <div class="col-md-5 mb-3">
-                <label class="small mb-1" for="startup_file">Startup file (eg: app.js):</label>
-                <div class="input-group mb-2 mr-sm-2">
-                    <input type="text" id="startup_file" name="startup_file" class="form-control"
-                           value="{% if edit_mode %}{{ app.startup_file }}{% else %}{{ startup_file }}{% endif %}">
+                <!-- Startup File -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1" for="startup_file">Startup Entrypoint File</label>
+                    <input type="text" id="startup_file" name="startup_file" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="e.g. app.js or server.js" value="{% if edit_mode %}{{ app.startup_file }}{% else %}{{ startup_file }}{% endif %}" required>
                 </div>
-            </div>
-			
-			   <div class="form-group">
-			
-            <!-- Submit Button -->
-         
-                <button type="submit" id="save" class="btn btn-outline-success mt-3">
-                    <i class="mdi mdi-content-save"></i> {% if edit_mode %}Update {{ name }}{% else %}Add {{ name }}{% endif %}
-                </button>
-				
-				
-				
-            </div>
-			
-			
-			
-			
-        </form>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" id="save" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> {% if edit_mode %}Update {{ name }} App{% else %}Add {{ name }} App{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
-<!-- Hidden values for edit mode -->
+
 <input type="hidden" id="selected_domain" value="{% if edit_mode %}{{ app.domain.domain }}{% endif %}">
 <input type="hidden" id="selected_version" value="{% if edit_mode %}{{ app.version }}{% endif %}">
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    let selectedDomain = document.getElementById("selected_domain").value;
-    let selectedVersion = document.getElementById("selected_version").value;
+    let selectedDomain = document.getElementById("selected_domain")?.value;
+    let selectedVersion = document.getElementById("selected_version")?.value;
 
-    // Select Domain
     if (selectedDomain) {
         let domainSelect = document.getElementById("domainx");
-        for (let opt of domainSelect.options) {
-            if (opt.value === selectedDomain) {
-                opt.selected = true;
-                break;
+        if (domainSelect) {
+            for (let opt of domainSelect.options) {
+                if (opt.value === selectedDomain) {
+                    opt.selected = true;
+                    break;
+                }
             }
         }
     }
 
-    // Select App Version
     if (selectedVersion) {
         let versionSelect = document.getElementById("app_version");
-        for (let opt of versionSelect.options) {
-            if (opt.value === selectedVersion) {
-                opt.selected = true;
-                break;
+        if (versionSelect) {
+            for (let opt of versionSelect.options) {
+                if (opt.value === selectedVersion) {
+                    opt.selected = true;
+                    break;
+                }
             }
         }
-    } else {
-        // If adding new → select first option by default
-        document.getElementById("app_version").selectedIndex = 0;
     }
 });
 
 {% if edit_mode %}
-function restart() {
-    event.preventDefault();
-       
-        const responseDisplay = document.getElementById('responseContainer');
-        const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
+function restart(event) {
+    if (event) event.preventDefault();
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
 
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
+    if (responseDisplay) responseDisplay.style.display = 'flex';
 
-            // Call the URL (replace '/your-url' with your actual URL)
-            fetch('{% url 'restart_node' app.id %}', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.text(); // Retrieve response as plain text
-            })
-            .then(data => {
-                console.log('Response:', data);
-                responseDisplay.style.display = 'none';
-
-                if (data.includes('success')) {
-                    // Set alert for success
-                    alertContainer.className = "alert alert-success alert-dismissible fade show";
-                    messageDisplay.innerText = "restart success full"; // Displaying success message
-                } else {
-                    // Set alert for error
-                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
-                    messageDisplay.innerText = "restart failed"; // Displaying error message
-                }
-
-                alertContainer.style.display = "block";
-               
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }, 0); // 1000 milliseconds = 1 second
-
-    
+    fetch('{% url "restart_node" app.id %}', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) throw new Error(response.statusText);
+        return response.text();
+    })
+    .then(data => {
+        if (alertContainer && messageDisplay) {
+            if (data.includes('success')) {
+                alertContainer.className = "p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = "Application restarted successfully.";
+            } else {
+                alertContainer.className = "p-3.5 bg-red-50 border border-red-200 text-red-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = "Application restart failed.";
+            }
+            alertContainer.style.display = 'flex';
+        }
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+    });
 }
 
+function npm_install(event) {
+    if (event) event.preventDefault();
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
 
+    if (responseDisplay) responseDisplay.style.display = 'flex';
 
-
-function npm_install() {
-    event.preventDefault();
-       
-        const responseDisplay = document.getElementById('responseContainer');
-        const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
-
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
-
-            // Call the URL (replace '/your-url' with your actual URL)
-            fetch('{% url 'install_npm' app.id %}', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.text(); // Retrieve response as plain text
-            })
-            .then(data => {
-               // console.log('Response:', data);
-                responseDisplay.style.display = 'none';
-
-                if (data.includes('success')) {
-                    // Set alert for success
-                    alertContainer.className = "alert alert-success alert-dismissible fade show";
-                    messageDisplay.innerText = "Run success fully"; // Displaying success message
-                } else {
-                   try {
-        data = JSON.parse(data);
-    } catch (e) {
-        console.error('Invalid JSON:', e, data);
-        alertContainer.className = "alert alert-danger alert-dismissible fade show";
-        messageDisplay.innerText = "Invalid server response";
-        alertContainer.style.display = "block";
-        return;
-    }
-                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
-                    messageDisplay.innerText = data.message || "An error occurred"; // Displaying error message
-                }
-
-                alertContainer.style.display = "block";
-               
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }, 0); // 1000 milliseconds = 1 second
-
-    
+    fetch('{% url "install_npm" app.id %}', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) throw new Error(response.statusText);
+        return response.text();
+    })
+    .then(data => {
+        if (alertContainer && messageDisplay) {
+            if (data.includes('success')) {
+                alertContainer.className = "p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = "NPM install executed successfully.";
+            } else {
+                alertContainer.className = "p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = data || "NPM install completed with warnings.";
+            }
+            alertContainer.style.display = 'flex';
+        }
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+    });
 }
-
-
-
-
 {% endif %}
 </script>
+
 {% include "users/footer.html" %}
 {% endblock content %}

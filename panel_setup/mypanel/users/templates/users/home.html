@@ -1,539 +1,415 @@
 {% extends "users/base.html" %}
-{% block title %} Dashboard {% endblock title%}
+{% block title %}Dashboard{% endblock title %}
 {% block content %}
 
-<div class="row mb-3">
-    <div class="col-12 d-flex justify-content-end">
-        <div class="form-group mb-0" style="width: 250px;">
-		<input type="search" id="search" name="lookup_q" class="form-control bg-white" placeholder="Search for option..." autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+<div class="w-full pb-6 font-sans text-slate-700">
 
-        </div>
-    </div>
-</div>
-
-     <div class="row" id="search_here">
-                  <div class="col-md-9 col-xl-9">
-                      
-                    <!-- manu -->
-                    <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                            <h3><img src="/media/icon/domain.svg" width="28px" height="28px" style="margin-right: 10px;" />  Domains</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#domain-manu" aria-expanded="true" aria-controls="domain-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="domain-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-						{% for app in domain_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}
-								
-							
-							
-							
-							</div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                    <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/folder.svg" width="28px" height="28px" style="margin-right: 10px;" />  Files</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#file-manu" aria-expanded="true" aria-controls="file-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="file-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-                           {% for app in file_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}  
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                    
-                     <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/ssl.svg" width="28px" height="28px" style="margin-right: 10px;" />  Security</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#security-manu" aria-expanded="true" aria-controls="security-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="security-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-                           {% for app in security_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}     
-                           
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                   
-                   
-                     <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/database.svg" width="28px" height="28px" style="margin-right: 10px;" />  Database</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#database-manu" aria-expanded="true" aria-controls="database-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="database-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-                           {% for app in database_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}        
-                           
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                   
-                    
-                    
-                    
-                      <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/mail.svg" width="28px" height="28px" style="margin-right: 10px;" />  Email</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#email-manu" aria-expanded="true" aria-controls="email-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="email-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-                            {% for app in email_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}          
-                           
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                   
-                   
-                    
-                   
-                   
-                     <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/settings.svg" width="28px" height="28px" style="margin-right: 10px;" />  Advance</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#advance-manu" aria-expanded="true" aria-controls="advance-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="advance-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-						
-						{% for app in advance_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}         
-						
-                             
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                   
-				    <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/software.svg" width="28px" height="28px" style="margin-right: 10px;" />  OLSApp</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#olsapp-manu" aria-expanded="true" aria-controls="olsapp-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="olsapp-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view' 'wordpress_manager' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/wordpress.png" style="margin-right: 10px;" /> <span>Wordpress Manger</span></div></a></div>
-                             <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'wordpress' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/wordpress.png" style="margin-right: 10px;" /> <span>Wordpress Install</span></div></a></div>
-                           
-							 <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'joomla' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/joomla.png" style="margin-right: 10px;" /> <span>Joomla</span></div></a></div>
-                           <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'prestashop' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/presta.png" style="margin-right: 10px;" /> <span>Prestashop</span></div></a></div>
-                          <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'opencart' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/opencart.png" style="margin-right: 10px;" /> <span>Opencart</span></div></a></div>
-                           <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_more_view_with_id' 'install' 'phpbb' %}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/phpbb.png" style="margin-right: 10px;" /> <span>phpBB</span></div></a></div>
-                          <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'olsapp_view'%}" target="_blank"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/softaculous.png" style="margin-right: 10px;" /> <span>More App</span></div></a></div>
-                          
-						   
-                           
-                           
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-				   
-				   
-				   
-				    <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/software.svg" width="28px" height="28px" style="margin-right: 10px;" />  Software</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#software-manu" aria-expanded="true" aria-controls="software-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="software-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-						
-						
-						{% for app in software_plugin %}
-<div class="col-sm-9 col-md-3 col-lg-3">
-    <a href="{{ app.url }}"{% if app.target %} target="{{ app.target }}"{% endif %}>
-        <div class="d-flex justify-content-start align-items-center">
-            <img src="{{ app.icon }}" style="margin-right: 10px;" width="40px" height="40px"/>
-            <span>{{ app.name }}</span>
-        </div>
-    </a>
-</div>
-{% endfor %}
-
-												
-						
-						
-                           
-                           
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-				   
-                   
-                    <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/account.svg" width="28px" height="28px" style="margin-right: 10px;" />  Account</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#account-manu" aria-expanded="true" aria-controls="account-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="account-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'users-profile' %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/user.svg" style="margin-right: 10px;" /> <span>Profile</span></div></a></div>
-                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'logout' %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/logout.svg" style="margin-right: 10px;" /><span>Logout</span></div></a></div>
-                            
-                           
-                           
-                        </div>
-                      </div>
-                      </div>
-                    </div>
-                    
-                    
-                   
-
-
-                  </div>
-                  <div class="col-md-3 col-xl-3">
-                    <!-- Current Users  -->
-                    <div class="card card-default">
-                      <div class="card-header">
-                          <span class="cardtitle">General Information</span>
-                      </div>
-                      <div class="bottom-border_right">
-                          <div class="infotitle">Current User</div>
-                          <div class="infovalue">{{ user.username }}</div>
-                          </div>
-                           <div class="bottom-border_right">
-                          <div class="infotitle">Primary Domain</div>
-                          <div class="infovalue"><a href="https://{{pkg_data.main_domain}}" target="_blank">{{pkg_data.main_domain}}</a></div>
-                          </div>
-						  
-						  <div class="bottom-border_right">
-    <div class="infotitle">SSL Certificate <i class="info-icon" title="An SSL certificate allows visitors to communicate with your website over a secure connection.">
-    i
-</i></div>
-
-    <div class="infovalue" id="home_ssl">
-        Loading... <span class="home-loader"></span>
-    </div>
-</div>
-						  
-                           <div class="bottom-border_right">
-                          <div class="infotitle">Server ip</div>
-                          <div class="infovalue">{{pkg_data.server_ip}}</div>
-                          </div>
-                           <div class="bottom-border_right">
-                          <div class="infotitle">Home Directory</div>
-                           <div class="infovalue"><a href="{% url 'file_manager_home' %}" target="_blank">/home/{{ user.username }}</a></div>
-                      
-                        </div>
-                      
-                    </div>
-                    
-                 <div class="card card-default">
-    <div class="card-header">
-        <span class="cardtitle">Statistics</span>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Package</div>
-        <div class="infovalue" id="home_package">
-            Loading... <span class="home-loader"></span>
+    <!-- Top Quick Search Bar -->
+    <div class="flex justify-end mb-3">
+        <div class="relative w-64">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </span>
+            <input type="search" id="appSearchInput" placeholder="Search applications, tools..." autocomplete="off" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all">
+            <button type="button" id="clearAppSearchBtn" onclick="clearAppSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
         </div>
     </div>
 
-    <div class="bottom-border_right">
-        <div class="infotitle">Disk Usage</div>
-        <div class="infovalue" id="home_disk_usage">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
+    <!-- Main Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4 items-start w-full" id="search_here">
 
-    <div class="bottom-border_right">
-        <div class="infotitle">MySQL® Disk Usage</div>
-        <div class="infovalue" id="home_db_usage">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
+        <!-- ================= LEFT COLUMN: CATEGORIZED APP BOXES ================= -->
+        <div class="flex flex-col gap-2.5 min-w-0">
 
-    <div class="bottom-border_right">
-        <div class="infotitle">Email Disk Space</div>
-        <div class="infovalue" id="home_email_disk">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Memory</div>
-        <div class="infovalue" id="home_memory">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">CPU</div>
-        <div class="infovalue" id="home_cpu">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Bandwidth</div>
-        <div class="infovalue" id="home_bandwidth">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Domains</div>
-        <div class="infovalue" id="home_domains">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Sub Domains</div>
-        <div class="infovalue" id="home_subdomains">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">FTP Accounts</div>
-        <div class="infovalue" id="home_ftp">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Database</div>
-        <div class="infovalue" id="home_database">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    <div class="bottom-border_right">
-        <div class="infotitle">Email Accounts</div>
-        <div class="infovalue" id="home_email_accounts">
-            Loading... <span class="home-loader"></span>
-        </div>
-    </div>
-
-    {% for mod in modules %}
-        {% include mod.template %}
-    {% endfor %}
-</div>
-
-
-
-    </div>
+            <!-- DOMAINS -->
+            {% if domain_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Domains</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ domain_plugin|length }}</span>
                 </div>
-				
-				
-								
-				
-				
-			<script>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in domain_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- FILES -->
+            {% if file_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Files</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ file_plugin|length }}</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in file_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- SECURITY -->
+            {% if security_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Security</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ security_plugin|length }}</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in security_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- DATABASE -->
+            {% if database_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Databases</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ database_plugin|length }}</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in database_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- EMAIL -->
+            {% if email_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Email</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ email_plugin|length }}</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in email_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ADVANCE -->
+            {% if advance_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Advance</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ advance_plugin|length }}</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in advance_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- OLSAPP 1-CLICK SCRIPTS -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">1-Click App Installer</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">7</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        <a href="{% url 'olsapp_more_view' 'wordpress_manager' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="WordPress Manager">
+                            <img src="/media/icon/wordpress.png" class="w-5 h-5 object-contain flex-shrink-0" alt="WordPress Manager" />
+                            <span class="truncate">WordPress Mgr</span>
+                        </a>
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'wordpress' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="WordPress Install">
+                            <img src="/media/icon/wordpress.png" class="w-5 h-5 object-contain flex-shrink-0" alt="WordPress" />
+                            <span class="truncate">WordPress</span>
+                        </a>
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'joomla' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="Joomla">
+                            <img src="/media/icon/joomla.png" class="w-5 h-5 object-contain flex-shrink-0" alt="Joomla" />
+                            <span class="truncate">Joomla</span>
+                        </a>
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'prestashop' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="PrestaShop">
+                            <img src="/media/icon/presta.png" class="w-5 h-5 object-contain flex-shrink-0" alt="PrestaShop" />
+                            <span class="truncate">PrestaShop</span>
+                        </a>
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'opencart' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="OpenCart">
+                            <img src="/media/icon/opencart.png" class="w-5 h-5 object-contain flex-shrink-0" alt="OpenCart" />
+                            <span class="truncate">OpenCart</span>
+                        </a>
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'phpbb' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="phpBB">
+                            <img src="/media/icon/phpbb.png" class="w-5 h-5 object-contain flex-shrink-0" alt="phpBB" />
+                            <span class="truncate">phpBB</span>
+                        </a>
+                        <a href="{% url 'olsapp_view' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="More Apps">
+                            <img src="/media/icon/softaculous.png" class="w-5 h-5 object-contain flex-shrink-0" alt="More Apps" />
+                            <span class="truncate">More Apps...</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOFTWARE -->
+            {% if software_plugin %}
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Software</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">{{ software_plugin|length }}</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        {% for app in software_plugin %}
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                            <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
+                            <span class="truncate">{{ app.name }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ACCOUNT -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+                    <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Account</h5>
+                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-200/70 text-slate-600">2</span>
+                </div>
+                <div class="p-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                        <a href="{% url 'users-profile' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" title="Profile">
+                            <img src="/media/icon/user.svg" class="w-5 h-5 object-contain flex-shrink-0" alt="Profile" />
+                            <span class="truncate">Profile</span>
+                        </a>
+                        <a href="{% url 'logout' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" title="Logout">
+                            <img src="/media/icon/logout.svg" class="w-5 h-5 object-contain flex-shrink-0" alt="Logout" />
+                            <span class="truncate">Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= RIGHT SIDEBAR: GENERAL INFORMATION & STATISTICS ================= -->
+        <div class="flex flex-col gap-2.5">
+
+            <!-- GENERAL INFORMATION -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100">
+                    <h6 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">General Information</h6>
+                </div>
+                <div class="p-3 flex flex-col">
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Current User</span>
+                        <span class="text-slate-800 font-bold">{{ user.username }}</span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Primary Domain</span>
+                        <a href="https://{{ pkg_data.main_domain }}" target="_blank" class="text-brand font-semibold text-right truncate hover:underline">{{ pkg_data.main_domain }}</a>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">SSL Certificate</span>
+                        <div id="home_ssl" class="text-right text-xs">
+                            <span class="text-slate-400 text-[11px]">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Server IP</span>
+                        <code class="text-[11px] font-mono text-slate-800">{{ pkg_data.server_ip }}</code>
+                    </div>
+                    <div class="flex items-center justify-between pt-1.5 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Home Directory</span>
+                        <a href="{% url 'file_manager_home' %}" target="_blank" class="text-slate-600 hover:text-slate-900 text-right"><code class="text-[11px]">/home/{{ user.username }}</code></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATISTICS -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100">
+                    <h6 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Account Statistics</h6>
+                </div>
+                <div class="p-3 flex flex-col">
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Package</span>
+                        <span id="home_package" class="text-slate-800 font-semibold"><span class="text-slate-400 text-[11px]">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Disk Usage</span>
+                        <span id="home_disk_usage" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">MySQL® Disk</span>
+                        <span id="home_db_usage" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Email Disk</span>
+                        <span id="home_email_disk" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Memory</span>
+                        <span id="home_memory" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">CPU</span>
+                        <span id="home_cpu" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Bandwidth</span>
+                        <span id="home_bandwidth" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Domains</span>
+                        <span id="home_domains" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Sub Domains</span>
+                        <span id="home_subdomains" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">FTP Accounts</span>
+                        <span id="home_ftp" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between py-1.5 border-b border-slate-100 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Databases</span>
+                        <span id="home_database" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+                    <div class="flex items-center justify-between pt-1.5 text-xs gap-2">
+                        <span class="text-slate-500 font-medium">Email Accounts</span>
+                        <span id="home_email_accounts" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="text-slate-400">Loading...</span></span>
+                    </div>
+
+                    {% for mod in modules %}
+                        {% include mod.template %}
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
 document.addEventListener("DOMContentLoaded", function() {
     fetch("/home_data/")
         .then(response => response.json())
         .then(data => {
-
             const p = data.pkg_data;
+            if (!p) return;
 
-            document.getElementById("home_package").innerHTML =
-                p.name;
+            document.getElementById("home_package").innerText = p.name || "—";
+            document.getElementById("home_disk_usage").innerText = `${p.disk_use} / ${p.disk_space}`;
+            document.getElementById("home_db_usage").innerText = `${p.disk_use_db} / ${p.disk_space}`;
+            document.getElementById("home_email_disk").innerText = `${p.disk_use_email} / ${p.disk_space}`;
+            document.getElementById("home_memory").innerText = `${p.memory} MB / ${p.memory_limit} MB`;
+            document.getElementById("home_cpu").innerText = `${p.cpu}% (Core ${p.cpu_limit})`;
+            document.getElementById("home_bandwidth").innerText = `${p.bandwidth_use} / ${p.bandwidth}`;
+            document.getElementById("home_domains").innerText = `${p.domain_use} / ${p.allowed_domains}`;
+            document.getElementById("home_subdomains").innerText = `${p.subdomain_use} / ${p.allowed_subdomains}`;
+            document.getElementById("home_ftp").innerText = `${p.ftp_accounts_use} / ${p.ftp_accounts}`;
+            document.getElementById("home_database").innerText = `${p.databases_use} / ${p.databases}`;
+            document.getElementById("home_email_accounts").innerText = `${p.total_email_count} / ${p.email_accounts}`;
 
-            document.getElementById("home_disk_usage").innerHTML =
-                `${p.disk_use} / ${p.disk_space}`;
-
-            document.getElementById("home_db_usage").innerHTML =
-                `${p.disk_use_db} / ${p.disk_space}`;
-
-            document.getElementById("home_email_disk").innerHTML =
-                `${p.disk_use_email} / ${p.disk_space}`;
-
-            document.getElementById("home_memory").innerHTML =
-                `${p.memory} MB / ${p.memory_limit} MB`;
-
-            document.getElementById("home_cpu").innerHTML =
-                `${p.cpu}% (Core ${p.cpu_limit})`;
-
-            document.getElementById("home_bandwidth").innerHTML =
-                `${p.bandwidth_use} / ${p.bandwidth}`;
-
-            document.getElementById("home_domains").innerHTML =
-                `${p.domain_use} / ${p.allowed_domains}`;
-
-            document.getElementById("home_subdomains").innerHTML =
-                `${p.subdomain_use} / ${p.allowed_subdomains}`;
-
-            document.getElementById("home_ftp").innerHTML =
-                `${p.ftp_accounts_use} / ${p.ftp_accounts}`;
-
-            document.getElementById("home_database").innerHTML =
-                `${p.databases_use} / ${p.databases}`;
-
-            document.getElementById("home_email_accounts").innerHTML =
-                `${p.total_email_count} / ${p.email_accounts}`;
-				
-				
-			 if (p.ssl.toLowerCase().includes("invalid") || p.ssl.toLowerCase().includes("self")){
-    document.getElementById("home_ssl").innerHTML =
-        '<span class="ssl-inactive">' +
-        '<i class="ri-close-circle-fill"></i> Inactive' +
-        '</span>'+
-		'<a href="/domain_list_ssl/" class="ssl-link">Issue Certificate</a>';
-}	else {
-    document.getElementById("home_ssl").innerHTML =
-        '<span class="ssl-active">' +
-        '<i class="ri-checkbox-circle-fill"></i> Active' +
-        '</span> ' +
-        '<a href="/domain_list_ssl/" class="ssl-link">View Certificate</a>';
-} 
-				
-				
-
+            const sslEl = document.getElementById("home_ssl");
+            if (sslEl) {
+                if (p.ssl && (p.ssl.toLowerCase().includes("invalid") || p.ssl.toLowerCase().includes("self"))) {
+                    sslEl.innerHTML = '<span class="inline-flex items-center gap-1 font-semibold text-rose-600 text-xs"><i class="mdi mdi-alert-circle"></i> Inactive</span> <a href="/domain_list_ssl/" class="text-blue-600 hover:underline block text-[11px]">Issue Certificate</a>';
+                } else {
+                    sslEl.innerHTML = '<span class="inline-flex items-center gap-1 font-semibold text-emerald-600 text-xs"><i class="mdi mdi-check-circle"></i> Active</span> <a href="/domain_list_ssl/" class="text-blue-600 hover:underline block text-[11px]">View Certificate</a>';
+                }
+            }
         })
         .catch(err => {
-
             [
-                "home_package",
-                "home_disk_usage",
-                "home_db_usage",
-                "home_email_disk",
-                "home_memory",
-                "home_cpu",
-                "home_bandwidth",
-                "home_domains",
-                "home_subdomains",
-                "home_ftp",
-                "home_database",
-                "home_email_accounts"
+                "home_package", "home_disk_usage", "home_db_usage", "home_email_disk",
+                "home_memory", "home_cpu", "home_bandwidth", "home_domains",
+                "home_subdomains", "home_ftp", "home_database", "home_email_accounts"
             ].forEach(id => {
-                document.getElementById(id).innerHTML =
-                    "<span style='color:red'>Error loading</span>";
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = "<span class='text-rose-600 text-xs font-medium'>Unavailable</span>";
             });
-
             console.error(err);
         });
+
+    // App Search Functionality
+    const appSearch = document.getElementById("appSearchInput");
+    const clearBtn = document.getElementById("clearAppSearchBtn");
+
+    if (appSearch) {
+        appSearch.addEventListener("input", function() {
+            const filter = this.value.trim().toLowerCase();
+            if (clearBtn) clearBtn.style.display = filter ? "block" : "none";
+
+            const cards = document.querySelectorAll(".dashboard-app-card");
+            cards.forEach(card => {
+                const appCols = card.querySelectorAll(".app-grid-col");
+                let visibleInCard = 0;
+
+                appCols.forEach(col => {
+                    const text = col.textContent.trim().toLowerCase();
+                    if (!filter || text.includes(filter)) {
+                        col.style.display = "flex";
+                        visibleInCard++;
+                    } else {
+                        col.style.display = "none";
+                    }
+                });
+
+                card.style.display = visibleInCard > 0 ? "" : "none";
+            });
+        });
+    }
 });
-</script>	
-				<script>
-				
-				 document.getElementById('search').addEventListener('input', function() {
-    const filter = this.value.toLowerCase();
-    const container = document.getElementById('search_here');
-    const cards = container.querySelectorAll('.card.card-default');
 
-    cards.forEach(card => {
-      // Get all visible text inside the card
-      const text = card.textContent.toLowerCase();
-      // Show or hide card depending on match
-      if (text.includes(filter)) {
-        card.style.display = '';
-      } else {
-        card.style.display = 'none';
-      }
-    });
-  });
-
-
-
-
+function clearAppSearch() {
+    const appSearch = document.getElementById("appSearchInput");
+    const clearBtn = document.getElementById("clearAppSearchBtn");
+    if (appSearch) {
+        appSearch.value = "";
+        if (clearBtn) clearBtn.style.display = "none";
+        appSearch.dispatchEvent(new Event("input"));
+        appSearch.focus();
+    }
+}
 </script>
+
 {% include "users/footer.html" %}
 {% endblock content %}

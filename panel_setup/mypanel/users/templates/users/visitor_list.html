@@ -1,94 +1,102 @@
 {% extends "users/base.html" %}
-{% block title %}My Domain visitor{% endblock title %}
+{% block title %}Website Visitors{% endblock title %}
 {% block content %}
 
-
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-account-group-outline text-brand text-base"></i> Website Visitors Log
+        </h4>
+        <div class="relative w-64">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </span>
+            <input type="text" id="visitorSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search domains..." autocomplete="off">
+            <button type="button" id="clearVisitorSearchBtn" onclick="clearVisitorSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
         </div>
-</li> 
-       </ol>
-                </nav>
     </div>
-	
-	
 
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of Domains for visitor</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   
-</div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form action="{% url 'domain_list' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+    <div class="p-4">
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">Domain</th>
+                        <th class="px-3.5 py-2.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="visitorTableBody" class="divide-y divide-slate-100">
+                    {% for domain in domains %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5 font-bold text-slate-900 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+                                <i class="mdi mdi-web text-xs"></i>
+                            </div>
+                            <span class="font-mono">{{ domain.domain }}</span>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right">
+                            <a href="{% url 'visitor_view' domain.id %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-text-box-search-outline"></i> View Access Log
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="px-3.5 py-6 text-center text-slate-400">No domains found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Domain</th>
-                
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for domain in domains %}
-            <tr>
-                <td>{{ domain.domain }}</td>
-                
-                  <td>
-                    <a href="{% url 'visitor_view' domain.id %}" class="btn btn-primary btn-sm">View</a>
-
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
+        <div id="noVisitorResults" class="text-center text-slate-400 text-xs py-4" style="display:none;">No matching domains found.</div>
+    </div>
 </div>
 
+<script>
+const visitorSearchInput = document.getElementById("visitorSearchInput");
+const clearVisitorBtn = document.getElementById("clearVisitorSearchBtn");
+const visitorTableBody = document.getElementById("visitorTableBody");
 
+function performVisitorFilter() {
+    const q = (visitorSearchInput ? visitorSearchInput.value : "").trim().toLowerCase();
+    const rows = visitorTableBody ? Array.from(visitorTableBody.querySelectorAll("tr")) : [];
+    let visibleCount = 0;
 
-{% endblock content %}
+    if (clearVisitorBtn) {
+        clearVisitorBtn.style.display = q ? "block" : "none";
+    }
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    const noResults = document.getElementById("noVisitorResults");
+    if (noResults) {
+        noResults.style.display = (visibleCount === 0 && rows.length > 0) ? "block" : "none";
+    }
+}
+
+function clearVisitorSearch() {
+    if (visitorSearchInput) {
+        visitorSearchInput.value = "";
+        performVisitorFilter();
+        visitorSearchInput.focus();
+    }
+}
+
+if (visitorSearchInput) {
+    visitorSearchInput.addEventListener("input", performVisitorFilter);
+}
+</script>
 
 {% include "users/footer.html" %}
+{% endblock content %}

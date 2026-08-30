@@ -1,114 +1,196 @@
 {% extends "whm/base.html" %}
-
 {% block title %}Email Queue{% endblock title %}
-
 {% block content %}
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb breadcrumb-inverse">
-            <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
-            <li> 
-                <div class="sk-wave">
-                    <div class="rect1"></div>
-                    <div class="rect2"></div>
-                    <div class="rect3"></div>
-                    <div class="rect4"></div>
-                    <div class="rect5"></div>
+
+<div class="space-y-5">
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <!-- Header -->
+        <div class="px-5 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
                 </div>
-            </li> 
-        </ol>
-    </nav>
-</div>
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">×</span>
-    </button>
-</div>	
-
-<div class="card card-default">
-    <div class="card-header">
-        <h2>List of Email Queue</h2>
-    </div>
-    
-    <div class="card-body">
-        <div class="row">
-            <div class="col-xl-2">
-                <!-- Button to flush the queue -->
-                <form method="POST">
-                    {% csrf_token %}
-                    <button type="submit" name="action" value="flush" class="btn btn-warning">Flush Queue</button>
-                </form>
-				</div>
-				<div class="col-xl-2">
-                <!-- Button to delete all emails from the queue -->
-                <form method="POST" style="margin-top: 5px;">
-                    {% csrf_token %}
-                    <button type="submit" name="action" value="delete_all" class="btn btn-danger">Delete All Emails</button>
-                </form>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-800">Outbound Mail Queue</h1>
+                    <p class="text-xs text-slate-500">Active Postfix outgoing mail delivery queue</p>
+                </div>
             </div>
 
-            <div class="col-xl-6 d-flex justify-content-end">
-                <!-- Form for filtering emails -->
-                <form action="{% url 'package_list' %}" method="post" class="form-inline mb-3">
-                    <div class="form-group mr-2">
-                        <input type="text" id="search" name="email_id" class="form-control" placeholder="Search for email...">
-                    </div>
+            <!-- Header Actions -->
+            <div class="flex items-center gap-2">
+                <form method="POST" class="m-0">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Filter</button>
+                    <button type="submit" name="action" value="flush" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Flush Queue</span>
+                    </button>
+                </form>
+                <form method="POST" class="m-0" onsubmit="return confirm('Are you sure you want to delete all queued emails?');">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="delete_all" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        <span>Delete All</span>
+                    </button>
                 </form>
             </div>
         </div>
 
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>Recipient</th>
-                        <th>Sender</th>
-                        <th>SUBJECT</th>
-                        <th>Size</th>
-                        <th>TIME</th>
-                        <th>ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if queue_data %}
-                        {% for queue in queue_data %}
-                        <tr>
-                           <td>{{ queue.recipient }}</td>
-            <td>{{ queue.sender }}</td>
-            <td>{{ queue.size }}</td>
-            <td>{{ queue.arrival_time }}</td>
-                            <td>
-                                <!-- Form to delete a specific email -->
-                                <form method="POST" action="">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="email_id" value="{{ queue.queue_id  }}">
-                                    <button type="submit" name="action" value="delete_email" class="btn btn-danger">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center">No emails in the queue.</td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center">No emails found.</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
+        <!-- Body & Search -->
+        <div class="p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="text-xs text-slate-500">
+                    Showing queued messages awaiting dispatch
+                </div>
+                <div class="relative w-full sm:w-64">
+                    <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="mqueueSearchInput" class="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="Search queue..." autocomplete="off">
+                    <button type="button" id="clearMqueueSearchBtn" onclick="clearMqueueSearch();" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm hidden cursor-pointer">&times;</button>
+                </div>
+            </div>
 
-        <!-- No Results Message -->
-        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+            <!-- Table -->
+            <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3">Queue ID</th>
+                            <th class="px-4 py-3">Sender</th>
+                            <th class="px-4 py-3">Recipient</th>
+                            <th class="px-4 py-3">Size</th>
+                            <th class="px-4 py-3">Arrival Time</th>
+                            <th class="px-4 py-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mqueueTableBody" class="divide-y divide-slate-100">
+                        {% if queue_data %}
+                            {% for queue in queue_data %}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-4 py-3 font-mono font-semibold text-slate-800">{{ queue.queue_id }}</td>
+                                <td class="px-4 py-3 text-slate-800">{{ queue.sender }}</td>
+                                <td class="px-4 py-3 text-slate-800">{{ queue.recipient }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">{{ queue.size }}</span>
+                                </td>
+                                <td class="px-4 py-3 text-slate-500">{{ queue.arrival_time }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <form method="POST" action="" class="inline m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="email_id" value="{{ queue.queue_id }}">
+                                        <button type="submit" name="action" value="delete_email" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-md transition-colors cursor-pointer" onclick="return confirm('Delete email {{ queue.queue_id }} from queue?');">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                            <span>Delete</span>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-slate-400">No emails currently in queue.</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-slate-400">Mail queue is empty.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+const mqueueSearchInput = document.getElementById("mqueueSearchInput");
+const clearMqueueBtn = document.getElementById("clearMqueueSearchBtn");
+const mqueueTableBody = document.getElementById("mqueueTableBody");
+
+function performMqueueFilter(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = mqueueTableBody ? Array.from(mqueueTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
+
+    if (clearMqueueBtn) {
+        clearMqueueBtn.style.display = q ? "block" : "none";
+    }
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noMqueueSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noMqueueSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="6" class="px-4 py-8 text-center text-slate-400">No queue entries match "<strong>${q}</strong>"</td>`;
+            mqueueTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    if (q) {
+        sessionStorage.setItem("whm_mqueue_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_mqueue_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
+}
+
+function clearMqueueSearch() {
+    if (mqueueSearchInput) {
+        mqueueSearchInput.value = "";
+        performMqueueFilter("");
+        mqueueSearchInput.focus();
+    }
+}
+
+let mqueueDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (mqueueSearchInput) {
+        mqueueSearchInput.addEventListener("input", function () {
+            clearTimeout(mqueueDebounceTimer);
+            const val = this.value;
+            mqueueDebounceTimer = setTimeout(() => {
+                performMqueueFilter(val);
+            }, 100);
+        });
+
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_mqueue_search") || "";
+        if (savedQuery) {
+            mqueueSearchInput.value = savedQuery;
+            performMqueueFilter(savedQuery);
+        }
+    }
+});
+</script>
 
 {% endblock content %}
-
-{% include "whm/footer.html" %}

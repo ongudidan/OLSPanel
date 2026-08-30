@@ -2,270 +2,242 @@
 {% block title %}MultiPHP INI Editor{% endblock title %}
 {% block content %}
 
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
-
-
-
 <script src="/media/editor/ace.js"></script>
-<style>
- #editor { 
-            width: 100%; 
-            height: 400px; 
-            border: 1px solid #ccc; 
-        }
-</style>
-<form method="post" action="">
-            {% csrf_token %}
-<div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
-<div class="card card-default">
-    <div class="card-header">
-        <h2>MultiPHP INI Editor</h2>
-    </div>
-    <div class="card-body">
-	 <div class="form-group">
-            <label for="php_version">Select PHP Version:</label>
-           <select class="form-control" name="php_version" id="php_version" onchange="load(this.value)">
-    <option value="">PHP version</option>
-    {% for version in php_versions %}
-        <option value="{{ version }}">{{ version }}</option>
-    {% endfor %}
-</select>
 
- <div id="responseContainer" style="display: none;" class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
+<div class="max-w-4xl space-y-5">
+    <!-- Alert container -->
+    <div id="alertContainer" class="hidden p-4 rounded-xl border text-xs" role="alert">
+        <div class="flex items-center justify-between">
+            <div id="message" class="font-medium"></div>
+            <button type="button" onclick="this.parentElement.parentElement.classList.add('hidden');" class="text-slate-400 hover:text-slate-600 cursor-pointer text-base leading-none">&times;</button>
         </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-800">MultiPHP INI Configuration</h1>
+                    <p class="text-xs text-slate-500">Configure global PHP directive settings per version</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <form method="post" action="" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- PHP Version Select -->
+                <div class="max-w-md">
+                    <label for="php_version" class="block text-xs font-semibold text-slate-700 mb-1.5">Select PHP Version</label>
+                    <select name="php_version" id="php_version" onchange="load(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all cursor-pointer">
+                        <option value="">-- Choose PHP Version --</option>
+                        {% for version in php_versions %}
+                            <option value="{{ version }}">{{ version }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Response / Loading notice -->
+                <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-700 rounded-lg text-xs flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Fetching PHP configuration, please wait...</span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="border-b border-slate-200">
+                    <nav class="flex space-x-6" aria-label="Tabs">
+                        <button type="button" id="tabBtnBasic" onclick="switchIniTab('basic')" class="py-2.5 px-1 border-b-2 border-brand font-medium text-xs text-brand flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                            </svg>
+                            <span>Basic Mode</span>
+                        </button>
+                        <button type="button" id="tabBtnEditor" onclick="switchIniTab('editor')" class="py-2.5 px-1 border-b-2 border-transparent font-medium text-xs text-slate-500 hover:text-slate-700 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                            <span>Editor Mode</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab 1: Basic Mode -->
+                <div id="tabContentBasic" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="memory_limit" class="block text-xs font-semibold text-slate-700 mb-1">Memory Limit</label>
+                            <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none" id="memory_limit" name="memory_limit" placeholder="e.g. 256M">
+                        </div>
+                        <div>
+                            <label for="upload_max_filesize" class="block text-xs font-semibold text-slate-700 mb-1">Upload Max Filesize</label>
+                            <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none" id="upload_max_filesize" name="upload_max_filesize" placeholder="e.g. 64M">
+                        </div>
+                        <div>
+                            <label for="post_max_size" class="block text-xs font-semibold text-slate-700 mb-1">Post Max Size</label>
+                            <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none" id="post_max_size" name="post_max_size" placeholder="e.g. 64M">
+                        </div>
+                        <div>
+                            <label for="max_execution_time" class="block text-xs font-semibold text-slate-700 mb-1">Max Execution Time (seconds)</label>
+                            <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none" id="max_execution_time" name="max_execution_time" placeholder="e.g. 300">
+                        </div>
+                        <div>
+                            <label for="max_input_time" class="block text-xs font-semibold text-slate-700 mb-1">Max Input Time (seconds)</label>
+                            <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none" id="max_input_time" name="max_input_time" placeholder="e.g. 60">
+                        </div>
+                    </div>
+
+                    <!-- Directives Toggle List -->
+                    <div class="pt-2 space-y-2.5">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-800">allow_url_fopen</span>
+                                <p class="text-[11px] text-slate-500">Allow URL-aware fopen wrappers</p>
+                            </div>
+                            <input type="checkbox" name="allow_url_fopen" id="allow_url_fopen" value="On" class="w-4 h-4 rounded text-brand border-slate-300 focus:ring-brand">
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-800">allow_url_include</span>
+                                <p class="text-[11px] text-slate-500">Allow URL-aware include/require</p>
+                            </div>
+                            <input type="checkbox" name="allow_url_include" id="allow_url_include" value="On" class="w-4 h-4 rounded text-brand border-slate-300 focus:ring-brand">
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-800">display_errors</span>
+                                <p class="text-[11px] text-slate-500">Display errors as part of the output</p>
+                            </div>
+                            <input type="checkbox" name="display_errors" id="display_errors" value="On" class="w-4 h-4 rounded text-brand border-slate-300 focus:ring-brand">
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-800">file_uploads</span>
+                                <p class="text-[11px] text-slate-500">Allow HTTP file uploads</p>
+                            </div>
+                            <input type="checkbox" name="file_uploads" id="file_uploads" value="On" class="w-4 h-4 rounded text-brand border-slate-300 focus:ring-brand">
+                        </div>
+                    </div>
+
+                    <div class="pt-3">
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            <span>Save Settings</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Editor Mode -->
+                <div id="tabContentEditor" class="hidden space-y-4">
+                    <div id="editor" class="w-full h-96 border border-slate-200 rounded-lg overflow-hidden"></div>
+                    <div>
+                        <button type="button" id="saveEditorBtn" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            <span>Save Raw INI</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-	         <ul class="nav nav-tabs mb-3" id="pills-tab" role="tablist">
-              <li class="nav-item">
-                <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#nav-tabs-home" role="tab"
-                  aria-controls="nav-tabs" aria-selected="true">Basic mode</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" id="nav-profile-tab" data-toggle="pill" href="#nav-profile" role="tab"
-                  aria-controls="nav-profile" aria-selected="false">Editor mode</a>
-              </li>
-              
-             
-            </ul>
-            <div class="tab-content mt-5" id="nav-tabContent">
-              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                
-           
 
-<div class="form-group mt-3">
-    <label for="memory_limit">Memory Limit:</label>
-    <input type="text" class="form-control" id="memory_limit" name="memory_limit" placeholder="e.g., 128M">
-</div>
-
-<div class="form-group">
-    <label for="upload_max_filesize">Upload Max Filesize:</label>
-    <input type="text" class="form-control" id="upload_max_filesize" name="upload_max_filesize" placeholder="e.g., 64M">
-</div>
-
-<div class="form-group">
-    <label for="post_max_size">Post Max Size:</label>
-    <input type="text" class="form-control" id="post_max_size" name="post_max_size" placeholder="e.g., 64M">
-</div>
-
-<div class="form-group">
-    <label for="max_execution_time">Max Execution Time:</label>
-    <input type="text" class="form-control" id="max_execution_time" name="max_execution_time" placeholder="e.g., 30">
-</div>
-
-
-<div class="form-group">
-    <label for="max_input_time">Max input time:</label>
-    <input type="text" class="form-control" id="max_input_time" name="max_input_time" placeholder="e.g., 30">
-</div>
-
-
-<div class="form-group">
-    <label for="allow_url_fopen">allow_url_fopen:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="allow_url_fopen" id="allow_url_fopen" class="switch-input form-check-input" value="On">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-<div class="form-group">
-    <label for="allow_url_include">allow_url_include:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="allow_url_include" id="allow_url_include" class="switch-input form-check-input" value="On">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-<div class="form-group">
-    <label for="allow_url_include">display_errors:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="display_errors" id="display_errors" class="switch-input form-check-input" value="On">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-
-<div class="form-group">
-    <label for="allow_url_include">file_uploads:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="file_uploads" id="file_uploads" class="switch-input form-check-input" value="On">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-
-            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-       
-    
-	    </div>
-              <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
-                          
-<div id="editor"></div>
-<div class="form-group">
- <button id="save"  class="btn btn-primary mt-3">Save</button>
-</div>
-          </div>
-
-          </div>
-	
-	
-	
-     
-	
-</div>
-
- </div>
-</div>
-
- </form>
 <script>
-    const editor = ace.edit("editor");
-        editor.setTheme("ace/theme/xcode"); // You can change the theme
-        editor.session.setMode("ace/mode/ini"); // Set the mode to PHP
+function switchIniTab(tab) {
+    const basicContent = document.getElementById('tabContentBasic');
+    const editorContent = document.getElementById('tabContentEditor');
+    const basicBtn = document.getElementById('tabBtnBasic');
+    const editorBtn = document.getElementById('tabBtnEditor');
 
-        document.addEventListener('keydown', function(event) {
-            // Detect if 'Ctrl' (or 'Cmd' for Mac) + 'F' is pressed
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
-                event.preventDefault();  // Prevent the default browser action (find)
-                toggleSearch();  // Open or close the search box
-            }
-        });
-
-       const alertContainer = document.getElementById('alertContainer');
-       const messageDisplay = document.getElementById('message');
-      const responseDisplay = document.getElementById('responseContainer');
-      
-
-   function load(selectedVersion) {
-    if (selectedVersion) {  // Ensuring selectedVersion is available
-        console.log('Selected version:', selectedVersion);
-       
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
-
-            // Call the URL with GET method, appending php_version as a query parameter
-            fetch(`{% url 'fetch_php_settings' %}?php_version=${selectedVersion}`, {
-                method: 'GET',  // Using GET to pass php_version as a query parameter
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json(); // Retrieve response as JSON
-            })
-            .then(response => {
-                console.log('Response:', response);
-               responseDisplay.style.display = 'none';
-
-                // Populate form fields with the response data
-                $('#memory_limit').val(response.memory_limit || '');
-                $('#upload_max_filesize').val(response.upload_max_filesize || '');
-                $('#post_max_size').val(response.post_max_size || '');
-                $('#max_execution_time').val(response.max_execution_time || '');
-				$('#max_input_time').val(response.max_input_time || '');
-				$('#allow_url_fopen').val(response.allow_url_fopen || '');
-				$('#allow_url_include').val(response.allow_url_include || '');
-				$('#display_errors').val(response.display_errors || '');
-				$('#file_uploads').val(response.file_uploads || '');
-				
-editor.setValue(response.content, -1);
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.allow_url_fopen === '1' || response.allow_url_fopen.toString().toLowerCase() === 'on') {
-    $('#allow_url_fopen').prop('checked', true);
-} else {
-    $('#allow_url_fopen').prop('checked', false);
-}
-
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.allow_url_include === '1' || response.allow_url_include.toString().toLowerCase() === 'on') {
-    $('#allow_url_include').prop('checked', true);
-} else {
-    $('#allow_url_include').prop('checked', false);
-}
-
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.display_errors === '1' || response.display_errors.toString().toLowerCase() === 'on') {
-    $('#display_errors').prop('checked', true);
-} else {
-    $('#display_errors').prop('checked', false);
-}
-
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.file_uploads === '1' || response.file_uploads.toString().toLowerCase() === 'on') {
-    $('#file_uploads').prop('checked', true);
-} else {
-    $('#file_uploads').prop('checked', false);
-}
-
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // You can show an alert to notify the user about the error
-               responseDisplay.style.display = 'none';
-               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
-            });
-        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
+    if (tab === 'basic') {
+        basicContent.classList.remove('hidden');
+        editorContent.classList.add('hidden');
+        basicBtn.className = 'py-2.5 px-1 border-b-2 border-brand font-medium text-xs text-brand flex items-center gap-1.5 cursor-pointer';
+        editorBtn.className = 'py-2.5 px-1 border-b-2 border-transparent font-medium text-xs text-slate-500 hover:text-slate-700 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer';
     } else {
-        console.log('No PHP version selected.');
+        basicContent.classList.add('hidden');
+        editorContent.classList.remove('hidden');
+        basicBtn.className = 'py-2.5 px-1 border-b-2 border-transparent font-medium text-xs text-slate-500 hover:text-slate-700 hover:border-slate-300 flex items-center gap-1.5 cursor-pointer';
+        editorBtn.className = 'py-2.5 px-1 border-b-2 border-brand font-medium text-xs text-brand flex items-center gap-1.5 cursor-pointer';
+        editor.resize();
     }
 }
 
+const editor = ace.edit("editor");
+editor.setTheme("ace/theme/chrome");
+editor.session.setMode("ace/mode/ini");
 
-       
-		
-	document.getElementById('save').onclick = function () {
-   event.preventDefault();
+const alertContainer = document.getElementById('alertContainer');
+const messageDisplay = document.getElementById('message');
+const responseDisplay = document.getElementById('responseContainer');
+
+function load(selectedVersion) {
+    if (!selectedVersion) return;
+
+    if (responseDisplay) responseDisplay.classList.remove('hidden');
+
+    fetch(`{% url 'fetch_php_settings' %}?php_version=${encodeURIComponent(selectedVersion)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network error: ' + response.statusText);
+        return response.json();
+    })
+    .then(data => {
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+
+        $('#memory_limit').val(data.memory_limit || '');
+        $('#upload_max_filesize').val(data.upload_max_filesize || '');
+        $('#post_max_size').val(data.post_max_size || '');
+        $('#max_execution_time').val(data.max_execution_time || '');
+        $('#max_input_time').val(data.max_input_time || '');
+
+        editor.setValue(data.content || '', -1);
+
+        $('#allow_url_fopen').prop('checked', data.allow_url_fopen === '1' || String(data.allow_url_fopen).toLowerCase() === 'on');
+        $('#allow_url_include').prop('checked', data.allow_url_include === '1' || String(data.allow_url_include).toLowerCase() === 'on');
+        $('#display_errors').prop('checked', data.display_errors === '1' || String(data.display_errors).toLowerCase() === 'on');
+        $('#file_uploads').prop('checked', data.file_uploads === '1' || String(data.file_uploads).toLowerCase() === 'on');
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        console.error('Error:', error);
+    });
+}
+
+document.getElementById('saveEditorBtn').onclick = function (event) {
+    event.preventDefault();
     const content = editor.getValue();
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
-    const alertContainer = document.getElementById('alertContainer'); // Assuming this is your alert container
-    const messageDisplay = document.getElementById('message'); // Assuming this is your message container
- const phpVersion = document.getElementById('php_version').value;
-    responseDisplay.style.display = 'inline-block';
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+    const phpVersion = document.getElementById('php_version').value;
 
-    // Get the value of the input field
-   
-    // Use fetch to send a POST request to save the file content
-    fetch("{% url 'ini_editor' %}", { // Assuming `inputValue` contains the API URL
+    if (!phpVersion) {
+        alert('Please select a PHP version first.');
+        return;
+    }
+
+    if (responseDisplay) responseDisplay.classList.remove('hidden');
+
+    fetch("{% url 'ini_editor' %}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -274,39 +246,32 @@ if (response.file_uploads === '1' || response.file_uploads.toString().toLowerCas
         },
         body: new URLSearchParams({
             'content': content,
-			'php_version': phpVersion
+            'php_version': phpVersion
         })
     })
     .then(response => {
-        responseDisplay.style.display = 'none';
-        if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.statusText);
-        }
-        return response.json(); // Parse response as JSON
+        if (!response.ok) throw new Error('Network error: ' + response.statusText);
+        return response.json();
     })
     .then(data => {
-        console.log('Response:', data);
-        responseDisplay.style.display = 'none';
- alertContainer.style.display = 'block';
-        if (data.status === 'success') {
-            alertContainer.className = "alert alert-success alert-dismissible fade show";
-            messageDisplay.innerText = 'Save successful'; // Displaying success message
-        } else {
-            alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = "Failed: " + data.message; // Displaying error message
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = (data.status === 'success') 
+                ? "p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs" 
+                : "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-xs";
+            messageDisplay.innerText = data.message || 'Saved successfully';
+            alertContainer.classList.remove('hidden');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        responseDisplay.style.display = 'none';
-		alertContainer.style.display = 'block';
-        alertContainer.className = "alert alert-danger alert-dismissible fade show";
-        messageDisplay.innerText = 'An error occurred: ' + error.message; // Displaying network error
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-xs";
+            messageDisplay.innerText = 'Error: ' + error.message;
+            alertContainer.classList.remove('hidden');
+        }
     });
 };
-	
-
 </script>
-  
-{% include "whm/footer.html" %}
+
 {% endblock content %}

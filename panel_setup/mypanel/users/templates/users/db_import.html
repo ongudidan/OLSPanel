@@ -2,90 +2,54 @@
 {% block title %}Import Database{% endblock title %}
 {% block content %}
 
- <div class="card card-default">
-      <div class="card-header">
-        <h2>Import Database ({{db}})</h2>
-		
-        
+<div class="max-w-2xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-database-import-outline text-brand text-base"></i> Import Database: <span class="font-mono text-brand">{{ db }}</span>
+        </h4>
+        <div>
+            <a href="{% url 'database_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Databases
+            </a>
+        </div>
+    </div>
+    <div class="p-5 space-y-4">
+        <div>
+            <label for="file-input" class="block text-xs font-semibold text-slate-700 mb-1">Select SQL Backup File (.sql / .sql.gz / .zip)</label>
+            <input type="file" id="file-input" class="w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand file:text-white hover:file:bg-brand/90 cursor-pointer bg-slate-50 border border-slate-200 rounded-md p-1.5 focus:outline-none focus:border-brand shadow-xs">
+            <p class="text-[11px] text-slate-400 mt-1">Maximum file size: 500MB.</p>
+        </div>
 
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   
+        <div id="file-preview" class="space-y-2"></div>
 
-	</div>
-<div class="table-responsive">
-    
-	
-	
-	</div>
-   <div class="form-group">
-            <label for="exampleFormControlFile1">Sql file</label>
-            <input type="file" class="form-control-file" id="file-input">
-          </div>
-		  <div class="form-group">
-		   <div id="file-preview" class="file-preview"></div>
-		   </div>
-	<div class="form-group">	   
-<button type="submit" class="btn btn-primary btn-sm" id="upload-button">Import</button>
+        <div class="pt-2">
+            <button type="button" id="upload-button" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors cursor-pointer">
+                <i class="mdi mdi-upload"></i> Start Import
+            </button>
+        </div>
+    </div>
 </div>
-</div>
-</div>
-<style>
 
-.progress-container {
-    margin-top: 5px;
-    height: 20px;
-    background: #e0e0e0; /* Default grey background */
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-    width: 200px; /* Default width for PC */
-}
-
-.progress-bar {
-    height: 100%;
-    width: 0%; /* Starts empty */
-    background: #4CAF50; /* Green by default for success */
-    border-radius: 3px;
-    transition: width 0.4s ease; /* Smooth width transition */
-}
-
-.progress-bar.failed {
-    background: #f44336; /* Red for failure */
-}
-
-.progress-percentage {
-    position: absolute;
-    top: 2px;
-    right: 5px;
-    font-size: 12px;
-    color: #fff;
-}
-@media (max-width: 768px) {
-    .progress-container {
-        width: 70px; /* Reduced width for mobile */
-    }
-}
-
-</style>
 <script>
 const csrfToken = "{{ csrf_token }}";
 const actionUrl = "{% url 'upload_db' db %}";
 const fileInput = document.getElementById('file-input');
-fileInput.addEventListener('change', handleFiles);
+
+if (fileInput) {
+    fileInput.addEventListener('change', handleFiles);
+}
+
 function uploadFile(file, index) {
-     const formData = new FormData();
+    const formData = new FormData();
     formData.append('file', file);
    
     const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const progressBar = $(`#${fileId} .progress-bar`);
     const progressPercentage = $(`#${fileId} .progress-percentage`);
+    const statusText = $(`#${fileId} .status-text`);
 
     $.ajax({
-        url: actionUrl, // Django URL name for the upload view
+        url: actionUrl,
         type: 'POST',
         data: formData,
         processData: false,
@@ -103,24 +67,22 @@ function uploadFile(file, index) {
             return xhr;
         },
         success: function (response) {
-            progressBar.css('background', 'green'); // Set to green on success
-            progressPercentage.text('Complete'); // Optionally update text
-			
+            progressBar.removeClass('bg-brand').addClass('bg-emerald-600');
+            progressPercentage.text('100%');
+            statusText.text('Import complete!').removeClass('text-slate-500').addClass('text-emerald-700 font-bold');
         },
         error: function (xhr, status, error) {
-            progressBar.addClass('failed'); // Set to red on failure
-            progressPercentage.text('Failed'); // Optionally update text
-            
-           
+            progressBar.removeClass('bg-brand').addClass('bg-rose-600');
+            progressPercentage.text('Failed');
+            statusText.text('Import failed').removeClass('text-slate-500').addClass('text-rose-600 font-bold');
         }
     });
 }
 
-
 $('#upload-button').on('click', function () {
     const files = $('#file-input')[0].files;
-    if (files.length === 0) {
-        alert('Please select files to upload.');
+    if (!files || files.length === 0) {
+        alert('Please select a SQL file to import.');
         return;
     }
 
@@ -129,20 +91,26 @@ $('#upload-button').on('click', function () {
     });
 });
 
-
-// Function to handle files selected or dropped
 function handleFiles(event) {
     const files = event.target.files || event.dataTransfer.files;
     const filePreview = document.getElementById('file-preview');
+    if (!filePreview) return;
+
     filePreview.innerHTML = Array.from(files)
         .map(file => {
             const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
             return `
-                <div class="file-item" id="${fileId}">
-                    <p>${file.name} (${Math.round(file.size / 1024)} KB)</p>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: 0%;"></div>
-                        <span class="progress-percentage">0%</span>
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs" id="${fileId}">
+                    <div class="flex items-center justify-between font-bold text-slate-800 mb-1.5">
+                        <span class="truncate font-mono">${file.name}</span>
+                        <span class="text-slate-500 text-[11px]">(${Math.round(file.size / 1024)} KB)</span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden mb-1">
+                        <div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] text-slate-500">
+                        <span class="status-text">Ready to import</span>
+                        <span class="progress-percentage font-semibold">0%</span>
                     </div>
                 </div>
             `;
@@ -151,6 +119,6 @@ function handleFiles(event) {
 }
 </script>
 <script src="/media/js/jquery.min.js"></script>
-{% endblock content %}
 
 {% include "users/footer.html" %}
+{% endblock content %}

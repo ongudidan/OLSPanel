@@ -2,482 +2,391 @@
 {% block title %}Restore Backup{% endblock title %}
 {% block content %}
 
+<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
+    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>Backup restore running. Do not navigate away, please wait...</span>
+</div>
 
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Backup Restore running do not leave this page, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
     <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
+</div>
 
- 
-	
-	<div class="card card-default">
-	<div class="card-header"></div>
+<div class="max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-backup-restore text-brand"></i> Restore Account Backup
+        </h4>
+    </div>
+    <div class="p-5">
+        <form action="#" method="POST" id="restoreBackupForm" onsubmit="event.preventDefault(); return false;" class="space-y-5">
+            {% csrf_token %}
 
-<div class="card-body">
+            <!-- Section 1: Backup Location -->
+            <div>
+                <div class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 mb-3 border-b border-slate-100 flex items-center gap-1.5">
+                    <i class="mdi mdi-map-marker-path text-brand text-sm"></i> 1. Backup Location &amp; Source
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3">
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
+                        <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
+                        <span class="truncate"><i class="mdi mdi-folder-home-outline text-brand"></i> Local</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
+                        <input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
+                        <span class="truncate"><i class="mdi mdi-upload text-brand"></i> Upload</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
+                        <input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
+                        <span class="truncate"><i class="mdi mdi-link-variant text-brand"></i> From URL</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors">
+                        <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="text-brand focus:ring-brand">
+                        <span class="truncate"><i class="mdi mdi-server-network text-indigo-600"></i> FTP</span>
+                    </label>
+                </div>
 
+                <!-- Local Backup File Selector -->
+                <div id="sbackup" style="display: none;" class="mt-3">
+                    <label for="backup-files-select" class="block text-xs font-semibold text-slate-700 mb-1">Select Local Backup Archive</label>
+                    <select id="backup-files-select" name="backup-files-select" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                    </select>
+                </div>
 
-
-
-<form action="#" method="POST">
- 
- <div class="form-row">
-            <div class="col-md-5">
-			
-			
-			
-			<p><strong>Backup Location:</strong></p>
-       <label><input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()"> Upload Backup </label><br>
-	    <label><input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()"> Import via url </label><br>
-            <label><input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()"> Local Backup (<span class="mdi mdi-home"></span>/backup/)</label><br>
-            <label><input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()"> FTP Backup</label><br><br>
-         	
-{% csrf_token %}
-
-
- <div class="form-group" >
-  <div id="sbackup" style="display:none;">
-    <label for="backup-files-select">Select a backup file:</label>
-    <select id="backup-files-select" name="backup-files-select" class="form-control">
-        
-    </select>
-	</div>
-	<br/>
-	<div class="form-group">
-                        <label id="lblCommonSettings" for="common_options">
-                          Backup Format
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                                <select id="common_options" name="category" class="form-control">
-                                   
-                                   
-                                   
-                                    <option value="default">
-                                        Default
-                                    </option>
-                                    <option value="cpanel">
-                                        Cpanel
-                                    </option>
-                                   
-                                    <option value="cyberpanel">
-                                       CyberPanel
-                                    </option>
-                                    <option value="pleask">
-                                       pleask pannel
-                                    </option>
-                                    
-                                </select>
-                            </div>
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                            </div>
+                <!-- FTP Fields -->
+                <div class="ftp-fields mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" style="display: none;">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label for="ftp_host" class="block font-semibold text-slate-700 mb-1">FTP Host</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
                         </div>
-                    </div>	
+                        <div>
+                            <label for="ftp_user" class="block font-semibold text-slate-700 mb-1">FTP Username</label>
+                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_user" name="ftp_user" placeholder="username">
+                        </div>
+                        <div>
+                            <label for="ftp_pass" class="block font-semibold text-slate-700 mb-1">FTP Password</label>
+                            <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="mt-3 text-right">
+                        <button class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors" type="button" onclick="fatchbackup('ftp');">
+                            <i class="mdi mdi-download"></i> Fetch Backup Files
+                        </button>
+                    </div>
+                </div>
 
- <p><strong>Backup Restore:</strong></p>
-            <label>
-                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)"> Full Backup
-            </label><br>
-            <label>
-                <input type="checkbox" class="backup-option" name="backup_option" value="database"> Database
-            </label><br>
-            <label>
-                <input type="checkbox" class="backup-option" name="backup_option" value="email"> Email
-            </label><br>
-            <label>
-                <input type="checkbox" class="backup-option" name="backup_option" value="dns"> DNS
-            </label><br>
-            <label>
-                <input type="checkbox" class="backup-option" name="backup_option" value="files"> Files
-            </label><br><br>
-			
-				<label for="dbpassc" style="margin-right: 10px;">Account Password</label>
-<div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
-   
-    <input type="text" id="dbpassc" name="dbpassc" class="form-control" value="" placeholder="{{ tips }}"> <button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Genarate</button>
-</div>
+                <!-- Upload File -->
+                <div id="upload" style="display: none;" class="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
+                    <label for="bk_up" class="block font-semibold text-slate-700">Upload Backup Archive (.zip, .tar, .tar.gz)</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <input type="file" id="bk_up" name="bk_up" accept=".zip,.tar,.gz" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand transition-all">
+                        <button type="button" id="upload-button" class="inline-flex items-center gap-1 px-3.5 py-2 bg-brand hover:bg-brand/90 text-white border border-l-0 border-brand rounded-r-md text-xs font-semibold whitespace-nowrap transition-colors">
+                            <i class="mdi mdi-upload"></i> Start Upload &amp; Restore
+                        </button>
+                    </div>
+                    <div id="file-preview" class="file-preview mt-2"></div>
+                </div>
 
-
-   <div class="ftp-fields" style="display:none;">
-                <label for="ftp_host">FTP Host:</label>
-                <input type="text" class="form-control" id="ftp_host" name="ftp_host"><br>
-
-                <label for="ftp_user">FTP User:</label>
-                <input type="text" class="form-control" id="ftp_user" name="ftp_user"><br>
-
-                <label for="ftp_pass">FTP Password:</label>
-                <input type="password" class="form-control" id="ftp_pass" name="ftp_pass"><br>
-				
-				 <button class="btn btn-success" type="submit" onclick="fatchbackup('ftp');">Fatch backup file</button>
+                <!-- URL Import -->
+                <div id="curl" style="display: none;" class="mt-3 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
+                    <label for="url-input" class="block font-semibold text-slate-700">Import Backup from Direct URL</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <input type="text" id="url-input" name="url-input" placeholder="https://example.com/backup.zip" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand transition-all">
+                        <button type="button" id="upload-button-url" class="inline-flex items-center gap-1 px-3.5 py-2 bg-brand hover:bg-brand/90 text-white border border-l-0 border-brand rounded-r-md text-xs font-semibold whitespace-nowrap transition-colors">
+                            <i class="mdi mdi-cloud-download"></i> Fetch &amp; Restore
+                        </button>
+                    </div>
+                    <div class="upload-item mt-2">
+                        <div id="prog" class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" style="display: none;">
+                            <div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                        </div>
+                        <div class="progress-percentage text-[11px] text-slate-500 font-semibold mt-1" style="display: none;">0%</div>
+                    </div>
+                </div>
             </div>
-			
-			
-			<div class="form-group" id="upload" style="display:none;">
-            <label for="bk_up">Upload file</label>
-			<div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text mdi mdi-zip-box" id="basic-addon1"></span>
-            </div>
-            <input type="file" class="form-control" id="bk_up" name="bk_up" accept=".zip,.tar,.gz">
-          </div>
-			
-			<div id="file-preview" class="file-preview"></div>
-            
-			<button class="btn btn-success" type="submit" id="upload-button">Start</button>
-          </div>
-		  
-		  <div class="form-group" id="curl" style="display:none;">
-            <label for="url">Import via url</label>
-			<div class="input-group mb-3">
-            <div class="input-group-prepend">
-              <span class="input-group-text mdi mdi-link-variant" id="basic-addon1"></span>
-            </div>
-            <input type="text" class="form-control" id="url-input" name="url-input" placeholder="https://example.com/bk.zip">
-          </div>
-		  
-		   <div  class="upload-item">
-           
-            <div id ="prog" class="progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-            </div>
-            <div class="progress-percentage">0%</div>
-        </div>
-		  
-         
-			<button class="btn btn-success" type="submit" id="upload-button-url">Start</button>
-          </div>
-		  
-		
-<br/>
 
+            <!-- Section 2: Format & Scope -->
+            <div>
+                <div class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2 mb-3 border-b border-slate-100 flex items-center gap-1.5">
+                    <i class="mdi mdi-format-list-checks text-brand text-sm"></i> 2. Backup Format &amp; Scope
+                </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
+                    <div>
+                        <label for="common_options" class="block text-xs font-semibold text-slate-700 mb-1">Backup Archive Format</label>
+                        <select id="common_options" name="category" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <option value="default">Default</option>
+                            <option value="cpanel">cPanel Archive</option>
+                            <option value="cyberpanel">CyberPanel</option>
+                            <option value="pleask">Plesk Panel</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="dbpassc" class="block text-xs font-semibold text-slate-700 mb-1">New Account Password</label>
+                        <div class="flex items-center rounded-md shadow-xs">
+                            <input type="text" id="dbpassc" name="dbpassc" placeholder="{{ tips|default:'Set new password...' }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand transition-all">
+                            <button id="gen" type="button" onclick="generateAndFillPassword();" class="inline-flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-l-0 border-slate-200 rounded-r-md text-xs font-semibold whitespace-nowrap transition-colors">
+                                <i class="mdi mdi-refresh"></i> Generate
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-<div id="file_name" style="display:none">
-				
-	 <button class="btn btn-success" type="submit" onclick="issuebackup();">Restore</button>
-	  </div>
-	 
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Restore Scope</label>
+                    <div class="flex flex-wrap gap-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold text-slate-900">
+                            <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="rounded border-slate-300 text-brand focus:ring-brand">
+                            <span>Full Backup</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
+                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
+                            <span>Database</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
+                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
+                            <span>Email</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
+                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
+                            <span>DNS</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700">
+                            <input type="checkbox" class="backup-option rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
+                            <span>Files</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button for Local / Fetched file -->
+            <div id="file_name" class="pt-2" style="display: none;">
+                <button class="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md shadow-xs transition-colors" type="button" onclick="issuebackup();">
+                    <i class="mdi mdi-play"></i> Start Backup Restore
+                </button>
+            </div>
+        </form>
     </div>
-
-
-           
-        
-    </div>
-	</div>
-	
-</form>	
-	
 </div>
-	
-</div>	
-	
-	
-	
-
-<style>
-        /* Hide the FTP fields initially */
-        .ftp-fields {
-            display: none;
-        }
-    </style>
 
 <script>
- const csrfToken = "{{ csrf_token }}";
- const upload_url = "{% url "upload_bk" %}";
- const upload_url_from_url = "{% url "upload_from_url_bk" %}";
+var csrfToken = "{{ csrf_token }}";
+var upload_url = "{% url 'upload_bk' %}";
+var upload_url_from_url = "{% url 'upload_from_url_bk' %}";
 
-const fileid = document.getElementById('file_name');
-document.addEventListener('DOMContentLoaded', function () {
-        const form = document.querySelector('form'); // Replace with your form selector if different
-      
-        form.addEventListener('submit', function (e) {
-            
-                e.preventDefault(); // Prevent form submission
-               
-                //issuebackup();
-            
-        });
-    });
+function toggleFtpFields() {
+    var checkedRadio = document.querySelector('input[name="backup_type"]:checked');
+    if (!checkedRadio) return;
+    var backupType = checkedRadio.value;
 
-
-
-   function toggleFtpFields() {
-    var backupType = document.querySelector('input[name="backup_type"]:checked').value;
-    
-    // Elements for different backup input sections
     var ftpFields = document.querySelector('.ftp-fields');
     var uploadSection = document.getElementById('upload');
     var urlSection = document.getElementById('curl');
     var localFileSelect = document.getElementById('file_name');
-	var sbackup = document.getElementById('sbackup');
+    var sbackup = document.getElementById('sbackup');
 
-    // Hide everything first
-    ftpFields.style.display = 'none';
-    uploadSection.style.display = 'none';
-    urlSection.style.display = 'none';
-    localFileSelect.style.display = 'none';
-	sbackup.style.display = 'none';
-    
+    if (ftpFields) ftpFields.style.display = 'none';
+    if (uploadSection) uploadSection.style.display = 'none';
+    if (urlSection) urlSection.style.display = 'none';
+    if (localFileSelect) localFileSelect.style.display = 'none';
+    if (sbackup) sbackup.style.display = 'none';
+
     if (backupType === 'ftp') {
-        ftpFields.style.display = 'block';
-		
-        // Hide file list for ftp initially; you can show it after fetch if needed
-        localFileSelect.style.display = 'none';
+        if (ftpFields) ftpFields.style.display = 'block';
     } else if (backupType === 'local') {
-	sbackup.style.display = 'block';
-        // Show backup file select for local
-        localFileSelect.style.display = 'block';
-        ftpFields.style.display = 'none';
-        // Optionally fetch files on local select
+        if (sbackup) sbackup.style.display = 'block';
+        if (localFileSelect) localFileSelect.style.display = 'block';
         fatchbackup('local');
     } else if (backupType === 'upload') {
-        uploadSection.style.display = 'block';
+        if (uploadSection) uploadSection.style.display = 'block';
     } else if (backupType === 'url') {
-        urlSection.style.display = 'block';
+        if (urlSection) urlSection.style.display = 'block';
     }
 }
 
-
-
-        // Function to toggle the form visibility
-        function toggleForm() {
-            var form = document.getElementById('backup-form');
-            form.style.display = (form.style.display === "none" || form.style.display === "") ? "block" : "none";
-        }
-		function toggleFullBackup(fullBackupCheckbox) {
-            var backupOptions = document.querySelectorAll('.backup-option');
-            backupOptions.forEach(option => {
-                option.checked = fullBackupCheckbox.checked;
-            });
-        }
-		
-		
-function issuebackup(backupfile = "") {
-    const csrfToken = "{{ csrf_token }}";
-    const responseDisplay = document.getElementById('responseContainer');
-    const alertContainer = document.getElementById('alertContainer');
-    const messageDisplay = document.getElementById('message');
-
-   if (!backupfile) {
-        backupfile = document.querySelector('[name="backup-files-select"]').value;
-    }
-    const backupOptions = Array.from(document.querySelectorAll('input[name="backup_option"]:checked')).map(option => option.value);
-    var backupType = document.querySelector('input[name="backup_type"]:checked').value;
-    const ftpHost = document.querySelector('[name="ftp_host"]').value;
-    const ftpUser = document.querySelector('[name="ftp_user"]').value;
-    const ftpPass = document.querySelector('[name="ftp_pass"]').value;
-    const category = document.querySelector('[name="category"]').value;
-	const pass = document.querySelector('[name="dbpassc"]').value;
-
-    setTimeout(function() {
-        responseDisplay.style.display = 'inline-block';
-
-        // Prepare form data using FormData object
-        const formData = new FormData();
-        
-       formData.append('backup_file', backupfile);  // Join array values as comma-separated string
-        formData.append('type', backupOptions.join(','));
-       if (backupType =='ftp'){ 
-	   formData.append('ftp_host', ftpHost);
-        formData.append('ftp_user', ftpUser);
-        formData.append('ftp_pass', ftpPass);
-		}
-        formData.append('category', category);
-		formData.append('pass', pass);
- 
-        // Send the form data using a POST request to the backup_now URL
-        fetch('{% url 'backup_restore_start' %}', {
-            method: 'POST',
-            headers: {
-                "X-CSRFToken": csrfToken,
-            },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                responseDisplay.style.display = 'none';
-				 messageDisplay.innerText = response.statusText;
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            return response.text(); // Retrieve response as plain text
-        })
-        .then(data => {
-    console.log('Response:', data);
-    responseDisplay.style.display = 'none';
-
-    // Parse the JSON response
-    let responseData = JSON.parse(data);
-
-    // Extract the message from the response
-    let message = responseData.message;
-
-    if (responseData.status === 'success') {
-        // Set alert for success
-        alertContainer.className = "alert alert-success alert-dismissible fade show";
-        messageDisplay.innerText = message; // Displaying success message
-    } else {
-        // Set alert for error
-        alertContainer.className = "alert alert-danger alert-dismissible fade show";
-        messageDisplay.innerText = message; // Displaying error message
-    }
-
-    alertContainer.style.display = "block";
-    setTimeout(function() {
-        //window.location.href = '/domain_list_ssl'; // Change this to your desired URL
-    }, 5000); // 5000 milliseconds = 5 seconds
-})
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }, 0); // 1000 milliseconds = 1 second
+function toggleFullBackup(fullBackupCheckbox) {
+    var backupOptions = document.querySelectorAll('.backup-option');
+    backupOptions.forEach(function(option) {
+        option.checked = fullBackupCheckbox.checked;
+    });
 }
 
+function issuebackup(backupfile) {
+    backupfile = backupfile || "";
+    var responseDisplay = document.getElementById('responseContainer');
+    var alertContainer = document.getElementById('alertContainer');
+    var messageDisplay = document.getElementById('message');
 
-function fatchbackup(type) {
-    const file_id = document.getElementById('file_name');
-    const responseDisplay = document.getElementById('responseContainer');
-    const alertContainer = document.getElementById('alertContainer');
-    const messageDisplay = document.getElementById('message');
-	const sbackup = document.getElementById('sbackup');
-sbackup.style.display = 'block';
-    responseDisplay.style.display = 'inline-block';
-    alertContainer.style.display = "none";
-   file_id.style.display = "none";  // Hide initially
- 
-    const csrfToken = "{{ csrf_token }}";
-    const formData = new FormData();
-    formData.append('fetch_type', type);
+    if (!backupfile) {
+        var sel = document.querySelector('[name="backup-files-select"]');
+        backupfile = sel ? sel.value : "";
+    }
+    var backupOptions = Array.from(document.querySelectorAll('input[name="backup_option"]:checked')).map(function(option) { return option.value; });
+    var checkedRadio = document.querySelector('input[name="backup_type"]:checked');
+    var backupType = checkedRadio ? checkedRadio.value : "";
+    var ftpHostElem = document.querySelector('[name="ftp_host"]');
+    var ftpUserElem = document.querySelector('[name="ftp_user"]');
+    var ftpPassElem = document.querySelector('[name="ftp_pass"]');
+    var categoryElem = document.querySelector('[name="category"]');
+    var passElem = document.querySelector('[name="dbpassc"]');
 
-    if (type == 'ftp') {
-        const ftpHost = document.querySelector('[name="ftp_host"]').value;
-        const ftpUser = document.querySelector('[name="ftp_user"]').value;
-        const ftpPass = document.querySelector('[name="ftp_pass"]').value;
+    var ftpHost = ftpHostElem ? ftpHostElem.value : "";
+    var ftpUser = ftpUserElem ? ftpUserElem.value : "";
+    var ftpPass = ftpPassElem ? ftpPassElem.value : "";
+    var category = categoryElem ? categoryElem.value : "default";
+    var pass = passElem ? passElem.value : "";
+
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (alertContainer) alertContainer.style.display = 'none';
+
+    var formData = new FormData();
+    formData.append('backup_file', backupfile);
+    formData.append('type', backupOptions.join(','));
+    if (backupType === 'ftp') {
         formData.append('ftp_host', ftpHost);
         formData.append('ftp_user', ftpUser);
         formData.append('ftp_pass', ftpPass);
     }
+    formData.append('category', category);
+    formData.append('pass', pass);
 
-    fetch('{% url 'list_backup_files' %}', {
+    fetch('{% url "backup_restore_start" %}', {
         method: 'POST',
-        headers: {
-            "X-CSRFToken": csrfToken,
-        },
+        headers: { "X-CSRFToken": csrfToken },
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Fetched backup files:', data); // Debugging log
-        responseDisplay.style.display = 'none';
+    .then(function(response) {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) {
+            messageDisplay.innerText = response.statusText;
+            throw new Error('Network response was not ok: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(function(responseData) {
+        var message = responseData.message || "Operation completed.";
+        if (alertContainer) alertContainer.style.display = "flex";
+        if (responseData.status === 'success') {
+            alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = message;
+        } else {
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = message;
+        }
+    })
+    .catch(function(error) {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer) {
+            alertContainer.style.display = "flex";
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = error.toString();
+        }
+    });
+}
 
-        if (data.status === 'success' && data.files.length > 0) {
-            file_id.style.display = "block";  // Show backup file list
+function fatchbackup(type) {
+    var file_id = document.getElementById('file_name');
+    var responseDisplay = document.getElementById('responseContainer');
+    var alertContainer = document.getElementById('alertContainer');
+    var messageDisplay = document.getElementById('message');
+    var sbackup = document.getElementById('sbackup');
 
-            const selectElement = document.getElementById('backup-files-select');
-            selectElement.innerHTML = ''; // Clear existing options
+    if (sbackup) sbackup.style.display = 'block';
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (alertContainer) alertContainer.style.display = "none";
+    if (file_id) file_id.style.display = "none";
 
-            data.files.forEach(file => {
-                const option = document.createElement('option');
+    var formData = new FormData();
+    formData.append('fetch_type', type);
+    if (type === 'ftp') {
+        var hElem = document.querySelector('[name="ftp_host"]');
+        var uElem = document.querySelector('[name="ftp_user"]');
+        var pElem = document.querySelector('[name="ftp_pass"]');
+        formData.append('ftp_host', hElem ? hElem.value : "");
+        formData.append('ftp_user', uElem ? uElem.value : "");
+        formData.append('ftp_pass', pElem ? pElem.value : "");
+    }
+
+    fetch('{% url "list_backup_files" %}', {
+        method: 'POST',
+        headers: { "X-CSRFToken": csrfToken },
+        body: formData
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (data.status === 'success' && data.files && data.files.length > 0) {
+            if (file_id) file_id.style.display = "block";
+            var selectElement = document.getElementById('backup-files-select');
+            selectElement.innerHTML = '';
+            data.files.forEach(function(file) {
+                var option = document.createElement('option');
                 option.value = file;
                 option.textContent = file;
                 selectElement.appendChild(option);
             });
-			
-			
-			
         } else {
-            alertContainer.style.display = "block";
-            alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = data.message || "No backup files found.";
-            console.error('Error:', data.message);
+            if (alertContainer) {
+                alertContainer.style.display = "flex";
+                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+                messageDisplay.innerText = data.message || "No backup files found in this location.";
+            }
         }
     })
-    .catch(error => {
-        console.error('Fetch error:', error);
-        alertContainer.style.display = "block";
-        alertContainer.className = "alert alert-danger alert-dismissible fade show";
-        messageDisplay.innerText = "Failed to fetch backup files. Please try again.";
-        responseDisplay.style.display = 'none';
+    .catch(function(error) {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer) {
+            alertContainer.style.display = "flex";
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = "Failed to fetch backup files. Please try again.";
+        }
     });
 }
 
-function generateStrongPassword(length = 16) {
-        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const digits = '0123456789';
-        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
-        
-        const allCharacters = lowercase + uppercase + digits + specialChars;
-        let password = '';
-
-        // Ensure the password contains at least one character from each category
-        password += lowercase[Math.floor(Math.random() * lowercase.length)];
-        password += uppercase[Math.floor(Math.random() * uppercase.length)];
-        password += digits[Math.floor(Math.random() * digits.length)];
-        password += specialChars[Math.floor(Math.random() * specialChars.length)];
-
-        // Fill the rest of the password length with a mix of all characters
-        for (let i = 4; i < length; i++) {
-            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
-        }
-
-        // Shuffle the password to ensure randomness
-        password = password.split('').sort(() => Math.random() - 0.5).join('');
-        return password;
+function generateStrongPassword(length) {
+    length = length || 16;
+    var lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    var digits = '0123456789';
+    var specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+    var all = lowercase + uppercase + digits + specialChars;
+    var password = lowercase[Math.floor(Math.random() * lowercase.length)] +
+                   uppercase[Math.floor(Math.random() * uppercase.length)] +
+                   digits[Math.floor(Math.random() * digits.length)] +
+                   specialChars[Math.floor(Math.random() * specialChars.length)];
+    for (var i = 4; i < length; i++) {
+        password += all[Math.floor(Math.random() * all.length)];
     }
+    return password.split('').sort(function() { return Math.random() - 0.5; }).join('');
+}
 
-    function generateAndFillPassword() {
-        const password = generateStrongPassword();
-        //document.getElementById('dbpass').value = password;
-        document.getElementById('dbpassc').value = password; // Set confirm password to match
-        return false; // Prevent any default action (not strictly necessary here)
-    }
-	
-	
-	
-	
-	
-	
+function generateAndFillPassword() {
+    var password = generateStrongPassword(16);
+    var passElem = document.getElementById('dbpassc');
+    if (passElem) passElem.value = password;
+    return false;
+}
+
 function uploadFile(file) {
-    let parentPath = "backup"; // Set if needed
-    const formData = new FormData();
+    var formData = new FormData();
     formData.append('file', file);
-    formData.append('target_name', parentPath);
+    formData.append('target_name', 'backup');
 
-    // Clear previous preview
-    $('#file-preview').html(`
-        <div id="file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}" class="upload-item">
-            <strong>${file.name}</strong>
-            <div class="progress">
-                <div class="progress-bar" style="width: 0%;"></div>
-            </div>
-            <div class="progress-percentage">0%</div>
-        </div>
-    `);
+    $('#file-preview').html(
+        '<div id="uploadingFileProgress" class="p-3 border border-slate-200 rounded-lg bg-white text-xs">' +
+            '<div class="flex justify-between font-bold text-slate-800 mb-1.5">' +
+                '<span class="truncate font-mono">' + file.name + '</span>' +
+                '<span class="progress-percentage text-brand font-semibold">0%</span>' +
+            '</div>' +
+            '<div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">' +
+                '<div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>' +
+            '</div>' +
+        '</div>'
+    );
 
-    const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
-    const progressBar = $(`#${fileId} .progress-bar`);
-    const progressPercentage = $(`#${fileId} .progress-percentage`);
+    var progressBar = $('#uploadingFileProgress .progress-bar');
+    var progressPercentage = $('#uploadingFileProgress .progress-percentage');
 
     $.ajax({
         url: upload_url,
@@ -487,60 +396,51 @@ function uploadFile(file) {
         contentType: false,
         headers: { "X-CSRFToken": csrfToken },
         xhr: function () {
-            const xhr = new window.XMLHttpRequest();
+            var xhr = new window.XMLHttpRequest();
             xhr.upload.addEventListener('progress', function (e) {
                 if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    progressBar.css('width', `${percentComplete}%`);
-                    progressPercentage.text(`${percentComplete}%`);
+                    var percentComplete = Math.round((e.loaded / e.total) * 100);
+                    progressBar.css('width', percentComplete + '%');
+                    progressPercentage.text(percentComplete + '%');
                 }
             }, false);
             return xhr;
         },
         success: function (response) {
-            progressBar.css('background-color', 'green');
+            progressBar.removeClass('bg-brand').addClass('bg-emerald-600');
             progressPercentage.text('Complete');
-            if (parentPath === "") {
-                parentPath = "/";
-            }
-			issuebackup(file.name);
-            //fetchFolderContents(parentPath); // You can define or remove this as needed
+            issuebackup(file.name);
         },
         error: function (xhr, status, error) {
-            progressBar.css('background-color', 'red');
-            progressPercentage.text('Failed');
-            console.log('Error:', error);
-            console.log('Status:', status);
-            console.log('Full Response:', xhr);
-            console.log('Response Text:', xhr.responseText);
+            progressBar.removeClass('bg-brand').addClass('bg-rose-600');
+            progressPercentage.text('Upload Failed');
         }
     });
 }
 
 $('#upload-button').on('click', function () {
-    const file = $('#bk_up')[0].files[0];
+    var fileInput = document.getElementById('bk_up');
+    var file = (fileInput && fileInput.files) ? fileInput.files[0] : null;
     if (!file) {
         alert('Please select a file to upload.');
         return;
     }
-
-    uploadFile(file); // Upload the single selected file
+    uploadFile(file);
 });
 
-
 function uploadFileFromUrl(fileUrl, targetPath) {
-    const formData = new FormData();
+    var formData = new FormData();
     formData.append('file_url', fileUrl);
     formData.append('target_name', targetPath);
-const container = document.querySelector('.upload-item');
 
-    const progressBar = container.querySelector('.progress-bar');
-const progressPercentage = container.querySelector('.progress-percentage');
+    var progBar = $('#prog');
+    var bar = progBar.find('.progress-bar');
+    var percentText = $('.upload-item .progress-percentage');
 
-    progressBar.style.width = '0%';
-    progressBar.style.backgroundColor = ''; // Reset to default
-    progressBar.classList.remove('failed');
-    progressPercentage.textContent = '0%';
+    progBar.show();
+    percentText.show();
+    bar.css('width', '0%');
+    percentText.text('0%');
 
     $.ajax({
         url: upload_url_from_url,
@@ -549,57 +449,47 @@ const progressPercentage = container.querySelector('.progress-percentage');
         processData: false,
         contentType: false,
         headers: { "X-CSRFToken": csrfToken },
-        xhr: function () {
-            const xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', () => {
-                // No actual upload progress for URL fetch
-            }, false);
-            return xhr;
-        },
         beforeSend: function () {
-            let progress = 0;
-            this.interval = setInterval(() => {
+            var progress = 0;
+            this.interval = setInterval(function () {
                 if (progress < 80) {
                     progress += 5;
-                    progressBar.style.width = `${progress}%`;
-                    progressPercentage.textContent = `${progress}%`;
+                    bar.css('width', progress + '%');
+                    percentText.text(progress + '%');
                 }
             }, 200);
         },
         success: function (response) {
             clearInterval(this.interval);
-            progressBar.style.width = '100%';
-            progressBar.style.backgroundColor = 'green';
-            progressPercentage.textContent = 'Complete';
-
-            const path = targetPath || '/';
+            bar.css('width', '100%').removeClass('bg-brand').addClass('bg-emerald-600');
+            percentText.text('Complete');
             issuebackup(response.file_name);
         },
-        error: function (xhr, status, error) {
+        error: function () {
             clearInterval(this.interval);
-            progressBar.style.backgroundColor = 'red';
-            progressBar.style.width = '100%';
-            progressPercentage.textContent = 'Failed';
-            console.error('Upload from URL failed:', error, status, xhr.responseText);
+            bar.css('width', '100%').removeClass('bg-brand').addClass('bg-rose-600');
+            percentText.text('Failed');
         }
     });
 }
 
 $('#upload-button-url').on('click', function () {
-    const url = $('#url-input').val().trim();
-    const targetPath = "backup";  // assuming you want to reuse the folder input
-
+    var urlElem = document.getElementById('url-input');
+    var url = urlElem ? urlElem.value.trim() : "";
     if (!url) {
-        alert('Please enter a file URL to upload.');
+        alert('Please enter a direct file URL.');
         return;
     }
-
-    uploadFileFromUrl(url, targetPath);
+    uploadFileFromUrl(url, 'backup');
 });
-	
-</script>	
-	
-	
-{% endblock content %}
 
-{% include "whm/footer.html" %}
+document.addEventListener("DOMContentLoaded", function () {
+    var localRadio = document.querySelector('input[name="backup_type"][value="local"]');
+    if (localRadio) {
+        localRadio.checked = true;
+        toggleFtpFields();
+    }
+});
+</script>
+
+{% endblock content %}

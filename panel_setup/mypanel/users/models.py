@@ -22,7 +22,7 @@ class Domain(models.Model):
     path = models.CharField(max_length=255)
     php = models.CharField(max_length=255)
     ssl_exp = models.CharField(max_length=255)
-    line = models.CharField(max_length=255)
+    line = models.CharField(max_length=255, null=True, blank=True, default='')
 
     class Meta:
         db_table = 'domain'  # Specify the database table name explicitly
@@ -273,6 +273,24 @@ class ApiKey(models.Model):
 
     class Meta:
         db_table = 'api_keys'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"
+
+
+class UserPasskey(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='passkeys')
+    name = models.CharField(max_length=100, default="Security Key / Passkey")
+    credential_id = models.CharField(max_length=255, unique=True, db_index=True)
+    public_key = models.TextField()
+    sign_count = models.IntegerField(default=0)
+    aaguid = models.CharField(max_length=64, blank=True, null=True)
+    transports = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'user_passkeys'
 
     def __str__(self):
         return f"{self.user.username} - {self.name}"

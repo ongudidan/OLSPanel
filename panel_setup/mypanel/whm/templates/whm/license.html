@@ -2,290 +2,195 @@
 {% block title %}License Management{% endblock title %}
 {% block content %}
 
-<div style="padding:24px 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-
-    <!-- Page Header -->
-    <div style="background:#fff; border-radius:16px;display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;padding:24px;">
+<div class="space-y-5">
+    <!-- Page Header Card -->
+    <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-center justify-between flex-wrap gap-3">
         <div>
-            <h4 style="margin:0; font-size:1.25rem; font-weight:700; color:#1e293b;">
-                🔑 License Management
+            <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-key-outline text-brand"></i> License Management
             </h4>
-            <p style="margin:4px 0 0; font-size:0.85rem; color:#64748b;">
-                Manage your OLSPanel license key
-            </p>
+            <p class="text-xs text-slate-500 m-0 mt-0.5">Manage your OLSPanel license key</p>
         </div>
         {% if license.key %}
             {% if license.status == 'Active' %}
-                <span style="background:#dcfce7; color:#16a34a; padding:6px 14px; border-radius:999px; font-size:0.8rem; font-weight:600; display:flex; align-items:center; gap:6px;">
-                    ✅ Active
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white shadow-xs">
+                    <i class="mdi mdi-check-circle-outline"></i> Active
                 </span>
             {% else %}
-                <span style="background:#fee2e2; color:#dc2626; padding:6px 14px; border-radius:999px; font-size:0.8rem; font-weight:600; display:flex; align-items:center; gap:6px;">
-                    ❌ Expired
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-rose-600 text-white shadow-xs">
+                    <i class="mdi mdi-alert-circle-outline"></i> Expired
                 </span>
             {% endif %}
         {% endif %}
     </div>
 
-
-<div class="row g-3">
-    <div class="col-12 col-sm-6 col-lg-6">
- 
-<!-- 💡 Free License Tip Card -->
-<div style="background:linear-gradient(135deg, #1e293b, #0f172a); border-radius:16px; padding:20px; color:#fff; margin-bottom:20px;">
-
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-        <span style="font-size:1.3rem;">🔐</span>
-        <div style="font-weight:700; font-size:1rem;">Why License Require</div>
-    </div>
-
-    <p style="font-size:0.85rem; color:#cbd5e1; margin:0 0 12px; line-height:1.5;">
-        A valid license key is required to activate <strong style="color:#fff;">unlock</strong>  premium features, updates, and support.
-    </p>
-
-    <div style="font-size:0.8rem; color:#94a3b8;">
-        ✔ Own Branding • ✔ Premium features • ✔ Fast support
-    </div>
-
-</div>
-
-
-    <div style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius:16px; padding:24px; color:#fff; position:relative; overflow:hidden; margin-bottom:20px;">
-
-        <!-- Decorative circle -->
-        <div style="position:absolute; top:-30px; right:-30px; width:120px; height:120px; background:rgba(255,255,255,0.04); border-radius:50%;"></div>
-        <div style="position:absolute; bottom:-20px; right:40px; width:70px; height:70px; background:rgba(255,255,255,0.04); border-radius:50%;"></div>
-
-        <div style="position:relative;">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
-                <span style="font-size:1.4rem;">🎁</span>
-                <div>
-                    <div style="font-size:1rem; font-weight:700; color:#f1f5f9;">Get a Free License Key!</div>
-                    <div style="font-size:0.78rem; color:#94a3b8; margin-top:2px;">No credit card. No payment. Just share.</div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <!-- Info column -->
+        <div class="lg:col-span-6 space-y-4">
+            <!-- Why License Required -->
+            <div class="bg-slate-900 text-white rounded-lg p-5 border border-slate-800 shadow-sm">
+                <div class="flex items-center gap-2 font-bold text-sm text-slate-100 mb-2">
+                    <span class="text-base">🔐</span>
+                    <span>Why a License is Required</span>
+                </div>
+                <p class="text-xs text-slate-300 mb-3 leading-relaxed">
+                    A valid license key is required to activate and unlock premium features, automatic updates, and dedicated support.
+                </p>
+                <div class="text-xs text-slate-400 font-medium flex flex-wrap gap-3">
+                    <span class="flex items-center gap-1 text-emerald-400">✓ Own Branding</span>
+                    <span class="flex items-center gap-1 text-emerald-400">✓ Premium Features</span>
+                    <span class="flex items-center gap-1 text-emerald-400">✓ Priority Support</span>
                 </div>
             </div>
 
-            <p style="font-size:0.85rem; color:#cbd5e1; line-height:1.6; margin:0 0 16px;">
-                You don't need to buy a license with money. Simply write a post or record a short video reviewing
-                <strong style="color:#fff;">OLSPanel</strong> and share it publicly — then submit your link to get a
-                <strong style="color:#fbbf24;">free license key</strong>!
-            </p>
-
-            <!-- Steps -->
-            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-
-                <div style="display:flex; align-items:flex-start; gap:12px;">
-                    <span style="background:#3b82f6; color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; flex-shrink:0; margin-top:1px;">1</span>
-                    <span style="font-size:0.84rem; color:#cbd5e1;">Write a review post <strong style="color:#fff;">or</strong> record a short video about OLSPanel</span>
-                </div>
-
-                <div style="display:flex; align-items:flex-start; gap:12px;">
-                    <span style="background:#3b82f6; color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; flex-shrink:0; margin-top:1px;">2</span>
-                    <span style="font-size:0.84rem; color:#cbd5e1;">Share it publicly on any platform (YouTube, Facebook, blog, forum, etc.)</span>
-                </div>
-
-                <div style="display:flex; align-items:flex-start; gap:12px;">
-                    <span style="background:#3b82f6; color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; flex-shrink:0; margin-top:1px;">3</span>
-                    <span style="font-size:0.84rem; color:#cbd5e1;">Go to <a href="https://cp.olspanel.com" target="_blank"><strong style="color:#fff;">cp.olspanel.com</strong></a> and submit your share link</span>
-                </div>
-
-                <div style="display:flex; align-items:flex-start; gap:12px;">
-                    <span style="background:#22c55e; color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:700; flex-shrink:0; margin-top:1px;">🎉</span>
-                    <span style="font-size:0.84rem; color:#cbd5e1;">Receive your <strong style="color:#fbbf24;">free license key</strong> instantly!</span>
-                </div>
-
-            </div>
-
-            <a href="https://cp.olspanel.com" target="_blank"
-                style="display:block; text-align:center; background:linear-gradient(135deg, #f59e0b, #f97316); color:#fff; padding:11px 20px; border-radius:10px; font-size:0.88rem; font-weight:700; text-decoration:none;"
-                onmouseover="this.style.opacity='0.88'"
-                onmouseout="this.style.opacity='1'">
-                🚀 Submit Your Review → Get Free License
-            </a>
-        </div>
-    </div>
-
-</div>
-
-   <div class="col-12 col-sm-6 col-lg-6">
-
-    <!-- Main Card -->
-    <div style="background:#fff; border-radius:16px; box-shadow:0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06); overflow:hidden; margin-bottom:20px;">
-
-        <div style="padding:20px 24px; border-bottom:1px solid #f1f5f9;">
-            <span style="font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.08em;">
-                License Details
-            </span>
-        </div>
-
-        <div style="padding:24px;">
-            <form method="post" action="">
-                 {% csrf_token %}
-
-                <!-- License Key Field -->
-                <div style="margin-bottom:20px;">
-                    <label style="display:block; font-size:0.85rem; font-weight:600; color:#374151; margin-bottom:8px;">
-                        License Key
-                    </label>
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <div style="flex:1; display:flex; align-items:center; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; overflow:hidden; transition:border-color 0.2s;">
-                            <span style="padding:0 12px; color:#94a3b8; font-size:1rem;">🔐</span>
-                            <input
-                                type="text"
-                                id="license_key"
-                                name="license_key"
-                                value="{{ license.key }}"
-                                placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
-                                {% if license.key %}disabled{% endif %}
-                                required
-                                style="flex:1; border:none; outline:none; background:transparent; padding:11px 12px 11px 0; font-size:0.9rem; font-family:monospace; color:#1e293b;"
-                            >
-                        </div>
-                        {% if license.key %}
-                            <button type="button" id="changeLicense"
-                                style="padding:10px 16px; background:#f1f5f9; border:1.5px solid #e2e8f0; border-radius:10px; font-size:0.82rem; font-weight:600; color:#475569; cursor:pointer; white-space:nowrap;">
-                                ✏️ Change
-                            </button>
-                        {% endif %}
+            <!-- Free License Promotion -->
+            <div class="bg-slate-900 text-white rounded-lg p-5 border border-slate-800 shadow-sm relative overflow-hidden">
+                <div class="flex items-center gap-2 font-bold text-sm text-slate-100 mb-1">
+                    <span class="text-base">🎁</span>
+                    <div>
+                        <div>Get a Free License Key!</div>
+                        <div class="text-[11px] font-normal text-slate-400">No payment required. Just share your review.</div>
                     </div>
-                    <p style="margin:6px 0 0; font-size:0.78rem; color:#94a3b8;">
-                        Format: XXXXX-XXXXX-XXXXX-XXXXX
-                    </p>
                 </div>
 
-                <!-- License Info Grid -->
-                {% if license.key %}
-                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; margin-bottom:20px;">
-                        <p style="margin:0 0 14px; font-size:0.72rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.08em;">
-                            License Information
-                        </p>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <p class="text-xs text-slate-300 mt-2 mb-3 leading-relaxed">
+                    You can easily get a free license. Simply write a short post or review video about <strong class="text-white">OLSPanel</strong> and share it publicly.
+                </p>
 
-                            <div>
-                                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">Status</div>
-                                {% if license.status == 'Active' %}
-                                    <span style="background:#dcfce7; color:#16a34a; padding:3px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">Active</span>
-                                {% else %}
-                                    <span style="background:#fee2e2; color:#dc2626; padding:3px 10px; border-radius:999px; font-size:0.78rem; font-weight:600;">Expired</span>
+                <!-- Steps -->
+                <div class="space-y-2 text-xs text-slate-300 mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+                        <span>Write a post or record a short video about OLSPanel</span>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+                        <span>Share it publicly (YouTube, blog, social media, or forums)</span>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-brand text-white flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+                        <span>Visit <a href="https://cp.olspanel.com" target="_blank" class="text-sky-400 font-bold hover:underline">cp.olspanel.com</a> and submit your link</span>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold shrink-0">🎉</span>
+                        <span class="text-amber-300 font-semibold">Receive your free license key instantly!</span>
+                    </div>
+                </div>
+
+                <a href="https://cp.olspanel.com" target="_blank" class="block text-center px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-bold rounded-md shadow-xs transition-all">
+                    Submit Your Review → Get Free License
+                </a>
+            </div>
+        </div>
+
+        <!-- License Management Column -->
+        <div class="lg:col-span-6">
+            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+                <div class="px-4 py-3 bg-white border-b border-slate-200">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">License Details</span>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <form method="post" action="" class="space-y-4">
+                        {% csrf_token %}
+
+                        <!-- License Key Field -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">License Key</label>
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 flex items-center bg-slate-50 border border-slate-200 rounded-md overflow-hidden shadow-xs">
+                                    <span class="px-2.5 text-slate-400"><i class="mdi mdi-lock-outline"></i></span>
+                                    <input type="text" id="license_key" name="license_key" value="{{ license.key }}" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" {% if license.key %}disabled{% endif %} required class="w-full bg-transparent border-0 py-2 pr-3 text-xs font-mono text-slate-800 focus:outline-none placeholder-slate-400">
+                                </div>
+                                {% if license.key %}
+                                    <button type="button" id="changeLicense" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 whitespace-nowrap shadow-xs transition-colors">
+                                        <i class="mdi mdi-pencil-outline"></i> Change
+                                    </button>
                                 {% endif %}
                             </div>
-
-                            <div>
-                                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">License Type</div>
-                                <span style="background:#ede9fe; color:#7c3aed; padding:3px 10px; border-radius:999px; font-size:0.78rem; font-weight:600; text-transform:capitalize;">
-                                    {{ license.type|default:"-" }}
-                                </span>
-                            </div>
-
-                            <div style="grid-column:1/-1;">
-                                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">License Key</div>
-                                <code style="font-size:0.82rem; color:#1e293b; font-weight:600; background:#fff; padding:4px 8px; border-radius:6px; border:1px solid #e2e8f0; display:inline-block;">
-                                    {{ license.key }}
-                                </code>
-                            </div>
-
-                            <div>
-                                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">Registered IP</div>
-                                <span style="font-size:0.85rem; font-weight:600; color:#1e293b;">
-                                    {{ license.ip|default:"-" }}
-                                </span>
-                            </div>
-
-                            <div>
-                                <div style="font-size:0.75rem; color:#94a3b8; margin-bottom:4px;">Expiry Date</div>
-                                <span style="font-size:0.85rem; font-weight:600; color:{% if license.status != 'Active' %}#dc2626{% else %}#1e293b{% endif %};">
-                                    {% if license.expire_date %}
-                                        {{ license.expire_date|date:"d M Y" }}
-                                    {% else %}-{% endif %}
-                                </span>
-                            </div>
-
+                            <p class="text-[11px] text-slate-400 mt-1 mb-0">Format: XXXXX-XXXXX-XXXXX-XXXXX</p>
                         </div>
+
+                        <!-- License Info Grid -->
+                        {% if license.key %}
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-3">
+                                <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active License Information</span>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <span class="block text-[11px] text-slate-400 mb-1">Status</span>
+                                        {% if license.status == 'Active' %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">Active</span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">Expired</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <span class="block text-[11px] text-slate-400 mb-1">License Type</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-600 text-white shadow-xs capitalize">{{ license.type|default:"Standard" }}</span>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <span class="block text-[11px] text-slate-400 mb-1">License Key</span>
+                                        <code class="font-mono text-[11px] text-slate-900 bg-white border border-slate-200 px-2 py-1 rounded block select-all">{{ license.key }}</code>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[11px] text-slate-400 mb-1">Registered IP</span>
+                                        <span class="font-bold text-slate-800">{{ license.ip|default:"-" }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[11px] text-slate-400 mb-1">Expiry Date</span>
+                                        <span class="font-bold {% if license.status != 'Active' %}text-rose-600{% else %}text-slate-800{% endif %}">
+                                            {% if license.expire_date %}{{ license.expire_date|date:"d M Y" }}{% else %}&infin;{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if license.status != 'Active' %}
+                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
+                                    <i class="mdi mdi-alert text-amber-600 text-sm mt-0.5"></i>
+                                    <span>Your license has expired. Please renew or enter a new license key to restore access.</span>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
+                                <i class="mdi mdi-information-outline text-amber-600 text-sm mt-0.5"></i>
+                                <span>No active license found. Enter your license key above to activate.</span>
+                            </div>
+                        {% endif %}
+
+                        <!-- Submit Button -->
+                        <div>
+                            <button type="button" id="licenseBtn" onclick="lic()" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
+                                <span id="btnText">
+                                    {% if license.key %}<i class="mdi mdi-refresh"></i> Update License{% else %}<i class="mdi mdi-check"></i> Activate License{% endif %}
+                                </span>
+                                <span id="btnLoader" style="display: none;">
+                                    <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between">
+                        <div id="message"></div>
+                        <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
                     </div>
-
-                    {% if license.status != 'Active' %}
-                        <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; gap:10px; align-items:flex-start;">
-                            <span style="font-size:1.1rem;">⚠️</span>
-                            <div style="font-size:0.85rem; color:#9a3412;">
-                                Your license has <strong>expired</strong>. Please renew or enter a new license key to restore full access.
-                            </div>
-                        </div>
-                    {% endif %}
-
-                {% else %}
-                    <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px 16px; margin-bottom:20px; display:flex; gap:10px; align-items:flex-start;">
-                        <span style="font-size:1.1rem;">ℹ️</span>
-                        <div style="font-size:0.85rem; color:#92400e;">
-                            No active license found. Enter your license key above to activate.
-                        </div>
-                    </div>
-                {% endif %}
-
-                <!-- Submit Button -->
-              <button type="button"
-    id="licenseBtn"
-    onclick="lic()"
-    style="width:100%; height:44px; border:none; border-radius:10px;
-           font-size:0.9rem; font-weight:600; cursor:pointer;
-           background:{% if license.key %}#3b82f6{% else %}#22c55e{% endif %};
-           color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;">
-
-    <span id="btnText">
-        {% if license.key %}🔄 Update License{% else %}✅ Activate License{% endif %}
-    </span>
-
-    <span id="btnLoader" style="display:none;">
-        <div class="spinner"></div>
-    </span>
-
-</button>
-
-
-
-            </form>
-			
-			 <div id="alertContainer" class="alert alert-success alert-dismissible fade show mt-3" 
-             role="alert" style="display: none;">
-          <div id="message"></div>
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-			
-			
-			
+                </div>
+            </div>
         </div>
     </div>
-
-   </div> 
 </div>
 
-<style>
-.spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255,255,255,0.4);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-</style>
 <script>
 function lic() {
-
     const btn = document.getElementById('licenseBtn');
     const btnText = document.getElementById('btnText');
     const loader = document.getElementById('btnLoader');
-
     const alertBox = document.getElementById('alertContainer');
     const message = document.getElementById('message');
-
     const input = document.getElementById('license_key');
     const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
-    // 🔥 START LOADING
     btn.disabled = true;
     btnText.style.display = "none";
     loader.style.display = "inline-block";
@@ -302,70 +207,49 @@ function lic() {
     })
     .then(res => res.json())
     .then(data => {
-
-        alertBox.style.display = "block";
-
+        alertBox.style.display = "flex";
         if (data.status === "success") {
-
-            alertBox.className = "alert alert-success mt-3";
-            message.innerHTML = `
-                ✅ License Activated<br>
-                Key: <b>${data.license_key}</b><br>
-                Expire: ${data.expires || '-'}
-            `;
-
-            // 🚀 AUTO REFRESH AFTER 5 SEC
-            setTimeout(() => {
-                location.reload();
-            }, 5000);
-
+            alertBox.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between";
+            message.innerHTML = `License Activated successfully! Key: <b>${data.license_key}</b>`;
+            setTimeout(() => { location.reload(); }, 3000);
         } else {
-
-            alertBox.className = "alert alert-danger mt-3";
+            alertBox.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between";
             message.innerText = data.message || "Failed to activate license";
         }
-
     })
     .catch(err => {
-
-        alertBox.style.display = "block";
-        alertBox.className = "alert alert-danger mt-3";
-        message.innerText = "Server error";
+        alertBox.style.display = "flex";
+        alertBox.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between";
+        message.innerText = "Server error activating license";
     })
     .finally(() => {
-
-        // 🔥 STOP LOADING
         btn.disabled = false;
         btnText.style.display = "inline-block";
         loader.style.display = "none";
     });
 }
 
-    const btn = document.getElementById('changeLicense');
-    if (btn) {
-        let changed = false;
-        btn.addEventListener('click', function () {
-            const input = document.getElementById('license_key');
-            if (!changed) {
-                input.removeAttribute('disabled');
-                input.focus();
-                input.select();
-                btn.textContent = '✖ Cancel';
-                btn.style.background = '#fee2e2';
-                btn.style.color = '#dc2626';
-                btn.style.borderColor = '#fca5a5';
-                changed = true;
-            } else {
-                input.setAttribute('disabled', true);
-                input.value = "{{ license.key }}";
-                btn.innerHTML = '✏️ Change';
-                btn.style.background = '#f1f5f9';
-                btn.style.color = '#475569';
-                btn.style.borderColor = '#e2e8f0';
-                changed = false;
-            }
-        });
-    }
+const changeBtn = document.getElementById('changeLicense');
+if (changeBtn) {
+    let changed = false;
+    changeBtn.addEventListener('click', function () {
+        const input = document.getElementById('license_key');
+        if (!changed) {
+            input.removeAttribute('disabled');
+            input.focus();
+            input.select();
+            changeBtn.innerHTML = '<i class="mdi mdi-close"></i> Cancel';
+            changeBtn.className = 'px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-md text-xs font-semibold text-rose-700 whitespace-nowrap shadow-xs transition-colors';
+            changed = true;
+        } else {
+            input.setAttribute('disabled', true);
+            input.value = "{{ license.key }}";
+            changeBtn.innerHTML = '<i class="mdi mdi-pencil-outline"></i> Change';
+            changeBtn.className = 'px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 whitespace-nowrap shadow-xs transition-colors';
+            changed = false;
+        }
+    });
+}
 </script>
 
 {% endblock content %}

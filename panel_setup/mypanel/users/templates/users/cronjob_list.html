@@ -1,73 +1,127 @@
 {% extends "users/base.html" %}
-{% block title %}Cronjob{% endblock title %}
+{% block title %}Cron Jobs{% endblock title %}
 {% block content %}
 
-<div class="card card-default">
-      <div class="card-header">
-        <h2>List Cronjob</h2>
-		
-        
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-clock-outline text-brand text-base"></i> Cron Jobs
+        </h4>
+    </div>
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'cronjob_add' %}">
+                    <i class="mdi mdi-plus"></i> Add Cron Job
+                </a>
+            </div>
+            <div>
+                <form id="cronSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="cronSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search cron jobs..." autocomplete="off">
+                        <button type="button" id="clearCronSearchBtn" onclick="clearCronSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-      </div>
-    
-   <div class="card-body">
-    <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'cronjob_add' %}" role="button" style="text-transform: none;">+ Add cronjob</a>
+        <!-- Cron Jobs Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3 py-2.5 text-center">Min</th>
+                        <th class="px-3 py-2.5 text-center">Hour</th>
+                        <th class="px-3 py-2.5 text-center">Day</th>
+                        <th class="px-3 py-2.5 text-center">Month</th>
+                        <th class="px-3 py-2.5 text-center">Weekday</th>
+                        <th class="px-3.5 py-2.5">Command</th>
+                        <th class="px-3.5 py-2.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="cronTableBody" class="divide-y divide-slate-100">
+                    {% for job in cronjob %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3 py-2.5 text-center font-mono font-semibold text-slate-800 bg-slate-50/50">{{ job.minute }}</td>
+                        <td class="px-3 py-2.5 text-center font-mono font-semibold text-slate-800">{{ job.hour }}</td>
+                        <td class="px-3 py-2.5 text-center font-mono font-semibold text-slate-800 bg-slate-50/50">{{ job.day }}</td>
+                        <td class="px-3 py-2.5 text-center font-mono font-semibold text-slate-800">{{ job.month }}</td>
+                        <td class="px-3 py-2.5 text-center font-mono font-semibold text-slate-800 bg-slate-50/50">{{ job.weekday }}</td>
+                        <td class="px-3.5 py-2.5 font-mono text-slate-900 text-xs">
+                            <span class="bg-slate-100 px-2 py-1 rounded border border-slate-200 text-[11px] block max-w-md truncate" title="{{ job.command }}">{{ job.command }}</span>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right space-x-1 whitespace-nowrap">
+                            {% if job.line_number %}
+                                <a href="{% url 'cronjob_edit' job.line_number %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors">
+                                    <i class="mdi mdi-square-edit-outline"></i> Manage
+                                </a>
+                                <a href="{% url 'cronjob_delete' job.line_number %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors cursor-pointer" onclick="return confirm('Are you sure you want to delete this cron job?');">
+                                    <i class="mdi mdi-delete-outline"></i> Delete
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-3.5 py-6 text-center text-slate-400">No cron jobs configured.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div id="noCronResults" class="text-center text-slate-400 text-xs py-4" style="display:none;">No matching cron jobs found.</div>
+    </div>
 </div>
-<div class="col-xl-6 d-flex justify-content-end">
-    
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-             <tr>
-                <th>Minute</th>
-                <th>Hour</th>
-                <th>Day</th>
-				<th>Month</th>
-				<th>Weekday</th>
-				<th>Command</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-		{% if cronjob %}
-       <tbody id="domainTable">
-            {% for job in cronjob %}
-            <tr>
-                <td>{{ job.minute }}</td>
-        <td>{{ job.hour }}</td>
-        <td>{{ job.day }}</td>
-        <td>{{ job.month }}</td>
-        <td>{{ job.weekday }}</td>
-        <td>{{ job.command }}</td>
-              {% if job.line_number %}  <td>
-                    <a href="{% url 'cronjob_edit' job.line_number %}" class="btn btn-primary btn-sm">Manage</a>
-					 <a href="{% url 'cronjob_delete' job.line_number %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this cron job?');">Delete</a>
 
-                    
-                </td>
-				{% endif %}
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No results found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-		{% else %}
-<p class="text-center">No cron jobs found.</p>
-{% endif %}
-    </table>
-</div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+<script>
+const cronSearchInput = document.getElementById("cronSearchInput");
+const clearCronBtn = document.getElementById("clearCronSearchBtn");
+const cronTableBody = document.getElementById("cronTableBody");
 
-</div>
-</div>
+function performCronFilter() {
+    const q = (cronSearchInput ? cronSearchInput.value : "").trim().toLowerCase();
+    const rows = cronTableBody ? Array.from(cronTableBody.querySelectorAll("tr")) : [];
+    let visibleCount = 0;
 
+    if (clearCronBtn) {
+        clearCronBtn.style.display = q ? "block" : "none";
+    }
 
-{% endblock content %}
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    const noResults = document.getElementById("noCronResults");
+    if (noResults) {
+        noResults.style.display = (visibleCount === 0 && rows.length > 0) ? "block" : "none";
+    }
+}
+
+function clearCronSearch() {
+    if (cronSearchInput) {
+        cronSearchInput.value = "";
+        performCronFilter();
+        cronSearchInput.focus();
+    }
+}
+
+if (cronSearchInput) {
+    cronSearchInput.addEventListener("input", performCronFilter);
+}
+</script>
 
 {% include "users/footer.html" %}
+{% endblock content %}

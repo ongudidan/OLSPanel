@@ -113,4 +113,11 @@ urlpatterns = [
     path("user_limit_set/<int:userid>/", user_limit_set, name="user_limit_set"),
     path("api_keys/", api_keys_view, name="api_keys"),
     path("api_keys/revoke/<int:key_id>/", revoke_api_key, name="revoke_api_key"),
+    path("passkeys/", whm_passkeys, name="whm_passkeys"),
+    path("api/passkey/register/options/", whm_passkey_register_options, name="whm_passkey_register_options"),
+    path("api/passkey/register/verify/", whm_passkey_register_verify, name="whm_passkey_register_verify"),
+    path("api/passkey/delete/<int:passkey_id>/", whm_passkey_delete, name="whm_passkey_delete"),
 ]
+
+
+

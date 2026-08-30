@@ -1,176 +1,189 @@
 {% extends "whm/base.html" %}
-{% block title %}My Domain{% endblock title %}
+{% block title %}Domains{% endblock title %}
 {% block content %}
 
-
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of Domains</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'add_domain' %}" role="button" style="text-transform: none;">+ Add Domain</a>
+<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
+    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>Installing SSL certificate, please wait...</span>
 </div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form action="{% url 'domain_list_all' %}" method="post" class="form-inline mb-3">
-	<div class="form-group mr-2">
-                     
-                    <select class="form-control" name="user" id="xuser">
-					<option value="">All Users</option>
-                        {% for auser in allusers %}
-                           <option value="{{ auser.id }}" {% if selected_user == auser.id|stringformat:"s" %}selected{% endif %}>{{ auser.username }}</option>
 
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
+    <div id="message"></div>
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
+</div>
+
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-web text-brand"></i> List of Domains
+        </h4>
+    </div>
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'add_domain' %}">
+                    <i class="mdi mdi-plus"></i> Add Domain
+                </a>
+            </div>
+            <div>
+                <form id="domainSearchForm" onsubmit="event.preventDefault(); return false;" class="flex items-center flex-wrap gap-2 m-0">
+                    <select name="user" id="userFilterSelect" class="w-36 px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                        <option value="">All Users</option>
+                        {% for auser in allusers %}
+                            <option value="{{ auser.id }}" {% if selected_user == auser.id|stringformat:"s" %}selected{% endif %}>{{ auser.username }}</option>
                         {% endfor %}
                     </select>
-                </div>
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains..." value="{{ search_query }}">
+                    <div class="relative w-56">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="domainSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search domain, path..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <button type="button" id="clearDomainSearchBtn" onclick="clearDomainSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Domain</th>
-                <th>php</th>
-                <th>Path</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for domain in domains %}
-            <tr>
-                <td><a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer">{{ domain.domain }}</a></td>
 
-                <td>{{ domain.php }}</td>
-                <td><span id="domainPath_{{ forloop.counter }}">{{ domain.path }}</span></td>
-                <td>
-                    <a href="{% url 'domain_edit_all' domain.id %}" class="btn btn-primary btn-sm">Manage</a>
-
-                    {% if domain_pre %}
-                     
-                    <a href="{% url 'domain_preview_whm' domain.id %}" class="btn btn-success btn-sm" target="_blank">Preview</a>
-					
-					{% endif %}	
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- Domains Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">Domain</th>
+                        <th class="px-3.5 py-2.5">PHP Version</th>
+                        <th class="px-3.5 py-2.5">Document Root Path</th>
+                        <th class="px-3.5 py-2.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="domainTableBody" class="divide-y divide-slate-100">
+                    {% for domain in domains %}
+                    <tr data-userid="{{ domain.userid }}" class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5">
+                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="font-bold text-brand hover:underline">
+                                {{ domain.domain }}
+                            </a>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ domain.php|default:"Default" }}</span>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            <code class="font-mono text-[11px] text-slate-600">{{ domain.path }}</code>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right space-x-1">
+                            <a href="{% url 'domain_edit_all' domain.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-square-edit-outline"></i> Manage
+                            </a>
+                            {% if domain_pre %}
+                            <a href="{% url 'domain_preview_whm' domain.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-xs transition-colors" target="_blank">
+                                <i class="mdi mdi-open-in-new"></i> Preview
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-3.5 py-6 text-center text-slate-400">No domains found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
-</div>
-
-
 
 <script>
+const domainSearchInput = document.getElementById("domainSearchInput");
+const clearDomainBtn = document.getElementById("clearDomainSearchBtn");
+const userFilterSelect = document.getElementById("userFilterSelect");
+const domainTableBody = document.getElementById("domainTableBody");
 
+function performDomainFilter() {
+    const q = (domainSearchInput ? domainSearchInput.value : "").trim().toLowerCase();
+    const selectedUid = userFilterSelect ? userFilterSelect.value.trim() : "";
+    const rows = domainTableBody ? Array.from(domainTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
 
-window.onload = function() {
-const responseDisplay = document.getElementById('responseContainer');
-  const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
-    var currentUrl = window.location.href;
-
-    // Use URLSearchParams to check if the 'id' parameter is present
-    var urlParams = new URLSearchParams(window.location.search);
-
-    if (urlParams.has('id')) {
-        // Retrieve the value of the 'id' parameter
-        var idValue = urlParams.get('id');
-        console.log('ID found:', idValue);
- setTimeout(function() {
- responseDisplay.style.display = 'inline-block';
-            // Call the URL (replace '/your-url' with your actual URL)
-            fetch('/whm/domain_list_ssl_first_all/' + idValue, {
-                method: 'GET', // or 'POST' depending on your requirement
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.text(); // Retrieve response as plain text
-            })
-            .then(data => {
-                console.log('Response:', data);
-                responseDisplay.style.display = 'none';
-				if (data.includes('success')) {
-            // Set alert for success
-            alertContainer.className = "alert alert-success alert-dismissible fade show";
-            messageDisplay.innerText = data; // Displaying success message
-        } else {
-            // Set alert for error
-            alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = data; // Displaying error message
-        }
-		
-		alertContainer.style.display = "block";
-		 setTimeout(function() {
-           window.location.href = '/whm/domain_list_all'; // Change this to your desired URL
-        }, 5000); // 5000 milliseconds = 5 seconds
-		
-		
-		
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }, 1000); // 5000 milliseconds = 5 seconds
-
-    } else {
-        console.log('No ID parameter found.');
+    if (clearDomainBtn) {
+        clearDomainBtn.style.display = q ? "block" : "none";
     }
-    
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const rowUid = row.getAttribute("data-userid") || "";
+        const matchesQuery = !q || text.includes(q);
+        const matchesUser = !selectedUid || rowUid === selectedUid;
+
+        if (matchesQuery && matchesUser) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noDomainSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noDomainSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="4" class="px-3.5 py-4 text-center text-slate-400">No matching domains found.</td>`;
+            domainTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    const url = new URL(window.location);
+    if (q) {
+        sessionStorage.setItem("whm_domain_search", q);
+        url.searchParams.set("search", q);
+    } else {
+        sessionStorage.removeItem("whm_domain_search");
+        url.searchParams.delete("search");
+    }
+    if (selectedUid) {
+        url.searchParams.set("user", selectedUid);
+    } else {
+        url.searchParams.delete("user");
+    }
+    window.history.replaceState({}, "", url);
 }
 
+function clearDomainSearch() {
+    if (domainSearchInput) {
+        domainSearchInput.value = "";
+        performDomainFilter();
+        domainSearchInput.focus();
+    }
+}
+
+let domainDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (domainSearchInput) {
+        domainSearchInput.addEventListener("input", function () {
+            clearTimeout(domainDebounceTimer);
+            domainDebounceTimer = setTimeout(performDomainFilter, 100);
+        });
+
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_domain_search") || "";
+        if (savedQuery) {
+            domainSearchInput.value = savedQuery;
+            performDomainFilter();
+        }
+    }
+
+    if (userFilterSelect) {
+        userFilterSelect.addEventListener("change", performDomainFilter);
+    }
+});
 </script>
 
 {% endblock content %}
-
-{% include "whm/footer.html" %}

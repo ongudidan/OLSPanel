@@ -2,77 +2,90 @@
 {% block title %}Add DNS Record{% endblock title %}
 
 {% block content %}
-<div class="card card-default">
-<div class="card-header">
-        <h2>ADD DNS Record</h2>
-        
-
-      </div>
-<div class="card-body">
-     
-    
-    <form method="post" action="">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label for="dns_name">DNS Name</label>
-            <input type="text" class="form-control" id="dns_name" name="dns_name" required>
+<div class="max-w-2xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-dns text-brand text-base"></i> Add DNS Record
+            </h4>
+            <a href="{% url 'dns_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to DNS Records
+            </a>
         </div>
 
-        <div class="form-group">
-            <label for="ttl">TTL</label>
-            <input type="text" class="form-control" id="ttl" name="ttl" value="3600" required>
-        </div>
+        <div class="p-5">
+            <form method="post" action="" class="space-y-4">
+                {% csrf_token %}
+                
+                <!-- DNS Record Name -->
+                <div>
+                    <label for="dns_name" class="block text-xs font-semibold text-slate-700 mb-1">Record Host / Name</label>
+                    <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all" id="dns_name" name="dns_name" placeholder="e.g. sub.example.com or @" required>
+                    <p class="text-[11px] text-slate-400 mt-1">Host name or subdomain for this DNS record.</p>
+                </div>
 
-        <div class="form-group">
-            <label for="type">Type</label>
-            <select class="form-control" id="type" name="type" required>
-                 <option value="A">A</option>
-        <option value="AAAA">AAAA</option>
-        <option value="CAA">CAA</option>
-        <option value="CNAME">CNAME</option>
-        <option value="MX">MX</option>
-        <option value="SRV">SRV</option>
-        <option value="TXT">TXT</option>
-        <option value="SOA">SOA</option>
-        <option value="NS">NS</option>
-            </select>
-        </div>
+                <!-- Record Type & TTL Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="type" class="block text-xs font-semibold text-slate-700 mb-1">Record Type</label>
+                        <select class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-mono font-semibold" id="type" name="type" required>
+                            <option value="A">A (IPv4 Address)</option>
+                            <option value="AAAA">AAAA (IPv6 Address)</option>
+                            <option value="CNAME">CNAME (Canonical Alias)</option>
+                            <option value="MX">MX (Mail Exchanger)</option>
+                            <option value="TXT">TXT (Text Record / SPF / DKIM)</option>
+                            <option value="CAA">CAA (Certificate Authority)</option>
+                            <option value="SRV">SRV (Service Record)</option>
+                            <option value="NS">NS (Nameserver)</option>
+                            <option value="SOA">SOA (Start of Authority)</option>
+                        </select>
+                    </div>
 
-        <div class="form-group" id="prio-container" style="display:none;">
-            <label for="prio">Priority</label>
-            <input type="text" class="form-control" id="prio" name="prio" value="0">
-        </div>
+                    <div>
+                        <label for="ttl" class="block text-xs font-semibold text-slate-700 mb-1">TTL (Time to Live in Seconds)</label>
+                        <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ttl" name="ttl" value="3600" required>
+                    </div>
+                </div>
 
-        <div class="form-group">
-            <label for="dns_value">DNS Value</label>
-            <input type="text" class="form-control" id="dns_value" name="dns_value" required>
-        </div>
+                <!-- MX Priority (Conditional) -->
+                <div id="prio-container" style="display: none;">
+                    <label for="prio" class="block text-xs font-semibold text-slate-700 mb-1">MX Priority</label>
+                    <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="prio" name="prio" value="10">
+                    <p class="text-[11px] text-slate-400 mt-1">Lower values indicate higher mail routing preference.</p>
+                </div>
 
-        <button type="submit" class="mb-1 btn btn-success">Add DNS Record</button>
-    </form>
+                <!-- DNS Value -->
+                <div>
+                    <label for="dns_value" class="block text-xs font-semibold text-slate-700 mb-1">Record Value / Destination</label>
+                    <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all" id="dns_value" name="dns_value" placeholder="e.g. 192.0.2.1 or mail.example.com" required>
+                    <p class="text-[11px] text-slate-400 mt-1">IP address, alias host, or raw text payload.</p>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-plus-circle-outline"></i> Add DNS Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-</div>
-<!-- JavaScript to handle the change of the DNS type and display/hide priority input -->
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const typeSelect = document.getElementById('type');
-        const prioContainer = document.getElementById('prio-container');
+document.addEventListener('DOMContentLoaded', function() {
+    const typeSelect = document.getElementById('type');
+    const prioContainer = document.getElementById('prio-container');
 
-        // Function to show/hide priority input based on selected type
-        function togglePrioInput() {
-            if (typeSelect.value === 'MX') {
-                prioContainer.style.display = 'block'; // Show if MX
-            } else {
-                prioContainer.style.display = 'none'; // Hide otherwise
-            }
-        }
+    function togglePrioInput() {
+        if (!typeSelect || !prioContainer) return;
+        prioContainer.style.display = (typeSelect.value === 'MX') ? 'block' : 'none';
+    }
 
-        // Add event listener for change event
-        typeSelect.addEventListener('change', togglePrioInput);
-
-        // Initial check to set the visibility of the priority input
-        togglePrioInput();
-    });
+    typeSelect?.addEventListener('change', togglePrioInput);
+    togglePrioInput();
+});
 </script>
+
+{% include "users/footer.html" %}
 {% endblock content %}

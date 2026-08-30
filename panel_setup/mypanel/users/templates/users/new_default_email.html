@@ -1,71 +1,103 @@
 {% extends "users/base.html" %}
-{% block title %}Create Default Email{% endblock title %}
+{% block title %}Set Default Email Address{% endblock title %}
 {% block content %}
-<div class="card card-default">
-      <div class="card-header">
-        <h2>Create Default Email</h2>
-      </div>
-      <div class="card-body">
-    <form method="post">
-        {% csrf_token %}
-        <!-- Username Field -->
-        <div class="form-group" style="display: flex; align-items: center;">
-            <select id="domainx" name="domain" class="form-control" onchange="setDomainValue()">
-             {% for domain in domains %}
-                <option value="{{ domain.id }}">{{ domain.domain }}</option>
-             {% endfor %}
-            </select>
-        </div>
 
-        <label for="type" style="margin-right: 10px;">Type:</label>
-        <div class="form-check">
-            <input type="radio" id="emailForward" name="forwardType" value="email" class="form-check-input" checked>
-            <label class="form-check-label" for="emailForward">Email Forward</label>
-        </div>
-        <div class="form-check">
-            <input type="radio" id="pipeForward" name="forwardType" value="pipe" class="form-check-input">
-            <label class="form-check-label" for="pipeForward">Pipe to a Program</label>
-        </div>
-<label class="form-check-label" for="pipeForward"></label>
-        <!-- Email Forward Fields (Show only if "Email Forward" is selected) -->
-        <div id="emailForwardFields" style="display: block;">
-            <label for="forword">Forward to Email</label>
-            <div class="form-group">
-                <input type="email" id="email" name="email" class="form-control" placeholder="example@example.com">
+<div class="max-w-3xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-email-sync-outline text-brand text-base"></i> Set Default (Catch-All) Email Address
+            </h4>
+            <div>
+                <a href="{% url 'default_email_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                    <i class="mdi mdi-arrow-left"></i> Back to Default Emails
+                </a>
             </div>
         </div>
 
-        <!-- Pipe Forward Fields (Show only if "Pipe Forward" is selected) -->
-        <div id="pipeForwardFields" style="display: none;">
-            <label class="small mb-1" for="path">Document Root (File System Location):</label>
-            <div class="input-group mb-2 mr-sm-2">
-                <div class="input-group-prepend">
-                    <div class="input-group-text"><span class="mdi mdi-home"></span></div>
+        <div class="p-5">
+            <form method="post" class="space-y-4 max-w-xl">
+                {% csrf_token %}
+
+                <!-- Domain Selector -->
+                <div>
+                    <label for="domainx" class="block text-xs font-semibold text-slate-700 mb-1">Domain</label>
+                    <select id="domainx" name="domain" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                        {% for domain in domains %}
+                            <option value="{{ domain.id }}">{{ domain.domain }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <input type="text" id="path" name="path" class="form-control" value="" placeholder="myscript.php">
-            </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="form-group">
-            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Submit</button>
+                <!-- Type Selector Radio Tiles -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-2">Forwarding Destination Type</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center gap-2.5 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer select-none transition-colors" id="labelEmailForward">
+                            <input type="radio" id="emailForward" name="forwardType" value="email" class="rounded-full border-slate-300 text-brand focus:ring-brand" checked>
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">Forward to Email</span>
+                                <span class="block text-[11px] text-slate-400">Route all unmatched mail to an inbox</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-3 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer select-none transition-colors" id="labelPipeForward">
+                            <input type="radio" id="pipeForward" name="forwardType" value="pipe" class="rounded-full border-slate-300 text-brand focus:ring-brand">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">Pipe to Script</span>
+                                <span class="block text-[11px] text-slate-400">Process incoming mail with a script</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Email Forward Field -->
+                <div id="emailForwardFields">
+                    <label for="email" class="block text-xs font-semibold text-slate-700 mb-1">Forward to Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="catchall@example.com" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                </div>
+
+                <!-- Pipe Forward Field -->
+                <div id="pipeForwardFields" style="display: none;">
+                    <label for="path" class="block text-xs font-semibold text-slate-700 mb-1">Script File Location (Relative to Document Root)</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md font-mono">
+                            <i class="mdi mdi-code-tags text-sm"></i>
+                        </span>
+                        <input type="text" id="path" name="path" placeholder="catchall_pipe.php" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-check"></i> Save Default Email
+                    </button>
+                </div>
+            </form>
         </div>
-    </form>
+    </div>
 </div>
-</div>
+
 <script>
-// JavaScript to show/hide fields based on the selected radio button
-document.getElementById('emailForward').addEventListener('change', function() {
-    document.getElementById('emailForwardFields').style.display = 'block';
-    document.getElementById('pipeForwardFields').style.display = 'none';
-});
+document.addEventListener("DOMContentLoaded", function() {
+    const emailRadio = document.getElementById('emailForward');
+    const pipeRadio = document.getElementById('pipeForward');
+    const emailFields = document.getElementById('emailForwardFields');
+    const pipeFields = document.getElementById('pipeForwardFields');
 
-document.getElementById('pipeForward').addEventListener('change', function() {
-    document.getElementById('pipeForwardFields').style.display = 'block';
-    document.getElementById('emailForwardFields').style.display = 'none';
+    function syncType() {
+        if (emailRadio.checked) {
+            emailFields.style.display = 'block';
+            pipeFields.style.display = 'none';
+        } else {
+            emailFields.style.display = 'none';
+            pipeFields.style.display = 'block';
+        }
+    }
+
+    if (emailRadio) emailRadio.addEventListener('change', syncType);
+    if (pipeRadio) pipeRadio.addEventListener('change', syncType);
 });
 </script>
-{% endblock content %}
+
 {% include "users/footer.html" %}
-
-
+{% endblock content %}

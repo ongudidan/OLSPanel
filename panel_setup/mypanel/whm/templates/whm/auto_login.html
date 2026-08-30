@@ -1,31 +1,49 @@
 {% extends "whm/base.html" %}
-{% block title %}Auto Login{% endblock title %}
+{% block title %}Auto Login - {{ username }}{% endblock title %}
 {% block content %}
-<div class="card card-default">
- <div class="card-header">
-        <h2>Auto Login</h2>
-        
 
-      </div>
-<div class="card-body">
-    <form method="post" action="" enctype="multipart/form-data">
-        {% csrf_token %}
-            
-                <div class="form-group">
-                <label for="dns_name" id="labelName">By login user account, admin account will be logout</label>
-               <input type="hidden" class="form-control" id="port" name="username"  value="{{ username }}" required>
-                
+<div class="max-w-xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-account-arrow-right text-brand text-base"></i> Switch to User Session
+            </h4>
+            <a href="{% url 'user_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Users
+            </a>
+        </div>
+
+        <div class="p-5 space-y-4">
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {{ username|first|upper }}
+                </div>
+                <div>
+                    <div class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Target Account</div>
+                    <div class="text-sm font-bold text-slate-900 font-mono">{{ username }}</div>
+                </div>
             </div>
-          
-			
-			
-			
-			
-				
-           
-       
-        <button type="submit" class="mb-1 btn btn-success">Login in {{ username }}</button>
-    </form>
+
+            <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2.5">
+                <i class="mdi mdi-information text-amber-600 text-base flex-shrink-0 mt-0.5"></i>
+                <p class="m-0 leading-relaxed">
+                    By logging into <strong>{{ username }}</strong>, you will transition into the client-facing user dashboard.
+                </p>
+            </div>
+
+            <form method="post" action="" class="flex items-center gap-3 pt-2 m-0">
+                {% csrf_token %}
+                <input type="hidden" name="username" value="{{ username }}">
+                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-login-variant"></i> Log In as {{ username }}
+                </button>
+                <a href="{% url 'user_list' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
 </div>
-</div>
+
+{% include "whm/footer.html" %}
 {% endblock content %}

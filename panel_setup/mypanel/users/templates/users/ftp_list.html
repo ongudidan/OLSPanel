@@ -2,79 +2,151 @@
 {% block title %}FTP Accounts{% endblock title %}
 {% block content %}
 
-
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of ftp Accounts</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'ftp_new' %}" role="button" style="text-transform: none;">+ Add FTP</a>
-</div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form action="" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for ftp...">
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-folder-network-outline text-brand"></i> FTP Accounts
+        </h4>
+    </div>
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'ftp_new' %}">
+                    <i class="mdi mdi-plus"></i> Add FTP Account
+                </a>
+            </div>
+            <div>
+                <form id="ftpSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="ftpSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search FTP accounts..." autocomplete="off">
+                        <button type="button" id="clearFtpSearchBtn" onclick="clearFtpSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-             <tr>
-                <th>Log In</th>
-				<th>Path</th>
-                <th>Storage</th>
-               <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for ftp in ftps %}
-            <tr>
-                <td>{{ ftp.user }}</td>
-				 <td>{{ ftp.dir }}</td>
-                <td>{{ ftp.QuotaSize }}</td>
-				<td><h5>
-    {% if ftp.status == "1" %}
-        <span class="badge badge-success">Running</span>
-    {% else %}
-        <span class="badge badge-danger">Stopped</span>
-    {% endif %}
-	</h5>
-</td>
 
-                
-                <td>
-                    <a href="{% url 'ftp_edit' ftp.id %}" class="btn btn-primary btn-sm">Manage</a>
-
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- FTP Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">Login User</th>
+                        <th class="px-3.5 py-2.5">Home Directory</th>
+                        <th class="px-3.5 py-2.5">Quota / Storage</th>
+                        <th class="px-3.5 py-2.5">Status</th>
+                        <th class="px-3.5 py-2.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ftpTableBody" class="divide-y divide-slate-100">
+                    {% for ftp in ftps %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5 font-bold text-slate-900 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i class="mdi mdi-account-key-outline text-xs"></i>
+                            </div>
+                            <span>{{ ftp.user }}</span>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            <a href="{% url 'file_manager_home' %}" target="_blank" class="inline-flex items-center gap-1 text-slate-600 hover:text-brand font-mono text-[11px]">
+                                <i class="mdi mdi-folder-outline"></i><span>{{ ftp.dir }}</span>
+                            </a>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                {% if ftp.QuotaSize == 0 or ftp.QuotaSize == "unlimited" or not ftp.QuotaSize %}
+                                    Unlimited
+                                {% else %}
+                                    {{ ftp.QuotaSize }} MB
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            {% if ftp.status == "1" or ftp.status == 1 %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">
+                                    <i class="mdi mdi-check-circle-outline"></i> Running
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">
+                                    <i class="mdi mdi-stop-circle-outline"></i> Stopped
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right">
+                            <a href="{% url 'ftp_edit' ftp.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-square-edit-outline"></i> Manage
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-3.5 py-6 text-center text-slate-400">No FTP accounts found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
 
-</div>
-</div>
+<script>
+const ftpSearchInput = document.getElementById("ftpSearchInput");
+const clearFtpBtn = document.getElementById("clearFtpSearchBtn");
+const ftpTableBody = document.getElementById("ftpTableBody");
 
+function performFtpFilter() {
+    const q = (ftpSearchInput ? ftpSearchInput.value : "").trim().toLowerCase();
+    const rows = ftpTableBody ? Array.from(ftpTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
 
+    if (clearFtpBtn) {
+        clearFtpBtn.style.display = q ? "block" : "none";
+    }
 
-{% endblock content %}
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noFtpSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noFtpSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="5" class="px-3.5 py-4 text-center text-slate-400">No matching FTP accounts found.</td>`;
+            ftpTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+}
+
+function clearFtpSearch() {
+    if (ftpSearchInput) {
+        ftpSearchInput.value = "";
+        performFtpFilter();
+        ftpSearchInput.focus();
+    }
+}
+
+if (ftpSearchInput) {
+    ftpSearchInput.addEventListener("input", performFtpFilter);
+}
+</script>
 
 {% include "users/footer.html" %}
+{% endblock content %}

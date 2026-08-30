@@ -1,286 +1,236 @@
 {% extends "whm/base.html" %}
-{% block title %}My Users{% endblock title %}
+{% block title %}List of Users{% endblock title %}
 {% block content %}
 
-
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-account-multiple text-brand"></i> List of Users
+        </h4>
     </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of users</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'add_user_all' %}" role="button" style="text-transform: none;">+ Add user</a>
-</div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form action="{% url 'user_list_all' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for user...">
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <a class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand hover:bg-brand-hover text-white text-xs font-semibold rounded-md shadow-sm transition-all" href="{% url 'add_user_all' %}">
+                    <i class="mdi mdi-plus text-sm"></i> Add User
+                </a>
+            </div>
+            <div>
+                <form id="userSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="userSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" placeholder="Search username, domain..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <button type="button" id="clearSearchBtn" onclick="clearSearchInput();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Username</th>
-				<th>
-                  Login
-    
-                </th>
-				<th>Domain</th>
-                <th>Email</th>
-                <th>Status</th>
-				
-				 <th>Quota</th>
-               <th style="white-space: nowrap">Disk Used</th>
-				<th>Bandwidth</th>
-				 
-				<th>Package</th>
-				<th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for myuser in users %}
-            <tr class="{% if not myuser.is_active %}table-danger{% endif %}">
-                <td><b>{{ myuser.username }}</b></td>
-				<td> {% if myuser.is_active %} <a href="{% url 'auto_login' myuser.id %}" target="_blank" class="btn btn-outline-success btn-sm">
-  <i class="mdi mdi-login"></i> Login
-</a>
 
-{% endif %}</td>
-				<td><a href="http://{{ myuser.main_domain }}" target="_blank">{{ myuser.main_domain }}</a></td>
-                <td>{{ myuser.email }}</td>
-                <td><span id="domainPath_{{ forloop.counter }}">
-    {% if myuser.is_active %}
-        <span class="badge badge-success">Active</span>
-    {% else %}
-        <span class="badge badge-danger">Suspended</span>
-    {% endif %}
-	</span></td>
-	
-	
-	<td>{% if myuser.quota == 0 %}unlimited{% else %}{{ myuser.quota }} MB{% endif %}</td>
- <td class="user-cell" data_username="{{ myuser.username }}">
+        <!-- Users Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3 py-2.5">Username</th>
+                        <th class="px-3 py-2.5">Login</th>
+                        <th class="px-3 py-2.5">Domain</th>
+                        <th class="px-3 py-2.5">Email</th>
+                        <th class="px-3 py-2.5">Status</th>
+                        <th class="px-3 py-2.5">Quota</th>
+                        <th class="px-3 py-2.5 whitespace-nowrap">Disk Used</th>
+                        <th class="px-3 py-2.5">Bandwidth</th>
+                        <th class="px-3 py-2.5">Package</th>
+                        <th class="px-3 py-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="domainTable" class="divide-y divide-slate-100">
+                    {% for myuser in users %}
+                    <tr class="hover:bg-slate-50 transition-colors {% if not myuser.is_active %}bg-rose-50/50{% endif %}">
+                        <td class="px-3 py-2.5 font-bold text-slate-900">{{ myuser.username }}</td>
+                        <td class="px-3 py-2.5">
+                            {% if myuser.is_active %}
+                            <a href="{% url 'auto_login' myuser.id %}" target="_blank" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-login"></i> Login
+                            </a>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2.5">
+                            {% if myuser.main_domain %}
+                            <a href="http://{{ myuser.main_domain }}" target="_blank" class="text-brand font-medium hover:underline">{{ myuser.main_domain }}</a>
+                            {% else %}
+                            <span class="text-slate-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2.5 text-slate-600">{{ myuser.email }}</td>
+                        <td class="px-3 py-2.5">
+                            {% if myuser.is_active %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">Active</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2.5">{% if myuser.quota == 0 or myuser.quota == '0' %}Unlimited{% else %}{{ myuser.quota }} MB{% endif %}</td>
+                        <td class="px-3 py-2.5 user-cell font-mono" data_username="{{ myuser.username }}">
+                            <span class="text-slate-400 text-[11px]">calculating...</span>
+                        </td>
+                        <td class="px-3 py-2.5 font-mono">{{ myuser.bandwidth_use|default:"0 B" }}</td>
+                        <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ myuser.pkg }}</span></td>
+                        <td class="px-3 py-2.5 text-right">
+                            <a href="{% url 'update_user' myuser.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-square-edit-outline"></i> Manage
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="px-3 py-6 text-center text-slate-400">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-    <div class="sk-wave">
-        <div class="rect1"></div>
-        <div class="rect2"></div>
-        <div class="rect3"></div>
-        <div class="rect4"></div>
-        <div class="rect5"></div>
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="flex justify-between items-center mt-3.5 pt-2 text-xs">
+            <span class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ total_count }} total users)</span>
+            <div class="inline-flex items-center gap-1">
+                {% if page_obj.has_previous %}
+                <a class="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 text-slate-700" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">&laquo;</a>
+                {% endif %}
+
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <span class="px-2.5 py-1 bg-brand text-white font-bold rounded">{{ i }}</span>
+                    {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                        <a class="px-2.5 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 text-slate-700" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ i }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <a class="px-2 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 text-slate-700" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">&raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
-
-</td>
-
-<td>{{ myuser.bandwidth_use }}</td>
-	<td>{{ myuser.pkg }}</td>
-                <td>
-				<a href="{% url 'update_user' myuser.id %}" class="btn btn-outline-primary btn-sm">
-  <i class="mdi mdi-square-edit-outline"></i> Manage
-</a>
-             
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
-</div>
-
 
 <script>
-
-const download_url = "{% url 'disk_users_view' %}"; // Base download URL
+const download_url = "{% url 'disk_users_view' %}";
 
 function fetchdiskUser() {
+    const userCells = document.querySelectorAll('.user-cell[data_username]');
+    const usernames = Array.from(userCells).map(el => el.getAttribute('data_username')).filter(Boolean);
+    if (usernames.length === 0) return;
 
-  fetch(download_url)
-    .then(response => response.json())
-    .then(data => {
-
-      if (data.status === "success") {
-
-        data.data.forEach(user => {
-
-          const username = user.username;
-          const total_usage = user.total_usage;
-
-          // Select the cell using data_username
-          const cell = document.querySelector(
-            `.user-cell[data_username="${username}"]`
-          );
-
-          if (cell) {
-
-            // Fade out animation smoothly
-            cell.style.opacity = "0.3";
-
-            setTimeout(() => {
-
-              // Replace loading animation with total_usage
-              cell.innerHTML = `<span>${total_usage}</span>`;
-
-              // Fade back in
-              cell.style.opacity = "1";
-
-            }, 300);
-
-          }
-
+    const queryParams = new URLSearchParams({ usernames: usernames.join(',') });
+    fetch(`${download_url}?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                data.data.forEach(user => {
+                    const username = user.username;
+                    const total_usage = user.total_usage;
+                    const cell = document.querySelector(`.user-cell[data_username="${username}"]`);
+                    if (cell) {
+                        cell.innerHTML = `<span>${total_usage}</span>`;
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching user data:", error);
         });
-
-      } else {
-        console.warn("No user data found or partial data");
-      }
-
-    })
-    .catch(error => {
-      console.error("Error fetching user data:", error);
-    });
 }
 
+// Instant & Persistent Client-Side Search
+const searchInput = document.getElementById("userSearchInput");
+const clearBtn = document.getElementById("clearSearchBtn");
+const tableBody = document.getElementById("domainTable");
 
+function performSearch(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = tableBody ? Array.from(tableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
 
+    if (clearBtn) {
+        clearBtn.style.display = q ? "block" : "none";
+    }
 
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="10" class="px-3 py-6 text-center text-slate-400">No users match "<strong>${q}</strong>"</td>`;
+            tableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    if (q) {
+        sessionStorage.setItem("whm_user_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_user_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
+}
+
+function clearSearchInput() {
+    if (searchInput) {
+        searchInput.value = "";
+        performSearch("");
+        searchInput.focus();
+    }
+}
+
+let searchDebounceTimer = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-fetchdiskUser();
-  const rowsPerPage = 20;
-  const table = document.getElementById("domainTable");
-  if (!table) return;
+    fetchdiskUser();
 
-  const rows = Array.from(table.getElementsByTagName("tr"));
-  const totalPages = Math.ceil(rows.length / rowsPerPage);
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchDebounceTimer);
+            const val = this.value;
+            searchDebounceTimer = setTimeout(() => {
+                performSearch(val);
+            }, 100);
+        });
 
-  // ✅ Only create pagination if needed
-  if (rows.length > rowsPerPage) {
-    const paginationContainer = document.createElement("div");
-    paginationContainer.className = "dataTables_paginate paging_simple_numbers";
-    paginationContainer.id = "productsTable_paginate";
-
-    const prevBtn = document.createElement("a");
-    prevBtn.className = "paginate_button previous disabled";
-    prevBtn.id = "productsTable_previous";
-    prevBtn.textContent = "Previous";
-
-    const nextBtn = document.createElement("a");
-    nextBtn.className = "paginate_button next";
-    nextBtn.id = "productsTable_next";
-    nextBtn.textContent = "Next";
-
-    const spanContainer = document.createElement("span");
-
-    paginationContainer.appendChild(prevBtn);
-    paginationContainer.appendChild(spanContainer);
-    paginationContainer.appendChild(nextBtn);
-
-    table.parentElement.after(paginationContainer);
-
-    function showPage(page) {
-      rows.forEach((row, i) => {
-        row.style.display = (i >= (page - 1) * rowsPerPage && i < page * rowsPerPage)
-          ? ""
-          : "none";
-      });
-
-      const pageButtons = spanContainer.querySelectorAll(".paginate_button");
-      pageButtons.forEach(btn => btn.classList.remove("current"));
-      const activeBtn = spanContainer.querySelector(`.paginate_button[data-page="${page}"]`);
-      if (activeBtn) activeBtn.classList.add("current");
-
-      prevBtn.classList.toggle("disabled", page === 1);
-      nextBtn.classList.toggle("disabled", page === totalPages);
-    }
-
-    function createPagination() {
-      spanContainer.innerHTML = "";
-
-      for (let i = 1; i <= totalPages; i++) {
-        const a = document.createElement("a");
-        a.className = "paginate_button";
-        a.dataset.page = i;
-        a.textContent = i;
-        a.style.cursor = "pointer";
-        a.removeAttribute("href");
-        spanContainer.appendChild(a);
-      }
-
-      prevBtn.style.cursor = "pointer";
-      nextBtn.style.cursor = "pointer";
-
-      paginationContainer.addEventListener("click", function (e) {
-        if (e.target.classList.contains("paginate_button") && !e.target.classList.contains("disabled")) {
-          e.preventDefault();
-
-          if (e.target.classList.contains("previous")) {
-            const current = Number(spanContainer.querySelector(".current")?.dataset.page || 1);
-            if (current > 1) showPage(current - 1);
-          } else if (e.target.classList.contains("next")) {
-            const current = Number(spanContainer.querySelector(".current")?.dataset.page || 1);
-            if (current < totalPages) showPage(current + 1);
-          } else {
-            const page = Number(e.target.dataset.page);
-            showPage(page);
-          }
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_user_search") || searchInput.value || "";
+        if (savedQuery) {
+            searchInput.value = savedQuery;
+            performSearch(savedQuery);
         }
-      });
     }
-
-    createPagination();
-    showPage(1);
-  } else {
-    // ✅ Show all rows and no pagination
-    rows.forEach(r => (r.style.display = ""));
-  }
 });
 </script>
 
-
-
 {% endblock content %}
-
-{% include "whm/footer.html" %}

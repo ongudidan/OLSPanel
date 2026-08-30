@@ -2,147 +2,81 @@
 {% block title %}Monthly Bandwidth Usage{% endblock title %}
 {% block content %}
 
-<div class="card card-default">
-      <div class="card-header">
-        <h2>Monthly Bandwidth Usage</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-  
-  
-<div class="table-responsive col-xl-4">
-    <div class="chart" id="chart-container">
-        <!-- Bars will be dynamically generated -->
+<div class="max-w-3xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-chart-bell-curve-cumulative text-brand"></i> Monthly Bandwidth Usage
+        </h4>
+        <span class="text-xs font-semibold text-slate-500">
+            Allocation Limit: <span class="font-bold text-slate-800">{% if limit == 0 %}Unlimited{% else %}{{ limit }} MB{% endif %}</span>
+        </span>
     </div>
-   
-   </div>
-  
+    <div class="p-5">
+        <div id="chart-container" class="space-y-4">
+            <!-- Bars will be dynamically generated -->
+        </div>
+        <div id="no-bandwidth-msg" style="display: none;" class="text-center py-6 text-slate-400 text-xs">
+            No bandwidth metrics recorded yet.
+        </div>
+    </div>
 </div>
-</div>
 
+<script>
+const bandwidthData = [
+    {% for bandth in bandths %}
+    { 
+        month: getMonthName("{{ bandth.date }}"),
+        usage: {{ bandth.total }} / (1024 ** 3) // GB
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
 
- <script>
-    // Bandwidth data for each month (in GB)
-    const bandwidthData = [
-        {% for bandth in bandths %}
-        { 
-            month: getMonthName("{{ bandth.date}}"), // Format the date to "Month Year"
-            usage: {{ bandth.total }} / (1024 ** 3) // Convert bytes to GB
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
+const maxBandwidthMB = {{ limit|default:0 }};
+const maxBandwidth = maxBandwidthMB > 0 ? (maxBandwidthMB / 1024) : 100; // GB fallback
 
-    // Maximum bandwidth for calculating percentages
-   const maxBandwidthMB = {{limit}};  // This is the value in MB
+const chartContainer = document.getElementById('chart-container');
+const noMsg = document.getElementById('no-bandwidth-msg');
 
-// Convert MB to GB (1 GB = 1024 MB)
-const maxBandwidth = maxBandwidthMB / 1024// Adjust this to match your max value in GB
-
-    // Render chart dynamically
-    const chartContainer = document.getElementById('chart-container');
-
+if (bandwidthData.length === 0) {
+    if (noMsg) noMsg.style.display = 'block';
+} else {
     bandwidthData.forEach(data => {
-        const percentage = (data.usage / maxBandwidth) * 100;
+        const percentage = Math.min(100, (data.usage / maxBandwidth) * 100);
+        let colorClass = 'bg-emerald-500';
+        if (percentage >= 75) colorClass = 'bg-rose-500';
+        else if (percentage >= 50) colorClass = 'bg-amber-500';
 
         const bar = document.createElement('div');
-        bar.className = 'bar';
+        bar.className = 'space-y-1.5';
         bar.innerHTML = `
-            <div class="label">${data.month}</div>
-            <div class="bar-inner">
-                <div class="bar-fill" style="width: ${percentage}%; background-color: ${getBarColor(percentage)};">
-                    <span class="bar-value">${data.usage.toFixed(2)} GB</span>
-                </div>
+            <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-slate-800">${data.month}</span>
+                <span class="font-semibold font-mono text-slate-600">${data.usage.toFixed(2)} GB (${percentage.toFixed(1)}%)</span>
+            </div>
+            <div class="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                <div class="${colorClass} h-full rounded-full transition-all duration-500" style="width: ${Math.max(2, percentage)}%;"></div>
             </div>
         `;
-
         chartContainer.appendChild(bar);
     });
+}
 
-    // Function to determine bar color based on percentage
-    function getBarColor(percentage) {
-        if (percentage >= 75) return '#FF5722'; // High usage (red)
-        if (percentage >= 50) return '#FFC107'; // Medium usage (yellow)
-        return '#4CAF50'; // Low usage (green)
-    }
-	
-	function getMonthName(dateString) {
-    const [monthNumber, year] = dateString.split("-"); // Split the dateString into month and year
+function getMonthName(dateString) {
+    if (!dateString) return "Unknown";
+    const parts = dateString.split("-");
+    if (parts.length < 2) return dateString;
+    const monthNumber = parseInt(parts[0], 10);
+    const year = parts[1];
     const months = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
     ];
-    
-    // Ensure the monthNumber is between 1 and 12
     if (monthNumber >= 1 && monthNumber <= 12) {
-        return months[monthNumber - 1] +" "+year; // Adjust for zero-indexed array
-    } else {
-        return "Invalid month"; // If input is not valid
+        return months[monthNumber - 1] + " " + year;
     }
+    return dateString;
 }
 </script>
 
-  
- <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-
-        .chart {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .bar {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .label {
-            width: 20%;
-            text-align: right;
-            padding-right: 10px;
-            font-weight: bold;
-        }
-
-        .bar-inner {
-            flex-grow: 1;
-            height: 30px;
-            background-color: #f0f0f0;
-            position: relative;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            background-color: #4CAF50;
-            width: 0;
-            transition: width 0.5s ease-in-out;
-        }
-
-        .bar-value {
-            position: absolute;
-            right: 10px;
-            top: 0;
-            bottom: 0;
-            line-height: 30px;
-            color: #000;
-            font-weight: bold;
-        }
-
-        h2 {
-            text-align: center;
-        }
-    </style>  
-
-
-
-{% endblock content %}
-
 {% include "users/footer.html" %}
+{% endblock content %}

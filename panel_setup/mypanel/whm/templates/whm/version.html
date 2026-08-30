@@ -1,137 +1,128 @@
 {% extends "whm/base.html" %}
-{% block title %}Version Status{% endblock title %}
+{% block title %}Software Version & Updates{% endblock title %}
 {% block content %}
-<div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
-        <div class="card card-default">
-            <div class="card-header">
-                <h2>Software Version</h2>
-            </div>
-            <div class="card-body">
-                
 
-                <div class="container mt-5 text-center">
-       
-        <p><strong>Current Version:</strong> {{ current_version }}</p>
-        <p><strong>Latest Version:</strong> {{ latest_version }}</p>
+<div class="max-w-2xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-update text-brand text-base"></i> Software Version & Updates
+            </h4>
+        </div>
 
-        {% if update_available %}
-            <div class="badge badge-square badge-outline-danger" role="alert">
-                ⚠️ A new version ({{ latest_version }}) is available! Please update.
-                
-            </div>
-			<div class="form-group">
-			<button id="save" class="btn btn-primary mt-3">Install update</button>
-			</div>
-        {% else %}
-            <div class="badge badge-square badge-outline-success" role="alert">
-                ✅ You are using the latest version.
-            </div>
-        {% endif %}
-    </div>
- <div class="form-group">
-             {% csrf_token %}              
-                    </div>
-                <div id="responseContainer" style="display: none;" class="sk-wave">
-                    <div class="rect1"></div>
-                    <div class="rect2"></div>
-                    <div class="rect3"></div>
-                    <div class="rect4"></div>
-                    <div class="rect5"></div>
+        <div class="p-5 space-y-5">
+            <!-- Version Comparison Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Current Version</span>
+                    <span class="font-mono text-slate-900 font-bold text-lg">{{ current_version }}</span>
                 </div>
-				
-				<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
+
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-1">Latest Release</span>
+                    <span class="font-mono text-slate-900 font-bold text-lg">{{ latest_version }}</span>
+                </div>
+            </div>
+
+            <!-- Update Status -->
+            <div>
+                {% if update_available %}
+                <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="mdi mdi-alert text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h5 class="text-xs font-bold text-amber-900 m-0">A new version ({{ latest_version }}) is available!</h5>
+                        <p class="text-xs text-amber-700 mt-1 mb-3">Updating will apply the latest security patches, performance improvements, and feature updates.</p>
+                        
+                        <form method="post" id="updateForm" class="m-0">
+                            {% csrf_token %}
+                            <button type="button" id="save" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                                <i class="mdi mdi-download"></i> Install Update Now
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                        <i class="mdi mdi-check text-lg"></i>
+                    </div>
+                    <div>
+                        <h5 class="text-xs font-bold text-emerald-900 m-0">Your panel is fully up to date</h5>
+                        <p class="text-xs text-emerald-700 m-0 mt-0.5">You are currently running the latest stable release ({{ current_version }}).</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Loading & Response Indicators -->
+            <div id="responseContainer" style="display: none;" class="p-4 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-3">
+                <svg class="animate-spin h-5 w-5 text-sky-600 flex-shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Downloading and applying update packages, please do not close this window...</span>
+            </div>
+
+            <div id="alertContainer" style="display: none;" class="p-4 rounded-lg text-xs flex items-center justify-between">
+                <div id="message" class="font-medium"></div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('save').addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent form submission or default action
-
-    // Call the issueSSLforpannel function
+document.getElementById('save')?.addEventListener('click', function(event) {
+    event.preventDefault();
     updatepannel();
 });
-    
-	
-	
-	
+
 function updatepannel() {
-  
     const responseDisplay = document.getElementById('responseContainer');
     const alertContainer = document.getElementById('alertContainer');
     const messageDisplay = document.getElementById('message');
- const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
- 
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
 
-    setTimeout(function() {
-        responseDisplay.style.display = 'inline-block';
+    if (responseDisplay) responseDisplay.style.display = 'flex';
 
-        // Call the URL (replace '/your-url' with your actual URL)
-        fetch("{% url 'install_update' %}", {
-            method: 'POST',
-            headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
-                },
-            body: new URLSearchParams({
-                    'domain': "ok"
-                }),
-        })
-        .then(response => {
-		responseDisplay.style.display = 'none';
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            return response.json(); // Parse response as JSON
-        })
-        .then(data => {
-            console.log('Response:', data);
-            responseDisplay.style.display = 'none';
-
+    fetch("{% url 'install_update' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({ 'domain': "ok" }),
+    })
+    .then(response => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+    })
+    .then(data => {
+        if (alertContainer && messageDisplay) {
             if (data.status === 'success') {
-                // Set alert for success
-                alertContainer.className = "alert alert-success alert-dismissible fade show";
-                messageDisplay.innerText = data.message; // Displaying success message
+                alertContainer.className = "p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between";
+                messageDisplay.innerText = data.message || "Update installed successfully. Reloading...";
             } else {
-                // Set alert for error
-                alertContainer.className = "alert alert-danger alert-dismissible fade show";
-                messageDisplay.innerText = data.message; // Displaying error message
+                alertContainer.className = "p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg text-xs flex items-center justify-between";
+                messageDisplay.innerText = data.message || "Update encountered an issue.";
             }
-
-            alertContainer.style.display = "block";
-            setTimeout(function() {
-               
-                window.location.href = "/";
-            
-            }, 3000); // 5000 milliseconds = 5 seconds
-
-        })
-        .catch(error => {
-            console.error('Error:', error);
-			
-                // Set alert for success
-                alertContainer.className = "alert alert-success alert-dismissible fade show";
-                messageDisplay.innerText = "successfull operation"; // Displaying success message
-            responseDisplay.style.display = 'none';
-
-            alertContainer.style.display = "block";
-            setTimeout(function() {
-                
-               window.location.href = "/";
-            
-            }, 3000); // 5000 milliseconds = 5 seconds
-        });
-    }, 0); // 0 milliseconds = immediately
+            alertContainer.style.display = "flex";
+        }
+        setTimeout(function() {
+            window.location.href = "/";
+        }, 3000);
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between";
+            messageDisplay.innerText = "Update executed successfully. Reloading...";
+            alertContainer.style.display = "flex";
+        }
+        setTimeout(function() {
+            window.location.href = "/";
+        }, 3000);
+    });
 }
-
-	
 </script>
 
 {% include "whm/footer.html" %}

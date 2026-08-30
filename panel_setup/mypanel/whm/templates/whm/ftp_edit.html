@@ -1,171 +1,166 @@
 {% extends "whm/base.html" %}
-{% block title %}Manage FTP{% endblock title %}
+{% block title %}Manage FTP Account - {{ ftp.user }}{% endblock title %}
 {% block content %}
 
-
-
-<div class="card card-default">
-      <div class="card-header">
-        <h2>FTP User</h2>
-        
-
-      </div>
-      <div class="card-body">
-    <form method="post">
-        {% csrf_token %}
-      <div class="form-row">
-            <div class="col-md-5">
- <label for="dbpass" style="margin-right: 10px;">Username</label>
-<div class="form-group">
-   
-    <input type="text" id="dbuser" name="username" class="form-control" value="{{ ftp.user }}" readonly>
-</div>
-
-
-
-<label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Document Root (File System Location):</label>
-				  <div class="input-group mb-2 mr-sm-2">
-				 
-            <div class="input-group-prepend">
-			
-              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
-            </div>
-            <input type="text" id="path" name="path" class="form-control" value="{{ file_path }}">
-          </div>
-				 
-
- <label for="spaceLimit" style="margin-right: 10px;">Space Limit (MB)</label>
-         <div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
-   
-    <select id="spaceLimit" name="space_limit" class="form-control">
-        <option value="unlimited">Unlimited</option>
-        <option value="100">100 MB</option>
-        <option value="500">500 MB</option>
-        <option value="1000">1 GB</option>
-        <option value="1500">1.5 GB</option>
-        <option value="2000">2 GB</option>
-        <option value="3000">3 GB</option>
-        <option value="4000">4 GB</option>
-        <option value="5000">5 GB</option>
-    </select>
-</div>
- <label for="spaceLimit" style="margin-right: 10px;">Status</label>
- <div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
-   
-    <select id="status" name="status" class="form-control">
-        
-        <option value="1">Running</option>
-        <option value="0">Stop</option>
-    </select>
-</div>
-
-       
-		<label for="dbpass" style="margin-right: 10px;">Password</label>
-<div class="form-group form-inline mb-3">
-    
-    <input type="text" id="dbpass" name="password" class="form-control" value=""  placeholder="{{ tips }}">
-</div>
-<label for="dbpassc" style="margin-right: 10px;">Confirm Password</label>
-<div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
-    
-    <input type="text" id="dbpassc" name="passwordc" class="form-control" value="" placeholder="{{ tips }}"> <button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Genarate</button>
-</div>
-		
-
- <div class="form-group">
-            <button type="submit" class="mb-1 btn btn-success">Submit</button>
-            <!-- Delete Button as a Form -->
-                  
+<div class="max-w-2xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-folder-key-outline text-brand text-base"></i> Manage FTP Account: {{ ftp.user }}
+            </h4>
+            <a href="{% url 'ftp_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to FTP Accounts
+            </a>
         </div>
 
+        <div class="p-5">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
 
+                <!-- Username (Readonly) -->
+                <div>
+                    <label for="dbuser" class="block text-xs font-semibold text-slate-700 mb-1">FTP Username</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md">
+                            <i class="mdi mdi-lock text-xs"></i>
+                        </span>
+                        <input type="text" id="dbuser" name="username" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-r-md text-xs text-slate-700 font-mono font-bold cursor-not-allowed" value="{{ ftp.user }}" readonly>
+                    </div>
+                </div>
 
+                <!-- Document Root Path -->
+                <div>
+                    <label for="path" class="block text-xs font-semibold text-slate-700 mb-1">Document Root (Home Directory Path)</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md">
+                            <i class="mdi mdi-folder-outline text-xs"></i>
+                        </span>
+                        <input type="text" id="path" name="path" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{{ file_path }}">
+                    </div>
+                </div>
 
-		</div> </div>
-    </form>
-	
-	
- {% if ftp.user != user.username %}
-        <form action="{% url 'ftp_delete' ftp.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this FTP ?');">Delete</button>
-                    </form>
-        
-    {% endif %}	
-	
+                <!-- Quota & Status Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="spaceLimit" class="block text-xs font-semibold text-slate-700 mb-1">Storage Quota Limit</label>
+                        <select id="spaceLimit" name="space_limit" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                            <option value="unlimited">Unlimited Storage</option>
+                            <option value="100">100 MB</option>
+                            <option value="500">500 MB</option>
+                            <option value="1000">1 GB</option>
+                            <option value="1500">1.5 GB</option>
+                            <option value="2000">2 GB</option>
+                            <option value="3000">3 GB</option>
+                            <option value="4000">4 GB</option>
+                            <option value="5000">5 GB</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="status" class="block text-xs font-semibold text-slate-700 mb-1">Account Service Status</label>
+                        <select id="status" name="status" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                            <option value="1">Running (Enabled)</option>
+                            <option value="0">Stopped (Disabled)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Password Update -->
+                <div class="space-y-3 pt-1">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Update FTP Password (Leave blank to keep current)</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <input type="text" id="dbpass" name="password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="New password">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="dbpassc" name="passwordc" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Confirm password">
+                            <button type="button" id="gen" class="inline-flex items-center gap-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-md text-xs font-semibold transition-colors cursor-pointer flex-shrink-0" onclick="generateAndFillPassword();">
+                                <i class="mdi mdi-key-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danger Zone: Delete FTP Account -->
+    {% if ftp.user != user.username %}
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider m-0 flex items-center gap-2">
+                <i class="mdi mdi-alert-outline text-red-500"></i> Danger Zone
+            </h4>
+        </div>
+        <div class="p-5 flex items-center justify-between flex-wrap gap-3">
+            <p class="text-xs text-slate-600 m-0">Permanently delete this FTP account credentials. Files in the root path will remain safe.</p>
+            <form action="{% url 'ftp_delete' ftp.id %}" method="post" class="m-0" onsubmit="return confirm('Are you sure you want to delete this FTP account?');">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-delete-forever"></i> Delete FTP User
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 </div>
-</div>
-
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    var diskUsage = {{ ftp.QuotaSize|default:0 }};
+    var spaceLimitSelect = document.getElementById('spaceLimit');
+    if (spaceLimitSelect) {
+        if (diskUsage === 0 || diskUsage === "0" || diskUsage === "unlimited") {
+            spaceLimitSelect.value = 'unlimited';
+        } else {
+            spaceLimitSelect.value = String(diskUsage);
+        }
+    }
 
+    var statusVal = {{ ftp.status|default:1 }};
+    var statusSelect = document.getElementById('status');
+    if (statusSelect) {
+        statusSelect.value = String(statusVal);
+    }
+});
 
-function removeHomePrefix(path) {
-    return path.replace(/^\/home\/{{ user.username }}/, "");
+function generateStrongPassword(length = 16) {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+    const allCharacters = lowercase + uppercase + digits + specialChars;
+    let password = '';
+
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += digits[Math.floor(Math.random() * digits.length)];
+    password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+    for (let i = 4; i < length; i++) {
+        password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    }
+
+    return password.split('').sort(() => Math.random() - 0.5).join('');
 }
-  document.addEventListener("DOMContentLoaded", function() {
-   var path = document.getElementById('path');
-   path.value = removeHomePrefix({{ file_path }});
-        // Get the disk usage value from the Django context (rendered in the template)
-        var diskUsage = {{ ftp.QuotaSize|default:0 }};  // This will be the value from the backend
-        
-        // Get the select element
-        var spaceLimitSelect = document.getElementById('spaceLimit');
 
-        // Set the selected option based on the disk usage
-        if (diskUsage === 0) {
-            spaceLimitSelect.value = 'unlimited'; // Set to unlimited if usage is 0
-        } else {
-            spaceLimitSelect.value = diskUsage; // Set to the actual usage value
-        }
-		
-		
-		
-		
-		var status = {{ ftp.status|default:1 }};  // This will be the value from the backend
-        
-        // Get the select element
-        var statusSelect = document.getElementById('status');
-
-        // Set the selected option based on the disk usage
-        if (status === 1) {
-            statusSelect.value = '1'; // Set to unlimited if usage is 0
-        } else {
-            statusSelect.value = '0'; // Set to the actual usage value
-        }
-    });
-
-    function generateStrongPassword(length = 16) {
-        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const digits = '0123456789';
-        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
-        
-        const allCharacters = lowercase + uppercase + digits + specialChars;
-        let password = '';
-
-        // Ensure the password contains at least one character from each category
-        password += lowercase[Math.floor(Math.random() * lowercase.length)];
-        password += uppercase[Math.floor(Math.random() * uppercase.length)];
-        password += digits[Math.floor(Math.random() * digits.length)];
-        password += specialChars[Math.floor(Math.random() * specialChars.length)];
-
-        // Fill the rest of the password length with a mix of all characters
-        for (let i = 4; i < length; i++) {
-            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
-        }
-
-        // Shuffle the password to ensure randomness
-        password = password.split('').sort(() => Math.random() - 0.5).join('');
-        return password;
+function generateAndFillPassword() {
+    const password = generateStrongPassword();
+    const p1 = document.getElementById('dbpass');
+    const p2 = document.getElementById('dbpassc');
+    if (p1 && p2) {
+        p1.value = password;
+        p2.value = password;
     }
-
-    function generateAndFillPassword() {
-        const password = generateStrongPassword();
-        document.getElementById('dbpass').value = password;
-        document.getElementById('dbpassc').value = password; // Set confirm password to match
-        return false; // Prevent any default action (not strictly necessary here)
-    }
+}
 </script>
-{% endblock content %}
+
 {% include "whm/footer.html" %}
+{% endblock content %}

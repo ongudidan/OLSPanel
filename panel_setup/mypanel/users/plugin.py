@@ -276,12 +276,19 @@ def get_security_plugins_list():
     }
     ,
     {
-        'name': 'Two-Factor ',
+        'name': 'Two-Factor',
         'icon': '/media/icon/2fa.svg',
         'url': reverse('google_otp'),
         'sorder': 4,
     },
+    {
+        'name': 'Passkeys',
+        'icon': '/media/icon/passkey.svg',
+        'url': reverse('users_passkeys'),
+        'sorder': 5,
+    },
     ])
+
 
 
 

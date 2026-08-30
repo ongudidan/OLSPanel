@@ -90,6 +90,12 @@ urlpatterns = [
     path('composer_run/', composer_run, name='composer_run'),
     path('composer/install/run/', composer_install_run, name='composer_install_run'),
     path('google_otp/', google_otp, name='google_otp'),
+    path('passkeys/', users_passkeys, name='users_passkeys'),
     path('home_data/', home_data, name='home_data'),
-
+    path('api/passkey/register/options/', passkey_register_options, name='passkey_register_options'),
+    path('api/passkey/register/verify/', passkey_register_verify, name='passkey_register_verify'),
+    path('api/passkey/delete/<int:passkey_id>/', passkey_delete, name='passkey_delete'),
+    path('api/passkey/auth/options/', passkey_auth_options, name='passkey_auth_options'),
+    path('api/passkey/auth/verify/', passkey_auth_verify, name='passkey_auth_verify'),
 ]
+

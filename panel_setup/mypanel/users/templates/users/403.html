@@ -1,16 +1,25 @@
 {% extends "users/base.html" %}
-{% block title %}403 - Access Denied{% endblock title %}
+{% block title %}403 - Access Forbidden{% endblock title %}
 {% block content %}
 
-<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <div class="text-center p-4 shadow-lg rounded-4 bg-white" style="max-width: 500px; width: 100%;">
-        <a href="/" class="d-block mb-4">
-            <img src="{{ branding.brand_image }}?v=1.0.7" alt="{{ branding.brand_title }}" style="max-width: 250px;">
-        </a>
-        <h1 class="display-3 fw-bold text-warning">403</h1>
-        <p class="fs-5 text-muted">You don’t have permission to access this page.</p>
-        <a href="/" class="btn btn-primary mt-3 px-4">Return to Homepage</a>
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center p-8 space-y-4">
+        <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto text-2xl font-bold font-mono">
+            403
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-900 m-0">Access Denied</h3>
+            <p class="text-xs text-slate-500 mt-2 max-w-xs mx-auto leading-relaxed">
+                You don’t have permission to access the requested resource.
+            </p>
+        </div>
+        <div class="pt-2">
+            <a href="/" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Return to Homepage
+            </a>
+        </div>
     </div>
 </div>
 
+{% include "users/footer.html" %}
 {% endblock content %}

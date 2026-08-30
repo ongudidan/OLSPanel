@@ -1,60 +1,60 @@
 {% extends "users/base.html" %}
-{% block title %}List of Database user{% endblock title %}
+{% block title %}Database Users{% endblock title %}
 {% block content %}
 
-<div class="card card-default">
-      <div class="card-header">
-        <h2>List of Database user</h2>
-		
-        
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-account-multiple-outline text-brand text-base"></i> Database Users
+        </h4>
+        <div>
+            <a href="{% url 'database_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Databases
+            </a>
+        </div>
+    </div>
 
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-  
-
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-             <tr>
-                <th>User</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for userlist in userlists %}
-            <tr>
-                <td>{{ userlist }}</td>
-                <td>
-				<form action="{% url 'database_userlist' %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-						<input type="hidden" id="dbuser" name="dbuser" class="form-control" value="{{ userlist }}">
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');">Delete</button>
-                    </form>
-					<a href="{% url 'db_user_edit' userlist %}" class="btn btn-primary btn-sm">Manage</a>
-
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="p-4">
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">User</th>
+                        <th class="px-3.5 py-2.5 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for userlist in userlists %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5 font-mono font-bold text-slate-900 flex items-center gap-2">
+                            <div class="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                <i class="mdi mdi-account text-xs"></i>
+                            </div>
+                            <span>{{ userlist }}</span>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right space-x-1">
+                            <a href="{% url 'db_user_edit' userlist %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors">
+                                <i class="mdi mdi-key-outline"></i> Change Password
+                            </a>
+                            <form action="{% url 'database_userlist' %}" method="post" class="inline m-0">
+                                {% csrf_token %}
+                                <input type="hidden" id="dbuser" name="dbuser" value="{{ userlist }}">
+                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors cursor-pointer" onclick="return confirm('Are you sure you want to delete database user {{ userlist }}?');">
+                                    <i class="mdi mdi-delete-outline"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="px-3.5 py-6 text-center text-slate-400">No database users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
-</div>
-
-
-
-
-{% endblock content %}
 
 {% include "users/footer.html" %}
+{% endblock content %}

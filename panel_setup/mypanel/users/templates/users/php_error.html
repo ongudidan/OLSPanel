@@ -1,175 +1,124 @@
 {% extends "users/base.html" %}
-{% block title %}PHP Error{% endblock title %}
+{% block title %}PHP Error Configuration{% endblock title %}
 {% block content %}
 
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
     <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0 cursor-pointer">&times;</button>
+</div>
 
-
-
-
-
-
-<form method="post" action="">
-            {% csrf_token %}
-<div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
-<div class="card card-default">
-    <div class="card-header">
-        <h2>PHP Error</h2>
-    </div>
-    <div class="card-body">
-	 <div class="form-group">
-            <label for="php_version">Select Domain:</label>
-           <select class="form-control" name="php_domain" id="php_domain" onchange="load(this.value)">
-    <option value="">Domain</option>
-    {% for domain in php_domain %}
-        <option value="{{ domain.domain }}">{{ domain.domain }}</option>
-    {% endfor %}
-</select>
-
- <div id="responseContainer" style="display: none;" class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
+<div class="max-w-3xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-alert-circle-outline text-brand text-base"></i> PHP Error Configuration
+            </h4>
+            <div id="responseContainer" style="display: none;" class="flex items-center gap-1.5 text-xs text-brand font-semibold">
+                <svg class="animate-spin h-3.5 w-3.5 text-brand" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Loading configuration...</span>
+            </div>
         </div>
+
+        <div class="p-5">
+            <form method="post" action="" class="space-y-4 max-w-xl">
+                {% csrf_token %}
+
+                <!-- Domain Selection -->
+                <div>
+                    <label for="php_domain" class="block text-xs font-semibold text-slate-700 mb-1">Select Domain</label>
+                    <select class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" name="php_domain" id="php_domain" onchange="load(this.value)">
+                        <option value="">-- Choose a domain --</option>
+                        {% for domain in php_domain %}
+                            <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Error Reporting Level -->
+                <div>
+                    <label for="error_reporting" class="block text-xs font-semibold text-slate-700 mb-1">Error Reporting Level</label>
+                    <select class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" name="error_reporting" id="error_reporting">
+                        <option value="0">Off (No Errors)</option>
+                        <option value="32767">All Errors (E_ALL)</option>
+                        <option value="32759">All Except Notices (E_ALL & ~E_NOTICE)</option>
+                        <option value="1">Fatal Errors (E_ERROR)</option>
+                        <option value="2">Warnings (E_WARNING)</option>
+                        <option value="4">Parse Errors (E_PARSE)</option>
+                        <option value="8">Notices (E_NOTICE)</option>
+                        <option value="8192">Deprecated Notices (E_DEPRECATED)</option>
+                    </select>
+                </div>
+
+                <!-- Toggle Options -->
+                <div class="space-y-2.5 pt-2">
+                    <label class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100/60 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-semibold text-slate-900">Log Errors in File</span>
+                            <span class="block text-[11px] text-slate-500">Record PHP runtime errors to domain error_log</span>
+                        </div>
+                        <input type="checkbox" name="log_errors" id="log_errors" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                    </label>
+
+                    <label class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100/60 cursor-pointer select-none transition-colors">
+                        <div>
+                            <span class="block text-xs font-semibold text-slate-900">Display Errors in Browser</span>
+                            <span class="block text-[11px] text-slate-500">Render error messages directly onto the webpage</span>
+                        </div>
+                        <input type="checkbox" name="display_errors" id="display_errors" value="On" class="w-4 h-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                    </label>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Save PHP Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-	       
-            <div class="tab-content mt-5" id="nav-tabContent">
-              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                
-           
 
-<div class="form-group">
-    <label for="error_reporting">Select Error Type:</label>
-    <select class="form-control" name="error_reporting" id="error_reporting">
-        <option value="0">Off (No Errors)</option>
-        <option value="32767">All Errors (E_ALL)</option>
-        <option value="32759">All Except Notices (E_ALL & ~E_NOTICE)</option>
-        <option value="1">Fatal Errors (E_ERROR)</option>
-        <option value="2">Warnings (E_WARNING)</option>
-        <option value="4">Parse Errors (E_PARSE)</option>
-        <option value="8">Notices (E_NOTICE)</option>
-        <option value="8192">Deprecated Notices (E_DEPRECATED)</option>
-    </select>
-</div>
-
-
-
-
-<div class="form-group">
-    <label for="log_errors">Error Log in file:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="log_errors" id="log_errors" class="switch-input form-check-input" value="On">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-<div class="form-group">
-    <label for="display_errors">Error Log in display:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="display_errors" id="display_errors" class="switch-input form-check-input" value="On">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-
-            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-       
-    
-	    </div>
-            
-
-          </div>
-	
-	
-	
-     
-	
-</div>
-
- </div>
-</div>
-
- </form>
 <script>
-  
+const alertContainer = document.getElementById('alertContainer');
+const messageDisplay = document.getElementById('message');
+const responseDisplay = document.getElementById('responseContainer');
 
-       const alertContainer = document.getElementById('alertContainer');
-       const messageDisplay = document.getElementById('message');
-      const responseDisplay = document.getElementById('responseContainer');
-      
+function load(selectedDomain) {
+    if (!selectedDomain) return;
 
-   function load(selectedVersion) {
-    if (selectedVersion) {  // Ensuring selectedVersion is available
-        console.log('Selected version:', selectedVersion);
-       
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
+    if (responseDisplay) responseDisplay.style.display = 'flex';
 
-            // Call the URL with GET method, appending php_version as a query parameter
-            fetch(`{% url 'fatch_php_error' %}?php_domain=${selectedVersion}`, {
-                method: 'GET',  // Using GET to pass php_version as a query parameter
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json(); // Retrieve response as JSON
-            })
-            .then(response => {
-                console.log('Response:', response);
-               responseDisplay.style.display = 'none';
+    fetch(`{% url 'fatch_php_error' %}?php_domain=${encodeURIComponent(selectedDomain)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network error');
+        return response.json();
+    })
+    .then(response => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
 
-                // Populate form fields with the response data
-             
+        if (response.error_reporting !== undefined && response.error_reporting !== null) {
+            const el = document.getElementById('error_reporting');
+            if (el) el.value = String(response.error_reporting).trim();
+        }
+        
+        const logEl = document.getElementById('log_errors');
+        if (logEl) {
+            logEl.checked = (response.log_errors === 'On' || response.log_errors === true || response.log_errors === '1');
+        }
 
-if (response.error_reporting) {
-        $('#error_reporting').val(response.error_reporting.trim());
-    }
-if (response.log_errors === 'On' ) {
-    $('#log_errors').prop('checked', true);
-} else {
-    $('#log_errors').prop('checked', false);
+        const displayEl = document.getElementById('display_errors');
+        if (displayEl) {
+            displayEl.checked = (response.display_errors === 'On' || response.display_errors === true || response.display_errors === '1');
+        }
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+    });
 }
-if (response.display_errors === 'On' ) {
-    $('#display_errors').prop('checked', true);
-} else {
-    $('#display_errors').prop('checked', false);
-}
-
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // You can show an alert to notify the user about the error
-               responseDisplay.style.display = 'none';
-               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
-            });
-        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
-    } else {
-        console.log('No PHP version selected.');
-    }
-}
-
-
-       
-		
-
 </script>
-  
+
 {% include "users/footer.html" %}
 {% endblock content %}

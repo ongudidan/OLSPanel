@@ -1,167 +1,185 @@
 {% extends "users/base.html" %}
-{% block title %}My Domain{% endblock title %}
+{% block title %}DNS Records{% endblock title %}
 {% block content %}
 
-
-<div class="card card-default">
-      <div class="card-header">
-        <h2>List of DNS Records</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="p-6">
-            
-    <ul class="nav nav-tabs" id="typeTabs" role="tablist">
-        <li class="nav-item">
-            <a class="nav-link active" data-type="" href="#" role="tab">All Types</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="A" href="#" role="tab">A</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="AAAA" href="#" role="tab">AAAA</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="CAA" href="#" role="tab">CAA</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="CNAME" href="#" role="tab">CNAME</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="MX" href="#" role="tab">MX</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="SRV" href="#" role="tab">SRV</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="TXT" href="#" role="tab">TXT</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="SOA" href="#" role="tab">SOA</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" data-type="NS" href="#" role="tab">NS</a>
-        </li>
-    </ul>
-	</div>
-   <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'dns_create_with_id' rid %}" role="button" style="text-transform: none;">+ Add record</a>
-</div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for record...">
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-dns text-brand"></i> DNS Zone Records
+        </h4>
+        <div>
+            <a href="{% url 'dns' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Domains
+            </a>
         </div>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Name</th>
-                <th>TTL</th>
-                <th>Type</th>
-                <th>Record</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for dns in dnss %}
-            <tr data-name="{{ dns.name }}" data-type="{{ dns.type }}">
-                <td>{{ dns.name }}</td>
-                <td>{{ dns.ttl }}</td>
-                <td>{{ dns.type }}</td>
-                <td>
-                    {% if dns.type == "MX" %}
-                    Priority: {{ dns.prio }} <br>
-                    Destination: {{ dns.content }}
-                    {% else %}
-                    {{ dns.content }}
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="{% url 'dns_edit' dns.id %}" class="btn btn-primary btn-sm">Edit</a>
-					<form action="{% url 'dns_delete' dns.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this record ?');">Delete</button>
-                    </form>
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="text-center">No record found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
+    </div>
+    <div class="p-4">
+        <!-- Type Filter Pills -->
+        <div class="flex flex-wrap gap-1.5 pb-3 mb-3 border-b border-slate-100" id="typeTabs">
+            <a class="px-2.5 py-1 text-xs font-semibold rounded-md border transition-all dns-pill-btn active bg-brand text-white border-brand" data-type="" href="javascript:void(0)">All Types</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="A" href="javascript:void(0)">A</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="AAAA" href="javascript:void(0)">AAAA</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="CAA" href="javascript:void(0)">CAA</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="CNAME" href="javascript:void(0)">CNAME</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="MX" href="javascript:void(0)">MX</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="SRV" href="javascript:void(0)">SRV</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="TXT" href="javascript:void(0)">TXT</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="SOA" href="javascript:void(0)">SOA</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="NS" href="javascript:void(0)">NS</a>
+        </div>
 
-</div>
-</div>
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'dns_create_with_id' rid %}">
+                    <i class="mdi mdi-plus"></i> Add DNS Record
+                </a>
+            </div>
+            <div>
+                <form id="recordSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="recordSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search record..." autocomplete="off">
+                        <button type="button" id="clearRecordSearchBtn" onclick="clearRecordSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-
+        <!-- DNS Records Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">Host / Name</th>
+                        <th class="px-3.5 py-2.5">TTL</th>
+                        <th class="px-3.5 py-2.5">Type</th>
+                        <th class="px-3.5 py-2.5">Record / Content</th>
+                        <th class="px-3.5 py-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="recordsTableBody" class="divide-y divide-slate-100">
+                    {% for dns in dnss %}
+                    <tr data-name="{{ dns.name|lower }}" data-type="{{ dns.type }}" class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5 font-bold text-slate-900">{{ dns.name }}</td>
+                        <td class="px-3.5 py-2.5 font-mono text-slate-600">{{ dns.ttl }}</td>
+                        <td class="px-3.5 py-2.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-600 text-white shadow-xs">{{ dns.type }}</span>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            {% if dns.type == "MX" %}
+                            <span class="text-slate-500 font-mono text-[11px]">Priority: {{ dns.prio }}</span> &rarr; <span class="font-mono text-[11px] text-slate-800">{{ dns.content }}</span>
+                            {% else %}
+                            <code class="font-mono text-[11px] text-slate-800 break-all">{{ dns.content }}</code>
+                            {% endif %}
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right space-x-1 whitespace-nowrap">
+                            <a href="{% url 'dns_edit' dns.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-square-edit-outline"></i> Edit
+                            </a>
+                            <form action="{% url 'dns_delete' dns.id %}" method="post" class="inline m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded shadow-xs transition-colors" onclick="return confirm('Are you sure you want to delete this DNS record?');">
+                                    <i class="mdi mdi-trash-can-outline"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-3.5 py-6 text-center text-slate-400">No DNS records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const searchInput = document.getElementById('search');
-        const typeTabs = document.querySelectorAll('#typeTabs .nav-link');
-        const tableRows = document.querySelectorAll('#domainTable tr');
-        const noResults = document.getElementById('noResults');
-        let selectedType = '';
+const recordSearchInput = document.getElementById("recordSearchInput");
+const clearRecordBtn = document.getElementById("clearRecordSearchBtn");
+const recordsTableBody = document.getElementById("recordsTableBody");
+const typeTabs = document.querySelectorAll("#typeTabs .dns-pill-btn");
+let selectedType = "";
 
-        // Function to filter the table based on search query and selected tab
-        function filterTable() {
-            const searchQuery = searchInput.value.toLowerCase();
-            let visibleRows = 0;
+function filterRecords() {
+    const q = (recordSearchInput ? recordSearchInput.value : "").trim().toLowerCase();
+    const rows = recordsTableBody ? Array.from(recordsTableBody.querySelectorAll("tr:not(.no-records-row)")) : [];
+    let visibleCount = 0;
 
-            tableRows.forEach(row => {
-                const name = row.getAttribute('data-name').toLowerCase();
-                const type = row.getAttribute('data-type');
+    if (clearRecordBtn) {
+        clearRecordBtn.style.display = q ? "block" : "none";
+    }
 
-                const matchesSearch = name.includes(searchQuery);
-                const matchesType = !selectedType || type === selectedType;
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const rowType = row.getAttribute("data-type") || "";
+        const matchesQuery = !q || text.includes(q);
+        const matchesType = !selectedType || rowType === selectedType;
 
-                if (matchesSearch && matchesType) {
-                    row.style.display = '';
-                    visibleRows++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Show or hide the "No results" message
-            noResults.style.display = visibleRows === 0 ? 'block' : 'none';
+        if (matchesQuery && matchesType) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
         }
-
-        // Add click event listener to tabs
-        typeTabs.forEach(tab => {
-            tab.addEventListener('click', function(event) {
-                event.preventDefault();
-                selectedType = this.getAttribute('data-type');
-
-                // Remove 'active' class from all tabs and add to the clicked tab
-                typeTabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-
-                filterTable(); // Filter table on tab click
-            });
-        });
-
-        // Filter table when the search input changes
-        searchInput.addEventListener('input', filterTable);
     });
+
+    let noMatchRow = document.getElementById("noDnsRecordsMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noDnsRecordsMatchRow";
+            noMatchRow.className = "no-records-row";
+            noMatchRow.innerHTML = `<td colspan="5" class="px-3.5 py-4 text-center text-slate-400">No matching DNS records found.</td>`;
+            recordsTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+}
+
+function clearRecordSearch() {
+    if (recordSearchInput) {
+        recordSearchInput.value = "";
+        filterRecords();
+        recordSearchInput.focus();
+    }
+}
+
+let dnsDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    typeTabs.forEach(tab => {
+        tab.addEventListener("click", function (e) {
+            e.preventDefault();
+            typeTabs.forEach(t => {
+                t.classList.remove("active", "bg-brand", "text-white", "border-brand");
+                t.classList.add("border-slate-200", "bg-slate-50", "text-slate-600");
+            });
+            this.classList.add("active", "bg-brand", "text-white", "border-brand");
+            this.classList.remove("border-slate-200", "bg-slate-50", "text-slate-600");
+            selectedType = this.getAttribute("data-type") || "";
+            filterRecords();
+        });
+    });
+
+    if (recordSearchInput) {
+        recordSearchInput.addEventListener("input", function () {
+            clearTimeout(dnsDebounceTimer);
+            dnsDebounceTimer = setTimeout(filterRecords, 100);
+        });
+    }
+});
 </script>
 
-
-
-{% endblock content %}
-
 {% include "users/footer.html" %}
+{% endblock content %}

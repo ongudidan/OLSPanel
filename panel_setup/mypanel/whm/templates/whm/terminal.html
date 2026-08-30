@@ -1,154 +1,126 @@
 {% extends "whm/base.html" %}
-
-{% block title %}SSH Terminal{% endblock %}
+{% block title %}SSH Web Terminal{% endblock title %}
 
 {% block content %}
-<div class="card card-default">
-    <div class="card-header">SSH Terminal</div>
-	 <div id="terminal"></div>
-       
+<div class="bg-slate-950 border border-slate-800 rounded-lg shadow-xl overflow-hidden">
+    <div class="px-4 py-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 mr-2">
+                <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
+            </div>
+            <span class="text-xs font-mono font-bold text-slate-300 flex items-center gap-1.5">
+                <i class="mdi mdi-console text-emerald-400"></i> root@olspanel-server:~#
+            </span>
+        </div>
+        <span class="text-[11px] font-mono text-slate-500">Interactive SSH Session</span>
+    </div>
+
+    <div class="p-4">
+        <div id="terminal" class="min-h-[500px] rounded bg-black"></div>
+    </div>
+
+    <div class="hidden">
         {% csrf_token %}
-    
+    </div>
 </div>
 
- <link rel="stylesheet" href="https://cdn.jsdelivr.net/xterm/2.6.0/xterm.css" />
-      <script src="https://cdn.jsdelivr.net/xterm/2.6.0/xterm.js"></script>
-      <script
-  src="https://code.jquery.com/jquery-1.12.4.min.js"
-  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
-  crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/xterm/2.6.0/xterm.css" />
+<script src="https://cdn.jsdelivr.net/xterm/2.6.0/xterm.js"></script>
 
 <script>
-     const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
+const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
 
-     var endsWith = function(subjectString,searchString, position) {
+var endsWith = function(subjectString, searchString, position) {
+    if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+        position = subjectString.length;
+    }
+    position -= searchString.length;
+    var lastIndex = subjectString.lastIndexOf(searchString, position);
+    return lastIndex !== -1 && lastIndex === position;
+};
 
-          if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
-            position = subjectString.length;
-          }
-          position -= searchString.length;
-          var lastIndex = subjectString.lastIndexOf(searchString, position);
-          return lastIndex !== -1 && lastIndex === position;
-      };
-        
-      	var term = new Terminal();
-        term.open(document.getElementById('terminal'));
-        term.currentPrompt = ''; 
-        term.write(term.currentPrompt);
-        window.term = term;
-        term.lastCommand = '';
-        term.currentCommand = '';
-        term.commandCallback = function(response) {
-		
-            term.write(response);
-            if (!endsWith(response,'\r\n'))
-                term.write('\r\n');
-            term.write(term.currentPrompt);
-			
-        };
-        term.processCommand = function(command) {
-          term.pendingPromise = $.Deferred();
-          term.pendingPromise.done(
-            function(resolvedResponse) 
-            { 
-              term.commandCallback(resolvedResponse);
-            });
-          term.executeCommand(command,term.pendingPromise);
-        }
-        
-        term.executeCommand = function(command, pendingPromise) {
-		//console.log(command);
-			sendCommand(command);
-              //pendingPromise.resolve('execute ' + command + ' dummy result dummy result dummy result dummy result\r\n');
-        };
-        
-        document.getElementById('terminal').onkeyup = function  (e) {
-           switch(e.which) {
-             case 9:
-                 //Ignore tab
-                 return;
-                 break;
-              case 13:
-                  term.lastCommand = term.currentCommand;
-                  term.currentCommand = '';
-                  term.write('\r\n');
-                  term.processCommand(term.lastCommand);
-                break;
-              case 8:
-                  term.write('\b \b');
-                  term.currentCommand =  term.currentCommand.substring(0, term.currentCommand.length-1);
-                break;
-              default:
-                var char = e.key;
+var term = new Terminal({
+    cursorBlink: true,
+    rows: 24,
+    theme: {
+        background: '#000000',
+        foreground: '#f8fafc',
+        cursor: '#10b981'
+    }
+});
+
+term.open(document.getElementById('terminal'));
+term.currentPrompt = '';
+term.write(term.currentPrompt);
+window.term = term;
+term.lastCommand = '';
+term.currentCommand = '';
+
+term.commandCallback = function(response) {
+    term.write(response);
+    if (!endsWith(response, '\r\n'))
+        term.write('\r\n');
+    term.write(term.currentPrompt);
+};
+
+term.processCommand = function(command) {
+    term.executeCommand(command);
+};
+
+term.executeCommand = function(command) {
+    sendCommand(command);
+};
+
+document.getElementById('terminal').onkeyup = function(e) {
+    switch(e.which) {
+        case 9: // Tab
+            return;
+        case 13: // Enter
+            term.lastCommand = term.currentCommand;
+            term.currentCommand = '';
+            term.write('\r\n');
+            term.processCommand(term.lastCommand);
+            break;
+        case 8: // Backspace
+            if (term.currentCommand.length > 0) {
+                term.write('\b \b');
+                term.currentCommand = term.currentCommand.substring(0, term.currentCommand.length - 1);
+            }
+            break;
+        default:
+            var char = e.key;
+            if (char.length === 1) {
                 term.write(char);
                 term.currentCommand = term.currentCommand + char;
             }
-        }	
-	
-	
-    async function sendCommand(command) {
-        try {
-            const response = await fetch('{% url "ssh_terminal" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken,
-                },
-                body: new URLSearchParams({
-                    'command': command,
-                }),
-            });
-            const data = await response.json();
-
-            if (data.output) {
-			term.write(data.output.output);
-                //appendToTerminal(data.output, 'output');
-            }
-            if (data.error) {
-                //appendToTerminal(`Error: ${data.error}`, 'error');
-            }
-        } catch (error) {
-            //appendToTerminal(`Error: ${error.message}`, 'error');
-        }
     }
-/*
-    // Handle user input in the terminal
-    commandInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-            const command = commandInput.value.trim();
-            if (!command) return;
+};
 
-            // Append the entered command to the terminal
-            appendToTerminal(`you@server:~$ ${command}`, 'command');
-
-            // Clear the input field
-            commandInput.value = '';
-
-            // Send the command to the server
-            sendCommand(command);
+async function sendCommand(command) {
+    try {
+        const response = await fetch('{% url "ssh_terminal" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+            },
+            body: new URLSearchParams({ 'command': command }),
+        });
+        const data = await response.json();
+        if (data.output) {
+            term.write(data.output.output || data.output);
         }
-    });
-*/
-    // Auto-send a command when the page loads
-    window.addEventListener('load', function () {
-        sendCommand(' ');  // Example command to execute on page load (could be an initialization command)
-		
-    });
-	
-	
-	
-	
-	
-	
-	
-	
-	
+    } catch (error) {
+        term.write(`\r\nError: ${error.message}\r\n`);
+    }
+}
 
-        
-   
-	
+window.addEventListener('load', function () {
+    sendCommand(' ');
+});
 </script>
 
-{% endblock content %}
-
 {% include "whm/footer.html" %}
+{% endblock content %}

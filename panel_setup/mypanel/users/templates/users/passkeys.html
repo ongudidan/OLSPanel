@@ -1,0 +1,252 @@
+{% extends "users/base.html" %}
+{% block title %}Passkeys &amp; Security Keys{% endblock title %}
+{% block content %}
+
+<div class="max-w-4xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+                <i class="mdi mdi-fingerprint text-brand text-base"></i>
+                <h4 class="text-sm font-semibold text-slate-900 m-0">Passkeys &amp; Security Keys (FIDO2 / WebAuthn)</h4>
+            </div>
+            <div class="flex items-center gap-2">
+                {% if passkeys %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">
+                        <i class="mdi mdi-check-circle"></i> Active ({{ passkeys|length }} Key{{ passkeys|length|pluralize }})
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">
+                        Disabled
+                    </span>
+                {% endif %}
+                <button type="button" onclick="openAddPasskeyModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-plus"></i> Add New Passkey
+                </button>
+            </div>
+        </div>
+
+        <div class="p-5">
+            <p class="text-xs text-slate-500 mb-4">
+                Passkeys let you sign in securely using biometrics (Apple Touch ID, Face ID, Windows Hello, Android Biometrics) or physical security keys (YubiKey) without typing OTP codes.
+            </p>
+
+            {% if passkeys %}
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-xs text-left text-slate-700">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-2.5">Passkey Label</th>
+                                <th class="px-4 py-2.5">Date Added</th>
+                                <th class="px-4 py-2.5">Last Used</th>
+                                <th class="px-4 py-2.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for pk in passkeys %}
+                                <tr class="hover:bg-slate-50/50 transition-colors">
+                                    <td class="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                            <i class="mdi mdi-key-wireless text-sm"></i>
+                                        </div>
+                                        <span>{{ pk.name }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-slate-500">{{ pk.created_at|date:"M d, Y H:i" }}</td>
+                                    <td class="px-4 py-3 text-slate-500">
+                                        {% if pk.last_used_at %}
+                                            {{ pk.last_used_at|date:"M d, Y H:i" }}
+                                        {% else %}
+                                            <span class="text-slate-400">Never</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <button type="button" onclick="deletePasskey('{{ pk.id }}', '{{ pk.name }}')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors cursor-pointer">
+                                            <i class="mdi mdi-delete-outline"></i> Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                    <div class="w-12 h-12 rounded-full bg-white border border-slate-200 text-slate-400 mx-auto flex items-center justify-center mb-3 shadow-xs">
+                        <i class="mdi mdi-fingerprint text-2xl text-slate-500"></i>
+                    </div>
+                    <h5 class="text-sm font-bold text-slate-800 m-0">No Passkeys Registered</h5>
+                    <p class="text-xs text-slate-500 mt-1 mb-4 max-w-sm mx-auto">Add a passkey to authenticate securely using Touch ID, Face ID, Windows Hello, or a YubiKey.</p>
+                    <button type="button" onclick="openAddPasskeyModal()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-plus"></i> Register Your First Passkey
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Passkey -->
+<div id="passkeyModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden animate-fadeIn">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-bold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-fingerprint text-brand"></i> Register New Passkey
+            </h4>
+            <button type="button" onclick="closeAddPasskeyModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold bg-transparent border-0 cursor-pointer">&times;</button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <label for="passkey_name" class="block text-xs font-semibold text-slate-700 mb-1">Passkey Device Label</label>
+                <input type="text" id="passkey_name" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs" placeholder="e.g. MacBook Touch ID, YubiKey 5C, iPhone" autofocus>
+                <p class="text-[11px] text-slate-400 mt-1">A friendly name to identify this security key or device.</p>
+            </div>
+
+            <div id="passkeyStatus" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button type="button" onclick="closeAddPasskeyModal()" class="px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="button" id="startPasskeyBtn" onclick="startPasskeyRegistration()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-shield-check"></i> Register Passkey
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openAddPasskeyModal() {
+    document.getElementById('passkeyModal').classList.remove('hidden');
+    document.getElementById('passkeyStatus').classList.add('hidden');
+    const nameInput = document.getElementById('passkey_name');
+    nameInput.value = navigator.userAgent.includes('Mac') ? 'Mac Touch ID' : (navigator.userAgent.includes('Windows') ? 'Windows Hello' : 'Security Key');
+    nameInput.focus();
+}
+
+function closeAddPasskeyModal() {
+    document.getElementById('passkeyModal').classList.add('hidden');
+}
+
+// Base64URL helper
+function bufferToBase64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (let char of bytes) str += String.fromCharCode(char);
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlToBuffer(base64url) {
+    const padding = '='.repeat((4 - base64url.length % 4) % 4);
+    const base64 = (base64url + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray.buffer;
+}
+
+async function startPasskeyRegistration() {
+    const statusDiv = document.getElementById('passkeyStatus');
+    const btn = document.getElementById('startPasskeyBtn');
+    const passkeyName = document.getElementById('passkey_name').value.trim() || 'Passkey';
+
+    if (!window.PublicKeyCredential) {
+        statusDiv.className = 'p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs';
+        statusDiv.textContent = 'WebAuthn is not supported in this browser or environment (requires HTTPS).';
+        statusDiv.classList.remove('hidden');
+        return;
+    }
+
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<svg class="animate-spin h-3.5 w-3.5 text-white mr-1 inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Waiting for touch...';
+
+        statusDiv.className = 'p-3 bg-indigo-50 border border-indigo-200 text-indigo-800 rounded-lg text-xs';
+        statusDiv.textContent = 'Follow your browser prompt to verify your biometric or security key...';
+        statusDiv.classList.remove('hidden');
+
+        // 1. Fetch options from server
+        const optRes = await fetch('/api/passkey/register/options/');
+        if (!optRes.ok) throw new Error('Failed to obtain registration options.');
+        const options = await optRes.json();
+
+        // Convert base64url fields to ArrayBuffer
+        options.challenge = base64UrlToBuffer(options.challenge);
+        options.user.id = base64UrlToBuffer(options.user.id);
+        if (options.excludeCredentials) {
+            options.excludeCredentials.forEach(cred => {
+                cred.id = base64UrlToBuffer(cred.id);
+            });
+        }
+
+        // 2. Create credential
+        const credential = await navigator.credentials.create({ publicKey: options });
+
+        // 3. Prepare payload
+        const credentialJSON = {
+            id: credential.id,
+            rawId: bufferToBase64Url(credential.rawId),
+            type: credential.type,
+            response: {
+                clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
+                attestationObject: bufferToBase64Url(credential.response.attestationObject),
+                transports: credential.response.getTransports ? credential.response.getTransports() : []
+            }
+        };
+
+        // 4. Verify with server
+        const csrfToken = '{{ csrf_token }}';
+        const verifyRes = await fetch('/api/passkey/register/verify/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                credential: credentialJSON,
+                name: passkeyName
+            })
+        });
+
+        const verifyData = await verifyRes.json();
+        if (verifyData.status === 'success') {
+            statusDiv.className = 'p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs';
+            statusDiv.textContent = 'Passkey registered successfully! Reloading...';
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            throw new Error(verifyData.message || 'Registration verification failed.');
+        }
+    } catch (err) {
+        statusDiv.className = 'p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs';
+        statusDiv.textContent = err.message || 'Passkey registration cancelled or failed.';
+        statusDiv.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="mdi mdi-shield-check"></i> Register Passkey';
+    }
+}
+
+async function deletePasskey(passkeyId, passkeyName) {
+    if (!confirm(`Are you sure you want to remove the passkey "${passkeyName}"?`)) return;
+    const csrfToken = '{{ csrf_token }}';
+
+    try {
+        const res = await fetch(`/api/passkey/delete/${passkeyId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert(data.message || 'Error deleting passkey');
+        }
+    } catch (err) {
+        alert('Error: ' + err.toString());
+    }
+}
+</script>
+
+{% include "users/footer.html" %}
+{% endblock content %}

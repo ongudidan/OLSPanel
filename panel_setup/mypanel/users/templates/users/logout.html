@@ -1,35 +1,25 @@
 {% extends "users/base.html" %}
-{% block title %}Logout{% endblock title %}
+{% block title %}Logged Out{% endblock title %}
 {% block content %}
 
- 
-        <div class="d-flex justify-content-center align-items-center vh-100">
-    <div class="col-12" style="max-width: 400px;">
-        <div class="card card-default">
-            <div class="card-header pb-0">
-                <div class="app-brand w-100 d-flex justify-content-center border-bottom-0">
-                    <a class="w-auto pl-0" href="/">
-                        <img src="/media/logo.png" alt="Mono">
-                        <span class="brand-name text-dark">MONO</span>
-                    </a>
-                </div>
-            </div>
-                  <div class="card-body px-5 pb-5 pt-0">
-
-                    <h4 class="text-dark mb-6 text-center">You have been logged out</h4>
-					<br><hr><center><a href="{% url 'login' %}" class="btn btn-primary">Sign in again</a></center>
-
-                   
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center p-8 space-y-4">
+        <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-500">
+            <i class="mdi mdi-logout-variant text-2xl"></i>
         </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-900 m-0">You have been logged out</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
+                Your session has safely ended. Thank you for using OLSPanel.
+            </p>
+        </div>
+        <div class="pt-2">
+            <a href="{% url 'login' %}" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                <i class="mdi mdi-login-variant"></i> Sign in again
+            </a>
+        </div>
+    </div>
+</div>
 
-
-
-   
-
-
+{% include "users/footer.html" %}
 {% endblock content %}

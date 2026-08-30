@@ -3,182 +3,133 @@
 
 {% block content %}
 
-<div style="max-width:900px;margin:auto;padding:20px;">
-
-    <!-- SKELETON (instant UI instead of blocking loader) -->
-    <div id="loader" style="padding:20px;">
-        <div style="height:20px;width:60%;background:#eee;margin-bottom:10px;"></div>
-        <div style="height:12px;width:40%;background:#f0f0f0;margin-bottom:20px;"></div>
-        <div style="width:40px;height:40px;border:4px solid #ddd;border-top:4px solid #0d6efd;border-radius:50%;margin:auto;animation:spin 1s linear infinite;"></div>
-        <p style="text-align:center;">Loading plugin...</p>
+<div class="max-w-3xl mx-auto space-y-5">
+    <!-- Skeleton loader -->
+    <div id="loader" class="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+        <div class="animate-pulse space-y-4">
+            <div class="h-5 bg-slate-200 rounded w-1/3"></div>
+            <div class="h-3 bg-slate-100 rounded w-1/4"></div>
+            <div class="h-48 bg-slate-100 rounded-lg"></div>
+            <div class="flex items-center justify-center gap-2 text-xs text-slate-500 pt-2">
+                <svg class="animate-spin h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Loading plugin details...</span>
+            </div>
+        </div>
     </div>
 
-    <!-- PLUGIN -->
-    <div id="pluginBox" style="display:none;"></div>
+    <!-- Plugin Box -->
+    <div id="pluginBox" style="display: none;"></div>
 
-    <!-- TERMINAL -->
-    <div id="terminal"
-         style="display:none;margin-top:20px;background:#000;color:#00ff00;
-         padding:15px;border-radius:12px;height:400px;overflow:auto;
-         font-family:monospace;white-space:pre-wrap;">
+    <!-- Terminal -->
+    <div id="terminal" style="display: none;" class="p-4 bg-slate-950 text-emerald-400 font-mono text-xs rounded-lg border border-slate-800 h-96 overflow-y-auto whitespace-pre-wrap shadow-inner">
     </div>
-
 </div>
 
-<style>
-@keyframes spin {
-    0% {transform:rotate(0deg);}
-    100% {transform:rotate(360deg);}
-}
-</style>
-
 <script>
-
 const PLUGIN_ID = "{{ plugin_id }}";
 let plugin = null;
 
-/* =========================
-   INIT
-========================= */
 document.addEventListener("DOMContentLoaded", function () {
     loadPlugin();
 });
 
-/* =========================
-   LOAD PLUGIN (async)
-========================= */
 function loadPlugin() {
-
     fetch(`{% url 'api_plugins' %}?id=${PLUGIN_ID}`)
         .then(res => res.json())
         .then(data => {
-
             plugin = data.plugins?.length ? data.plugins[0] : null;
-
             document.getElementById("loader").style.display = "none";
             document.getElementById("pluginBox").style.display = "block";
-
             renderPlugin();
         })
         .catch(() => {
-            document.getElementById("loader").innerHTML =
-                "❌ Failed to load plugin";
+            document.getElementById("loader").innerHTML = "<p class='text-xs text-rose-600 font-bold'>Failed to load plugin details.</p>";
         });
 }
 
-/* =========================
-   RENDER PLUGIN
-========================= */
 function renderPlugin() {
-
     const box = document.getElementById("pluginBox");
-
     if (!plugin) {
-        box.innerHTML = "<p>Plugin not found</p>";
+        box.innerHTML = "<p class='text-xs text-slate-500'>Plugin not found.</p>";
         return;
     }
-    let licenseBadges = "";
 
+    let licenseBadges = "";
     if (plugin.type) {
         licenseBadges = plugin.type.split(",").map(t => {
-
-            t = t.trim();
+            t = t.trim().toLowerCase();
             let label = t.charAt(0).toUpperCase() + t.slice(1);
+            let badgeClass = "bg-slate-600";
+            if (t === "free") badgeClass = "bg-emerald-600";
+            if (t === "basic") badgeClass = "bg-brand";
+            if (t === "pro") badgeClass = "bg-amber-600";
+            if (t === "enterprise") badgeClass = "bg-purple-600";
 
-            let color = "#6c757d";
-            if (t === "free") color = "#198754";
-            if (t === "basic") color = "#0d6efd";
-            if (t === "pro") color = "#fd7e14";
-            if (t === "enterprise") color = "#6f42c1";
-
-            return `
-                <span style="
-                    background:${color};
-                    color:#fff;
-                    padding:4px 10px;
-                    border-radius:20px;
-                    font-size:12px;
-                    font-weight:600;
-                    margin-right:5px;
-                ">
-                    ${label}
-                </span>
-            `;
-        }).join("");
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold text-white shadow-xs ${badgeClass}">${label}</span>`;
+        }).join(" ");
     }
 	
     let btn = "";
-
     if (plugin.license_valid === false) {
-
         btn = `
-            <a href="/whm/license/"
-               style="display:block;background:#dc3545;color:#fff;padding:12px;text-align:center;border-radius:10px;font-weight:bold;">
-                🔒 Unlock License Required
+            <a href="/whm/license/" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                <i class="mdi mdi-lock-outline"></i> License Required
             </a>
         `;
-
     } else if (plugin.is_installed) {
-
         btn = `
-            <div style="background:#198754;color:#fff;padding:12px;text-align:center;border-radius:10px;font-weight:bold;">
-                ✅ Already Installed
+            <div class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-600 text-white text-xs font-semibold rounded-md shadow-xs">
+                <i class="mdi mdi-check-circle-outline"></i> Already Installed
             </div>
         `;
-
     } else {
-
         btn = `
-            <button id="installBtn"
-                onclick="startInstall()"
-                style="width:100%;background:#fd7e14;color:#fff;padding:12px;
-                border:none;border-radius:10px;font-weight:bold;">
-                🚀 Install Plugin
+            <button id="installBtn" onclick="startInstall()" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                <i class="mdi mdi-download"></i> Install Plugin
             </button>
         `;
     }
 
     box.innerHTML = `
-        <div style="background:#fff;padding:20px;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-
-            <h2>${plugin.name}</h2>
-            <p style="color:#666;">${plugin.category}</p>
-<!-- ✅ ADD THIS -->
-        <div style="margin-bottom:10px;">
-            ${licenseBadges}
-        </div>
-            <img src="${plugin.image || '/media/icon/plugin.png'}"
-                 loading="lazy"
-                 decoding="async"
-                 style="width:100%;height:220px;object-fit:contain;background:#f8f9fa;border-radius:10px;padding:10px;">
-
-            <div style="margin-top:15px;">
-                ${btn}
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h4 class="text-base font-semibold text-slate-900 m-0">${plugin.name}</h4>
+                    <span class="text-slate-500 text-xs font-medium">${plugin.category || ''}</span>
+                </div>
+                <div>
+                    <a href="{% url 'plugins' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                        <i class="mdi mdi-arrow-left"></i> Back to Plugins
+                    </a>
+                </div>
             </div>
-
+            <div class="p-5 space-y-4">
+                <div class="flex items-center gap-2">
+                    ${licenseBadges}
+                </div>
+                <div class="bg-slate-50 border border-slate-100 rounded-lg p-4 flex items-center justify-center">
+                    <img src="${plugin.image || '/media/icon/plugin.png'}" loading="lazy" decoding="async" class="h-48 object-contain" alt="${plugin.name}">
+                </div>
+                <div class="pt-2">
+                    ${btn}
+                </div>
+            </div>
         </div>
     `;
 }
 
-/* =========================
-   INSTALL STREAM (OPTIMIZED)
-========================= */
 function startInstall() {
-
     const terminal = document.getElementById("terminal");
     const btn = document.getElementById("installBtn");
 
     if (btn) btn.style.display = "none";
-
     terminal.style.display = "block";
-    terminal.textContent = "🚀 Starting installation...\n\n";
+    terminal.textContent = "Starting installation...\n\n";
 
     fetch(`/whm/install_plugin_run/${PLUGIN_ID}/`)
         .then(async res => {
-
             const reader = res.body.getReader();
             const decoder = new TextDecoder("utf-8");
-
             let buffer = "";
             let outputBuffer = "";
 
@@ -192,15 +143,13 @@ function startInstall() {
 
             async function read() {
                 const { done, value } = await reader.read();
-
                 if (done) {
                     flush();
-                    terminal.textContent += "\n\n✅ DONE";
+                    terminal.textContent += "\n\nInstallation Completed.";
                     return;
                 }
 
                 buffer += decoder.decode(value, { stream: true });
-
                 let lines = buffer.split("\n");
                 buffer = lines.pop();
 
@@ -217,10 +166,9 @@ function startInstall() {
             read();
         })
         .catch(err => {
-            terminal.textContent += "\n❌ ERROR: " + err;
+            terminal.textContent += "\nERROR: " + err;
         });
 }
-
 </script>
 
 {% endblock %}

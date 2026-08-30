@@ -1,106 +1,163 @@
 {% extends "whm/base.html" %}
-{% block title %}My Package{% endblock title %}
+{% block title %}Packages{% endblock title %}
 {% block content %}
 
-
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-package-variant-closed text-brand"></i> List of Packages
+        </h4>
     </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of Package</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   <a class="mb-1 btn btn-pill btn-success" href="{% url 'new_package' %}" role="button" style="text-transform: none;">+ Add Package</a>
-</div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form action="{% url 'package_list' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for package...">
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <a class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand hover:bg-brand-hover text-white text-xs font-semibold rounded-md shadow-sm transition-all" href="{% url 'new_package' %}">
+                    <i class="mdi mdi-plus text-sm"></i> Add Package
+                </a>
+            </div>
+            <div>
+                <form id="pkgSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="pkgSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" placeholder="Search package..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <button type="button" id="clearPkgSearchBtn" onclick="clearPkgSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Name</th>
-                <th>Disk</th>
-                <th>bandwidth</th>
-				<th>Email</th>
-				<th>Databases</th>
-				<th>FTP</th>
-				<th>Domain</th>
-				<th>Sub Domain</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for pk in package %}
-            <tr>
-                <td>{{ pk.name }}</td>
-                <td>{{ pk.disk_space }} (MB)</td>
-                <td>{{ pk.bandwidth }} (MB)</td>
-				<td>{{ pk.email_accounts }}</td>
-				<td>{{ pk.databases }}</td>
-				<td>{{ pk.ftp_accounts }}</td>
-				<td>{{ pk.allowed_domains }}</td>
-				<td>{{ pk.allowed_subdomains }}</td>
-                <td>
-                    <a href="{% url 'update_package' pk.id %}" class="btn btn-primary btn-sm">Manage</a>
 
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
+        <!-- Packages Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3 py-2.5">Package Name</th>
+                        <th class="px-3 py-2.5">Disk Space</th>
+                        <th class="px-3 py-2.5">Bandwidth</th>
+                        <th class="px-3 py-2.5">Email Accounts</th>
+                        <th class="px-3 py-2.5">Databases</th>
+                        <th class="px-3 py-2.5">FTP</th>
+                        <th class="px-3 py-2.5">Domains</th>
+                        <th class="px-3 py-2.5">Sub Domains</th>
+                        <th class="px-3 py-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="pkgTableBody" class="divide-y divide-slate-100">
+                    {% for pk in package %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3 py-2.5 font-bold text-slate-900">{{ pk.name }}</td>
+                        <td class="px-3 py-2.5 font-mono">{% if pk.disk_space == 0 or pk.disk_space == '0' %}Unlimited{% else %}{{ pk.disk_space }} MB{% endif %}</td>
+                        <td class="px-3 py-2.5 font-mono">{% if pk.bandwidth == 0 or pk.bandwidth == '0' %}Unlimited{% else %}{{ pk.bandwidth }} MB{% endif %}</td>
+                        <td class="px-3 py-2.5">{% if pk.email_accounts == 0 or pk.email_accounts == '0' %}Unlimited{% else %}{{ pk.email_accounts }}{% endif %}</td>
+                        <td class="px-3 py-2.5">{% if pk.databases == 0 or pk.databases == '0' %}Unlimited{% else %}{{ pk.databases }}{% endif %}</td>
+                        <td class="px-3 py-2.5">{% if pk.ftp_accounts == 0 or pk.ftp_accounts == '0' %}Unlimited{% else %}{{ pk.ftp_accounts }}{% endif %}</td>
+                        <td class="px-3 py-2.5">{% if pk.allowed_domains == 0 or pk.allowed_domains == '0' %}Unlimited{% else %}{{ pk.allowed_domains }}{% endif %}</td>
+                        <td class="px-3 py-2.5">{% if pk.allowed_subdomains == 0 or pk.allowed_subdomains == '0' %}Unlimited{% else %}{{ pk.allowed_subdomains }}{% endif %}</td>
+                        <td class="px-3 py-2.5 text-right">
+                            <a href="{% url 'update_package' pk.id %}" class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors">
+                                <i class="mdi mdi-square-edit-outline"></i> Manage
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="px-3 py-6 text-center text-slate-400">No packages found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
+<script>
+const pkgSearchInput = document.getElementById("pkgSearchInput");
+const clearPkgBtn = document.getElementById("clearPkgSearchBtn");
+const pkgTableBody = document.getElementById("pkgTableBody");
 
+function performPkgSearch(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = pkgTableBody ? Array.from(pkgTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
+
+    if (clearPkgBtn) {
+        clearPkgBtn.style.display = q ? "block" : "none";
+    }
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noPkgSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noPkgSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="9" class="px-3 py-6 text-center text-slate-400">No packages match "<strong>${q}</strong>"</td>`;
+            pkgTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    // Persist search query in sessionStorage & URL parameter
+    if (q) {
+        sessionStorage.setItem("whm_pkg_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_pkg_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
+}
+
+function clearPkgSearch() {
+    if (pkgSearchInput) {
+        pkgSearchInput.value = "";
+        performPkgSearch("");
+        pkgSearchInput.focus();
+    }
+}
+
+let pkgDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (pkgSearchInput) {
+        pkgSearchInput.addEventListener("input", function () {
+            clearTimeout(pkgDebounceTimer);
+            const val = this.value;
+            pkgDebounceTimer = setTimeout(() => {
+                performPkgSearch(val);
+            }, 100);
+        });
+
+        // Restore persistent search on load
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_pkg_search") || pkgSearchInput.value || "";
+        if (savedQuery) {
+            pkgSearchInput.value = savedQuery;
+            performPkgSearch(savedQuery);
+        }
+    }
+});
+</script>
 
 {% endblock content %}
-
-{% include "whm/footer.html" %}

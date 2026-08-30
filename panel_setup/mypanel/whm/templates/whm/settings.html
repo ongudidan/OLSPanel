@@ -1,128 +1,124 @@
 {% extends "whm/base.html" %}
-{% block title %}Settings{% endblock title %}
+{% block title %}Panel Settings{% endblock title %}
 {% block content %}
 
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">×</span>
-    </button>
-</div>
+<div class="max-w-3xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-cog-outline text-brand text-base"></i> Global Control Panel Settings
+            </h4>
+        </div>
 
-<form method="post" action="">
-    {% csrf_token %}
-    <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
-            <div class="card card-default">
-                <div class="card-header">
-                    <h2>Settings</h2>
-                </div>
-                <div class="card-body">
+        <div class="p-5">
+            <form method="post" action="" class="space-y-6">
+                {% csrf_token %}
 
-                    <div class="form-group mt-3">  
-					 <label for="maximum_backup">PHP CGI For plugin:</label>
-                        <select class="form-control" name="cgi_bin" id="cgi_bin">
-                            <option value="">PHP CGI version</option>
+                <!-- Section 1: PHP CGI Plugin Binary -->
+                <div>
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                        <i class="mdi mdi-language-php text-brand"></i> Runtime & Plugin Handler
+                    </h5>
+
+                    <div>
+                        <label for="cgi_bin" class="block text-xs font-semibold text-slate-700 mb-1">PHP CGI Binary for Plugins</label>
+                        <select name="cgi_bin" id="cgi_bin" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                            <option value="">-- Select PHP CGI version --</option>
                             {% for version in php_versions %}
                                 {% with path="/usr/bin/php-"|add:version %}
-                                    <option value="{{ path }}">
-                                        {{ version }}
-                                    </option>
+                                    <option value="{{ path }}">PHP {{ version }} ({{ path }})</option>
                                 {% endwith %}
                             {% endfor %}
-                        </select>          
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">Default binary used to execute background extensions, cronhooks, and plugins.</p>
                     </div>
-
-                 
-
-<div class="form-group mt-3">
-    <label for="hour_maximum_backup">Hourly backup store:</label>
-    <input type="text" class="form-control" id="hour_maximum_backup" name="hour_maximum_backup"
-           placeholder="e.g., 24"
-           value="{{ current_settings.hour_maximum_backup|default:'' }}">
-</div>
-
-<div class="form-group mt-3">
-    <label for="day_maximum_backup">Daily backup store:</label>
-    <input type="text" class="form-control" id="day_maximum_backup" name="day_maximum_backup"
-           placeholder="e.g., 100"
-           value="{{ current_settings.day_maximum_backup|default:'' }}">
-</div>
-
-<div class="form-group mt-3">
-    <label for="week_maximum_backup">Weekly backup store:</label>
-    <input type="text" class="form-control" id="week_maximum_backup" name="week_maximum_backup"
-           placeholder="e.g., 50"
-           value="{{ current_settings.week_maximum_backup|default:'' }}">
-</div>
-
-<div class="form-group mt-3">
-    <label for="month_maximum_backup">Monthly backup store:</label>
-    <input type="text" class="form-control" id="month_maximum_backup" name="month_maximum_backup"
-           placeholder="e.g., 12"
-           value="{{ current_settings.month_maximum_backup|default:'' }}">
-</div>
-
-<div class="form-group">
-    <label for="api">System api:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox" name="api" id="api" class="switch-input form-check-input" value="1"  {% if current_settings.api == '1' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-
-<div class="form-group">
-    <label for="auto_update">OLSPanel Auto Update:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox" name="auto_update" id="auto_update" class="switch-input form-check-input" value="1"  {% if current_settings.auto_update == '1' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-<div class="form-group">
-    <label for="auto_restart_litespeed">Restart OLS on.htacess save from File Manger:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox" name="auto_restart_litespeed" id="auto_restart_litespeed" class="switch-input form-check-input" value="1"  {% if current_settings.auto_restart_litespeed == '1' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-
-
-                    <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
                 </div>
-            </div>
+
+                <!-- Section 2: Backup Retention Policies -->
+                <div>
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                        <i class="mdi mdi-backup-restore text-brand"></i> Backup Retention & Rotation Policy
+                    </h5>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="hour_maximum_backup" class="block text-xs font-semibold text-slate-700 mb-1">Hourly Backups to Keep</label>
+                            <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="hour_maximum_backup" name="hour_maximum_backup" placeholder="e.g., 24" value="{{ current_settings.hour_maximum_backup|default:'' }}">
+                        </div>
+
+                        <div>
+                            <label for="day_maximum_backup" class="block text-xs font-semibold text-slate-700 mb-1">Daily Backups to Keep</label>
+                            <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="day_maximum_backup" name="day_maximum_backup" placeholder="e.g., 30" value="{{ current_settings.day_maximum_backup|default:'' }}">
+                        </div>
+
+                        <div>
+                            <label for="week_maximum_backup" class="block text-xs font-semibold text-slate-700 mb-1">Weekly Backups to Keep</label>
+                            <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="week_maximum_backup" name="week_maximum_backup" placeholder="e.g., 12" value="{{ current_settings.week_maximum_backup|default:'' }}">
+                        </div>
+
+                        <div>
+                            <label for="month_maximum_backup" class="block text-xs font-semibold text-slate-700 mb-1">Monthly Backups to Keep</label>
+                            <input type="number" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="month_maximum_backup" name="month_maximum_backup" placeholder="e.g., 6" value="{{ current_settings.month_maximum_backup|default:'' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: System Automation & Daemon Toggles -->
+                <div>
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                        <i class="mdi mdi-tune text-brand"></i> Daemon & Automation Features
+                    </h5>
+
+                    <div class="space-y-3">
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">System REST API</span>
+                                <span class="block text-[11px] text-slate-500">Enable remote API endpoints for WHMCS, provisioning scripts, and external CLI agents.</span>
+                            </div>
+                            <input type="checkbox" name="api" id="api" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.api == '1' %}checked{% endif %}>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">Control Panel Auto-Update</span>
+                                <span class="block text-[11px] text-slate-500">Automatically download and apply stable security and feature patches nightly.</span>
+                            </div>
+                            <input type="checkbox" name="auto_update" id="auto_update" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.auto_update == '1' %}checked{% endif %}>
+                        </div>
+
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">Auto-Restart LiteSpeed on .htaccess Changes</span>
+                                <span class="block text-[11px] text-slate-500">Gracefully reloads OpenLiteSpeed when rewrite rules are saved from the File Manager.</span>
+                            </div>
+                            <input type="checkbox" name="auto_restart_litespeed" id="auto_restart_litespeed" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.auto_restart_litespeed == '1' %}checked{% endif %}>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Save Settings
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</form>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const select = document.getElementById('cgi_bin');
-    if (select) {
-        for (let option of select.options) {
-            option.value = option.value.replace(/\s+/g, '');
-        }
-    }
-});
-
 document.addEventListener('DOMContentLoaded', function() {
-    const savedValue = "{{ current_settings.cgi_bin|default:'' }}"; // e.g. "/usr/bin/php-cgi8.4"
+    const savedValue = "{{ current_settings.cgi_bin|default:'' }}";
     if (!savedValue) return;
 
     const select = document.getElementById('cgi_bin');
     if (!select) return;
 
-    // Extract the "cgiX.X" part from savedValue, e.g. from "/usr/bin/php-cgi8.4" get "cgi8.4"
     const match = savedValue.match(/cgi[\d\.]+$/);
     if (!match) return;
-    const targetEnd = match[0]; // e.g. "cgi8.4"
+    const targetEnd = match[0];
 
-    // Loop over options and select the one whose value ends with targetEnd
     for (let option of select.options) {
         if (option.value.endsWith(targetEnd)) {
             option.selected = true;
@@ -131,8 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-
 
 {% include "whm/footer.html" %}
 {% endblock content %}

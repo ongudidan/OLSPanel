@@ -2,105 +2,112 @@
 {% block title %}PHP Modules{% endblock title %}
 {% block content %}
 
-<div class="card card-default">
-  <div class="card-header">
-    <h2>PHP Modules</h2>
-  </div>
-
-  <div class="card-body">
-    <form id="phpModulesForm" method="post">
-      {% csrf_token %}
-      <div class="form-row">
-        <div class="col-md-5">
-          <div class="form-group">
-            <label class="small mb-1" for="php_version">Select PHP Version:</label>
-            <select class="form-control" name="php_version" id="php_version" required>
-              {% for version in php_versions %}
-              <option value="{{ version }}">{{ version }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="ext">Module name</label>
-            <input type="text"
-                   class="form-control"
-                   id="ext"
-                   name="ext"
-                   placeholder="e.g. mongodb, redis, imagick"
-                   required>
-          </div>
+<div class="max-w-2xl space-y-5">
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-800">Install PHP PECL / APT Module</h1>
+                    <p class="text-xs text-slate-500">Compile or install PHP extension modules dynamically</p>
+                </div>
+            </div>
         </div>
-      </div>
-      <button type="submit" id="installBtn" class="mb-1 btn btn-success">Install PHP Module</button>
-    </form>
 
-    <!-- Loader -->
-    <div id="responseContainer" class="sk-wave my-4" style="display: none;">
-      <div class="rect1"></div>
-      <div class="rect2"></div>
-      <div class="rect3"></div>
-      <div class="rect4"></div>
-      <div class="rect5"></div>
+        <div class="p-6 space-y-5">
+            <form id="phpModulesForm" method="post" autocomplete="off" class="space-y-4">
+                {% csrf_token %}
+
+                <div>
+                    <label for="php_version" class="block text-xs font-semibold text-slate-700 mb-1.5">PHP Version</label>
+                    <select name="php_version" id="php_version" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all cursor-pointer">
+                        {% for version in php_versions %}
+                            <option value="{{ version }}">PHP {{ version }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="ext" class="block text-xs font-semibold text-slate-700 mb-1.5">Module Name</label>
+                    <input type="text" id="ext" name="ext" placeholder="e.g. redis, mongodb, imagick, memcached" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
+                    <p class="text-[11px] text-slate-500 mt-1">Module will be installed and configured in the PHP extension directory.</p>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="installBtn" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        <span>Install PHP Module</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Live Output Terminal Box -->
+            <pre id="outputBox" class="hidden bg-zinc-950 text-cyan-400 font-mono text-xs p-4 rounded-lg max-h-72 overflow-y-auto whitespace-pre-wrap border border-zinc-800"></pre>
+        </div>
     </div>
-
-    <!-- Output Box -->
-    <pre id="outputBox" style="background:#111;color:#0f0;padding:10px;border-radius:8px;
-    font-size:13px;display:none;max-height:400px;overflow-y:auto;"></pre>
-
-    <!-- Alert -->
-    <div id="alertContainer" class="alert alert-dismissible fade show mt-3" role="alert" style="display: none;">
-      <div id="message"></div>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  </div>
 </div>
 
 <script>
 document.getElementById('phpModulesForm').addEventListener('submit', function(event) {
     event.preventDefault();
-    install_php_module();
+    installPhpModule();
 });
 
-function install_php_module() {
+function installPhpModule() {
     const phpVersion = document.getElementById('php_version').value.trim();
     const ext = document.getElementById('ext').value.trim();
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
     const outputBox = document.getElementById('outputBox');
+    const installBtn = document.getElementById('installBtn');
 
-    outputBox.style.display = 'block';
-    outputBox.innerText = "Installing " + ext + " for " + phpVersion + "...\n";
+    if (!phpVersion || !ext) return;
+
+    installBtn.disabled = true;
+    installBtn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Installing...</span>`;
+    outputBox.classList.remove('hidden');
+    outputBox.innerText = `> Installing ${ext} for PHP ${phpVersion}...\n`;
 
     fetch("{% url 'install_php_modules' %}", {
         method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken
-        },
+        headers: { 'X-CSRFToken': csrfToken },
         body: new URLSearchParams({
             'php_version': phpVersion,
             'ext': ext
         })
-    }).then(response => {
+    })
+    .then(response => {
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
 
         function readChunk() {
             reader.read().then(({ done, value }) => {
                 if (done) {
-                    outputBox.innerText += "\n✅ Installation finished.";
+                    outputBox.innerText += "\n✓ Installation finished.";
                     outputBox.scrollTop = outputBox.scrollHeight;
+                    installBtn.disabled = false;
+                    installBtn.innerHTML = `<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install PHP Module</span>`;
                     return;
                 }
                 const chunk = decoder.decode(value, { stream: true });
                 outputBox.innerText += chunk;
-                // auto scroll down
                 outputBox.scrollTop = outputBox.scrollHeight;
                 readChunk();
             });
         }
         readChunk();
-    }).catch(error => {
-        outputBox.innerText += "\n❌ Error: " + error.message;
+    })
+    .catch(error => {
+        outputBox.innerText += "\n✗ Error: " + error.message;
+        installBtn.disabled = false;
+        installBtn.innerHTML = `<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install PHP Module</span>`;
     });
 }
 </script>

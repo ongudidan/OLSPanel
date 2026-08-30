@@ -74,10 +74,9 @@ $(document).ready(function () {
     if (body.hasClass("sidebar-mobile-in sidebar-mobile-out")) {
       body.removeClass("sidebar-mobile-in sidebar-mobile-out");
     }
- body.removeClass("sidebar-collapse sidebar-minified-out")
-            .addClass("sidebar-minified");
-          window.isMinified = true;
-          window.isCollapsed = false;
+    // Do not force sidebar minification on desktop
+    window.isMinified = false;
+    window.isCollapsed = true;
 
     $("#sidebar-toggler").on("click", function () {
       if (

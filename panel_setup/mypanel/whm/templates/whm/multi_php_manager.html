@@ -1,96 +1,192 @@
 {% extends "whm/base.html" %}
 {% block title %}MultiPHP Manager{% endblock title %}
 {% block content %}
-<div class="card card-default">
-      <div class="card-header">
-        <h2>MultiPHP Manager</h2>
-		
-        
 
-      </div>
-    
-   <div class="card-body">
-
-    <h1 class="mb-4">MultiPHP Manager</h1>
-
-    <!-- Inline Search Form -->
-    <form action="{% url 'multi_php_manager_all' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+<div class="space-y-5">
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-800">MultiPHP Domain Manager</h1>
+                    <p class="text-xs text-slate-500">Manage and switch PHP versions across domains</p>
+                </div>
+            </div>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
- <form action="{% url 'multi_php_manager_all' %}" method="post" id="bulkDeleteForm">
-        {% csrf_token %}
-		<div class="form-inline mb-3 justify-content-end">
-    <label class="small mb-1" for="php_version">Select PHP Version:</label>
-    <select class="form-control ml-2" name="php_version" id="php_version">
-        {% for version in php_versions %}
-            <option value="{{ version }}">{{ version }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit" class="btn btn-danger ml-2">Apply</button>
+
+        <div class="p-6 space-y-4">
+            <form action="{% url 'multi_php_manager_all' %}" method="post" id="phpBulkForm">
+                {% csrf_token %}
+
+                <!-- Top Toolbar -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                    <!-- Bulk actions -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-semibold text-slate-600">Set PHP:</span>
+                        <select name="php_version" id="php_version" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all cursor-pointer">
+                            {% for version in php_versions %}
+                                <option value="{{ version }}">PHP {{ version }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Apply to Selected</span>
+                        </button>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="relative w-full sm:w-64">
+                        <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="phpSearchInput" class="w-full pl-8 pr-7 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="Search domains..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <button type="button" id="clearPhpSearchBtn" onclick="clearPhpSearch();" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm hidden cursor-pointer">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                    <table class="w-full text-left text-xs text-slate-600">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                            <tr>
+                                <th class="w-10 px-4 py-3 text-center">
+                                    <input type="checkbox" id="checkAll" onclick="toggleAllDomains(this);" class="w-4 h-4 rounded text-brand border-slate-300 focus:ring-brand">
+                                </th>
+                                <th class="px-4 py-3">Domain</th>
+                                <th class="px-4 py-3">Current PHP Version</th>
+                            </tr>
+                        </thead>
+                        <tbody id="phpTableBody" class="divide-y divide-slate-100">
+                            {% for domain in domains %}
+                            <tr data-domain="{{ domain.domain|lower }}" class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-4 py-3 text-center">
+                                    <input type="checkbox" class="domain-checkbox w-4 h-4 rounded text-brand border-slate-300 focus:ring-brand" name="selected_domains" value="{{ domain.id }}">
+                                </td>
+                                <td class="px-4 py-3">
+                                    <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="font-medium text-brand hover:underline">
+                                        {{ domain.domain }}
+                                    </a>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-medium bg-sky-50 text-sky-700 border border-sky-200">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                        </svg>
+                                        <span>PHP {{ domain.php }}</span>
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-4 py-8 text-center text-slate-400">No domains found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
-		
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr><th><input type="checkbox" name="checkAll" onclick="checkallbox(this);"></th>
-                <th>Domain</th>
-                <th>PHP Version</th>
-               
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for domain in domains %}
-            <tr>
-			<td><input type="checkbox" name="selected_domains" value="{{ domain.id }}"></td>
-                <td>{{ domain.domain }}</td>
-                <td>{{ domain.php }}</td>
-             
-         
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</form>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
-</div>
 <script>
-   function checkallbox(iobj)
-{
-inputArray = document.getElementsByTagName("input");
-for(i=0; i<inputArray.length; i++)
-{
-if(inputArray[i].type.toLowerCase() == "checkbox" && inputArray[i] != iobj)
-{
-tempCheckbox = inputArray[i];
+const phpSearchInput = document.getElementById("phpSearchInput");
+const clearPhpBtn = document.getElementById("clearPhpSearchBtn");
+const phpTableBody = document.getElementById("phpTableBody");
 
-if (!tempCheckbox.disabled) {
-                
-if(tempCheckbox.checked)
-{
-		tempCheckbox.checked = false;
+function performPhpFilter(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = phpTableBody ? Array.from(phpTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
+
+    if (clearPhpBtn) {
+        clearPhpBtn.style.display = q ? "block" : "none";
+    }
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noPhpSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noPhpSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="3" class="px-4 py-8 text-center text-slate-400">No domains match "<strong>${q}</strong>"</td>`;
+            phpTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    if (q) {
+        sessionStorage.setItem("whm_php_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_php_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
 }
-else
-{
-		tempCheckbox.checked = true;
+
+function clearPhpSearch() {
+    if (phpSearchInput) {
+        phpSearchInput.value = "";
+        performPhpFilter("");
+        phpSearchInput.focus();
+    }
 }
-}   
-    
-    
-}}}  
+
+let phpDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (phpSearchInput) {
+        phpSearchInput.addEventListener("input", function () {
+            clearTimeout(phpDebounceTimer);
+            const val = this.value;
+            phpDebounceTimer = setTimeout(() => {
+                performPhpFilter(val);
+            }, 100);
+        });
+
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_php_search") || "";
+        if (savedQuery) {
+            phpSearchInput.value = savedQuery;
+            performPhpFilter(savedQuery);
+        }
+    }
+});
+
+function toggleAllDomains(source) {
+    const checkboxes = document.querySelectorAll('.domain-checkbox');
+    checkboxes.forEach(cb => {
+        if (cb.closest('tr').style.display !== 'none') {
+            cb.checked = source.checked;
+        }
+    });
+}
 </script>
+
 {% include "whm/footer.html" %}
 {% endblock content %}
-
-
-

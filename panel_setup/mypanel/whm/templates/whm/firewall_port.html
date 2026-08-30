@@ -1,41 +1,52 @@
 {% extends "whm/base.html" %}
-{% block title %}Firewall PORTS{% endblock title %}
+{% block title %}Firewall Ports{% endblock title %}
 {% block content %}
-<div class="card card-default">
- <div class="card-header">
-        <h2>Firewall PORTS</h2>
-      </div>
-<div class="card-body">
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label for="dns_name" id="labelName">TCP In ports</label>
-            <input type="text" class="form-control" id="dns_name" name="tcpin"  value="{{ TCP_IN }}" required>
-        </div>
 
-        {% if csf %}
-            <div class="form-group">
-                <label for="dns_value" id="labelValue">TCP Out ports</label>
-                <input type="text" class="form-control" id="dns_value" name="tcpout" value="{{ TCP_OUT }}" required>
-            </div>
-        {% endif %}
-        
-        <div class="form-group">
-            <label for="dns_value" id="labelValue">UDP In Ports</label>
-            <input type="text" class="form-control" id="ttl" name="udpin" value="{{ UDP_IN }}" required>
-        </div>
+<div class="max-w-xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-lan-connect text-brand"></i> Firewall Open Ports
+        </h4>
+    </div>
+    <div class="p-5">
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
 
-        {% if csf %}
-            <div class="form-group">
-                <label for="dns_value" id="labelValue">UDP Out Ports</label>
-                <input type="text" class="form-control" id="ttl" name="udpout" value="{{ UDP_OUT }}" required>
+            <div>
+                <label for="tcpin" class="block text-xs font-semibold text-slate-700 mb-1">TCP Inbound Ports</label>
+                <input type="text" id="tcpin" name="tcpin" value="{{ TCP_IN }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                <small class="text-[11px] text-slate-500 mt-1 block">Comma-separated list of incoming TCP ports allowed through firewall.</small>
             </div>
-        {% endif %}
-        
-        <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
-    </form>
+
+            {% if csf %}
+            <div>
+                <label for="tcpout" class="block text-xs font-semibold text-slate-700 mb-1">TCP Outbound Ports</label>
+                <input type="text" id="tcpout" name="tcpout" value="{{ TCP_OUT }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                <small class="text-[11px] text-slate-500 mt-1 block">Comma-separated list of outgoing TCP ports allowed.</small>
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="udpin" class="block text-xs font-semibold text-slate-700 mb-1">UDP Inbound Ports</label>
+                <input type="text" id="udpin" name="udpin" value="{{ UDP_IN }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                <small class="text-[11px] text-slate-500 mt-1 block">Comma-separated list of incoming UDP ports allowed.</small>
+            </div>
+
+            {% if csf %}
+            <div>
+                <label for="udpout" class="block text-xs font-semibold text-slate-700 mb-1">UDP Outbound Ports</label>
+                <input type="text" id="udpout" name="udpout" value="{{ UDP_OUT }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                <small class="text-[11px] text-slate-500 mt-1 block">Comma-separated list of outgoing UDP ports allowed.</small>
+            </div>
+            {% endif %}
+
+            <div class="pt-2">
+                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
+                    <i class="mdi mdi-content-save-outline"></i> Save Firewall Ports
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
-</div>
+
 {% endblock content %}
-

@@ -2,281 +2,309 @@
 {% block title %}MySQL Databases{% endblock title %}
 {% block content %}
 
-<div id="responseContainer" style="position: relative; display: none;">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb breadcrumb-inverse">
-            <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Exporting, please wait.....</li> 
-            <li> 
-                <div class="sk-wave">
-                    <div class="rect1"></div>
-                    <div class="rect2"></div>
-                    <div class="rect3"></div>
-                    <div class="rect4"></div>
-                    <div class="rect5"></div>
-                </div>
-            </li> 
-        </ol>
-    </nav>
+<!-- Notification & Export Status Boxes -->
+<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
+    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>Exporting database, please wait...</span>
 </div>
 
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
     <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">×</span>
-    </button>
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0 cursor-pointer">&times;</button>
 </div>
 
-<!-- SECTION 1: Create Database -->
-<div class="card card-default mb-4">
-    <div class="card-header">
-        <h2>Create New Database</h2>
-    </div>
-    <div class="card-body">
-        <form action="{% url 'db_make' %}" method="post">
-            {% csrf_token %}
-            <div class="form-row align-items-center">
-                <div class="col-md-6 mb-2">
-                    <label for="dbname">Database Name</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <div class="input-group-text">{{ user.username }}_</div>
-                        </div>
-                        <input type="text" id="dbname" name="dbname" class="form-control" placeholder="dbname" required>
+<div class="space-y-5">
+    <!-- SECTION 1: Create Database Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-database-plus-outline text-brand text-base"></i> Create New Database
+            </h4>
+        </div>
+        <div class="p-5">
+            <form action="{% url 'db_make' %}" method="post" class="space-y-4 max-w-xl">
+                {% csrf_token %}
+                <div>
+                    <label for="dbname" class="block text-xs font-semibold text-slate-700 mb-1">Database Name</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md font-mono font-semibold">
+                            {{ user.username }}_
+                        </span>
+                        <input type="text" id="dbname" name="dbname" required placeholder="dbname" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all">
                     </div>
                 </div>
-                <div class="col-md-12">
-                    <button type="submit" class="btn btn-success" style="text-transform: none;">Create Database</button>
+                <div>
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-plus"></i> Create Database
+                    </button>
                 </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- SECTION 2: List of Databases -->
-<div class="card card-default mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Current Databases</h2>
-        <div class="form-group mb-0">
-            <input type="text" id="search" name="search" class="form-control form-control-sm" placeholder="Search databases...">
+            </form>
         </div>
     </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                     <tr>
-                        <th>Database</th>
-                        <th>Size</th>
-                        <th>Privileged Users</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="domainTable">
-                    {% for database in databases %}
-                    <tr>
-                        <td>{{ database.db_name }}</td>
-                        <td>{{ database.size_display }}</td>
-                        <td>
-                            {% for p_user in database.privileged_users_list %}
-                            <div class="d-flex align-items-center justify-content-between mb-2 p-1 border rounded bg-light" style="min-width: 200px;">
-                                <span style="font-size: 13px; font-weight: 500; margin-left: 5px; color: #333;">{{ p_user }}</span>
-                                <div style="margin-left: 10px;">
-                                    <a href="{% url 'db_privileges' database.db_name p_user %}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 11px; text-transform: none;">Privileges</a>
-                                    <a href="{% url 'db_revoke_user' database.db_name p_user %}" class="btn btn-danger btn-sm py-0 px-2" onclick="return confirm('Are you sure you want to unlink {{ p_user }} from {{ database.db_name }}?');" style="font-size: 11px; text-transform: none;">Unlink</a>
+
+    <!-- SECTION 2: List of Databases -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-database-outline text-brand text-base"></i> Current Databases
+            </h4>
+            <div class="relative w-64">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+                <input type="text" id="search" name="search" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search databases..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="p-4">
+            <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+                <table class="w-full text-xs text-left text-slate-700">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                        <tr>
+                            <th class="px-3.5 py-2.5">Database</th>
+                            <th class="px-3.5 py-2.5">Size</th>
+                            <th class="px-3.5 py-2.5">Privileged Users</th>
+                            <th class="px-3.5 py-2.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="domainTable" class="divide-y divide-slate-100">
+                        {% for database in databases %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-3.5 py-2.5 font-bold text-slate-900 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <i class="mdi mdi-database text-xs"></i>
                                 </div>
-                            </div>
-                            {% empty %}
-                            <span class="text-muted" style="font-style: italic;">None</span>
-                            {% endfor %}
-                        </td>
-                        <td>
-                            {% if db %}
-                            <a href="{% url 'db_import' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Import</a>
-                            {% else %}
-                            <a href="{% url 'phpmyadmin' %}?db={{ database.db_name }}" target="_blank" class="btn btn-warning btn-sm" style="text-transform: none; background-color: #ff9800; border-color: #ff9800; color: white;">phpMyAdmin</a>
-                            <a href="{% url 'db_edit' database.db_name %}" class="btn btn-primary btn-sm" style="text-transform: none;">Rename</a>
-                            <form action="{% url 'db_edit' database.db_name %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="delete">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this Database?');" style="text-transform: none;">Delete</button>
-                            </form>
-                            <button class="btn btn-info btn-sm" onclick="exportdb('{{database.db_name}}')" style="text-transform: none;">Export</button>
-                            <a href="{% url 'db_repair' database.db_name %}" class="btn btn-success btn-sm" style="text-transform: none;">Repair</a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center">No databases found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-    </div>
-</div>
-
-<!-- SECTION 3: Create Database User & Assign Section -->
-<div class="row">
-    <!-- Card Left: Create User -->
-    <div class="col-lg-6">
-        <div class="card card-default mb-4">
-            <div class="card-header">
-                <h2>Create New Database User</h2>
+                                <span class="font-mono">{{ database.db_name }}</span>
+                            </td>
+                            <td class="px-3.5 py-2.5 text-slate-600">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                    {{ database.size_display }}
+                                </span>
+                            </td>
+                            <td class="px-3.5 py-2.5">
+                                {% for p_user in database.privileged_users_list %}
+                                <div class="inline-flex items-center justify-between gap-2 mr-2 mb-1 px-2 py-1 border border-slate-200 rounded bg-slate-50 text-xs">
+                                    <span class="font-mono text-slate-800 font-semibold">{{ p_user }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <a href="{% url 'db_privileges' database.db_name p_user %}" class="px-1.5 py-0.5 text-[10px] font-semibold text-brand bg-brand/10 hover:bg-brand hover:text-white rounded transition-colors">Privileges</a>
+                                        <a href="{% url 'db_revoke_user' database.db_name p_user %}" class="px-1.5 py-0.5 text-[10px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-600 hover:text-white rounded transition-colors" onclick="return confirm('Are you sure you want to unlink {{ p_user }} from {{ database.db_name }}?');">Unlink</a>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <span class="text-slate-400 italic">None</span>
+                                {% endfor %}
+                            </td>
+                            <td class="px-3.5 py-2.5 text-right space-x-1 whitespace-nowrap">
+                                {% if db %}
+                                    <a href="{% url 'db_import' database.db_name %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                        <i class="mdi mdi-upload"></i> Import
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'phpmyadmin' %}?db={{ database.db_name }}" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded shadow-xs transition-colors">
+                                        <i class="mdi mdi-open-in-new"></i> phpMyAdmin
+                                    </a>
+                                    <a href="{% url 'db_edit' database.db_name %}" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors">
+                                        <i class="mdi mdi-rename-box"></i> Rename
+                                    </a>
+                                    <button type="button" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 rounded border border-sky-200 transition-colors cursor-pointer" onclick="exportdb('{{ database.db_name }}')">
+                                        <i class="mdi mdi-download"></i> Export
+                                    </button>
+                                    <a href="{% url 'db_repair' database.db_name %}" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors">
+                                        <i class="mdi mdi-wrench-outline"></i> Repair
+                                    </a>
+                                    <form action="{% url 'db_edit' database.db_name %}" method="post" class="inline m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete">
+                                        <button type="submit" class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors cursor-pointer" onclick="return confirm('Are you sure you want to delete database {{ database.db_name }}?');">
+                                            <i class="mdi mdi-delete-outline"></i> Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-3.5 py-6 text-center text-slate-400">No databases found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div class="card-body">
-                <form action="{% url 'db_user_add' %}" method="post">
+            <div id="noResults" class="text-center text-slate-400 text-xs py-4" style="display:none;">No matching databases found.</div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: Create User & Assign User (2 Columns) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Card Left: Create User -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-account-plus-outline text-brand text-base"></i> Create Database User
+                </h4>
+            </div>
+            <div class="p-5">
+                <form action="{% url 'db_user_add' %}" method="post" class="space-y-4">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="dbuser">Username</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">{{ user.username }}_</div>
-                            </div>
-                            <input type="text" id="dbuser" name="dbuser" class="form-control" placeholder="user" required>
+                    <div>
+                        <label for="dbuser" class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+                        <div class="flex items-center rounded-md shadow-xs">
+                            <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md font-mono font-semibold">
+                                {{ user.username }}_
+                            </span>
+                            <input type="text" id="dbuser" name="dbuser" required placeholder="dbuser" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="dbpass">Password</label>
-                        <div class="input-group">
-                            <input type="text" id="dbpass" name="dbpass" class="form-control" required>
-                            <div class="input-group-append">
-                                <button type="button" class="btn btn-primary" onclick="generateAndFillPassword();">Generate</button>
-                            </div>
+                    <div>
+                        <label for="dbpass" class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="dbpass" name="dbpass" required placeholder="Strong password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <button type="button" onclick="generateAndFillPassword();" class="shrink-0 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer flex items-center gap-1">
+                                <i class="mdi mdi-refresh"></i> Generate
+                            </button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="dbpassc">Confirm Password</label>
-                        <input type="text" id="dbpassc" name="dbpassc" class="form-control" required>
+                    <div>
+                        <label for="dbpassc" class="block text-xs font-semibold text-slate-700 mb-1">Confirm Password</label>
+                        <input type="text" id="dbpassc" name="dbpassc" required placeholder="Repeat password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
                     </div>
-                    <button type="submit" class="btn btn-success" style="text-transform: none;">Create User</button>
+                    <div>
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                            <i class="mdi mdi-check"></i> Create User
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-    </div>
 
-    <!-- Card Right: Add User To Database -->
-    <div class="col-lg-6">
-        <div class="card card-default mb-4">
-            <div class="card-header">
-                <h2>Add User To Database</h2>
+        <!-- Card Right: Add User To Database -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-link-variant text-brand text-base"></i> Add User To Database
+                </h4>
             </div>
-            <div class="card-body">
-                <form action="{% url 'db_assign_user' %}" method="post">
+            <div class="p-5">
+                <form action="{% url 'db_assign_user' %}" method="post" class="space-y-4">
                     {% csrf_token %}
-                    <div class="form-group">
-                        <label for="assign_user">User</label>
-                        <select name="dbuser" id="assign_user" class="form-control" required>
+                    <div>
+                        <label for="assign_user" class="block text-xs font-semibold text-slate-700 mb-1">Select User</label>
+                        <select name="dbuser" id="assign_user" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
                             <option value="">-- Select User --</option>
-                            {% for userlist in userlists %}
-                            <option value="{{ userlist }}">{{ userlist }}</option>
+                            {% for u in userlists %}
+                                <option value="{{ u }}">{{ u }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="assign_db">Database</label>
-                        <select name="dbname" id="assign_db" class="form-control" required>
+                    <div>
+                        <label for="assign_db" class="block text-xs font-semibold text-slate-700 mb-1">Select Database</label>
+                        <select name="dbname" id="assign_db" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
                             <option value="">-- Select Database --</option>
                             {% for database in databases %}
-                            <option value="{{ database.db_name }}">{{ database.db_name }}</option>
+                                <option value="{{ database.db_name }}">{{ database.db_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary" style="text-transform: none;">Add User</button>
+                    <div>
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                            <i class="mdi mdi-link-plus"></i> Add User to Database
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- SECTION 4: Current Users List -->
-<div class="card card-default">
-    <div class="card-header">
-        <h2>Current Database Users</h2>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>User</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for userlist in userlists %}
-                    <tr>
-                        <td>{{ userlist }}</td>
-                        <td>
-                            <form action="{% url 'database_userlist' %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="dbuser" value="{{ userlist }}">
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this user?');" style="text-transform: none;">Delete</button>
-                            </form>
-                            <a href="{% url 'db_user_edit' userlist %}" class="btn btn-primary btn-sm" style="text-transform: none;">Change Password</a>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="2" class="text-center">No database users found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- SECTION 4: Current Users List -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-account-multiple-outline text-brand text-base"></i> Current Database Users
+            </h4>
+        </div>
+        <div class="p-4">
+            <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+                <table class="w-full text-xs text-left text-slate-700">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                        <tr>
+                            <th class="px-3.5 py-2.5">User</th>
+                            <th class="px-3.5 py-2.5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for u in userlists %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-3.5 py-2.5 font-mono font-bold text-slate-900 flex items-center gap-2">
+                                <div class="w-6 h-6 rounded bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                    <i class="mdi mdi-account text-xs"></i>
+                                </div>
+                                <span>{{ u }}</span>
+                            </td>
+                            <td class="px-3.5 py-2.5 text-right space-x-1">
+                                <a href="{% url 'db_user_edit' u %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-200 transition-colors">
+                                    <i class="mdi mdi-key-outline"></i> Change Password
+                                </a>
+                                <form action="{% url 'database_userlist' %}" method="post" class="inline m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="dbuser" value="{{ u }}">
+                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded border border-rose-200 transition-colors cursor-pointer" onclick="return confirm('Are you sure you want to delete database user {{ u }}?');">
+                                        <i class="mdi mdi-delete-outline"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="px-3.5 py-6 text-center text-slate-400">No database users found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-const download_url = "{% url 'download' %}"; // Base download URL
+const download_url = "{% url 'download' %}";
 
 function exportdb(id) {
-    if (id) {
-        console.log('ID found:', id);
-        const responseDisplay = document.getElementById('responseContainer');
-        const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
+    if (!id) return;
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
 
-        setTimeout(function () {
-            responseDisplay.style.display = 'inline-block';
+    responseDisplay.style.display = 'flex';
 
-            // Make the fetch call to trigger the export
-            fetch('/file_manager/export_db/' + id, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok: ' + response.statusText);
-                    }
-                    return response.json(); // Parse JSON response
-                })
-                .then((data) => {
-                    console.log('Response:', data);
-                    responseDisplay.style.display = 'none';
-
-                    if (data.status === 'success') {
-                        alertContainer.className = 'alert alert-success alert-dismissible fade show';
-                        messageDisplay.innerText = 'Database export successful!';
-                        const filePath = data.file_path;
-                        window.open(download_url + `?file=${encodeURIComponent(filePath)}`, '_blank');
-                    } else {
-                        alertContainer.className = 'alert alert-danger alert-dismissible fade show';
-                        messageDisplay.innerText = data.message;
-                    }
-
-                    alertContainer.style.display = 'block';
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }, 0);
-    } else {
-        console.log('No ID parameter found.');
-    }
+    fetch('/file_manager/export_db/' + id, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+    })
+    .then(r => {
+        if (!r.ok) throw new Error('Network error');
+        return r.json();
+    })
+    .then(data => {
+        responseDisplay.style.display = 'none';
+        if (data.status === 'success') {
+            alertContainer.className = 'p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4';
+            messageDisplay.innerText = 'Database export successful!';
+            window.open(download_url + `?file=${encodeURIComponent(data.file_path)}`, '_blank');
+        } else {
+            alertContainer.className = 'p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4';
+            messageDisplay.innerText = data.message || 'Export failed';
+        }
+        alertContainer.style.display = 'flex';
+    })
+    .catch(err => {
+        responseDisplay.style.display = 'none';
+        alertContainer.className = 'p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4';
+        messageDisplay.innerText = 'Export failed: ' + err.toString();
+        alertContainer.style.display = 'flex';
+    });
 }
 
 function generateStrongPassword(length = 16) {
@@ -284,7 +312,6 @@ function generateStrongPassword(length = 16) {
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const digits = '0123456789';
     const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
-    
     const allCharacters = lowercase + uppercase + digits + specialChars;
     let password = '';
 
@@ -297,8 +324,7 @@ function generateStrongPassword(length = 16) {
         password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
     }
 
-    password = password.split('').sort(() => Math.random() - 0.5).join('');
-    return password;
+    return password.split('').sort(() => Math.random() - 0.5).join('');
 }
 
 function generateAndFillPassword() {
@@ -312,29 +338,28 @@ document.addEventListener("DOMContentLoaded", function() {
     const tableRows = document.querySelectorAll('#domainTable tr');
     const noResults = document.getElementById('noResults');
 
-    function filterTable() {
-        const searchQuery = searchInput.value.trim().toLowerCase();
-        let visibleRows = 0;
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const q = searchInput.value.trim().toLowerCase();
+            let visibleRows = 0;
 
-        tableRows.forEach(row => {
-            const dbName = row.cells[0]?.textContent.toLowerCase() || '';
-            const matchesSearch = dbName.includes(searchQuery);
+            tableRows.forEach(row => {
+                const dbName = row.cells[0]?.textContent.toLowerCase() || '';
+                if (!q || dbName.includes(q)) {
+                    row.style.display = '';
+                    visibleRows++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
 
-            if (matchesSearch || searchQuery === '') {
-                row.style.display = '';  
-                visibleRows++;
-            } else {
-                row.style.display = 'none';  
+            if (noResults) {
+                noResults.style.display = (visibleRows === 0 && tableRows.length > 0) ? 'block' : 'none';
             }
         });
-
-        noResults.style.display = visibleRows === 0 ? 'block' : 'none';
     }
-
-    searchInput.addEventListener('input', filterTable);
-    filterTable();
 });
 </script>
 
-{% endblock content %}
 {% include "users/footer.html" %}
+{% endblock content %}

@@ -2,338 +2,172 @@
 {% block title %}Plugins{% endblock title %}
 {% block content %}
 
-<div style="padding:20px; background:#f4f6f9; min-height:100vh;">
-
-   
-    <!-- SEARCH -->
-    <input type="text" id="searchBox"
-        placeholder="Search plugins..."
-        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;margin-bottom:15px;">
-
-    <!-- CATEGORY BAR -->
-    <div id="categoryBar"
-         style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+<div class="space-y-5">
+    <!-- Filter and Search Header -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="relative w-full md:w-80">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="searchBox" class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all" placeholder="Search plugins and integrations..." autocomplete="off">
+            </div>
+            <div id="categoryBar" class="flex items-center flex-wrap gap-2"></div>
+        </div>
     </div>
 
-    <!-- LOADER -->
-    <div id="loader" style="text-align:center;padding:30px;">
-        <div style="width:40px;height:40px;border:4px solid #ddd;border-top:4px solid #0d6efd;border-radius:50%;margin:auto;animation:spin 1s linear infinite;"></div>
-        <p>Loading...</p>
+    <!-- Loader -->
+    <div id="loader" class="text-center py-16">
+        <svg class="animate-spin h-8 w-8 text-brand mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+        <p class="text-xs text-slate-500 font-medium">Loading marketplace plugins...</p>
     </div>
 
-    <!-- PLUGINS -->
-    <div id="pluginList"
-         style="display:flex;flex-wrap:wrap;gap:15px;">
-    </div>
-
+    <!-- Plugin Grid -->
+    <div id="pluginList" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
 </div>
 
-<style>
-@keyframes spin {
-    0% {transform:rotate(0deg);}
-    100% {transform:rotate(360deg);}
-}
-</style>
-
 <script>
-
 let plugins = [];
 let categories = [];
 let activeCategory = "";
 
-
-/* ======================
-   INIT
-====================== */
 document.addEventListener("DOMContentLoaded", function () {
     loadCategories();
     loadPlugins();
-
-    document.getElementById("searchBox")
-        .addEventListener("input", renderPlugins);
+    document.getElementById("searchBox").addEventListener("input", renderPlugins);
 });
 
-
-/* ======================
-   LOAD CATEGORIES
-====================== */
 function loadCategories() {
     fetch("{% url 'api_categories' %}")
         .then(res => res.json())
         .then(data => {
-
             categories = data.categories || [];
-
             let bar = document.getElementById("categoryBar");
-
             bar.innerHTML = `
-                <div onclick="setCategory('')"
-                     style="padding:10px 15px;border-radius:20px;background:#0d6efd;color:#fff;cursor:pointer;">
-                    All
-                </div>
+                <button type="button" class="cat-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-brand text-white cursor-pointer transition-colors shadow-xs" id="cat-all" onclick="setCategory('')">
+                    <span>All</span>
+                </button>
             `;
-
             categories.forEach(cat => {
-
                 bar.innerHTML += `
-                    <div id="cat-${cat.id}"
-                         onclick="setCategory('${cat.id}')"
-                         style="padding:10px 15px;border-radius:20px;background:#fff;border:1px solid #ddd;cursor:pointer;">
-                        ${cat.name}
-                        <span style="background:#0d6efd;color:#fff;padding:2px 6px;border-radius:10px;font-size:12px;">
-                            ${cat.plugin_count}
-                        </span>
-                    </div>
+                    <button type="button" class="cat-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors" id="cat-${cat.id}" onclick="setCategory('${cat.id}')">
+                        <span>${cat.name}</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-700 font-semibold">${cat.plugin_count}</span>
+                    </button>
                 `;
             });
         });
 }
 
-
-/* ======================
-   LOAD PLUGINS
-====================== */
 function loadPlugins() {
     fetch("{% url 'api_plugins' %}")
         .then(res => res.json())
         .then(data => {
-
             plugins = data.plugins || [];
-
-            document.getElementById("loader").style.display = "none";
-
+            document.getElementById("loader").classList.add("hidden");
+            document.getElementById("pluginList").classList.remove("hidden");
             renderPlugins();
         });
 }
 
-
-/* ======================
-   CATEGORY FILTER
-====================== */
 function setCategory(id) {
     activeCategory = id;
-
-    document.querySelectorAll("#categoryBar div")
-        .forEach(el => {
-            el.style.background = "#fff";
-            el.style.color = "#000";
-        });
-
+    document.querySelectorAll(".cat-pill").forEach(el => {
+        el.className = "cat-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer transition-colors";
+    });
+    if (!id) {
+        const allPill = document.getElementById("cat-all");
+        if (allPill) allPill.className = "cat-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-brand text-white cursor-pointer transition-colors shadow-xs";
+    } else {
+        const catPill = document.getElementById(`cat-${id}`);
+        if (catPill) catPill.className = "cat-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-brand text-white cursor-pointer transition-colors shadow-xs";
+    }
     renderPlugins();
 }
 
-
-/* ======================
-   RENDER PLUGINS
-====================== */
 function renderPlugins() {
-
     let list = document.getElementById("pluginList");
     let search = document.getElementById("searchBox").value.toLowerCase();
-
     list.innerHTML = "";
 
     let filtered = plugins.filter(p => {
-
-        let matchSearch =
-            p.name.toLowerCase().includes(search) ||
-            p.category.toLowerCase().includes(search);
-
-        let matchCategory =
-            activeCategory === "" ||
-            String(p.category_id) === String(activeCategory);
-
+        let matchSearch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search);
+        let matchCategory = activeCategory === "" || String(p.category_id) === String(activeCategory);
         return matchSearch && matchCategory;
     });
 
     if (filtered.length === 0) {
-        list.innerHTML = `<div style="width:100%;text-align:center;color:#888;padding:40px;">No plugins found</div>`;
+        list.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400 text-xs">No plugins match your filter.</div>`;
         return;
     }
 
     filtered.forEach(p => {
-
         let btn = "";
 
-/* =========================
-   INSTALLED
-========================= */
-if (p.is_installed) {
+        if (p.is_installed) {
+            btn = `<button class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold cursor-default" disabled>
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span>Installed</span>
+            </button>`;
+        } else if (p.license_valid === false) {
+            btn = `<a href="{% url 'license' %}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition-colors">
+                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                <span>Unlock License</span>
+            </a>`;
+        } else if (p.pre_build_path) {
+            let currentUrl = window.location.origin + window.location.pathname;
+            let baseUrl = currentUrl.replace(/plugin\/?$/, '');
+            let path = p.pre_build_path.replace(/^\/+/, '');
+            let finalUrl = baseUrl + path;
 
-    btn = `
-        <div style="
-            margin-top:10px;
-            text-align:center;
-            background:#198754;
-            color:#fff;
-            padding:10px;
-            border-radius:8px;
-            font-weight:bold;
-        ">
-            Installed
-        </div>
-    `;
-}
+            btn = `<a href="${finalUrl}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>Install</span>
+            </a>`;
+        } else {
+            const INSTALL_URL = "{% url 'install_plugin' 0 %}".replace("/0/", "/");
+            btn = `<a href="${INSTALL_URL}${p.id}/" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>Install</span>
+            </a>`;
+        }
 
-/* =========================
-   LICENSE INVALID
-========================= */
-else if (p.license_valid === false) {
+        let badgesHtml = (p.type || 'free').split(',').map(type => {
+            let label = type.trim().charAt(0).toUpperCase() + type.trim().slice(1).toLowerCase();
+            let key = type.trim().toLowerCase();
+            let badgeClass = "bg-slate-100 text-slate-700 border-slate-200";
+            if (key === "free") badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-200";
+            else if (key === "basic") badgeClass = "bg-sky-50 text-sky-700 border-sky-200";
+            else if (key === "pro") badgeClass = "bg-amber-50 text-amber-800 border-amber-200";
+            else if (key === "enterprise") badgeClass = "bg-purple-50 text-purple-700 border-purple-200";
 
-    btn = `
-        <a href="{% url 'license' %}"
-           style="
-               display:block;
-               margin-top:10px;
-               text-align:center;
-               background:#dc3545;
-               color:#fff;
-               padding:10px;
-               border-radius:8px;
-               text-decoration:none;
-               font-weight:bold;
-           ">
-            Unlock
-        </a>
-    `;
-}
-
-/* =========================
-   PRE-BUILD PATH
-========================= */
-else if (p.pre_build_path) {
-
-    // current url
-    let currentUrl = window.location.origin + window.location.pathname;
-
-    // remove last path
-    let baseUrl = currentUrl.replace(/plugin\/?$/, '');
-
-    // remove starting slash
-    let path = p.pre_build_path.replace(/^\/+/, '');
-
-    // final url
-    let finalUrl = baseUrl + path;
-
-    btn = `
-        <a href="${finalUrl}"
-           style="
-               display:block;
-               margin-top:10px;
-               text-align:center;
-               background:#0d6efd;
-               color:#fff;
-               padding:10px;
-               border-radius:8px;
-               text-decoration:none;
-               font-weight:bold;
-           ">
-            Install
-        </a>
-    `;
-}
-
-/* =========================
-   NORMAL INSTALL
-========================= */
-else {
- const INSTALL_URL = "{% url 'install_plugin' 0 %}".replace("/0/", "/");
-    btn = `
-        <a href="${INSTALL_URL}${p.id}/"
-           style="
-               display:block;
-               margin-top:10px;
-               text-align:center;
-               background:#fd7e14;
-               color:#fff;
-               padding:10px;
-               border-radius:8px;
-               text-decoration:none;
-               font-weight:bold;
-           ">
-            Install
-        </a>
-    `;
-}
+            return `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${badgeClass}">${label}</span>`;
+        }).join(' ');
 
         list.innerHTML += `
-        <div style="width:300px;background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.08);padding:15px;">
-
-            <h3 style="margin:0;">${p.name}</h3>
-
-            <p style="color:#666;">${p.category}</p>
-
-            <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-
-    <span style="
-        font-size:12px;
-        font-weight:700;
-        color:#333;
-        margin-right:4px;
-    ">
-        License:
-    </span>
-
-    ${p.type.split(',').map(type => {
-
-        type = type.trim();
-
-        // ✅ Capitalize first letter
-        let label = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
-
-        let key = type.toLowerCase();
-
-        let bg = "#6c757d";
-
-        if (key === "free") {
-            bg = "#198754";
-        }
-        else if (key === "basic") {
-            bg = "#0d6efd";
-        }
-        else if (key === "pro") {
-            bg = "#fd7e14";
-        }
-        else if (key === "enterprise") {
-            bg = "#6f42c1";
-        }
-
-        return `
-            <span style="
-                background:${bg};
-                color:#fff;
-                padding:4px 10px;
-                border-radius:20px;
-                font-size:12px;
-                font-weight:600;
-            ">
-                ${label}
-            </span>
-        `;
-    }).join('')}
-
-</div>
-
-           <img 
-    src="${p.image ? p.image : '/media/icon/plugin.png'}"
-    onerror="this.src='/media/icon/plugin.png';"
-    style="
-        width:100%;
-        height:180px;
-        object-fit:contain;
-        margin-top:10px;
-        border-radius:10px;
-        background:#f8f9fa;
-        border:1px solid #eee;
-        padding:10px;
-    ">
-
-            ${btn}
-
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-start justify-between gap-2">
+                    <h3 class="font-semibold text-sm text-slate-800 line-clamp-1">${p.name}</h3>
+                    <span class="text-[11px] text-slate-400 font-medium shrink-0">${p.category || ''}</span>
+                </div>
+                <div class="mt-2 flex items-center gap-1">
+                    <span class="text-[11px] text-slate-400">Tier:</span>
+                    <div class="flex flex-wrap gap-1">${badgesHtml}</div>
+                </div>
+                <div class="w-full h-32 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center p-3 my-3 overflow-hidden">
+                    <img src="${p.image ? p.image : '/media/icon/plugin.png'}" onerror="this.src='/media/icon/plugin.png';" alt="${p.name}" class="max-h-full max-w-full object-contain">
+                </div>
+            </div>
+            <div class="mt-2">
+                ${btn}
+            </div>
         </div>`;
     });
 }
-
 </script>
 
 {% endblock %}

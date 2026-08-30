@@ -1,103 +1,108 @@
 {% extends "whm/base.html" %}
-{% block title %}Modsecurity{% endblock title %}
+{% block title %}ModSecurity Configuration{% endblock title %}
 {% block content %}
-<div class="card card-default">
- <div class="card-header">
-        <h2>Modsecurity</h2>
-        
 
-      </div>
-<div class="card-body">
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-		
-		
-		
-		
-		<div class="form-group">
-    <label for="allow_url_include">ModSecurity Status</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="status" id="status" class="switch-input form-check-input" value="on" {% if modsecurity|lower == 'on' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
+<div class="max-w-2xl bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-shield-half-full text-brand"></i> ModSecurity Web Application Firewall
+        </h4>
+    </div>
+    <div class="p-5">
+        <form method="post" enctype="multipart/form-data" class="space-y-4">
+            {% csrf_token %}
 
-<div class="form-group">
-    <label for="SecAuditEngine">SecAuditEngine:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="SecAuditEngine" id="SecAuditEngine" class="switch-input form-check-input" value="on" {% if SecAuditEngine|lower == 'on' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-<div class="form-group">
-    <label for="SecRuleEngine">SecRuleEngine:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="SecRuleEngine" id="SecRuleEngine" class="switch-input form-check-input" value="On" {% if SecRuleEngine|lower == 'on' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-		
-		
-		
-            <div class="form-group"> 
-                                            <label>SecDebugLogLevel</label>
-                                          
-                                               <select class="form-control" id="SecDebugLogLevel" name="SecDebugLogLevel">
-    {% for i in range_0_to_9 %}
-        <option value="{{ i }}">{{ i }}</option>
-    {% endfor %}
-</select>
-
-
-                                            
-                                        </div>
-										
-                <div class="form-group">
-                <label for="dns_name" id="labelName">SecAuditLogParts</label>
-                <input type="text" class="form-control" id="dns_name" name="SecAuditLogParts"  value="{{ SecAuditLogParts }}" required>
-                
+            <!-- Switch 1: ModSecurity Engine -->
+            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div>
+                    <div class="text-xs font-bold text-slate-800">ModSecurity Engine</div>
+                    <div class="text-[11px] text-slate-500">Enable or disable core ModSecurity engine globally</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="status" id="status" class="sr-only peer" value="on" {% if modsecurity|lower == 'on' %}checked{% endif %}>
+                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+                </label>
             </div>
-            <div class="form-group">
-                <label for="dns_value" id="labelValue">SecAuditLogRelevantStatus</label>
-                <input type="text" class="form-control" id="dns_value" name="SecAuditLogRelevantStatus" placeholder="203.0.113.11" value="{{ SecAuditLogRelevantStatus }}" required>
-                
+
+            <!-- Switch 2: OWASP CRS -->
+            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div>
+                    <div class="text-xs font-bold text-slate-800">OWASP Core Rule Set (CRS)</div>
+                    <div class="text-[11px] text-slate-500">Enable standard OWASP rules against common attack vectors</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="rule" id="rule" class="sr-only peer" value="On" {% if rule|lower == 'true' %}checked{% endif %}>
+                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+                </label>
             </div>
-			<div class="form-group">
-                <label for="dns_value" id="labelValue">SecAuditLogType</label>
-                <input type="text" class="form-control" id="ttl" name="SecAuditLogType" placeholder="203.0.113.11" value="{{ SecAuditLogType }}" required>
-                
+
+            <!-- Switch 3: SecRuleEngine -->
+            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div>
+                    <div class="text-xs font-bold text-slate-800">SecRuleEngine</div>
+                    <div class="text-[11px] text-slate-500">Process rules and take enforcement actions</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="SecRuleEngine" id="SecRuleEngine" class="sr-only peer" value="On" {% if SecRuleEngine|lower == 'on' %}checked{% endif %}>
+                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+                </label>
             </div>
-			
-			<div class="form-group">
-    <label for="SecRuleEngine">OWASP ModSecurity Core Rules:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="rule" id="rule" class="switch-input form-check-input" value="On" {% if rule|lower == 'true' %}checked{% endif %}>
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-				
-           
-       
-        <button type="submit" class="mb-1 btn btn-success">Save Changes</button>
-    </form>
-</div>
+
+            <!-- Switch 4: SecAuditEngine -->
+            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div>
+                    <div class="text-xs font-bold text-slate-800">SecAuditEngine</div>
+                    <div class="text-[11px] text-slate-500">Enable or disable audit logging engine</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="SecAuditEngine" id="SecAuditEngine" class="sr-only peer" value="on" {% if SecAuditEngine|lower == 'on' %}checked{% endif %}>
+                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand"></div>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="SecDebugLogLevel" class="block text-xs font-semibold text-slate-700 mb-1">SecDebugLogLevel</label>
+                    <select id="SecDebugLogLevel" name="SecDebugLogLevel" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                        {% for i in range_0_to_9 %}
+                            <option value="{{ i }}">{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="SecAuditLogType" class="block text-xs font-semibold text-slate-700 mb-1">SecAuditLogType</label>
+                    <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="SecAuditLogType" name="SecAuditLogType" value="{{ SecAuditLogType }}" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="SecAuditLogParts" class="block text-xs font-semibold text-slate-700 mb-1">SecAuditLogParts</label>
+                    <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="SecAuditLogParts" name="SecAuditLogParts" value="{{ SecAuditLogParts }}" required>
+                </div>
+                <div>
+                    <label for="SecAuditLogRelevantStatus" class="block text-xs font-semibold text-slate-700 mb-1">SecAuditLogRelevantStatus</label>
+                    <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" id="SecAuditLogRelevantStatus" name="SecAuditLogRelevantStatus" value="{{ SecAuditLogRelevantStatus }}" required>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
+                    <i class="mdi mdi-content-save-outline"></i> Save Configuration
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Replace '3' with the value of SecDebugLogLevel dynamically fetched from the server
-        const SecDebugLogLevel = "{{SecDebugLogLevel}}"; // Example value; replace with the actual value
-
-        // Get the dropdown element
-        const selectElement = document.getElementById("SecDebugLogLevel");
-
-        // Set the selected value
+document.addEventListener("DOMContentLoaded", function () {
+    const SecDebugLogLevel = "{{ SecDebugLogLevel }}";
+    const selectElement = document.getElementById("SecDebugLogLevel");
+    if (selectElement && SecDebugLogLevel) {
         selectElement.value = SecDebugLogLevel;
-    });
+    }
+});
 </script>
+
 {% endblock content %}

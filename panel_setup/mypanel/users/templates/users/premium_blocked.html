@@ -2,41 +2,29 @@
 {% block title %}Access Restricted{% endblock title %}
 
 {% block content %}
-
-<div class="card card-default">
-
-    <div class="card-header">
-        <h2>Access Restricted</h2>
-    </div>
-
-    <div class="card-body text-center" style="padding:40px 20px;">
-
-        <!-- Icon -->
-        <div style="font-size:60px; margin-bottom:15px;">🚫</div>
-
-        <!-- Title -->
-        <h3 style="margin-bottom:10px; font-weight:700; color:#333;">
-            Premium Feature
-        </h3>
-
-        <!-- Message -->
-        <p style="color:#6b7280; font-size:14px; line-height:1.6; max-width:500px; margin:0 auto 20px;">
-            This feature is part of the <strong>premium version</strong>.
-            Please contact your administrator to unlock access.
-        </p>
-
-        <!-- Status Badge -->
-        <div style="display:inline-block; padding:10px 16px; background:#fff7ed; color:#9a3412; border-radius:8px; font-size:13px; font-weight:600; margin-bottom:20px;">
-            🔒 Premium Locked
+<div class="max-w-xl mx-auto py-8">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center p-8 space-y-4">
+        <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600">
+            <i class="mdi mdi-lock-alert text-3xl"></i>
         </div>
-
-        <!-- Footer Note -->
-        <div style="margin-top:20px; font-size:12px; color:#9ca3af;">
-            You do not have permission to access this feature.
+        <div>
+            <h3 class="text-base font-bold text-slate-900 m-0">Premium Feature Locked</h3>
+            <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed">
+                This capability requires an upgraded hosting tier or administrator license. Please reach out to your support team or administrator to unlock access.
+            </p>
         </div>
-
+        <div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full text-xs font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Premium Feature
+            </span>
+        </div>
+        <div class="pt-2">
+            <a href="/" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Return to Dashboard
+            </a>
+        </div>
     </div>
-
 </div>
 
+{% include "users/footer.html" %}
 {% endblock content %}

@@ -1,385 +1,281 @@
 {% extends "whm/base.html" %}
-{% block title %}Resource limits{% endblock title %}
+{% block title %}Resource Limits{% endblock title %}
 {% block content %}
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.35.0/tabler-icons.min.css" integrity="sha512-gzw5zNP2TRq+DKyAqZfDclaTG4dOrGJrwob2Fc8xwcJPDPVij0HowLIMZ8c1NefFM0OZZYUUUNoPfcoI5jqudw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-
-
- <div class="card card-default">
-      <div class="card-header">
-       
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   <div class="row">
-   <div class="col-xl-6">
-   <h2>List of users</h2>
-</div>
-<div class="col-xl-6 d-flex justify-content-end">
-    <form action="{% url 'user_list_all' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for user...">
-        </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-            <tr>
-                <th>Username</th>
-				
-				<th>Domain</th>
-                
-                <th>Status</th>
-				
-				 <th>Quota</th>
-                 <th style="white-space: nowrap">Disk Used</th>
-				<th>Bandwidth</th>
-				 
-				<th>Package</th>
-				<th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for myuser in users %}
-            <tr class="{% if not myuser.is_active %}table-danger{% endif %}">
-                <td><b>{{ myuser.username }}</b></td>
-				
-				<td><a href="http://{{ myuser.main_domain }}" target="_blank">{{ myuser.main_domain }}</a></td>
-              
-                <td><span id="domainPath_{{ forloop.counter }}">
-    {% if myuser.is_active %}
-        <span class="badge badge-success">Active</span>
-    {% else %}
-        <span class="badge badge-danger">Suspended</span>
-    {% endif %}
-	</span></td>
-	
-	
-	<td>{% if myuser.quota == 0 %}unlimited{% else %}{{ myuser.quota }} MB{% endif %}</td>
- <td class="user-cell" data_username="{{ myuser.username }}">
-
-    <div class="sk-wave">
-        <div class="rect1"></div>
-        <div class="rect2"></div>
-        <div class="rect3"></div>
-        <div class="rect4"></div>
-        <div class="rect5"></div>
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-cpu-64-bit text-brand"></i> User Resource Limits
+        </h4>
     </div>
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <span class="text-slate-500 text-xs font-medium">Configure CPU and Memory limits per user account</span>
+            </div>
+            <div>
+                <form id="limitSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="limitSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all" placeholder="Search user, domain..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <button type="button" id="clearLimitSearchBtn" onclick="clearLimitSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-</td>
-
-<td>{{ myuser.bandwidth_use }}</td>
-	<td>{{ myuser.pkg }}</td>
-                <td>
-			
-     {% if myuser.is_active %}  
-	 <button class="btn btn-outline-info btn-sm" data-toggle="modal" data-target="#resourceLimitModal" data-username="{{ myuser.id }}"> <i class="ti ti-cpu"></i> Resource</button>    
-	 {% endif %}          
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- Users Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3 py-2.5">Username</th>
+                        <th class="px-3 py-2.5">Domain</th>
+                        <th class="px-3 py-2.5">Status</th>
+                        <th class="px-3 py-2.5">Quota</th>
+                        <th class="px-3 py-2.5 whitespace-nowrap">Disk Used</th>
+                        <th class="px-3 py-2.5">Bandwidth</th>
+                        <th class="px-3 py-2.5">Package</th>
+                        <th class="px-3 py-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="limitTableBody" class="divide-y divide-slate-100">
+                    {% for myuser in users %}
+                    <tr class="hover:bg-slate-50 transition-colors {% if not myuser.is_active %}bg-rose-50/50{% endif %}">
+                        <td class="px-3 py-2.5 font-bold text-slate-900">{{ myuser.username }}</td>
+                        <td class="px-3 py-2.5">
+                            {% if myuser.main_domain %}
+                            <a href="http://{{ myuser.main_domain }}" target="_blank" class="text-brand font-medium hover:underline">{{ myuser.main_domain }}</a>
+                            {% else %}
+                            <span class="text-slate-400">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2.5">
+                            {% if myuser.is_active %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">Active</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2.5">{% if myuser.quota == 0 or myuser.quota == '0' %}Unlimited{% else %}{{ myuser.quota }} MB{% endif %}</td>
+                        <td class="px-3 py-2.5 user-cell font-mono" data_username="{{ myuser.username }}">
+                            <span class="text-slate-400 text-[11px]">calculating...</span>
+                        </td>
+                        <td class="px-3 py-2.5 font-mono">{{ myuser.bandwidth_use|default:"0 B" }}</td>
+                        <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ myuser.pkg }}</span></td>
+                        <td class="px-3 py-2.5 text-right">
+                            {% if myuser.is_active %}
+                            <button class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors" data-toggle="modal" data-target="#resourceLimitModal" data-username="{{ myuser.id }}">
+                                <i class="mdi mdi-cpu-64-bit"></i> Limit
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="px-3 py-6 text-center text-slate-400">No users found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
 
-</div>
-</div>
+<!-- Resource Limit Modal -->
+<div class="modal fade" id="resourceLimitModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered max-w-md" role="document">
+        <div class="modal-content border border-slate-200 rounded-lg shadow-xl overflow-hidden">
+            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <h5 class="text-sm font-bold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-cpu-64-bit text-brand"></i> Resource Limits
+                </h5>
+                <button type="button" class="text-slate-400 hover:text-slate-600 text-xl font-bold bg-transparent border-0 leading-none" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
 
+            <div class="p-4 space-y-3.5">
+                <!-- Response / Status Alert -->
+                <div id="alertContainer" class="p-2.5 rounded-md text-xs" style="display: none;">
+                    <div id="message"></div>
+                </div>
+
+                <div id="responseContainer" style="display: none;" class="p-2.5 bg-blue-50 border border-blue-200 rounded-md text-xs text-blue-800">
+                    <i class="mdi mdi-loading mdi-spin mr-1"></i> Saving changes, please wait...
+                </div>
+
+                <input type="hidden" id="uid">
+                {% csrf_token %}
+
+                <div>
+                    <label for="cpu_limit" class="block text-xs font-semibold text-slate-700 mb-1">CPU Limit</label>
+                    <div class="flex">
+                        <input type="number" min="1" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm font-mono" id="cpu_limit" placeholder="e.g. 200">
+                        <span class="px-3 py-1.5 bg-slate-100 border border-l-0 border-slate-200 rounded-r-md text-[11px] text-slate-500 font-medium whitespace-nowrap">% of one core</span>
+                    </div>
+                    <small class="text-slate-400 text-[11px] mt-0.5 block">100% = 1 core · 200% = 2 cores · 400% = 4 cores</small>
+                </div>
+
+                <div>
+                    <label for="memory_limit" class="block text-xs font-semibold text-slate-700 mb-1">Memory Limit</label>
+                    <div class="flex">
+                        <input type="number" min="0" class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-l-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm font-mono" id="memory_limit" placeholder="e.g. 512">
+                        <span class="px-3 py-1.5 bg-slate-100 border border-l-0 border-slate-200 rounded-r-md text-[11px] text-slate-500 font-medium whitespace-nowrap">MB</span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-700">
+                    <div id="loadingBar" class="flex items-center gap-1.5 text-slate-500">
+                        <i class="mdi mdi-loading mdi-spin"></i> Loading current usage...
+                    </div>
+                    <div id="usageData" style="display: none;" class="flex items-center gap-2">
+                        <i class="mdi mdi-information-outline text-brand"></i>
+                        <span>Current usage: <strong id="current_cpu" class="font-bold text-slate-900">0%</strong> CPU · <strong id="current_ram" class="font-bold text-slate-900">0 MB</strong> RAM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <div>
+                    <button type="button" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-md text-xs font-semibold transition-all" onclick="userLimit('remove')">
+                        <i class="mdi mdi-trash-can-outline mr-0.5"></i> Remove
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-md text-xs font-medium transition-all" data-dismiss="modal">Close</button>
+                    <button type="button" class="px-3.5 py-1.5 bg-brand hover:bg-brand-hover text-white rounded-md text-xs font-semibold shadow-sm transition-all" onclick="userLimit('set')">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-
-const download_url = "{% url 'disk_users_view' %}"; // Base download URL
+const download_url = "{% url 'disk_users_view' %}";
 
 function fetchdiskUser() {
+    const userCells = document.querySelectorAll('.user-cell[data_username]');
+    const usernames = Array.from(userCells).map(el => el.getAttribute('data_username')).filter(Boolean);
+    if (usernames.length === 0) return;
 
-  fetch(download_url)
-    .then(response => response.json())
-    .then(data => {
-
-      if (data.status === "success") {
-
-        data.data.forEach(user => {
-
-          const username = user.username;
-          const total_usage = user.total_usage;
-
-          // Select the cell using data_username
-          const cell = document.querySelector(
-            `.user-cell[data_username="${username}"]`
-          );
-
-          if (cell) {
-
-            // Fade out animation smoothly
-            cell.style.opacity = "0.3";
-
-            setTimeout(() => {
-
-              // Replace loading animation with total_usage
-              cell.innerHTML = `<span>${total_usage}</span>`;
-
-              // Fade back in
-              cell.style.opacity = "1";
-
-            }, 300);
-
-          }
-
+    const queryParams = new URLSearchParams({ usernames: usernames.join(',') });
+    fetch(`${download_url}?${queryParams.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                data.data.forEach(user => {
+                    const username = user.username;
+                    const total_usage = user.total_usage;
+                    const cell = document.querySelector(`.user-cell[data_username="${username}"]`);
+                    if (cell) {
+                        cell.innerHTML = `<span>${total_usage}</span>`;
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching disk usage:", error);
         });
-
-      } else {
-        console.warn("No user data found or partial data");
-      }
-
-    })
-    .catch(error => {
-      console.error("Error fetching user data:", error);
-    });
 }
 
+// Instant & Persistent Client-Side Search
+const limitSearchInput = document.getElementById("limitSearchInput");
+const clearLimitBtn = document.getElementById("clearLimitSearchBtn");
+const limitTableBody = document.getElementById("limitTableBody");
 
+function performLimitSearch(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = limitTableBody ? Array.from(limitTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
 
+    if (clearLimitBtn) {
+        clearLimitBtn.style.display = q ? "block" : "none";
+    }
 
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noLimitSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noLimitSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="8" class="px-3 py-6 text-center text-slate-400">No users match "<strong>${q}</strong>"</td>`;
+            limitTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    if (q) {
+        sessionStorage.setItem("whm_limit_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_limit_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
+}
+
+function clearLimitSearch() {
+    if (limitSearchInput) {
+        limitSearchInput.value = "";
+        performLimitSearch("");
+        limitSearchInput.focus();
+    }
+}
+
+let limitDebounceTimer = null;
 
 document.addEventListener("DOMContentLoaded", function () {
-fetchdiskUser();
-  const rowsPerPage = 20;
-  const table = document.getElementById("domainTable");
-  if (!table) return;
+    fetchdiskUser();
 
-  const rows = Array.from(table.getElementsByTagName("tr"));
-  const totalPages = Math.ceil(rows.length / rowsPerPage);
+    if (limitSearchInput) {
+        limitSearchInput.addEventListener("input", function () {
+            clearTimeout(limitDebounceTimer);
+            const val = this.value;
+            limitDebounceTimer = setTimeout(() => {
+                performLimitSearch(val);
+            }, 100);
+        });
 
-  // ✅ Only create pagination if needed
-  if (rows.length > rowsPerPage) {
-    const paginationContainer = document.createElement("div");
-    paginationContainer.className = "dataTables_paginate paging_simple_numbers";
-    paginationContainer.id = "productsTable_paginate";
-
-    const prevBtn = document.createElement("a");
-    prevBtn.className = "paginate_button previous disabled";
-    prevBtn.id = "productsTable_previous";
-    prevBtn.textContent = "Previous";
-
-    const nextBtn = document.createElement("a");
-    nextBtn.className = "paginate_button next";
-    nextBtn.id = "productsTable_next";
-    nextBtn.textContent = "Next";
-
-    const spanContainer = document.createElement("span");
-
-    paginationContainer.appendChild(prevBtn);
-    paginationContainer.appendChild(spanContainer);
-    paginationContainer.appendChild(nextBtn);
-
-    table.parentElement.after(paginationContainer);
-
-    function showPage(page) {
-      rows.forEach((row, i) => {
-        row.style.display = (i >= (page - 1) * rowsPerPage && i < page * rowsPerPage)
-          ? ""
-          : "none";
-      });
-
-      const pageButtons = spanContainer.querySelectorAll(".paginate_button");
-      pageButtons.forEach(btn => btn.classList.remove("current"));
-      const activeBtn = spanContainer.querySelector(`.paginate_button[data-page="${page}"]`);
-      if (activeBtn) activeBtn.classList.add("current");
-
-      prevBtn.classList.toggle("disabled", page === 1);
-      nextBtn.classList.toggle("disabled", page === totalPages);
-    }
-
-    function createPagination() {
-      spanContainer.innerHTML = "";
-
-      for (let i = 1; i <= totalPages; i++) {
-        const a = document.createElement("a");
-        a.className = "paginate_button";
-        a.dataset.page = i;
-        a.textContent = i;
-        a.style.cursor = "pointer";
-        a.removeAttribute("href");
-        spanContainer.appendChild(a);
-      }
-
-      prevBtn.style.cursor = "pointer";
-      nextBtn.style.cursor = "pointer";
-
-      paginationContainer.addEventListener("click", function (e) {
-        if (e.target.classList.contains("paginate_button") && !e.target.classList.contains("disabled")) {
-          e.preventDefault();
-
-          if (e.target.classList.contains("previous")) {
-            const current = Number(spanContainer.querySelector(".current")?.dataset.page || 1);
-            if (current > 1) showPage(current - 1);
-          } else if (e.target.classList.contains("next")) {
-            const current = Number(spanContainer.querySelector(".current")?.dataset.page || 1);
-            if (current < totalPages) showPage(current + 1);
-          } else {
-            const page = Number(e.target.dataset.page);
-            showPage(page);
-          }
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_limit_search") || limitSearchInput.value || "";
+        if (savedQuery) {
+            limitSearchInput.value = savedQuery;
+            performLimitSearch(savedQuery);
         }
-      });
     }
-
-    createPagination();
-    showPage(1);
-  } else {
-    // ✅ Show all rows and no pagination
-    rows.forEach(r => (r.style.display = ""));
-  }
 });
-</script>
 
-
-
-
-<div class="modal fade" id="resourceLimitModal" tabindex="-1" role="dialog">
-  
-<div class="modal-dialog" role="document">
-    <div class="modal-content">
-
-        <div class="resource-limit-header">
-            <div class="resource-limit-title">
-                <i class="ti ti-cpu" aria-hidden="true"></i>
-                Resource limits
-            </div>
-
-            <div class="resource-limit-actions">
-                <button class="btn-remove-limit" onclick="userLimit('remove')">
-                    <i class="ti ti-trash" aria-hidden="true"></i>
-                    Remove limits
-                </button>
-
-               <button type="button"
-                class="close"
-                data-dismiss="modal">
-            <span>&times;</span>
-        </button>
-            </div>
-        </div>
-
-        <div class="resource-limit-body">
-		
-		
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
-
-
-
-
-            <div class="resource-group">
-                <label>CPU limit</label>
-
-                <div class="resource-input-row">
-                    <input type="number" min="1" placeholder="e.g. 200" id="cpu_limit">
-					<input type="hidden" id="uid">
-                    <span>% of one core</span>
-                </div>
-
-                <p class="resource-help">
-                    100% = 1 core · 200% = 2 cores · 400% = 4 cores
-                </p>
-            </div>
-
-            <div class="resource-group">
-                <label>Memory limit</label>
-
-                <div class="resource-input-row">
-                    <input type="number" min="0" placeholder="e.g. 512" id="memory_limit">
-                    <span>MB</span>
-                </div>
-            </div>
-
-           <div class="resource-info-box">
-<div id="loadingBar" style="display:flex; align-items:center; gap:8px;">
-  Loading... <div class="sk-wave">
-    <div class="rect1"></div>
-    <div class="rect2"></div>
-    <div class="rect3"></div>
-    <div class="rect4"></div>
-    <div class="rect5"></div>
-  </div>
-</div>
-  
-
-    <div id="usageData" style="display:none; align-items:center; gap:8px;">
-        <i class="ti ti-info-circle" aria-hidden="true"></i>
-        <span>
-            Current usage:
-            <strong id="current_cpu">0%</strong> CPU ·
-            <strong id="current_ram">0 MB</strong> RAM
-        </span>
-    </div>
-
-</div>
-
-        </div>
-
-        <div class="resource-limit-footer">
-            <button class="btn-resource-close"  data-dismiss="modal">Close</button>
-            <button class="btn-resource-save" onclick="userLimit('set')">Save changes</button>
-        </div>
-
-    </div>
-</div>
-
-    </div>
- <script> 
- 
- 
- 
- 
- 
+// Modal Logic
 $('#resourceLimitModal').on('show.bs.modal', function (event) {
-
     const button = $(event.relatedTarget);
     const username = button.data('username');
-$('#alertContainer').hide();
-    // reset UI
-	$('#uid').val(username);
+    $('#alertContainer').hide();
+    $('#responseContainer').hide();
+
+    $('#uid').val(username);
     $('#cpu_limit').val('');
     $('#memory_limit').val('');
 
@@ -389,64 +285,50 @@ $('#alertContainer').hide();
     fetch('/whm/res_data/' + encodeURIComponent(username))
         .then(response => response.json())
         .then(res => {
+            $('#loadingBar').hide();
+            $('#usageData').show();
 
             if (!res.success || !res.pkg_data) {
-                $('#loadingBar').hide();
-                $('#usageData').show();
-
                 $('#current_cpu').text('N/A');
                 $('#current_ram').text('N/A');
                 return;
             }
 
             const data = res.pkg_data;
-
-            // show data, hide loader
-            $('#loadingBar').hide();
-            $('#usageData').show();
-
             $('#current_cpu').text(data.cpu + '%');
             $('#current_ram').text(data.memory + ' MB');
-
             $('#cpu_limit').val(data.cpu_limit || '');
             $('#memory_limit').val(data.memory_limit || '');
-
-            $('#resourceLimitModal').data('username', username);
         })
         .catch(err => {
-
             console.error(err);
-
             $('#loadingBar').hide();
             $('#usageData').show();
-
             $('#current_cpu').text('Error');
             $('#current_ram').text('Error');
         });
-
 });
 
-
 function userLimit(action) {
-  const responseDisplay = document.getElementById('responseContainer');
-   const alertContainer = document.getElementById('alertContainer'); 
-      responseDisplay.style.display = 'inline-block';
-	  alertContainer.style.display = 'none';
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    responseDisplay.style.display = 'block';
+    alertContainer.style.display = 'none';
+
     const formData = new FormData();
     formData.append("action", action);
     const user = document.getElementById("uid").value;
-     if (action === "set") {
-    const cpu = document.getElementById("cpu_limit").value;
-    const ram = document.getElementById("memory_limit").value;
+    if (action === "set") {
+        const cpu = document.getElementById("cpu_limit").value;
+        const ram = document.getElementById("memory_limit").value;
+        formData.append("cpu", cpu);
+        formData.append("ram_mb", ram);
+    }
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '';
 
-    formData.append("cpu", cpu);
-    formData.append("ram_mb", ram);
-}
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
-
-    fetch("/whm/user_limit_set/"+user+"/", {
+    fetch("/whm/user_limit_set/" + user + "/", {
         method: "POST",
-		  headers: {
+        headers: {
             'X-CSRFToken': csrfToken,
             'X-Requested-With': 'XMLHttpRequest'
         },
@@ -461,31 +343,21 @@ function userLimit(action) {
     });
 }
 
+function showMsg(type, message) {
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+    const responseDisplay = document.getElementById('responseContainer');
+    responseDisplay.style.display = 'none';
+    alertContainer.style.display = 'block';
 
-  function showMsg(type, message) {
- const alertContainer = document.getElementById('alertContainer'); // Assuming this is your alert container
- const messageDisplay = document.getElementById('message'); 
-  const responseDisplay = document.getElementById('responseContainer');
-   responseDisplay.style.display = 'none';
-     alertContainer.style.display = 'block';
-   if (type === 'success') {
-            alertContainer.className = "alert alert-success alert-dismissible fade show";
-            messageDisplay.innerText = message; // Displaying success message
-        } else {
-            alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = "Failed: " + message; // Displaying error message
-        }
-   
-    
-
-  
+    if (type === 'success') {
+        alertContainer.className = "p-2.5 bg-emerald-50 border border-emerald-200 rounded-md text-xs text-emerald-800";
+        messageDisplay.innerText = message;
+    } else {
+        alertContainer.className = "p-2.5 bg-rose-50 border border-rose-200 rounded-md text-xs text-rose-800";
+        messageDisplay.innerText = "Failed: " + message;
+    }
 }
-
-
-
 </script>
 
-
 {% endblock content %}
-
-{% include "whm/footer.html" %}

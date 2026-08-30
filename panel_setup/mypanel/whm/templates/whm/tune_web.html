@@ -2,180 +2,117 @@
 {% block title %}PHP Tuning{% endblock title %}
 {% block content %}
 
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-
-
-
-
-
-
-<form method="post" action="">
-            {% csrf_token %}
-<div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
-<div class="card card-default">
-    <div class="card-header">
-        <h2>PHP Tuning</h2>
-    </div>
-    <div class="card-body">
-	 <div class="form-group">
-            <label for="php_version">Select Domain:</label>
-           <select class="form-control" name="php_domain" id="php_domain" onchange="load(this.value)">
-    <option value="">Domain</option>
-    {% for domain in php_domain %}
-        <option value="{{ domain.domain }}">{{ domain.domain }}</option>
-    {% endfor %}
-</select>
-
- <div id="responseContainer" style="display: none;" class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
+<div class="max-w-2xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-tune-vertical text-brand text-base"></i> Domain PHP Worker Tuning
+            </h4>
         </div>
+
+        <div class="p-5">
+            <form method="post" action="" class="space-y-4">
+                {% csrf_token %}
+
+                <!-- Domain Selector -->
+                <div>
+                    <label for="php_domain" class="block text-xs font-semibold text-slate-700 mb-1">Select Domain</label>
+                    <select name="php_domain" id="php_domain" onchange="loadPhpTuning(this.value)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all">
+                        <option value="">-- Select domain to tune --</option>
+                        {% for domain in php_domain %}
+                            <option value="{{ domain.domain }}">{{ domain.domain }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Async Loading Spinner -->
+                <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-sky-600 flex-shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                    <span>Loading domain worker tuning limits...</span>
+                </div>
+
+                <!-- Limits Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="initTimeout" class="block text-xs font-semibold text-slate-700 mb-1">Initial Request Timeout (sec)</label>
+                        <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="initTimeout" name="initTimeout" placeholder="e.g., 60">
+                    </div>
+
+                    <div>
+                        <label for="maxConns" class="block text-xs font-semibold text-slate-700 mb-1">Max Connections</label>
+                        <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxConns" name="maxConns" placeholder="e.g., 100">
+                    </div>
+
+                    <div>
+                        <label for="memSoftLimit" class="block text-xs font-semibold text-slate-700 mb-1">Memory Soft Limit (bytes/M)</label>
+                        <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="memSoftLimit" name="memSoftLimit" placeholder="e.g., 2047M">
+                    </div>
+
+                    <div>
+                        <label for="memHardLimit" class="block text-xs font-semibold text-slate-700 mb-1">Memory Hard Limit (bytes/M)</label>
+                        <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="memHardLimit" name="memHardLimit" placeholder="e.g., 2047M">
+                    </div>
+
+                    <div>
+                        <label for="procSoftLimit" class="block text-xs font-semibold text-slate-700 mb-1">Process Soft Limit</label>
+                        <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="procSoftLimit" name="procSoftLimit" placeholder="e.g., 400">
+                    </div>
+
+                    <div>
+                        <label for="procHardLimit" class="block text-xs font-semibold text-slate-700 mb-1">Process Hard Limit</label>
+                        <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="procHardLimit" name="procHardLimit" placeholder="e.g., 400">
+                    </div>
+                </div>
+
+                <!-- Persistent Connection Toggle -->
+                <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                    <div>
+                        <span class="block text-xs font-bold text-slate-800">Persistent Connection Pooling</span>
+                        <span class="block text-[11px] text-slate-500">Maintains persistent FastCGI socket connections between worker requests.</span>
+                    </div>
+                    <input type="checkbox" name="persistConn" id="persistConn" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer">
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Save Tuning Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
-	       
-            <div class="tab-content mt-5" id="nav-tabContent">
-              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                
-           
 
-<div class="form-group mt-3">
-    <label for="initTimeout">Initial Request Timeout (sec):</label>
-    <input type="text" class="form-control" id="initTimeout" name="initTimeout" placeholder="e.g., 128M">
-</div>
-
-<div class="form-group">
-    <label for="maxConns">Max Connections:</label>
-    <input type="text" class="form-control" id="maxConns" name="maxConns" placeholder="e.g., 64M">
-</div>
-
-<div class="form-group">
-    <label for="memSoftLimit">Memory Soft Limit:</label>
-    <input type="text" class="form-control" id="memSoftLimit" name="memSoftLimit" placeholder="e.g., 64M">
-</div>
-
-<div class="form-group">
-    <label for="memHardLimit">Memory Hard Limit:</label>
-    <input type="text" class="form-control" id="memHardLimit" name="memHardLimit" placeholder="e.g., 30">
-</div>
-
-
-<div class="form-group">
-    <label for="procSoftLimit">Process Soft Limit:</label>
-    <input type="text" class="form-control" id="procSoftLimit" name="procSoftLimit" placeholder="e.g., 30">
-</div>
-<div class="form-group">
-    <label for="procHardLimit">Process Hard Limit:</label>
-    <input type="text" class="form-control" id="procHardLimit" name="procHardLimit" placeholder="e.g., 30">
-</div>
-
-
-<div class="form-group">
-    <label for="persistConn">Persistent Connection:</label>
-   <label class="switch switch-primary form-control-label mr-2">
-            <input type="checkbox"  name="persistConn" id="persistConn" class="switch-input form-check-input" value="1">
-            <span class="switch-label"></span>
-            <span class="switch-handle"></span>
-          </label>
-</div>
-
-
-
-
-            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-       
-    
-	    </div>
-            
-
-          </div>
-	
-	
-	
-     
-	
-</div>
-
- </div>
-</div>
-
- </form>
 <script>
-  
+function loadPhpTuning(selectedDomain) {
+    if (!selectedDomain) return;
+    const responseDisplay = document.getElementById('responseContainer');
+    if (responseDisplay) responseDisplay.style.display = 'flex';
 
-       const alertContainer = document.getElementById('alertContainer');
-       const messageDisplay = document.getElementById('message');
-      const responseDisplay = document.getElementById('responseContainer');
-      
-
-   function load(selectedVersion) {
-    if (selectedVersion) {  // Ensuring selectedVersion is available
-        console.log('Selected version:', selectedVersion);
-       
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
-
-            // Call the URL with GET method, appending php_version as a query parameter
-            fetch(`{% url 'fatch_php_tune' %}?php_domain=${selectedVersion}`, {
-                method: 'GET',  // Using GET to pass php_version as a query parameter
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json(); // Retrieve response as JSON
-            })
-            .then(response => {
-                console.log('Response:', response);
-               responseDisplay.style.display = 'none';
-
-                // Populate form fields with the response data
-              $('#initTimeout').val(response.initTimeout || '');
-$('#maxConns').val(response.maxConns || '');
-$('#memSoftLimit').val(response.memSoftLimit || '');
-$('#memHardLimit').val(response.memHardLimit || '');
-$('#procSoftLimit').val(response.procSoftLimit || '');
-$('#procHardLimit').val(response.procHardLimit || '');
-
-// Checkbox for persistConn
-if (response.persistConn === '1' ) {
-    $('#persistConn').prop('checked', true);
-} else {
-    $('#persistConn').prop('checked', false);
+    fetch(`{% url 'fatch_php_tune' %}?php_domain=${encodeURIComponent(selectedDomain)}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+    })
+    .then(response => {
+        document.getElementById('initTimeout').value = response.initTimeout || '';
+        document.getElementById('maxConns').value = response.maxConns || '';
+        document.getElementById('memSoftLimit').value = response.memSoftLimit || '';
+        document.getElementById('memHardLimit').value = response.memHardLimit || '';
+        document.getElementById('procSoftLimit').value = response.procSoftLimit || '';
+        document.getElementById('procHardLimit').value = response.procHardLimit || '';
+        document.getElementById('persistConn').checked = (response.persistConn === '1');
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+    });
 }
-
-
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // You can show an alert to notify the user about the error
-               responseDisplay.style.display = 'none';
-               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
-            });
-        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
-    } else {
-        console.log('No PHP version selected.');
-    }
-}
-
-
-       
-		
-
 </script>
-  
+
 {% include "whm/footer.html" %}
 {% endblock content %}

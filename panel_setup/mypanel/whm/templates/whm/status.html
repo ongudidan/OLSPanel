@@ -1,217 +1,200 @@
 {% extends "whm/base.html" %}
 {% block title %}System Statistics{% endblock title %}
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="card card-default">
-            <div class="card-header">
-                <h2>System Statistics</h2>
+
+<div class="space-y-5">
+    <!-- Grid 1: CPU & Load Metrics -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- CPU Information -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-cpu-64-bit text-brand text-base"></i> CPU Processor Information
+                </h4>
             </div>
-            <div class="card-body">
-
-                <!-- First Row (Two Tables in One Line) -->
-                <div class="row">
-                    <!-- CPU Information Table -->
-                    <div class="col-md-6 mb-3">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>CPU Cores</th>
-									
-                                    <th>CPU Model</th>
-                                    <th>CPU MHz</th>
-                                    <th>CPU Cache</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-								
-                                    <td>{{ cpu_info.cores }}</td>
-                                    <td>{{ cpu_info.model }}</td>
-                                    <td>{{ cpu_info.cpu_mhz }}</td>
-                                    <td>{{ cpu_info.cache }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+            <div class="p-5">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Cores</span>
+                        <span class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cores }}</span>
                     </div>
-
-                    <!-- Load Average Table -->
-                    <div class="col-md-6 mb-3">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>1 Min Load</th>
-                                    <th>5 Min Load</th>
-                                    <th>15 Min Load</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ load_avg.1min }}</td>
-                                    <td>{{ load_avg.5min }}</td>
-                                    <td>{{ load_avg.15min }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Frequency</span>
+                        <span class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cpu_mhz }} MHz</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg col-span-2">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">L2/L3 Cache</span>
+                        <span class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cache }}</span>
                     </div>
                 </div>
-
-                <!-- Second Row (Two Tables in One Line) -->
-                <div class="row">
-                    <!-- Process Status Table -->
-                    <div class="col-md-6 mb-3">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Total Processes</th>
-                                    <th>Running</th>
-                                    <th>Sleeping</th>
-                                    <th>Stopped</th>
-                                    <th>Zombie</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ process_status.total }}</td>
-                                    <td>{{ process_status.running }}</td>
-                                    <td>{{ process_status.sleeping }}</td>
-                                    <td>{{ process_status.stopped }}</td>
-                                    <td>{{ process_status.zombie }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- CPU Usage Table -->
-                    <div class="col-md-6 mb-3">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>I/O Wait</th>
-                                    <th>Idle Time</th>
-                                    <th>HW Interrupts</th>
-                                    <th>SoftIRQs</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>{{ io_info.iowait }}</td>
-                                    <td>{{ io_info.idle }}</td>
-                                    <td>{{ io_info.interrupts }}</td>
-                                    <td>{{ io_info.softirqs }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                    <span class="text-slate-400 font-semibold">Model: </span>
+                    <span class="text-slate-800 font-semibold font-mono">{{ cpu_info.model }}</span>
                 </div>
-
-                <!-- Third Row (Two Tables in One Line) -->
-                <div class="row">
-                    <!-- Memory Info Table -->
-                    <div class="col-md-6 mb-3">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr><th>Memory</th>
-                                    <th>Memory Free</th>
-                                    <th>Memory Used</th>
-                                    <th>Memory Buff/Cache</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-								 <td>{{ total_memory  }}</td>
-                                    <td>{{ memory.free }}</td>
-                                    <td>{{ memory.used }}</td>
-                                    <td>{{ memory.buff_cache }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Swap Info Table -->
-                    <div class="col-md-6 mb-3">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-								<th>Swap</th>
-                                    <th>Swap Free</th>
-                                    <th>Swap Used</th>
-                                    <th>Swap Buff/Cache</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-								<td>{{ total_swap }}</td>
-                                    <td>{{ swap.free }}</td>
-                                    <td>{{ swap.used }}</td>
-                                    <td>{{ swap.buff_cache }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-
-<div class="row">
-   
-
-    <!-- Disk Info Table -->
-    <div class="col-md-6 mb-3">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    
-                    <th>Disk Total</th>
-                    <th>Used</th>
-                    <th>Available</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    
-                    <td>{{ disk_usage.total }}</td>
-                    <td>{{ disk_usage.used }}</td>
-                    <td>{{ disk_usage.available }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
             </div>
         </div>
-		
-		
-		
-		
-		 <div class="card card-default">
-		 <div class="card-header">
-                <h2>Service Status</h2>
+
+        <!-- Load Average & I/O -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-chart-line text-brand text-base"></i> Load Average & CPU Wait
+                </h4>
             </div>
-            <div class="card-body">
-<table class="table">
-    <thead>
-        <tr>
-            <th>Service Name</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for service, status in services.items %}
-        <tr>
-            <td>{{ service }}</td>
-            <td>{{ status }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-</div>
-</div>	
-		
-		
-		
-		
+            <div class="p-5">
+                <div class="grid grid-cols-3 gap-3 text-center mb-3">
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">1 Min</span>
+                        <span class="font-mono text-slate-900 font-bold text-base">{{ load_avg.1min }}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">5 Min</span>
+                        <span class="font-mono text-slate-900 font-bold text-base">{{ load_avg.5min }}</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">15 Min</span>
+                        <span class="font-mono text-slate-900 font-bold text-base">{{ load_avg.15min }}</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                    <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
+                        <span class="block text-[10px] text-slate-400">I/O Wait</span>
+                        <span class="font-semibold text-slate-800">{{ io_info.iowait }}%</span>
+                    </div>
+                    <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
+                        <span class="block text-[10px] text-slate-400">Idle</span>
+                        <span class="font-semibold text-slate-800">{{ io_info.idle }}%</span>
+                    </div>
+                    <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
+                        <span class="block text-[10px] text-slate-400">HW Int</span>
+                        <span class="font-semibold text-slate-800">{{ io_info.interrupts }}</span>
+                    </div>
+                    <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
+                        <span class="block text-[10px] text-slate-400">SoftIRQ</span>
+                        <span class="font-semibold text-slate-800">{{ io_info.softirqs }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid 2: Memory & Disk -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Physical Memory -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-memory text-brand text-base"></i> RAM Memory
+                </h4>
+                <span class="text-xs font-mono font-bold text-slate-700">{{ total_memory }}</span>
+            </div>
+            <div class="p-5 space-y-2 text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-100">
+                    <span class="text-slate-500">Used Memory:</span>
+                    <span class="font-mono font-bold text-slate-800">{{ memory.used }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-100">
+                    <span class="text-slate-500">Free Memory:</span>
+                    <span class="font-mono font-semibold text-emerald-600">{{ memory.free }}</span>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-500">Buffer / Cache:</span>
+                    <span class="font-mono font-semibold text-slate-700">{{ memory.buff_cache }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Swap Memory -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-swap-horizontal text-brand text-base"></i> Swap Memory
+                </h4>
+                <span class="text-xs font-mono font-bold text-slate-700">{{ total_swap }}</span>
+            </div>
+            <div class="p-5 space-y-2 text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-100">
+                    <span class="text-slate-500">Used Swap:</span>
+                    <span class="font-mono font-bold text-slate-800">{{ swap.used }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-100">
+                    <span class="text-slate-500">Free Swap:</span>
+                    <span class="font-mono font-semibold text-emerald-600">{{ swap.free }}</span>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-500">Cached Swap:</span>
+                    <span class="font-mono font-semibold text-slate-700">{{ swap.buff_cache }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disk Storage -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-harddisk text-brand text-base"></i> Primary Storage
+                </h4>
+                <span class="text-xs font-mono font-bold text-slate-700">{{ disk_usage.total }}</span>
+            </div>
+            <div class="p-5 space-y-2 text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-100">
+                    <span class="text-slate-500">Used Space:</span>
+                    <span class="font-mono font-bold text-slate-800">{{ disk_usage.used }}</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-100">
+                    <span class="text-slate-500">Available Space:</span>
+                    <span class="font-mono font-semibold text-emerald-600">{{ disk_usage.available }}</span>
+                </div>
+                <div class="flex justify-between py-1">
+                    <span class="text-slate-500">Running Processes:</span>
+                    <span class="font-mono font-semibold text-slate-700">{{ process_status.running }} / {{ process_status.total }} total</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core System Services Table Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-server text-brand text-base"></i> Core Services Daemon Status
+            </h4>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[10px] tracking-wider">
+                    <tr>
+                        <th class="py-2.5 px-4">Service Name</th>
+                        <th class="py-2.5 px-4 text-right">Runtime Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-mono">
+                    {% for service, status in services.items %}
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 font-bold text-slate-800">
+                            {{ service }}
+                        </td>
+                        <td class="py-3 px-4 text-right font-sans">
+                            {% if status == "running" or status == "active" or "active" in status|lower %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active (Running)
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> {{ status|title }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="py-4 text-center text-slate-400">No services tracked.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

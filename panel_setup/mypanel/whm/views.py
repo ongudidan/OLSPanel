@@ -27,6 +27,7 @@ from users.function import *  # Import your function
 from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse, FileResponse
 from django.core.files.storage import FileSystemStorage
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from users.forms import *
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordChangeView
 import subprocess
@@ -206,16 +207,16 @@ def change_password_all(request):
         user = authenticate(username=request.admin_user.username, password=old_password)
         if user is None:
             messages.error(request, "Your old password was entered incorrectly. Please enter it again.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'whm/change_password.html')
         
         # Validate the new passwords
         if new_password1 != new_password2:
             messages.error(request, "The new passwords do not match. Please enter them again.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'whm/change_password.html')
         
         if len(new_password1) < 6:
             messages.error(request, "The new password must be at least 6 characters long.")
-            return render(request, 'users/change_password.html')
+            return render(request, 'whm/change_password.html')
         
         # Update the user's password
         user.set_password(new_password1)
@@ -231,7 +232,7 @@ def change_password_all(request):
         messages.success(request, "Successfully Changed Your Password")
         
         # Redirect to the success URL
-        return redirect(reverse_lazy('users-home'))
+        return redirect('/whm/whm-password-change/')
     else:
         # Render the change password template for GET requests
         return render(request, 'whm/change_password.html')   
@@ -239,34 +240,26 @@ def change_password_all(request):
 @alogin_required
 def domain_list_all(request):
     all_users = User.objects.exclude(id=1)
+    domains = Domain.objects.all()
 
-    domains = Domain.objects.all()  # Start with all domains
-    user_filter = ''
-    search_query = ''
+    user_filter = (request.POST.get('user') or request.GET.get('user', '')).strip()
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
 
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '').strip()
-        user_filter = request.POST.get('user', '').strip()
+    # Case 1: Both search and user selected
+    if search_query and user_filter:
+        domains = domains.filter(domain__icontains=search_query, userid=user_filter)
+    # Case 2: Only search
+    elif search_query:
+        domains = domains.filter(domain__icontains=search_query)
+    # Case 3: Only user
+    elif user_filter:
+        domains = domains.filter(userid=user_filter)
 
-        # Case 1: Both search and user selected
-        if search_query and user_filter:
-            domains = domains.filter(domain__icontains=search_query, userid=user_filter)
-
-        # Case 2: Only search
-        elif search_query:
-            domains = domains.filter(domain__icontains=search_query)
-
-        # Case 3: Only user
-        elif user_filter:
-            domains = domains.filter(userid=user_filter)
-
-        # Else: nothing selected, domains = all
     binary_path = "/usr/local/bin/olspanelcp"
     if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
         domain_pre = False
     else: 
         domain_pre = True
-        
         
     return render(request, 'whm/domain_list.html', {
         'domains': domains,
@@ -279,80 +272,62 @@ def domain_list_all(request):
 
 @alogin_required
 def domain_list_ssl_all(request):
-    domains = []  # Initialize domains to avoid UnboundLocalError
+    domains = []
 
-    if request.method == 'POST':
-        if 'search' in request.POST:
-            search_query = request.POST.get('search', '')
-            domains = Domain.objects.filter(domain__icontains=search_query)
-        elif 'id' in request.POST:
-            # Handle the task when 'id' is present in POST data
-            rid = request.POST.get('id', '')
-            domain_obj = Domain.objects.get(id=rid)  # Fetch the domain object by ID
-            domain_name = domain_obj.domain
-            path = domain_obj.path
-            success = issue_ssl_certificate(domain_name, path)  # Using dynamic domain and path
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
 
-            if success:
-                restart_openlitespeed()
-                messages.success(request, f'SSL issue for "{domain_name}" has been successful.')
-            else:
-                messages.error(request, f'Failed to issue SSL for "{domain_name}".')
+    if request.method == 'POST' and 'id' in request.POST:
+        # Handle the task when 'id' is present in POST data
+        rid = request.POST.get('id', '')
+        domain_obj = Domain.objects.get(id=rid)  # Fetch the domain object by ID
+        domain_name = domain_obj.domain
+        path = domain_obj.path
+        success = issue_ssl_certificate(domain_name, path)  # Using dynamic domain and path
 
-            return redirect('/whm/domain_list_ssl_all')  # Redirect after the action completes
+        if success:
+            restart_openlitespeed()
+            messages.success(request, f'SSL issue for "{domain_name}" has been successful.')
+        else:
+            messages.error(request, f'Failed to issue SSL for "{domain_name}".')
 
+        return redirect('/whm/domain_list_ssl_all')  # Redirect after the action completes
     else:
-        domains = Domain.objects.all()
+        if search_query:
+            domains = Domain.objects.filter(domain__icontains=search_query)
+        else:
+            domains = Domain.objects.all()
 
     if domains:
-
         new_domains = []
-
         for domain in domains:
-
             # main domain SSL
             ssl_details = get_ssl_details(domain.domain)
-
             domain.ssl = ssl_details['expiration_date']
             domain.type = ssl_details['certificate_validity']
-
             new_domains.append(domain)
-
 
             # create www / non-www version for display
             if domain.domain.startswith("www."):
-
                 alt = domain.domain[4:]
                 alt_id = str(domain.id)
-
             else:
-
                 alt = "www." + domain.domain
                 alt_id = "w"+str(domain.id)
 
-
             fake = Domain()
-
-            fake.id = alt_id   # example 10w
-
+            fake.id = alt_id
             fake.domain = alt
-
             fake.path = domain.path
-
             ssl_details = get_ssl_details(alt)
-
             fake.ssl = ssl_details['expiration_date']
-
             fake.type = ssl_details['certificate_validity']
-
             new_domains.append(fake)
 
-
         domains = new_domains
-            
 
     return render(request, 'whm/domain_list_ssl.html', {
         'domains': domains,
+        'search_query': search_query,
     })
 
  
@@ -540,26 +515,26 @@ def domain_edit_all(request, pk):
     
 @alogin_required
 def dns_all(request):
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
         # Use __icontains for case-insensitive partial match
         domains = Domain.objects.filter(domain__icontains=search_query)
     else:
         domains = Domain.objects.all()
 
-    return render(request, 'whm/dns.html', {'domains': domains})
+    return render(request, 'whm/dns.html', {'domains': domains, 'search_query': search_query})
 
 
 @alogin_required
-def dns_list_all(request,rid):
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
+def dns_list_all(request, rid):
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
         # Use __icontains for case-insensitive partial match
-        dnss = Dns_record.objects.filter( name__icontains=search_query,domain_id=rid)
+        dnss = Dns_record.objects.filter(name__icontains=search_query, domain_id=rid)
     else:
         dnss = Dns_record.objects.filter(domain_id=rid)
 
-    return render(request, 'whm/dns_list.html', {'dnss': dnss,'rid': rid})
+    return render(request, 'whm/dns_list.html', {'dnss': dnss, 'rid': rid, 'search_query': search_query})
 
 
 @alogin_required
@@ -667,73 +642,102 @@ def dns_create_all(request, domain_id=None):
 
 @alogin_required
 def user_list_all(request):
-    # Initialize an empty users list
     users = []
 
-    # Handle POST request for searching users
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
-        if search_query:
-            # Use the get_user_data function to search for users based on username
-            users = get_user_data('username', search_query)  # Get users matching the search query
+    # Handle POST or GET request for searching users
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
+        # Search for users based on username or email
+        users = get_user_data('username', search_query)
+        if not users:
+            users = get_user_data('email', search_query)
     else:
-        # For GET requests, fetch all users
+        # For GET requests without query, fetch all users
         users = get_user_data()
 
-    # If users are found, process them
+    # Bulk optimize: Eliminate N+1 queries by fetching packages, bandwidth, and domains in bulk
     if users:
+        user_ids = [u['id'] for u in users if 'id' in u]
+        
+        # 1. Bulk fetch all packages into a lookup map
+        packages_map = {p.id: p for p in Package.objects.all()}
+
+        # 2. Bulk fetch current month bandwidth in 1 single query
+        current_month_year = datetime.now().strftime('%m-%Y')
+        bandwidth_records = Bandwidth.objects.filter(userid__in=user_ids, date=current_month_year)
+        bandwidth_map = {b.userid: b.total for b in bandwidth_records}
+
+        # 3. Bulk fetch primary domains in 1 single query
+        domains_map = {}
+        for d in Domain.objects.filter(userid__in=user_ids).order_by('id'):
+            if d.userid not in domains_map:
+                domains_map[d.userid] = d.domain
+
+        # Populate user records in memory (O(N) with 0 additional SQL queries)
         for user in users:
-            # Make sure pkg_id exists in the user data before fetching the Package
-            if 'pkg_id' in user and user['pkg_id']:
-                try:
-                    pkg = Package.objects.get(id=user['pkg_id'])  # Fetch the package
-                    user['pkg'] = pkg.name  # Add the package name to the user data
-                    user['quota'] = pkg.disk_space 
-                except Package.DoesNotExist:
-                    user['pkg'] = 'Unknown'  # Handle case where the package does not exist
-                    user['quota'] = 'Unknown' 
+            pkg_id = user.get('pkg_id')
+            pkg = packages_map.get(pkg_id) if pkg_id else None
+            if pkg:
+                user['pkg'] = pkg.name
+                user['quota'] = pkg.disk_space
             else:
                 user['pkg'] = 'Unknown'
-                user['quota'] = 'Unknown' 
-                
-            username_string = user['username']   
-           
-            current_month_year = datetime.now().strftime('%m-%Y')
-            bandwidth = Bandwidth.objects.filter(userid=user['id'], date=current_month_year).order_by('id').first()
-            total = bandwidth.total if bandwidth else 0
-            
-            user['bandwidth_use'] = size_display(total)
+                user['quota'] = 'Unknown'
 
-            
-                        
-            user['main_domain'] = Domain.objects.filter(userid=user['id']).order_by('id').first()    
+            total_bw = bandwidth_map.get(user['id'], 0)
+            user['bandwidth_use'] = size_display(total_bw)
+            user['main_domain'] = domains_map.get(user['id'], '')
 
-    # Render the user list template with the processed users data
-    return render(request, 'whm/user_list.html', {'users': users})
+    # Pagination: 50 users per page for high scalability
+    page = request.GET.get('page', 1)
+    paginator = Paginator(users, 50)
+    try:
+        users_page = paginator.page(page)
+    except PageNotAnInteger:
+        users_page = paginator.page(1)
+    except EmptyPage:
+        users_page = paginator.page(paginator.num_pages)
+
+    return render(request, 'whm/user_list.html', {
+        'users': users_page,
+        'search_query': search_query,
+        'total_count': len(users) if users else 0,
+        'paginator': paginator,
+        'page_obj': users_page
+    })
  
  
 @alogin_required
 def disk_users_view(request):
+    # Targeted disk usage: calculate only for requested usernames on current page view
+    requested_usernames = request.GET.get('usernames', '').strip()
+    if requested_usernames:
+        usernames_list = [u.strip() for u in requested_usernames.split(',') if u.strip()]
+        users = [{'username': u} for u in usernames_list]
+    else:
+        users = get_user_data()
 
-    users = get_user_data()
     result = []
-
     if users:
         for user in users:
+            username = user.get('username')
+            if not username:
+                continue
 
-            username = user['username']
+            try:
+                disk = get_disk_usage(f'/home/{username}')
+                email_disk = get_disk_usage(f'/home/vmail/{username}')
 
-            disk = get_disk_usage(f'/home/{username}')
-            email_disk = get_disk_usage(f'/home/vmail/{username}')
+                disk_bytes = human_readable_to_bytes(disk)
+                email_bytes = human_readable_to_bytes(email_disk)
 
-            disk_bytes = human_readable_to_bytes(disk)
-            email_bytes = human_readable_to_bytes(email_disk)
+                database_names = get_user_database_info(username)
+                db_size = calculate_total_database_size(database_names)
 
-            database_names = get_user_database_info(username)
-            db_size = calculate_total_database_size(database_names)
-
-            total_bytes = disk_bytes + email_bytes + db_size
-            total_usage = size_display(total_bytes)
+                total_bytes = disk_bytes + email_bytes + db_size
+                total_usage = size_display(total_bytes)
+            except Exception:
+                total_usage = '0 B'
 
             result.append({
                 "username": username,
@@ -744,6 +748,7 @@ def disk_users_view(request):
         "status": "success",
         "data": result
     })
+
 
  
 
@@ -842,14 +847,14 @@ def add_user_all(request):
 
 @alogin_required
 def package_list(request):
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
         # Use __icontains for case-insensitive partial match
-        pkg = Package.objects.filter( name__icontains=search_query)
+        pkg = Package.objects.filter(name__icontains=search_query)
     else:
         pkg = Package.objects.all()
 
-    return render(request, 'whm/pkg_list.html', {'package': pkg})
+    return render(request, 'whm/pkg_list.html', {'package': pkg, 'search_query': search_query})
     
     
     
@@ -1167,16 +1172,21 @@ def auto_login_by_admin(request, rid):
 @alogin_required
 def multi_php_manager_all(request):
     php_versions = get_php_versions()  # Fetch the PHP versions
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
 
-    # Initialize the domain list
-    domains = Domain.objects.all()
+    if search_query:
+        domains = Domain.objects.filter(domain__icontains=search_query)
+    else:
+        domains = Domain.objects.all()
 
     # Handle POST request
     if request.method == 'POST':
         # Search functionality
         if 'search' in request.POST:
-            search_query = request.POST.get('search', '')
-            domains = Domain.objects.filter(domain__icontains=search_query)
+            if search_query:
+                domains = Domain.objects.filter(domain__icontains=search_query)
+            else:
+                domains = Domain.objects.all()
         # PHP version update functionality
         elif 'php_version' in request.POST:
             php_version = request.POST.get('php_version', None)
@@ -1189,9 +1199,9 @@ def multi_php_manager_all(request):
                 Domain.objects.filter(id__in=selected_domains).update(php=php_version)
                 
                 # Perform additional actions related to PHP version change
-                for domain_id in selected_domains:
-                    domain_name = Domain.objects.get(id=domain_id).domain  # Fetch the domain name by ID
-                    change_php_version(domain_name, domain_name+'' + new_php_version, new_php_version)
+                domain_objs = Domain.objects.filter(id__in=selected_domains)
+                for d_obj in domain_objs:
+                    change_php_version(d_obj.domain, d_obj.domain + '' + new_php_version, new_php_version)
 
                 # Restart OpenLiteSpeed after the change, outside the loop
                 restart_openlitespeed()
@@ -1203,7 +1213,11 @@ def multi_php_manager_all(request):
             domains = Domain.objects.all()
 
     # Render the template with the current domain list and PHP versions
-    return render(request, 'whm/multi_php_manager.html', {'domains': domains, 'php_versions': php_versions})  
+    return render(request, 'whm/multi_php_manager.html', {
+        'domains': domains,
+        'php_versions': php_versions,
+        'search_query': search_query,
+    })  
 
 
 
@@ -2003,12 +2017,22 @@ def backup_whm(request):
         messages.success(request, "Backups have been successfully set.")
         return redirect('/whm/backup_whm/')
 
-    users = User.objects.exclude(id=1)
-    for user in users:
-        backup = BackupList.objects.filter(userid=user.id, user_access=1).order_by('-id').first()
-        user.latest_backup = backup
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
+        users = list(User.objects.exclude(id=1).filter(username__icontains=search_query))
+    else:
+        users = list(User.objects.exclude(id=1))
 
-    return render(request, 'whm/backup.html', {'users': users})
+    user_ids = [u.id for u in users]
+    all_backups = BackupList.objects.filter(userid__in=user_ids, user_access=1).order_by('id')
+    backup_by_user = {}
+    for b in all_backups:
+        backup_by_user[b.userid] = b
+
+    for user in users:
+        user.latest_backup = backup_by_user.get(user.id)
+
+    return render(request, 'whm/backup.html', {'users': users, 'search_query': search_query})
    
     
 @alogin_required
@@ -3020,12 +3044,62 @@ def whm_google_otp(request):
     return render(request, "whm/setup_2fa.html", {
         "qr_url": qr_url,
         "secret": secret,
-        "is_enabled": settings.two_step
+        "is_enabled": settings.two_step,
     })
-    
-    
-    
+
+
 @alogin_required
+def whm_passkeys(request):
+    passkeys = UserPasskey.objects.filter(user=request.admin_user).order_by("-created_at")
+    return render(request, "whm/passkeys.html", {
+        "passkeys": passkeys,
+    })
+
+
+# ==========================================
+# WHM PASSKEY ENDPOINTS
+# ==========================================
+
+@alogin_required
+def whm_passkey_register_options(request):
+    try:
+        from users import passkey
+        options = passkey.generate_reg_options(request, request.admin_user)
+        return JsonResponse(options)
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@alogin_required
+def whm_passkey_register_verify(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    try:
+        from users import passkey
+        data = json.loads(request.body)
+        credential = data.get("credential")
+        name = data.get("name", "Security Key / Passkey")
+        passkey.verify_reg_response(request, request.admin_user, credential, name)
+        messages.success(request, f"Passkey '{name}' registered successfully!")
+        return JsonResponse({"status": "success", "message": f"Passkey '{name}' registered successfully!"})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@alogin_required
+def whm_passkey_delete(request, passkey_id):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    try:
+        pk = UserPasskey.objects.get(id=passkey_id, user=request.admin_user)
+        pk_name = pk.name
+        pk.delete()
+        messages.success(request, f"Passkey '{pk_name}' deleted.")
+        return JsonResponse({"status": "success", "message": f"Passkey '{pk_name}' deleted."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
 def postgresql(request):
     composer_path = '/usr/bin/psql'
 
@@ -3619,49 +3693,46 @@ def res_data(request, userid):
 @alogin_required
 @premium_features()
 def user_limit(request):
-    # Initialize an empty users list
     users = []
 
-    # Handle POST request for searching users
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
-        if search_query:
-            # Use the get_user_data function to search for users based on username
-            users = get_user_data('username', search_query)  # Get users matching the search query
+    # Handle POST or GET request for searching users
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
+        users = get_user_data('username', search_query)
+        if not users:
+            users = get_user_data('email', search_query)
     else:
-        # For GET requests, fetch all users
         users = get_user_data()
 
-    # If users are found, process them
+    # Bulk optimize: Eliminate N+1 queries by fetching packages, bandwidth, and domains in bulk
     if users:
+        user_ids = [u['id'] for u in users if 'id' in u]
+        packages_map = {p.id: p for p in Package.objects.all()}
+
+        current_month_year = datetime.now().strftime('%m-%Y')
+        bandwidth_records = Bandwidth.objects.filter(userid__in=user_ids, date=current_month_year)
+        bandwidth_map = {b.userid: b.total for b in bandwidth_records}
+
+        domains_map = {}
+        for d in Domain.objects.filter(userid__in=user_ids).order_by('id'):
+            if d.userid not in domains_map:
+                domains_map[d.userid] = d.domain
+
         for user in users:
-            # Make sure pkg_id exists in the user data before fetching the Package
-            if 'pkg_id' in user and user['pkg_id']:
-                try:
-                    pkg = Package.objects.get(id=user['pkg_id'])  # Fetch the package
-                    user['pkg'] = pkg.name  # Add the package name to the user data
-                    user['quota'] = pkg.disk_space 
-                except Package.DoesNotExist:
-                    user['pkg'] = 'Unknown'  # Handle case where the package does not exist
-                    user['quota'] = 'Unknown' 
+            pkg_id = user.get('pkg_id')
+            pkg = packages_map.get(pkg_id) if pkg_id else None
+            if pkg:
+                user['pkg'] = pkg.name
+                user['quota'] = pkg.disk_space
             else:
                 user['pkg'] = 'Unknown'
-                user['quota'] = 'Unknown' 
-                
-            username_string = user['username']   
-           
-            current_month_year = datetime.now().strftime('%m-%Y')
-            bandwidth = Bandwidth.objects.filter(userid=user['id'], date=current_month_year).order_by('id').first()
-            total = bandwidth.total if bandwidth else 0
-            
-            user['bandwidth_use'] = size_display(total)
+                user['quota'] = 'Unknown'
 
-            
-                        
-            user['main_domain'] = Domain.objects.filter(userid=user['id']).order_by('id').first()    
+            total_bw = bandwidth_map.get(user['id'], 0)
+            user['bandwidth_use'] = size_display(total_bw)
+            user['main_domain'] = domains_map.get(user['id'], '')
 
-    # Render the user list template with the processed users data
-    return render(request, 'whm/user_limit.html', {'users': users})
+    return render(request, 'whm/user_limit.html', {'users': users, 'search_query': search_query})
     
 @alogin_required 
 @premium_features()   

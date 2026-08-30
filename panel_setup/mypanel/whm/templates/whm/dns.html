@@ -1,187 +1,149 @@
 {% extends "whm/base.html" %}
-{% block title %}My Dns{% endblock title %}
+{% block title %}DNS Management{% endblock title %}
 {% block content %}
 
-<div id="dnsModal" class="modal-content" style="display: none;">
-    <form action="{% url 'dns_create_all' %}" method="post" id="dnsForm" name="edit_dns_record" novalidate>
-	{% csrf_token %}
-        <div class="modal-header">
-            <h4 id="modalTitle">Add a DNS Record</h4>
-        </div>
-        <div class="modal-body">
-            <div class="form-group">
-                <label for="dns_name" id="labelName">Name</label>
-                <input type="text" class="form-control" id="dns_name" name="dns_name" placeholder="example.com" required>
-                <div class="validation-message">This field is required.</div>
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-dns text-brand"></i> DNS Management
+        </h4>
+    </div>
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <span class="text-slate-500 text-xs font-medium">Select a domain below to manage its DNS zone records</span>
             </div>
-            <div class="form-group">
-                <label for="dns_value" id="labelValue">Address</label>
-                <input type="text" class="form-control" id="dns_value" name="dns_value" placeholder="203.0.113.11" required>
-                <div class="validation-message">This field is required.</div>
+            <div>
+                <form id="dnsSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="dnsSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search domain..." autocomplete="off">
+                        <button type="button" id="clearDnsSearchBtn" onclick="clearDnsSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
             </div>
-			<div class="form-group" id="priox" style="display:none;">
-                <label for="dns_value" id="labelValue">Priority</label>
-                <input type="text" class="form-control" id="prio" name="prio" placeholder="203.0.113.11" value="{{ dns.prio }}" required>
-                
-            </div>
         </div>
-		
-		
-        <div class="modal-footer">
-		<input type="hidden" name="id" id="id" value=""/>
-		<input type="hidden" name="type" id="type" value=""/>
-            <button class="btn btn-primary" type="submit" id="dnsSubmit">Add Record</button>
-            <button type="button" class="btn btn-link" onclick="closeDialog()">Cancel</button>
+
+        <!-- DNS Domains Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">Domain</th>
+                        <th class="px-3.5 py-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="dnsTableBody" class="divide-y divide-slate-100">
+                    {% for domain in domains %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5">
+                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="font-bold text-brand hover:underline">
+                                {{ domain.domain }}
+                            </a>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right">
+                            <a href="{% url 'dns_list_all' domain.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                <i class="mdi mdi-dns"></i> Manage Records
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="px-3.5 py-6 text-center text-slate-400">No domains found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </form>
+    </div>
 </div>
-
-<div class="card card-default">
-      <div class="card-header">
-        <h2>List of Domains Dns</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-  
-  
-<div class="d-flex justify-content-end">
-    <form action="{% url 'dns_all' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
-        </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	
-	</div>
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-           <tr>
-                <th>Domain</th>
-                
-               
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="domainTable">
-            {% for domain in domains %}
-            <tr>
-                <td>{{ domain.domain }}</td>
-               
-               
-				<td class="action-buttons" data-title="Actions">
-                       
-                        <!-- ngIf: list.Features.dnssec -->
-                        <a href="{% url 'dns_list_all' domain.id %}" class="btn btn-outline-primary btn-sm"><span class="fas fa-wrench" aria-hidden="true"></span> Manage</a>
-                    </td>
-               
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
-</div>
-
-
-
-
-
-<style>
-.modal-content {
-    display: none; /* Hidden by default */
-    background-color: white;
-    border-radius: 8px;
-    padding: 20px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-}
-
-.modal-header h4 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.modal-body {
-    margin-top: 20px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 5px
-
-
-</style>
 
 <script>
-    function openDialog(recordType,id,domain) {
-        // Show the modal
-        document.getElementById('dnsModal').style.display = 'block';
+const dnsSearchInput = document.getElementById("dnsSearchInput");
+const clearDnsBtn = document.getElementById("clearDnsSearchBtn");
+const dnsTableBody = document.getElementById("dnsTableBody");
 
-        // Change the title and placeholders based on the clicked button
-        let modalTitle = document.getElementById('modalTitle');
-        let labelValue = document.getElementById('labelValue');
-        let dnsValue = document.getElementById('dns_value');
-		let idvalue = document.getElementById('id');
-		let type = document.getElementById('type');
-		let priox = document.getElementById('priox');
-		idvalue.value= id;
-		type.value= recordType;
+function performDnsSearch(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = dnsTableBody ? Array.from(dnsTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
 
-        // Update the modal content based on the record type
-        switch (recordType) {
-            case 'A':
-                modalTitle.textContent = 'Add an A Record for '+domain;
-                labelValue.textContent = 'Address';
-                dnsValue.placeholder = '203.0.113.11';
-				priox.style.display = 'none';
-                break;
-            case 'MX':
-                modalTitle.textContent = 'Add an MX Record for '+domain;
-                labelValue.textContent = 'Mail Server Address';
-                dnsValue.placeholder = 'mail.example.com';
-				priox.style.display = 'block';
-                break;
-            case 'CNAME':
-                modalTitle.textContent = 'Add a CNAME Record for '+domain;
-                labelValue.textContent = 'CNAME';
-                dnsValue.placeholder = 'example.com';
-				priox.style.display = 'none';
-                break;
+    if (clearDnsBtn) {
+        clearDnsBtn.style.display = q ? "block" : "none";
+    }
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noDnsSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noDnsSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="2" class="px-3.5 py-4 text-center text-slate-400">No domains match "<strong>${q}</strong>"</td>`;
+            dnsTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    if (q) {
+        sessionStorage.setItem("whm_dns_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_dns_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
+}
+
+function clearDnsSearch() {
+    if (dnsSearchInput) {
+        dnsSearchInput.value = "";
+        performDnsSearch("");
+        dnsSearchInput.focus();
+    }
+}
+
+let dnsDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (dnsSearchInput) {
+        dnsSearchInput.addEventListener("input", function () {
+            clearTimeout(dnsDebounceTimer);
+            const val = this.value;
+            dnsDebounceTimer = setTimeout(() => {
+                performDnsSearch(val);
+            }, 100);
+        });
+
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_dns_search") || "";
+        if (savedQuery) {
+            dnsSearchInput.value = savedQuery;
+            performDnsSearch(savedQuery);
         }
     }
-
-    function closeDialog() {
-        // Hide the modal
-        document.getElementById('dnsModal').style.display = 'none';
-    }
+});
 </script>
 
-
-
 {% endblock content %}
-
-{% include "whm/footer.html" %}

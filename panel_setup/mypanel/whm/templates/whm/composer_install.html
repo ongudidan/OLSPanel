@@ -1,65 +1,101 @@
 {% extends "whm/base.html" %}
 {% block title %}Composer{% endblock title %}
 {% block content %}
-<div class="row">
-    <div class="col-12 col-md-8 col-lg-6">
-        <div class="card shadow rounded-3 border-0">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0">Composer</h4>
+
+<div class="max-w-xl space-y-5">
+    <!-- Main Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-white border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-800">Global PHP Composer</h1>
+                    <p class="text-xs text-slate-500">Manage PHP package dependencies and CLI tool</p>
+                </div>
             </div>
-            <div class="card-body text-center">
-                <img src="/media/icon/composer.png" alt="Composer Logo" class="img-fluid my-4" style="max-width: 180px;">
+        </div>
 
-                {% if install_available %}
-                    <div class="alert alert-success rounded-3 py-3 px-4 mx-auto" role="alert" style="max-width: 500px;">
-                        <strong>Composer is already installed.</strong><br>
-                        You can start using it from your <strong class="text-decoration-underline">user dashboard</strong>.<br>
-                       
-                    </div>
-                {% else %}
-                    <div class="alert alert-danger rounded-3 py-3 px-4 mx-auto" role="alert" style="max-width: 500px;">
-                        Composer is not installed yet.
-                    </div>
-                    <div class="form-group mt-3">
-                        <button id="save" class="btn btn-primary btn-lg">Install Composer</button>
-                    </div>
-                {% endif %}
+        <div class="p-8 text-center space-y-5">
+            <div class="flex justify-center">
+                <img src="/media/icon/composer.png" alt="Composer" class="max-h-12 object-contain">
+            </div>
 
-                <div class="form-group d-none">
-                    {% csrf_token %}
+            {% if install_available %}
+                <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-left">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h2 class="text-xs font-semibold text-emerald-800">Composer is installed globally</h2>
+                            <p class="text-xs text-emerald-600 mt-0.5">Available at <code class="font-mono px-1 py-0.5 bg-emerald-100/70 rounded text-[11px]">/usr/bin/composer</code> for terminal CLI and web application builds.</p>
+                        </div>
+                    </div>
                 </div>
-
-                <div id="responseContainer" class="sk-wave my-4" style="display: none;">
-                    <div class="rect1"></div>
-                    <div class="rect2"></div>
-                    <div class="rect3"></div>
-                    <div class="rect4"></div>
-                    <div class="rect5"></div>
+            {% else %}
+                <p class="text-xs text-slate-500 max-w-md mx-auto">
+                    Install Composer binary globally into <code class="font-mono px-1 py-0.5 bg-slate-100 rounded text-[11px] text-slate-700">/usr/bin/composer</code> to manage PHP package dependencies across all domains.
+                </p>
+                <div>
+                    <button type="button" id="installComposerBtn" class="inline-flex items-center gap-1.5 px-6 py-2.5 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        <span>Install Global Composer</span>
+                    </button>
                 </div>
+            {% endif %}
 
-                <div id="alertContainer" class="alert alert-success alert-dismissible fade show mt-3" role="alert" style="display: none;">
-                    <div id="message"></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <div class="hidden">
+                {% csrf_token %}
+            </div>
+
+            <!-- Loading Response -->
+            <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-700 rounded-lg text-xs flex items-center justify-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-sky-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Downloading and installing Composer binary, please wait...</span>
+            </div>
+
+            <!-- Alert Container -->
+            <div id="alertContainer" class="hidden p-4 rounded-xl border text-xs" role="alert">
+                <div class="flex items-center justify-between">
+                    <div id="message" class="font-medium"></div>
+                    <button type="button" onclick="this.parentElement.parentElement.classList.add('hidden');" class="text-slate-400 hover:text-slate-600 cursor-pointer text-base leading-none">&times;</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-
 <script>
-document.getElementById('save').addEventListener('click', function(event) {
-    event.preventDefault();
-    install_soft();
-});
+const compBtn = document.getElementById('installComposerBtn');
+if (compBtn) {
+    compBtn.addEventListener('click', function(event) {
+        event.preventDefault();
+        installComp();
+    });
+}
 
-function install_soft() {
+function installComp() {
     const responseDisplay = document.getElementById('responseContainer');
     const alertContainer = document.getElementById('alertContainer');
     const messageDisplay = document.getElementById('message');
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
 
-    responseDisplay.style.display = 'inline-block';
+    if (compBtn) {
+        compBtn.disabled = true;
+        compBtn.innerHTML = `<svg class="animate-spin h-3.5 w-3.5 inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Installing...</span>`;
+    }
+    if (responseDisplay) responseDisplay.classList.remove('hidden');
+    if (alertContainer) alertContainer.classList.add('hidden');
 
     fetch("{% url 'install_composer' %}", {
         method: 'POST',
@@ -67,41 +103,39 @@ function install_soft() {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': csrfToken
         },
-        body: new URLSearchParams({ 'domain': "ok" }) // optional payload
+        body: new URLSearchParams({ 'domain': "ok" })
     })
     .then(response => response.json())
     .then(data => {
-        responseDisplay.style.display = 'none';
-
-        if (data.status === 'success') {
-            alertContainer.className = "alert alert-success alert-dismissible fade show";
-            messageDisplay.innerText = typeof data.message === 'object' 
-                ? JSON.stringify(data.message, null, 2) 
-                : data.message || "Composer installed successfully.";
-        } else {
-            alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = typeof data.message === 'object'
-                ? JSON.stringify(data.message, null, 2)
-                : data.message || "Composer installation failed.";
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = (data.status === 'success') 
+                ? "p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs" 
+                : "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-xs";
+            messageDisplay.innerText = typeof data.message === 'object' ? JSON.stringify(data.message) : (data.message || "Composer installed successfully.");
+            alertContainer.classList.remove('hidden');
         }
-
-        alertContainer.style.display = "block";
-
-        // Reload page after 3 seconds
-        setTimeout(() => location.reload(), 3000);
+        if (data.status === 'success') {
+            setTimeout(() => location.reload(), 2000);
+        } else if (compBtn) {
+            compBtn.disabled = false;
+            btn.innerHTML = `<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install Global Composer</span>`;
+        }
     })
     .catch(error => {
-        console.error('Installation error:', error);
-        responseDisplay.style.display = 'none';
-        alertContainer.className = "alert alert-danger alert-dismissible fade show";
-        messageDisplay.innerText = "Composer installation failed due to network or server error.";
-        alertContainer.style.display = "block";
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-xs";
+            messageDisplay.innerText = "Installation error: " + error.toString();
+            alertContainer.classList.remove('hidden');
+        }
+        if (compBtn) {
+            compBtn.disabled = false;
+            compBtn.innerHTML = `<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> <span>Install Global Composer</span>`;
+        }
     });
 }
-
-
 </script>
-
 
 {% include "whm/footer.html" %}
 {% endblock content %}

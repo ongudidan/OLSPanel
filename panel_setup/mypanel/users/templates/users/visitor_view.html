@@ -1,71 +1,44 @@
 {% extends "users/base.html" %}
-{% block title %}Visitors{% endblock title %}
+{% block title %}Website Access Log{% endblock title %}
 {% block content %}
 
-<div class="card card-default">
-      <div class="card-header">
-        <h2>List Visitors</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-    <div class="row">
-  
-<div class="col-xl-6 d-flex justify-content-end">
-    
-	</div>
-	</div>
-<div class="table-responsive">
-<div class="conthentshow">
-   <pre>
-   {{ content }}
-   
-   </pre>
-   </div>
-    <!-- No Results Message -->
-  
-</div>
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-account-group-outline text-brand text-base"></i> Website Access Log: <span class="font-mono text-brand">{{ domain.domain|default:"" }}</span>
+        </h4>
+        <div class="flex items-center gap-2">
+            <button type="button" onclick="copyLogContent();" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer" id="copyBtn">
+                <i class="mdi mdi-content-copy"></i> Copy Log
+            </button>
+            <a href="{% url 'visitor_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Domains
+            </a>
+        </div>
+    </div>
+    <div class="p-4">
+        <div class="bg-slate-950 text-slate-200 p-4 rounded-lg font-mono text-xs overflow-x-auto leading-relaxed border border-slate-800 shadow-inner max-h-[600px] overflow-y-auto">
+            <pre class="m-0 whitespace-pre-wrap break-words text-[11px]" id="logText">{{ content|default:"No visitor log entries found." }}</pre>
+        </div>
+    </div>
 </div>
 
-<style>
-.conthentshow {
-    background: #2d2d2d;
-    color: #f8f8f2;
-    padding: 15px;
-    border-radius: 8px;
-    font-family: "Courier New", monospace;
-    font-size: 14px;
-    white-space: pre-wrap; /* Preserve new lines */
-    word-wrap: break-word;
-    overflow-x: auto;
-    line-height: 1.5;
+<script>
+function copyLogContent() {
+    const text = document.getElementById("logText")?.innerText || "";
+    if (navigator.clipboard && text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById("copyBtn");
+            if (btn) {
+                btn.innerHTML = '<i class="mdi mdi-check text-emerald-600"></i> Copied!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="mdi mdi-content-copy"></i> Copy Log';
+                }, 2000);
+            }
+        });
+    }
 }
-
-
-
-.conthentshow pre {
-    display: block;
-    position: relative;
-    padding-left: 2.5em;
-    margin: 0;
-	color: #ffffff !important;
-}
-
-.conthentshow pre::before {
-    counter-increment: linenumber;
-    content: counter(linenumber);
-    position: absolute;
-    left: 5px;
-    top: 0;
-    color: #75715e;
-    font-size: 12px;
-}
-
-
-
-</style>
-{% endblock content %}
+</script>
 
 {% include "users/footer.html" %}
+{% endblock content %}

@@ -277,25 +277,31 @@ class CustomLoginView(LoginView):
         username = form.cleaned_data.get("username")
         password = form.cleaned_data.get("password")
         settings, _ = UserSettings.objects.get_or_create(userid=user.id)
-        if settings.two_step == 1 and not otp_code:
-            
-            
-    
+        has_totp = (settings.two_step == 1)
+        has_passkeys = UserPasskey.objects.filter(user=user).exists()
+
+        if (has_totp or has_passkeys) and not otp_code:
+            self.request.session['pending_2fa_username'] = username
+            self.request.session.modified = True
             return render(self.request, "users/otp.html", {
-            "username": username,
-            "password": password,
-            "need_otp": True
+                "username": username,
+                "password": password,
+                "need_otp": True,
+                "has_totp": has_totp,
+                "has_passkeys": has_passkeys,
             })
-            
-            
-        if settings.two_step == 1 and otp_code:
-            if not authenticator.verify_code(settings.secret, otp_code):
+
+        if (has_totp or has_passkeys) and otp_code:
+            if not has_totp or not settings.secret or not authenticator.verify_code(settings.secret, otp_code):
                 messages.error(self.request, "Invalid OTP code. Try again.")
                 return render(self.request, "users/otp.html", {
                     "username": username,
                     "password": password,
-                    "need_otp": True
-                })    
+                    "need_otp": True,
+                    "has_totp": has_totp,
+                    "has_passkeys": has_passkeys,
+                })
+
             
         user_data = get_user_data_by_id(user.id)
         whm = user_data.get('whm', 0)
@@ -539,8 +545,8 @@ def sub_domain(request):
 @login_required
 @admincheck
 def domain_list(request):
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
         domains = Domain.objects.filter(userid=request.user.id, domain__icontains=search_query)
     else:
         domains = Domain.objects.filter(userid=request.user.id)
@@ -564,94 +570,71 @@ def domain_list(request):
     else: 
         domain_pre = True
         
-            
-    return render(request, 'users/domain_list.html', {'domains': domain_list,'domain_pre': domain_pre})
+    return render(request, 'users/domain_list.html', {'domains': domain_list, 'domain_pre': domain_pre, 'search_query': search_query})
  
 
 
 @login_required
 @admincheck
 def domain_list_ssl(request):
-    domains = []  # Initialize domains to avoid UnboundLocalError
+    domains = []
 
-    if request.method == 'POST':
-        if 'search' in request.POST:
-            search_query = request.POST.get('search', '')
-            domains = Domain.objects.filter(userid=request.user.id, domain__icontains=search_query)
-        elif 'id' in request.POST:
-            # Handle the task when 'id' is present in POST data
-            rid = request.POST.get('id', '')
-            domain_obj = Domain.objects.get(id=rid)  # Fetch the domain object by ID
-            domain_name = domain_obj.domain
-            path = domain_obj.path
-            success = issue_ssl_certificate(domain_name, path)  # Using dynamic domain and path
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
 
-            if success:
-                restart_openlitespeed()
-                messages.success(request, f'SSL issue for "{domain_name}" has been successful.')
-            else:
-                create_self_signed_ssl(domain_name)
-                restart_openlitespeed()
-                messages.error(request, f'Failed to issue SSL for "{domain_name}".')
+    if request.method == 'POST' and 'id' in request.POST:
+        # Handle the task when 'id' is present in POST data
+        rid = request.POST.get('id', '')
+        domain_obj = Domain.objects.get(id=rid)  # Fetch the domain object by ID
+        domain_name = domain_obj.domain
+        path = domain_obj.path
+        success = issue_ssl_certificate(domain_name, path)  # Using dynamic domain and path
 
-            return redirect('/domain_list_ssl')  # Redirect after the action completes
+        if success:
+            restart_openlitespeed()
+            messages.success(request, f'SSL issue for "{domain_name}" has been successful.')
+        else:
+            create_self_signed_ssl(domain_name)
+            restart_openlitespeed()
+            messages.error(request, f'Failed to issue SSL for "{domain_name}".')
 
+        return redirect('/domain_list_ssl')  # Redirect after the action completes
     else:
-        domains = Domain.objects.filter(userid=request.user.id)
-        
-        
-        
+        if search_query:
+            domains = Domain.objects.filter(userid=request.user.id, domain__icontains=search_query)
+        else:
+            domains = Domain.objects.filter(userid=request.user.id)
 
     if domains:
-
         new_domains = []
-
         for domain in domains:
-
             # main domain SSL
             ssl_details = get_ssl_details(domain.domain)
-
             domain.ssl = ssl_details['expiration_date']
             domain.type = ssl_details['certificate_validity']
-
             new_domains.append(domain)
-
 
             # create www / non-www version for display
             if domain.domain.startswith("www."):
-
                 alt = domain.domain[4:]
                 alt_id = str(domain.id)
-
             else:
-
                 alt = "www." + domain.domain
                 alt_id = "w"+str(domain.id)
 
-
             fake = Domain()
-
-            fake.id = alt_id   # example 10w
-
+            fake.id = alt_id
             fake.domain = alt
-
             fake.path = domain.path
-
             ssl_details = get_ssl_details(alt)
-
             fake.ssl = ssl_details['expiration_date']
-
             fake.type = ssl_details['certificate_validity']
-
             new_domains.append(fake)
-
 
         domains = new_domains
 
-            
-
     return render(request, 'users/domain_list_ssl.html', {
         'domains': domains,
+        'search_query': search_query,
     })
 
 
@@ -698,16 +681,21 @@ def domain_list_ssl_first(request, pk):
 @admincheck
 def multi_php_manager(request):
     php_versions = get_php_versions()  # Fetch the PHP versions
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
 
-    # Initialize the domain list
-    domains = Domain.objects.filter(userid=request.user.id)
+    if search_query:
+        domains = Domain.objects.filter(domain__icontains=search_query, userid=request.user.id)
+    else:
+        domains = Domain.objects.filter(userid=request.user.id)
 
     # Handle POST request
     if request.method == 'POST':
         # Search functionality
         if 'search' in request.POST:
-            search_query = request.POST.get('search', '')
-            domains = Domain.objects.filter(domain__icontains=search_query, userid=request.user.id)
+            if search_query:
+                domains = Domain.objects.filter(domain__icontains=search_query, userid=request.user.id)
+            else:
+                domains = Domain.objects.filter(userid=request.user.id)
         # PHP version update functionality
         elif 'php_version' in request.POST:
             php_version = request.POST.get('php_version', None)
@@ -720,9 +708,9 @@ def multi_php_manager(request):
                 Domain.objects.filter(id__in=selected_domains, userid=request.user.id).update(php=php_version)
                 
                 # Perform additional actions related to PHP version change
-                for domain_id in selected_domains:
-                    domain_name = Domain.objects.get(id=domain_id).domain  # Fetch the domain name by ID
-                    change_php_version(domain_name, domain_name+'' + new_php_version, new_php_version)
+                domain_objs = Domain.objects.filter(id__in=selected_domains, userid=request.user.id)
+                for d_obj in domain_objs:
+                    change_php_version(d_obj.domain, d_obj.domain + '' + new_php_version, new_php_version)
 
                 # Restart OpenLiteSpeed after the change, outside the loop
                 restart_openlitespeed()
@@ -734,7 +722,11 @@ def multi_php_manager(request):
             domains = Domain.objects.filter(userid=request.user.id)
 
     # Render the template with the current domain list and PHP versions
-    return render(request, 'users/multi_php_manager.html', {'domains': domains, 'php_versions': php_versions})
+    return render(request, 'users/multi_php_manager.html', {
+        'domains': domains,
+        'php_versions': php_versions,
+        'search_query': search_query,
+    })
 
   
     
@@ -1174,27 +1166,27 @@ def db_edit(request, db):
 @login_required
 @admincheck
 def dns(request):
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
         # Use __icontains for case-insensitive partial match
         domains = Domain.objects.filter(userid=request.user.id, domain__icontains=search_query)
     else:
         domains = Domain.objects.filter(userid=request.user.id)
 
-    return render(request, 'users/dns.html', {'domains': domains})
+    return render(request, 'users/dns.html', {'domains': domains, 'search_query': search_query})
 
 
 @login_required
 @admincheck
-def dns_list(request,rid):
-    if request.method == 'POST':
-        search_query = request.POST.get('search', '')
+def dns_list(request, rid):
+    search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
+    if search_query:
         # Use __icontains for case-insensitive partial match
-        dnss = Dns_record.objects.filter(userid=request.user.id, name__icontains=search_query,domain_id=rid)
+        dnss = Dns_record.objects.filter(userid=request.user.id, name__icontains=search_query, domain_id=rid)
     else:
-        dnss = Dns_record.objects.filter(userid=request.user.id,domain_id=rid)
+        dnss = Dns_record.objects.filter(userid=request.user.id, domain_id=rid)
 
-    return render(request, 'users/dns_list.html', {'dnss': dnss,'rid': rid})
+    return render(request, 'users/dns_list.html', {'dnss': dnss, 'rid': rid, 'search_query': search_query})
 
 
 @login_required
@@ -3854,8 +3846,123 @@ def google_otp(request):
     return render(request, "users/setup_2fa.html", {
         "qr_url": qr_url,
         "secret": secret,
-        "is_enabled": settings.two_step
+        "is_enabled": settings.two_step,
     })
+
+
+@login_required
+@admincheck
+def users_passkeys(request):
+    passkeys = UserPasskey.objects.filter(user=request.user).order_by("-created_at")
+    return render(request, "users/passkeys.html", {
+        "passkeys": passkeys,
+    })
+
+
+# ==========================================
+# WEBAUTHN / PASSKEY 2FA API ENDPOINTS
+# ==========================================
+
+@login_required
+def passkey_register_options(request):
+    try:
+        from users import passkey
+        options = passkey.generate_reg_options(request, request.user)
+        return JsonResponse(options)
+    except Exception as e:
+        logger.error(f"Error generating passkey registration options: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@login_required
+def passkey_register_verify(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    try:
+        from users import passkey
+        data = json.loads(request.body)
+        credential = data.get("credential")
+        name = data.get("name", "Security Key / Passkey")
+        passkey.verify_reg_response(request, request.user, credential, name)
+        messages.success(request, f"Passkey '{name}' registered successfully!")
+        return JsonResponse({"status": "success", "message": f"Passkey '{name}' registered successfully!"})
+    except Exception as e:
+        logger.error(f"Error verifying passkey registration: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+@login_required
+def passkey_delete(request, passkey_id):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    try:
+        pk = UserPasskey.objects.get(id=passkey_id, user=request.user)
+        pk_name = pk.name
+        pk.delete()
+        messages.success(request, f"Passkey '{pk_name}' deleted.")
+        return JsonResponse({"status": "success", "message": f"Passkey '{pk_name}' deleted."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+
+def passkey_auth_options(request):
+    try:
+        from users import passkey
+        username = request.GET.get("username") or request.session.get("pending_2fa_username")
+        if not username:
+            return JsonResponse({"status": "error", "message": "Username required"}, status=400)
+        user = User.objects.filter(username=username).first()
+        if not user:
+            return JsonResponse({"status": "error", "message": "User not found"}, status=404)
+        options = passkey.generate_auth_options(request, user)
+        if not options:
+            return JsonResponse({"status": "error", "message": "No passkeys registered for this user"}, status=400)
+        request.session['pending_2fa_username'] = user.username
+        request.session.modified = True
+        return JsonResponse(options)
+    except Exception as e:
+        logger.error(f"Error generating passkey auth options: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
+
+
+def passkey_auth_verify(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST required"}, status=405)
+    try:
+        from users import passkey
+        data = json.loads(request.body)
+        credential = data.get("credential")
+        username = data.get("username") or request.session.get("pending_2fa_username")
+        if not username:
+            return JsonResponse({"status": "error", "message": "Session expired, please login again"}, status=400)
+        user = User.objects.filter(username=username).first()
+        if not user:
+            return JsonResponse({"status": "error", "message": "User not found"}, status=404)
+        
+        passkey.verify_auth_response(request, user, credential)
+
+        user_data = get_user_data_by_id(user.id)
+        whm = user_data.get('whm', 0)
+        
+        if whm == 1:
+            request.admin_session['_auth_user_id'] = str(user.id)
+            request.admin_session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+            request.admin_session.modified = True
+            redirect_url = '/whm/'
+        else:
+            login(request, user)
+            request.session.modified = True
+            redirect_url = '/'
+
+        # Clear pending session variable
+        request.session.pop('pending_2fa_username', None)
+        request.session.modified = True
+
+        return JsonResponse({"status": "success", "redirect_url": redirect_url})
+    except Exception as e:
+        logger.error(f"Error verifying passkey authentication: {e}")
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)
 
 
 

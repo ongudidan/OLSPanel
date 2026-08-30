@@ -2,25 +2,24 @@
 {% block title %}Composer Not Installed{% endblock title %}
 
 {% block content %}
-
-<div class="card card-default mt-4">
-    <div class="card-header bg-warning text-dark">
-        <h2>Composer Not Installed</h2>
-    </div>
-    <div class="card-body">
-	<br/>
-        <p class="lead">
-            Composer is not installed on this server. You cannot run Composer  applications at this time.
-        </p>
-        <p>
-            Please contact your system administrator to install Composer before proceeding.
-        </p>
-        <div class="text-center mt-4">
-            <a href="/" class="btn btn-outline-primary">
-                <i class="mdi mdi-arrow-left"></i> Back to Dashboard
+<div class="max-w-xl mx-auto py-8">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center p-8 space-y-4">
+        <div class="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600">
+            <i class="mdi mdi-package-variant text-3xl"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-900 m-0">Composer is Not Installed</h3>
+            <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed">
+                PHP Composer dependency manager is not installed on this server. Please contact your system administrator to install Composer.
+            </p>
+        </div>
+        <div class="pt-2">
+            <a href="/" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Return to Dashboard
             </a>
         </div>
     </div>
 </div>
 
+{% include "users/footer.html" %}
 {% endblock content %}

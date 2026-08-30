@@ -451,12 +451,19 @@ def get_security_plugins_list():
             'sorder': 10,
         },   
         {
-            'name': 'Two-Factor ',
+            'name': 'Two-Factor',
             'icon': '/media/icon/2fa.svg',
             'url': reverse('whm_google_otp'),
             'sorder': 11,
         },
+        {
+            'name': 'Passkeys',
+            'icon': '/media/icon/passkey.svg',
+            'url': reverse('whm_passkeys'),
+            'sorder': 12,
+        },
     ])
+
 
     
 

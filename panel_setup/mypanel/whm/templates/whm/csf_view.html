@@ -1,119 +1,97 @@
 {% extends "whm/base.html" %}
-{% block title %}ConfigServer Security and Firewall{% endblock title %}
+{% block title %}ConfigServer Security & Firewall{% endblock title %}
 {% block content %}
 
+<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
+    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>Removing CSF, please wait...</span>
+</div>
 
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">CSF Removing, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
     <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-	
-
-	
-
-
- <div class="card card-default">
-    {% csrf_token %}   
-    
-   <div class="card-body">
-   <br/>
-  <div class="alert alert-warning alert-dismissible fade show" role="alert">
-  <strong>Notice:</strong> CSF will reach end of life on <strong>31 August 2025</strong> and will no longer receive updates.
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
 </div>
 
-    <div class="row">
-  
-<div class="col-xl-6 d-flex justify-content-end">
-  
-  <button type="button" onclick="confirmRemoveCSF()" class="btn btn-danger">Remove CSF</button>
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    {% csrf_token %}
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-shield-lock-outline text-brand"></i> ConfigServer Security &amp; Firewall (CSF)
+        </h4>
+        <div>
+            <button type="button" onclick="confirmRemoveCSF()" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-md shadow-xs transition-colors">
+                <i class="mdi mdi-trash-can-outline"></i> Uninstall CSF
+            </button>
+        </div>
+    </div>
+    <div class="p-4">
+        <div class="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs mb-4" role="alert">
+            <span class="font-bold">Notice:</span> CSF will reach end of life on <span class="font-semibold">31 August 2025</span> and will no longer receive updates.
+        </div>
 
-
-
-	</div>
-	
-	</div>
-	
-	
- 
-<div class="table-responsive">
- <iframe border="0" name='myiframe' id='myiframe' src="{% url 'configservercsfiframe' %}" style="width: 100%;" frameborder="0" onload="resizeIframe(this);"></iframe>
-
-   
-</div>
-    <!-- No Results Message -->
-  
-
-</div>
+        <div class="border border-slate-200 rounded-lg overflow-hidden">
+            <iframe border="0" name="myiframe" id="myiframe" src="{% url 'configservercsfiframe' %}" class="w-full min-h-[520px] border-0" onload="resizeIframe(this);"></iframe>
+        </div>
+    </div>
 </div>
 
+<script>
+function resizeIframe(obj) {
+    try {
+        obj.style.height = (obj.contentWindow.document.body.scrollHeight + 30) + 'px';
+    } catch(e) {}
+}
 
- <script>
-  function resizeIframe(obj) {
-    obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
-	window.scrollTo(0,0);
-  }
-  window.parent.parent.scrollTo(0,0);
-  
-  
-  
 function confirmRemoveCSF() {
     if (confirm("Are you sure you want to uninstall CSF? This action will re-enable UFW and remove CSF completely.")) {
-      removeCSF();
+        removeCSF();
     }
-  }
+}
 
- async function removeCSF() {
-		const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-		const responseDisplay = document.getElementById('responseContainer');
-		const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
-		
-  		responseDisplay.style.display = 'inline-block';
-            const response = await fetch("{% url 'csf_remove'%}", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-					 'X-CSRFToken': csrfToken,
-                }
-            });
+async function removeCSF() {
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
 
-            const data = await response.json();
-            if (response.ok) {
-			responseDisplay.style.display = 'none';
-			 alertContainer.className = "alert alert-success alert-dismissible fade show";
-            messageDisplay.innerText = data.output; 
-               window.location.href = '/';
-            } else {
-			responseDisplay.style.display = 'none';
-                
-			alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = "Error: " + data.error;
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (alertContainer) alertContainer.style.display = 'none';
+
+    try {
+        const response = await fetch("{% url 'csf_remove' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": csrfToken,
             }
-        } 
-</script>
-{% endblock content %}
+        });
 
-{% include "whm/footer.html" %}
+        const data = await response.json();
+        if (responseDisplay) responseDisplay.style.display = 'none';
+
+        if (response.ok) {
+            if (alertContainer && messageDisplay) {
+                alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4";
+                messageDisplay.innerText = data.output || "CSF removed successfully.";
+                alertContainer.style.display = "flex";
+            }
+            setTimeout(() => { window.location.href = '/whm/'; }, 2000);
+        } else {
+            if (alertContainer && messageDisplay) {
+                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+                messageDisplay.innerText = "Error: " + (data.error || "Removal failed.");
+                alertContainer.style.display = "flex";
+            }
+        }
+    } catch (err) {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = "Request failed: " + err.toString();
+            alertContainer.style.display = "flex";
+        }
+    }
+}
+</script>
+
+{% endblock content %}

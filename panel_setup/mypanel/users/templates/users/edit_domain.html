@@ -1,47 +1,68 @@
 {% extends "users/base.html" %}
-{% block title %}Manage domain{% endblock title %}
+{% block title %}Manage Domain - {{ domain.domain|default:domain }}{% endblock title %}
 {% block content %}
 
-<div class="card card-default">
-      <div class="card-header">
-        <h2>Edit Domain</h2>
-        
-
-      </div>
-      <div class="card-body">
-    <form method="post"  enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-row">
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Domain:</label>
-                    <input type="text" id="path"  class="form-control" value="{{ domain }}" readonly>
-                </div>
-				 <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Document Root (File System Location):</label>
-				  <div class="input-group mb-2 mr-sm-2">
-				 
-            <div class="input-group-prepend">
-			
-              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
-            </div>
-            <input type="text" id="path" name="path" class="form-control" value="{{ relevant_path }}">
-          </div>
-				 
-				
-				
-				
-            </div>
+<div class="max-w-2xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-web text-brand text-base"></i> Manage Domain Configuration
+            </h4>
+            <a href="{% url 'domain_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Domains
+            </a>
         </div>
-        <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Save domain</button>
-    </form>
-	
-	
-	<form action="{% url 'domain_delete' domain.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this domain?');">Remove Domain</button>
-                    </form>
-</div>
+
+        <div class="p-5">
+            <form method="post" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+
+                <!-- Domain Name (Readonly) -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Domain Name</label>
+                    <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-700 font-mono font-bold cursor-not-allowed" value="{{ domain }}" readonly>
+                </div>
+
+                <!-- Document Root Path -->
+                <div>
+                    <label for="path" class="block text-xs font-semibold text-slate-700 mb-1">Document Root (Home Path)</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md">
+                            <i class="mdi mdi-folder-outline text-xs"></i>
+                        </span>
+                        <input type="text" id="path" name="path" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{{ relevant_path }}" required>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Relative file system path where website files are served from.</p>
+                </div>
+
+                <!-- Save Action -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Save Domain Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danger Zone: Remove Domain -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider m-0 flex items-center gap-2">
+                <i class="mdi mdi-alert-outline text-red-500"></i> Danger Zone
+            </h4>
+        </div>
+        <div class="p-5 flex items-center justify-between flex-wrap gap-3">
+            <p class="text-xs text-slate-600 m-0">Remove this domain from the web server virtual host configuration.</p>
+            <form action="{% url 'domain_delete' domain.id %}" method="post" class="m-0" onsubmit="return confirm('Are you sure you want to permanently delete this domain?');">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-delete-forever"></i> Remove Domain
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
-{% endblock content %}
 {% include "users/footer.html" %}
+{% endblock content %}

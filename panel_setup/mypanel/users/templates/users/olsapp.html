@@ -1,26 +1,25 @@
 {% extends "users/base.html" %}
-{% block title %}OlsApp Not Installed{% endblock title %}
+{% block title %}Application Installer{% endblock title %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow rounded-3 border-0">
-                <div class="card-header text-center bg-light border-bottom">
-                    <h3 class="mb-0">Install {{ name|default:"OlsApp" }}</h3>
-                </div>
-                <div class="card-body text-center">
-                    <div class="mb-4">
-                        <img src="/media/icon/softaculous.png" alt="OlsApp" class="img-fluid" style="max-width: 120px;">
-                    </div>
-                    <h5 class="text-danger mb-3">❌ OlsApp is not installed.</h5>
-                    <p class="text-muted">
-                        If you believe this is an error or you'd like to install OlsApp, please contact your administrator.
-                    </p>
-                    <a href="/" class="btn btn-outline-primary mt-3">← Back to Dashboard</a>
-                </div>
-            </div>
+<div class="max-w-xl mx-auto py-8">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center p-8 space-y-4">
+        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+            <i class="mdi mdi-package-variant-closed text-3xl"></i>
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-900 m-0">1-Click App Installer</h3>
+            <p class="text-xs text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed">
+                The automated 1-Click Application Installer ({{ name|default:"OlsApp" }}) is not currently enabled for your hosting plan. Please contact your system administrator to provision this extension.
+            </p>
+        </div>
+        <div class="pt-2">
+            <a href="/" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Return to Dashboard
+            </a>
         </div>
     </div>
 </div>
+
+{% include "users/footer.html" %}
 {% endblock content %}

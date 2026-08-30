@@ -2,131 +2,156 @@
 {% block title %}Brand Settings{% endblock title %}
 {% block content %}
 
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">×</span>
-    </button>
-</div>
+<div class="max-w-4xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div>
+                <h4 class="text-base font-semibold text-slate-900 m-0">Brand Settings</h4>
+                <p class="text-xs text-slate-500 m-0 mt-0.5">Customize your panel's identity, logo, and theme accent color</p>
+            </div>
+        </div>
 
-<form method="post" action="" enctype="multipart/form-data">
-    {% csrf_token %}
+        <form method="post" action="" enctype="multipart/form-data" class="divide-y divide-slate-100">
+            {% csrf_token %}
 
-    <div class="row">
-        <div class="col-xs-12 col-sm-8 col-md-8 col-lg-8">
-
-            <div class="card card-default">
-                <div class="card-header">
-                    <h2>Brand Settings</h2>
+            <!-- Brand Name Row -->
+            <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                    <label for="brand_title" class="block text-xs font-semibold text-slate-900">Brand Name</label>
+                    <span class="block text-[11px] text-slate-400 mt-0.5">Displayed on browser tabs, login page, and panel titles.</span>
                 </div>
-
-                <div class="card-body">
-
-                    <!-- BRAND TITLE -->
-                    <div class="form-group mt-3">
-                        <label for="brand_title">Brand Title:</label>
-                        <input type="text"
-                               class="form-control"
-                               id="brand_title"
-                               name="brand_title"
-                               placeholder="Enter brand title"
-                               value="{% if current_settings.brand_title is not None %}{{ current_settings.brand_title }}{% else %}Fortune Developers{% endif %}">
-                    </div>
-
-                    <!-- BRAND COLOR -->
-                    <div class="form-group mt-3">
-                        <label for="brand_color">Brand Color:</label>
-                        <input type="color"
-                               class="form-control"
-                               id="brand_color"
-                               name="brand_color"
-                               value="{{ current_settings.brand_color|default:'#ef6d19' }}"
-                               style="height:50px;">
-                    </div>
-
-                    <!-- BRAND LOGO -->
-                    <div class="form-group mt-4">
-                        <label for="brand_image">Brand Logo:</label>
-
-                        <input type="file"
-                               class="form-control"
-                               id="brand_image"
-                               name="brand_image"
-                               accept="image/*">
-
-                        {% if current_settings.brand_image %}
-                        <div class="mt-3">
-                            <img src="{{ current_settings.brand_image }}"
-                                 alt="Brand Logo"
-                                 style="max-height:100px;
-                                        border-radius:10px;
-                                        border:1px solid #ddd;
-                                        padding:5px;">
-                        </div>
-                        {% else %}
-                        <div class="mt-3">
-                            <img src="/media/ow.png"
-                                 alt="Default Logo"
-                                 style="max-height:100px;
-                                        border-radius:10px;
-                                        border:1px solid #ddd;
-                                        padding:5px;">
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <!-- BRAND ICON / FAVICON -->
-                    <div class="form-group mt-4">
-                        <label for="brand_icon">Brand Icon (Favicon):</label>
-
-                        <input type="file"
-                               class="form-control"
-                               id="brand_icon"
-                               name="brand_icon"
-                               accept="image/png,image/x-icon,image/jpeg,image/webp">
-
-                        <small class="text-muted">
-                            Recommended size: 32x32 or 64x64
-                        </small>
-
-                        {% if current_settings.brand_icon %}
-                        <div class="mt-3">
-                            <img src="{{ current_settings.brand_icon }}"
-                                 alt="Brand Icon"
-                                 style="height:64px;
-                                        width:64px;
-                                        object-fit:cover;
-                                        border-radius:12px;
-                                        border:1px solid #ddd;
-                                        padding:5px;">
-                        </div> 
-						{% else %}
-						
-						 <div class="mt-3">
-                            <img src="/media/logo.png"
-                                 alt="Brand Icon"
-                                 style="height:64px;
-                                        width:64px;
-                                        object-fit:cover;
-                                        border-radius:12px;
-                                        border:1px solid #ddd;
-                                        padding:5px;">
-                        </div> 
-						
-                        {% endif %}
-                    </div>
-
-                    <!-- SAVE BUTTON -->
-                    <button type="submit" class="btn btn-primary mt-4">
-                        Save Branding
-                    </button>
-
+                <div class="md:col-span-2 max-w-md">
+                    <input type="text" id="brand_title" name="brand_title" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="e.g. Fortune Developers" value="{% if current_settings.brand_title is not None %}{{ current_settings.brand_title }}{% else %}Fortune Developers{% endif %}">
                 </div>
             </div>
 
-        </div>
+            <!-- Accent Color Row -->
+            <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                    <label for="brand_color" class="block text-xs font-semibold text-slate-900">Accent Color</label>
+                    <span class="block text-[11px] text-slate-400 mt-0.5">The primary color used for buttons, active sidebar items, and links.</span>
+                </div>
+                <div class="md:col-span-2">
+                    <div class="flex items-center gap-3">
+                        <div class="relative w-9 h-9 rounded-md border border-slate-200 overflow-hidden shadow-xs shrink-0">
+                            <input type="color" id="brand_color" name="brand_color" class="absolute -inset-2 w-14 h-14 cursor-pointer border-0" value="{{ current_settings.brand_color|default:'#ef6d19' }}">
+                        </div>
+                        <div class="relative w-32">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400 text-xs font-mono">#</span>
+                            <input type="text" id="brand_color_hex" class="w-full pl-6 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-mono uppercase text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" value="{{ current_settings.brand_color|default:'#ef6d19'|slice:'1:' }}" maxlength="6">
+                        </div>
+                        <div class="flex items-center gap-1.5 pl-2 border-l border-slate-200">
+                            <button type="button" onclick="setBrandColor('#ef6d19')" class="w-5 h-5 rounded-full bg-[#ef6d19] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Orange"></button>
+                            <button type="button" onclick="setBrandColor('#2563eb')" class="w-5 h-5 rounded-full bg-[#2563eb] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Blue"></button>
+                            <button type="button" onclick="setBrandColor('#059669')" class="w-5 h-5 rounded-full bg-[#059669] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Green"></button>
+                            <button type="button" onclick="setBrandColor('#6366f1')" class="w-5 h-5 rounded-full bg-[#6366f1] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Indigo"></button>
+                            <button type="button" onclick="setBrandColor('#9333ea')" class="w-5 h-5 rounded-full bg-[#9333ea] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Purple"></button>
+                            <button type="button" onclick="setBrandColor('#334155')" class="w-5 h-5 rounded-full bg-[#334155] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Slate"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brand Logo Row -->
+            <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-900">Panel Logo</label>
+                    <span class="block text-[11px] text-slate-400 mt-0.5">Transparent PNG or SVG. Recommended max height 40px.</span>
+                </div>
+                <div class="md:col-span-2 space-y-3">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 px-4 bg-[#0b132b] rounded-md border border-slate-800 flex items-center justify-center shrink-0">
+                            {% if current_settings.brand_image %}
+                                <img id="logoPreview" src="{{ current_settings.brand_image }}" alt="Brand Logo" class="max-h-7 max-w-[140px] object-contain">
+                            {% else %}
+                                <img id="logoPreview" src="/media/ow.png" alt="Brand Logo" class="max-h-7 max-w-[140px] object-contain">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="brand_image" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-md shadow-xs cursor-pointer transition-colors">
+                                <i class="mdi mdi-upload"></i> Upload Logo
+                            </label>
+                            <input type="file" id="brand_image" name="brand_image" accept="image/*" class="hidden" onchange="previewImage(this, 'logoPreview')">
+                            <span id="logoFileName" class="block text-[11px] text-slate-400 mt-1">PNG, SVG, JPG, WebP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Favicon Row -->
+            <div class="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-900">Favicon</label>
+                    <span class="block text-[11px] text-slate-400 mt-0.5">Browser tab icon. Square 32x32px or 64x64px.</span>
+                </div>
+                <div class="md:col-span-2 space-y-3">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-slate-50 rounded-md border border-slate-200 flex items-center justify-center p-1 shrink-0 shadow-xs">
+                            {% if current_settings.brand_icon %}
+                                <img id="faviconPreview" src="{{ current_settings.brand_icon }}" alt="Favicon" class="w-7 h-7 object-contain">
+                            {% else %}
+                                <img id="faviconPreview" src="/media/logo.png" alt="Favicon" class="w-7 h-7 object-contain">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="brand_icon" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-md shadow-xs cursor-pointer transition-colors">
+                                <i class="mdi mdi-upload"></i> Upload Favicon
+                            </label>
+                            <input type="file" id="brand_icon" name="brand_icon" accept="image/png,image/x-icon,image/jpeg,image/webp,image/svg+xml" class="hidden" onchange="previewImage(this, 'faviconPreview')">
+                            <span id="faviconFileName" class="block text-[11px] text-slate-400 mt-1">Square PNG, ICO, SVG</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Action -->
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                    <i class="mdi mdi-check"></i> Save Changes
+                </button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
+
+<script>
+const colorPicker = document.getElementById('brand_color');
+const hexInput = document.getElementById('brand_color_hex');
+
+if (colorPicker && hexInput) {
+    colorPicker.addEventListener('input', function() {
+        hexInput.value = this.value.replace('#', '').toUpperCase();
+    });
+
+    hexInput.addEventListener('input', function() {
+        let val = this.value.trim().replace('#', '');
+        if (val.length === 6 && /^[0-9A-Fa-f]{6}$/.test(val)) {
+            colorPicker.value = '#' + val;
+        }
+    });
+}
+
+function setBrandColor(hex) {
+    if (colorPicker) colorPicker.value = hex;
+    if (hexInput) hexInput.value = hex.replace('#', '').toUpperCase();
+}
+
+function previewImage(input, previewId) {
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById(previewId);
+            if (preview) preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        const nameDisplay = document.getElementById(previewId === 'logoPreview' ? 'logoFileName' : 'faviconFileName');
+        if (nameDisplay) nameDisplay.textContent = file.name;
+    }
+}
+</script>
 
 {% include "whm/footer.html" %}
 {% endblock content %}

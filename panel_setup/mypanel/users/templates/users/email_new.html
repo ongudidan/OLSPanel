@@ -1,127 +1,114 @@
 {% extends "users/base.html" %}
-{% block title %}Create email{% endblock title %}
+{% block title %}Create Email Account{% endblock title %}
 {% block content %}
-<div class="card card-default">
-      <div class="card-header">
-        <h2>Create Email</h2>
-        
 
-      </div>
-      <div class="card-body">
-    <form method="post">
-	 
-    
-        {% csrf_token %}
-        <!-- Username Field -->
-		
-		 <div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
-            <select id="domainx" name="domain" class="form-control" style="width: 200px; margin-left: 10px;" onchange="setDomainValue()">
-			 {% for domain in domains %}
-                <option value="{{ domain.id }}">{{ domain.domain }}</option>
-               {% endfor %}
-                <!-- Add more domain options here -->
-            </select>
-        </div>
-        
-		
-<label for="username" style="margin-right: 10px;">Username:</label>
-
- <div class="input-group mb-2 mr-sm-2">
-				  <input type="text" id="username" name="username" class="form-control" value="{{ db_name }}" placeholder="Enter username">
-            <div class="input-group-prepend">
-			
-             <input type="text" id="emailDisplay" class="form-control" readonly>
+<div class="max-w-3xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-email-plus-outline text-brand text-base"></i> Create Email Account
+            </h4>
+            <div>
+                <a href="{% url 'email_accounts' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                    <i class="mdi mdi-arrow-left"></i> Back to Email Accounts
+                </a>
             </div>
-            
-			
-          </div> 
+        </div>
 
-       
-<label for="dbpass" style="margin-right: 10px;">Password</label>
-        <!-- Password Field -->
-        <div class="form-group form-inline mb-3">
-            
-            <input type="text" id="dbpass" name="password" class="form-control" placeholder="Enter password">
+        <div class="p-5">
+            <form method="post" class="space-y-4 max-w-xl">
+                {% csrf_token %}
+
+                <!-- Domain Selection -->
+                <div>
+                    <label for="domainx" class="block text-xs font-semibold text-slate-700 mb-1">Domain</label>
+                    <select id="domainx" name="domain" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="updateEmail();">
+                        {% for domain in domains %}
+                            <option value="{{ domain.id }}">{{ domain.domain }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Username & Email Preview -->
+                <div>
+                    <label for="username" class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <input type="text" id="username" name="username" required placeholder="contact" class="w-full px-3 py-2 bg-white border border-r-0 border-slate-200 rounded-l-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all">
+                        <span id="emailSuffix" class="inline-flex items-center px-3 py-2 border border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono rounded-r-md select-none font-semibold">
+                            @example.com
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="dbpass" class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="text" id="dbpass" name="password" required placeholder="Strong password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                </div>
+
+                <!-- Confirm Password & Generate -->
+                <div>
+                    <label for="dbpassc" class="block text-xs font-semibold text-slate-700 mb-1">Confirm Password</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="dbpassc" name="passwordc" required placeholder="Repeat password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                        <button type="button" onclick="generateAndFillPassword();" class="shrink-0 px-3 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors cursor-pointer flex items-center gap-1">
+                            <i class="mdi mdi-refresh"></i> Generate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-check"></i> Create Account
+                    </button>
+                </div>
+            </form>
         </div>
-<label for="dbpassc" style="margin-right: 10px;">Confirm Password</label>
-        <!-- Confirm Password Field -->
-        <div class="form-group form-inline mb-3" style="display: flex; align-items: center;">
-            
-            <input type="text" id="dbpassc" name="passwordc" class="form-control" placeholder="Confirm password">
-            <button id="gen" class="btn btn-primary btn-md" onclick="return generateAndFillPassword();">Generate</button>
-        </div>
-        
-        <!-- Submit Button -->
-        <div class="form-group">
-            <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Submit</button>
-        </div>
-    </form>
+    </div>
 </div>
-</div>
+
 <script>
-
-	
-window.onload = function() {
-    updateEmail(); // Call updateEmail on page load
-};
-
-// Function to update the email display field
-document.getElementById('username').addEventListener('input', updateEmail);
-document.getElementById('domainx').addEventListener('change', updateEmail);
-
 function updateEmail() {
-    var username = document.getElementById('username').value || 'user'; // Default to 'user' if username is empty
-    var domainSelect = document.getElementById('domainx');
-    var domain = domainSelect && domainSelect.options[domainSelect.selectedIndex] ? domainSelect.options[domainSelect.selectedIndex].text : ''; // Ensure it's not undefined
-    
-    // If domain is valid, update the email display
-    if (domain) {
-        document.getElementById('emailDisplay').value = '@' + domain;
+    const domainSelect = document.getElementById('domainx');
+    const domainSuffix = document.getElementById('emailSuffix');
+    if (domainSelect && domainSuffix) {
+        const domainText = domainSelect.options[domainSelect.selectedIndex]?.text || '';
+        if (domainText) {
+            domainSuffix.textContent = '@' + domainText;
+        }
     }
 }
 
+function generateStrongPassword(length = 16) {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+    const allCharacters = lowercase + uppercase + digits + specialChars;
+    let password = '';
+
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += digits[Math.floor(Math.random() * digits.length)];
+    password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+    for (let i = 4; i < length; i++) {
+        password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    }
+
+    return password.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+function generateAndFillPassword() {
+    const password = generateStrongPassword();
+    document.getElementById('dbpass').value = password;
+    document.getElementById('dbpassc').value = password;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    var domainSelect = document.getElementById('domainx');
-    if (domainSelect && domainSelect.options.length > 0) {
-        var firstDomain = domainSelect.options[0].text; // Get the first domain
-        document.getElementById('emailDisplay').value = 'user' + '@' + firstDomain; // Set initial value
-    }
+    updateEmail();
 });
-
-
-
-    function generateStrongPassword(length = 16) {
-        const lowercase = 'abcdefghijklmnopqrstuvwxyz';
-        const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const digits = '0123456789';
-        const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
-        
-        const allCharacters = lowercase + uppercase + digits + specialChars;
-        let password = '';
-
-        // Ensure the password contains at least one character from each category
-        password += lowercase[Math.floor(Math.random() * lowercase.length)];
-        password += uppercase[Math.floor(Math.random() * uppercase.length)];
-        password += digits[Math.floor(Math.random() * digits.length)];
-        password += specialChars[Math.floor(Math.random() * specialChars.length)];
-
-        // Fill the rest of the password length with a mix of all characters
-        for (let i = 4; i < length; i++) {
-            password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
-        }
-
-        // Shuffle the password to ensure randomness
-        password = password.split('').sort(() => Math.random() - 0.5).join('');
-        return password;
-    }
-
-    function generateAndFillPassword() {
-        const password = generateStrongPassword();
-        document.getElementById('dbpass').value = password;
-        document.getElementById('dbpassc').value = password; // Set confirm password to match
-        return false; // Prevent any default action (not strictly necessary here)
-    }
 </script>
-{% endblock content %}
+
 {% include "users/footer.html" %}
+{% endblock content %}

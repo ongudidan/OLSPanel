@@ -12,14 +12,34 @@
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
 -->
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
  <link href="/media/css/material/css/materialdesignicons.min.css" rel="stylesheet" />
  <link href="/media/css/simplebar.css" rel="stylesheet" />
+ <script src="https://cdn.tailwindcss.com"></script>
+ <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: {
+                    sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+                    mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+                },
+                colors: {
+                    brand: '{{ branding.brand_color|default:"#ef6d19" }}',
+                    'brand-hover': '#d85d10',
+                    'brand-light': 'rgba(239, 109, 25, 0.08)',
+                }
+            }
+        }
+    }
+ </script>
 
  <style>
  * {
     text-transform: none !important;
-}
-
+ }
  </style>
 
   <link id="main-css-href" rel="stylesheet" href="/media/css/style.css?v=2.0" />
@@ -30,42 +50,186 @@
             --brand-color: {{ branding.brand_color|default:"#ef6d19" }} !important;
             --primary: {{ branding.brand_color|default:"#ef6d19" }} !important;
         }
-        .brand-name font, .app-brand font, .app-brand span font {
-            color: {{ branding.brand_color|default:"#ef6d19" }} !important;
+
+        /* Typography */
+        body, html, input, button, select, textarea, .form-control, table, h1, h2, h3, h4, h5, h6, .nav, .sidebar, .brand-name {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.011em;
         }
-        .sidebar-dark .sidebar-inner .nav > li.active > a i, 
-        .sidebar-dark .sidebar-inner .nav > li.active > a span,
-        .sidebar-dark .sidebar-inner .nav > li.active > a img {
-            color: {{ branding.brand_color|default:"#ef6d19" }} !important;
+
+        code, pre, kbd, samp, .font-mono, input.font-mono, td.font-mono, span.font-mono {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+            letter-spacing: -0.01em;
         }
-        #custom-search .search-icon-btn {
-            display: none;
-            background: transparent;
-            border: none;
-            outline: none;
-            box-shadow: none;
-            padding: 0;
+
+        /* Base & Reset */
+        * { text-transform: none !important; }
+        body { background-color: #f8fafc; color: #334155; }
+
+        /* Bootstrap Collapse & Tailwind Compatibility */
+        .collapse:not(.show) { display: none !important; }
+        .collapse.show { display: block !important; }
+        .collapsing { position: relative !important; height: 0; overflow: hidden !important; transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; display: block !important; }
+
+        /* Layout Framework */
+        .left-sidebar, .sidebar-dark { background-color: #000000 !important; border-right: 1px solid #18181b !important; box-shadow: none !important; overflow: hidden !important; }
+        .left-sidebar::before { display: none !important; }
+        #sidebar, .sidebar { background-color: #000000 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; max-height: 100vh !important; overflow: hidden !important; position: relative !important; }
+        .app-brand { height: 60px !important; min-height: 60px !important; max-height: 60px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 6px 12px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
+        .app-brand a { height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 !important; overflow: hidden !important; text-decoration: none !important; }
+        .app-brand .brand-name { font-size: 0.95rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+        .brand-full-logo { max-height: 42px !important; max-width: 185px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
+        .brand-minified-icon { max-height: 32px !important; max-width: 32px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: none !important; margin: 0 auto !important; }
+        .sidebar-left { flex: 1 1 auto !important; height: calc(100% - 60px) !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; }
+
+        /* App Brand Logo & Icon in Collapsed vs Expanded-on-hover */
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .brand-full-logo { display: none !important; }
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .brand-minified-icon { display: block !important; }
+        body.sidebar-minified-out .left-sidebar .brand-full-logo,
+        body.sidebar-minified .left-sidebar:hover .brand-full-logo { display: block !important; }
+        body.sidebar-minified-out .left-sidebar .brand-minified-icon,
+        body.sidebar-minified .left-sidebar:hover .brand-minified-icon { display: none !important; }
+
+        /* Sidebar Search Box (Default Expanded) */
+        #custom-search { padding: 8px 12px 4px !important; margin-bottom: 0 !important; }
+        .search-full-container { display: flex !important; width: 100% !important; }
+        .search-minified-btn { display: none !important; }
+        #menuSearchInput { background: #121214 !important; border: 1px solid #27272a !important; color: #f4f4f5 !important; font-size: 0.78rem !important; border-radius: 6px !important; padding: 6px 10px 6px 28px !important; height: 32px !important; width: 100% !important; }
+        #menuSearchInput:focus { background: #000000 !important; border-color: var(--brand-color, #ef6d19) !important; box-shadow: 0 0 0 2px rgba(239, 109, 25, 0.2) !important; }
+
+        /* Sidebar Navigation Items */
+        .sidebar .sidebar-inner { margin-top: 4px !important; padding-bottom: 24px !important; }
+        .sidebar .sidebar-inner .section-title { padding: 12px 14px 4px !important; font-size: 0.66rem !important; font-weight: 700 !important; color: #52525b !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
+        .sidebar .sidebar-inner > li { margin: 1px 8px !important; }
+        .sidebar .sidebar-inner > li > a { padding: 7px 12px !important; min-height: 34px !important; border-radius: 6px !important; color: #a1a1aa !important; font-size: 0.81rem !important; font-weight: 500 !important; display: flex !important; align-items: center !important; gap: 8px !important; transition: all 0.15s ease !important; }
+        .sidebar .sidebar-inner > li > a:hover { color: #ffffff !important; background-color: #18181b !important; transform: translateX(2px); }
+        .sidebar .sidebar-inner > li > a img, .sidebar .sidebar-inner > li > a i { width: 18px !important; height: 18px !important; font-size: 18px !important; opacity: 0.8 !important; flex-shrink: 0 !important; }
+        .sidebar .sidebar-inner > li > a:hover img, .sidebar .sidebar-inner > li > a:hover i { opacity: 1 !important; }
+        
+        .sidebar .sidebar-inner > li.active:not(.has-sub) > a { background-color: #18181b !important; color: #ffffff !important; font-weight: 600 !important; border-left: 3px solid var(--brand-color, #ef6d19) !important; }
+        .sidebar .sidebar-inner > li.has-sub.active > a { background-color: transparent !important; color: #ffffff !important; border-left: none !important; }
+        .sidebar .sidebar-inner > li.has-sub.active > a span { color: #ffffff !important; font-weight: 500 !important; }
+
+        /* Carets */
+        .sidebar li > a .caret { margin-left: auto !important; width: 16px !important; height: 16px !important; font-size: 0.95rem !important; }
+        .sidebar li > a .caret:before { content: "\f142" !important; color: #64748b !important; font-size: 16px !important; transition: transform 0.2s ease !important; }
+        .sidebar li.expand > a .caret:before, .sidebar li.active.expand > a .caret:before, .sidebar li.has-sub.active > a .caret:before { transform: rotate(90deg) !important; color: #ffffff !important; }
+
+        /* SUBMENU HIERARCHICAL INDENTATION & TREE LINE GUIDE */
+        .sidebar .sub-menu {
+            background-color: transparent !important;
+            margin: 2px 8px 4px 22px !important;
+            padding: 3px 0 3px 8px !important;
+            border-left: 1.5px solid #27272a !important;
+            visibility: visible !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1px !important;
         }
-        /* Hide Horizontal Sidebar Scrollbar */
-        .left-sidebar, .sidebar {
-            overflow-x: hidden !important;
-        }
-        /* Minified Brand Styles */
-        .brand-minified-icon {
-            display: none !important;
-        }
-        .sidebar-minified .left-sidebar .brand-full-logo {
-            display: none !important;
-        }
-        .sidebar-minified .left-sidebar .brand-minified-icon {
+        .sidebar .sub-menu > li {
+            margin: 0 !important;
+            visibility: visible !important;
             display: block !important;
         }
-        .sidebar-minified .left-sidebar:hover .brand-full-logo {
-            display: block !important;
+        .sidebar .sub-menu > li > a {
+            padding: 5.5px 10px !important;
+            font-size: 0.77rem !important;
+            color: #94a3b8 !important;
+            border-radius: 5px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            transition: all 0.12s ease !important;
         }
-        .sidebar-minified .left-sidebar:hover .brand-minified-icon {
+        .sidebar .sub-menu > li > a:hover {
+            color: #ffffff !important;
+            background-color: #18181b !important;
+            transform: translateX(2px);
+        }
+        .sidebar .sub-menu > li > a img, .sidebar .sub-menu > li > a i {
+            width: 15px !important;
+            height: 15px !important;
+            font-size: 15px !important;
+            opacity: 0.75 !important;
+            flex-shrink: 0 !important;
+        }
+        .sidebar .sub-menu > li > a:hover img, .sidebar .sub-menu > li > a:hover i {
+            opacity: 1 !important;
+        }
+        .sidebar .sub-menu > li.active > a {
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            background-color: #18181b !important;
+            border-left: 2px solid var(--brand-color, #ef6d19) !important;
+            padding-left: 8px !important;
+        }
+        .sidebar .sub-menu > li.active > a img, .sidebar .sub-menu > li.active > a i { opacity: 1 !important; }
+        .sidebar .sub-menu > li.active > a span { color: #ffffff !important; }
+
+        /* Fixed Top Header & Responsive Layout Mechanics */
+        .main-header, #header {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            left: 0 !important;
+            height: 54px !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03) !important;
+            z-index: 1000 !important;
+            display: flex !important;
+            align-items: center !important;
+            padding: 0 !important;
+            transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        @media (min-width: 768px) {
+            .main-header, #header, .sidebar-fixed .main-header, .navbar-fixed .page-wrapper .main-header {
+                left: 250px !important;
+            }
+            body.sidebar-minified:not(.sidebar-minified-out) .main-header,
+            body.sidebar-minified:not(.sidebar-minified-out) #header {
+                left: 75px !important;
+            }
+            body.sidebar-minified-out .main-header,
+            body.sidebar-minified-out #header {
+                left: 250px !important;
+            }
+        }
+        .page-wrapper, .navbar-fixed .page-wrapper {
+            padding-top: 54px !important;
+            transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .content-wrapper { padding-top: 0 !important; }
+        .page-wrapper .content { padding: 16px 20px !important; }
+
+        /* 1. Default (Expanded Mode): Show full search input, hide minified item */
+        #search-expanded-item { display: block !important; }
+        #search-minified-item { display: none !important; }
+
+        /* 2. Minified Collapsed Mode: Hide full search input, show minified icon item */
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) #search-expanded-item {
             display: none !important;
         }
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) #search-minified-item {
+            display: block !important;
+        }
+
+        /* 3. Minified Hovered Mode (Expanded temporarily): Show search input, hide minified item */
+        body.sidebar-minified-out #search-expanded-item,
+        .left-sidebar:hover #search-expanded-item {
+            display: block !important;
+        }
+        body.sidebar-minified-out #search-minified-item,
+        .left-sidebar:hover #search-minified-item {
+            display: none !important;
+        }
+
+        /* Scrollbars */
+        .left-sidebar, .sidebar, .sidebar-left, [data-simplebar], .simplebar-content-wrapper { scrollbar-width: thin !important; scrollbar-color: #334155 transparent !important; }
+        .left-sidebar::-webkit-scrollbar, .sidebar::-webkit-scrollbar, .simplebar-content-wrapper::-webkit-scrollbar { width: 3px !important; height: 3px !important; }
+        .left-sidebar::-webkit-scrollbar-thumb, .sidebar::-webkit-scrollbar-thumb, .simplebar-content-wrapper::-webkit-scrollbar-thumb { background: #334155 !important; border-radius: 4px !important; }
     </style>
 
 {% if branding.brand_color != "#ef6d19" %}   
@@ -76,13 +240,14 @@
 
     function processImage(img) {
         const src = img.getAttribute('src');
-        if (!src || !src.endsWith('.svg')) return;
+        if (!src || !src.split('?')[0].endsWith('.svg')) return;
 
         // Prevent processing multiple times
         if (img.getAttribute('data-svg-processed')) return;
         img.setAttribute('data-svg-processed', 'true');
 
-        const cached = localStorage.getItem('svg_' + src);
+        const cacheKey = 'svg_v3_' + brandColor + '_' + src;
+        const cached = localStorage.getItem(cacheKey);
         if (cached) {
             replaceImg(img, cached);
         } else {
@@ -91,7 +256,7 @@
                 .then(r => r.text())
                 .then(svgText => {
                     try {
-                        localStorage.setItem('svg_' + src, svgText);
+                        localStorage.setItem(cacheKey, svgText);
                     } catch(e) {}
                     replaceImg(img, svgText);
                 })
@@ -100,6 +265,7 @@
                 });
         }
     }
+
 
     function replaceImg(img, svgText) {
         const parser = new DOMParser();
@@ -184,42 +350,44 @@
             
           <div id="sidebar" class="sidebar sidebar-with-footer">
               
-            <!-- Aplication Brand -->
+            <!-- Application Brand -->
             <div class="app-brand">
-              {% if branding.brand_title %}
-              <a href="/">
-                <img src="{{ branding.brand_icon }}" alt="{{ branding.brand_title }}">
-                <span class="brand-name"><font color="{{ branding.brand_color|default:'#ef6d19' }}">{{ branding.brand_title }}</font></span>
+              {% if branding.brand_image %}
+              <a href="/" class="flex items-center justify-center w-full h-full p-0">
+                <img class="brand-full-logo" src="{{ branding.brand_image }}" alt="{{ branding.brand_title|default:'Brand Logo' }}" style="max-height: 42px; max-width: 185px; object-fit: contain;">
+                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 32px; max-width: 32px; object-fit: contain;">
               </a>
               {% else %}
-              <a href="/" style="padding-left: 0; justify-content: center; width: 100%;">
-                <img class="brand-full-logo" src="{{ branding.brand_image }}" alt="Brand Logo" style="max-height: 55px; max-width: 90%; object-fit: contain;">
-                <img class="brand-minified-icon" src="{{ branding.brand_icon }}" alt="Brand Icon" style="max-height: 40px; max-width: 40px; object-fit: contain;">
+              <a href="/" class="flex items-center justify-center w-full h-full gap-2 p-0">
+                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 32px; max-width: 32px; object-fit: contain;">
+                <span class="brand-name font-bold text-sm" style="color: {{ branding.brand_color|default:'#ef6d19' }};">{{ branding.brand_title|default:'OLSPanel' }}</span>
               </a>
               {% endif %}
             </div>
             
             <!-- begin sidebar scrollbar -->
-            <div class="sidebar-left" data-simplebar style="height: 100%;">
+            <div class="sidebar-left" data-simplebar style="height: calc(100% - 60px);">
               <!-- sidebar menu -->
               <ul class="nav sidebar-inner" id="sidebar-menu">
-                 <div id="custom-search" class="top-search-bar px-3 mb-2">
-    <div class="input-group" style="position: relative; align-items: center;">
-        <input type="text" name="fakeusernameremembered" style="display:none" />
-        <input type="password" name="fakepasswordremembered" style="display:none" />
-        <!-- Icon shown only in minified mode -->
-        <button class="search-icon-btn" title="Search">
-            <i class="mdi mdi-magnify"></i>
-        </button>
-        <!-- Input shown in full mode -->
-        <input class="form-control shadow-sm" autocomplete="off"
-               id="menuSearchInput" type="text" placeholder="Search..."
-               style="padding-left: 1.2rem; border-radius: 10px;">
-    </div>
-</div>
-                  <li
-                   class="active"
-                   >
+                <!-- 1. Search Input (Visible in full expanded mode) -->
+                <li id="search-expanded-item" class="px-2.5 my-1">
+                  <div class="relative flex items-center w-full">
+                    <svg class="absolute left-2.5 w-3.5 h-3.5 text-zinc-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input class="w-full bg-[#121214] border border-[#27272a] focus:border-brand focus:ring-1 focus:ring-brand/20 text-zinc-100 placeholder-zinc-500 text-xs rounded-md pl-8 pr-2.5 py-1.5 outline-none transition-all"
+                           id="menuSearchInput" type="text" placeholder="Search..." autocomplete="off">
+                  </div>
+                </li>
+                
+                <!-- 2. Search Icon Tile (Visible in minified mode) -->
+                <li id="search-minified-item" style="display: none;">
+                  <a href="javascript:void(0)" id="search-minified-trigger" class="sidenav-item-link" title="Search">
+                    <img src="/media/icon/search.svg" width="24px" height="24px" style="margin-right: 5px;" alt="Search" />
+                    <span class="nav-text">Search</span>
+                  </a>
+                </li>
+                  <li id="menu-dashboard">
                     <a class="sidenav-item-link" href="/">
                      <img src="/media/icon/dashboard.svg" width="24px" height="24px" style="margin-right: 5px;" />
                       <span class="nav-text">Dashboard</span>
@@ -590,48 +758,40 @@
         
           <!-- Header -->
           <header class="main-header" id="header">
-            <nav class="navbar navbar-expand-lg navbar-light" id="navbar">
-              <!-- Sidebar toggle button -->
-              <button id="sidebar-toggler" class="sidebar-toggle">
-                <span class="sr-only">Toggle navigation</span>
-              </button>
+            <nav class="w-full h-full px-4 flex items-center justify-between bg-white border-b border-slate-200" id="navbar">
+              <!-- Sidebar toggle button & Page Title -->
+              <div class="flex items-center gap-3">
+                <button id="sidebar-toggler" class="sidebar-toggle p-1.5 text-slate-600 hover:text-brand hover:bg-slate-100 rounded-md transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center" title="Toggle Sidebar">
+                  <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                  </svg>
+                </button>
+                <span id="self_title" class="text-sm font-bold text-slate-800 uppercase tracking-wide">Dashboard</span>
+              </div>
 
-              <span id="self_title" class="page-title">dashboard</span>
-
-              <div class="navbar-right ">
-
-
-                <ul class="nav navbar-nav">
-                 
-                  <!-- User Account -->
-                  <li class="dropdown user-menu">
-                    <button class="dropdown-toggle nav-link" data-toggle="dropdown">
-                       <img src="/media/icon/user.svg" width="24px" height="24px" style="margin-right: 5px;" />
-                      <span class="d-none d-lg-inline-block">{{ user.username }}</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-right">
-                      <li>
-                        <a class="dropdown-link-item" href="{% url 'users-profile' %}">
-                           <img src="/media/icon/user.svg" width="24px" height="24px" style="margin-right: 5px;" />
-                          <span class="nav-text">Profile</span>
-                        </a>
-                      </li>
-                      <li>
-                        <a class="dropdown-link-item" href="">
-                           <img src="/media/icon/settings.svg" width="24px" height="24px" style="margin-right: 5px;" />
-                          <span class="nav-text">Setting</span>
-                        </a>
-                      </li>
-                      <li class="dropdown-footer">
-                        <a class="dropdown-link-item" href="{% url 'logout' %}">  <img src="/media/icon/logout.svg" width="24px" height="24px" style="margin-right: 5px;" /> Log Out </a>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
+              <!-- Right User Menu -->
+              <div class="flex items-center">
+                <div class="dropdown relative user-menu">
+                  <button class="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 transition-colors dropdown-toggle" data-toggle="dropdown" type="button">
+                    <img src="/media/icon/user.svg" class="w-4 h-4 object-contain" alt="User" />
+                    <span class="hidden sm:inline-block">{{ user.username }}</span>
+                  </button>
+                  <div class="dropdown-menu dropdown-menu-right absolute right-0 mt-1.5 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 z-50 text-xs">
+                    <a class="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50 hover:text-brand transition-colors" href="{% url 'users-profile' %}">
+                      <img src="/media/icon/user.svg" class="w-4 h-4 object-contain" alt="Profile" />
+                      <span>Profile</span>
+                    </a>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    <a class="flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors" href="{% url 'logout' %}">
+                      <img src="/media/icon/logout.svg" class="w-4 h-4 object-contain" alt="Logout" />
+                      <span>Log Out</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </nav>
-
-
           </header>
 		  
 <div class="content-wrapper">
@@ -664,77 +824,105 @@
                     <script src="/media/js/bootstrap.bundle.min.js"></script>
                    
                     
-                 
-                 <script>
-        (function() {
-            // Define a condition to check if the user is on the main page
-            const isMainPage = window.location.pathname === '/'; // Adjust as needed
+    <script src="/media/js/monoall.js"></script>
+    <script>
+        // Ensure sidebar is never forced into minified mode on load
+        localStorage.removeItem('olspanel_sidebar_state');
+        document.body.classList.remove('sidebar-minified');
 
-            // Create a new <script> element
-            const script = document.createElement("script");
 
-            // Set the script source depending on the page, without a timestamp
-            script.src = isMainPage 
-                ? '/media/js/mono.js' 
-                : '/media/js/monoall.js';
-
-            // Append the script element to the document head to load it
-            document.head.appendChild(script);
-        })();
-		
-		
-		
-	document.getElementById("menuSearchInput").addEventListener("keyup", function () {
+        document.getElementById("menuSearchInput")?.addEventListener("input", function () {
     const filter = this.value.toLowerCase().trim();
-    const menuItems = document.querySelectorAll("#sidebar-menu > li");
+    const menuItems = document.querySelectorAll("#sidebar-menu > li:not(#menu-dashboard):not(.section-title)");
 
     menuItems.forEach(function (item) {
         const link = item.querySelector("a.sidenav-item-link");
         const subMenu = item.querySelector(".sub-menu");
-        const collapseEl = item.querySelector(".collapse, .show");
+        const collapseEl = item.querySelector(".collapse");
 
-        let matchFound = false;
-
-        // Reset visibility
-        item.style.display = "";
-
-        if (subMenu) {
+        if (subMenu && collapseEl) {
             const subLinks = subMenu.querySelectorAll("a.sidenav-item-link");
             let subMatch = false;
 
             subLinks.forEach(function (subLink) {
                 const subText = subLink.textContent.toLowerCase();
                 const subLi = subLink.closest("li");
-                if (filter !== "" && subText.includes(filter)) {
-                    subLi.style.display = "block";
+                if (!filter || subText.includes(filter)) {
+                    if (subLi) subLi.style.display = "";
                     subMatch = true;
-                    matchFound = true;
                 } else {
-                    subLi.style.display = filter === "" ? "" : "none";
+                    if (subLi) subLi.style.display = "none";
                 }
             });
 
-            // Expand/collapse submenu
-            if (collapseEl) {
-                if (filter !== "" && subMatch) {
+            if (filter) {
+                if (subMatch || (link && link.textContent.toLowerCase().includes(filter))) {
+                    item.style.display = "";
                     collapseEl.classList.add("show");
-                    collapseEl.classList.remove("collapse");
+                    collapseEl.style.display = "block";
                 } else {
+                    item.style.display = "none";
+                }
+            } else {
+                item.style.display = "";
+                if (!item.classList.contains("active") && !item.classList.contains("expand")) {
                     collapseEl.classList.remove("show");
-                    collapseEl.classList.add("collapse");
+                    collapseEl.style.display = "";
+                } else {
+                    collapseEl.classList.add("show");
+                    collapseEl.style.display = "block";
                 }
             }
+        } else if (link) {
+            if (!filter || link.textContent.toLowerCase().includes(filter)) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
         }
-
-        // Check main item match
-        if (link && link.textContent.toLowerCase().includes(filter)) {
-            matchFound = true;
-        }
-
-        // Final visibility
-        item.style.display = matchFound || filter === "" ? "block" : "none";
     });
 });
+
+/* Reliable JS Sync for Minified Search Bar */
+function syncSidebarSearch() {
+    const isMinified = document.body.classList.contains('sidebar-minified') && !document.body.classList.contains('sidebar-minified-out');
+    const sidebar = document.querySelector('.left-sidebar');
+    const isHovered = sidebar ? sidebar.matches(':hover') : false;
+    const expandedItem = document.getElementById('search-expanded-item');
+    const minifiedItem = document.getElementById('search-minified-item');
+
+    if (isMinified && !isHovered) {
+        if (expandedItem) expandedItem.style.setProperty('display', 'none', 'important');
+        if (minifiedItem) minifiedItem.style.setProperty('display', 'block', 'important');
+    } else {
+        if (expandedItem) expandedItem.style.setProperty('display', 'block', 'important');
+        if (minifiedItem) minifiedItem.style.setProperty('display', 'none', 'important');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.querySelector('.left-sidebar');
+    if (sidebar) {
+        sidebar.addEventListener('mouseenter', syncSidebarSearch);
+        sidebar.addEventListener('mouseleave', syncSidebarSearch);
+    }
+    
+    const observer = new MutationObserver(syncSidebarSearch);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+    document.getElementById('search-minified-trigger')?.addEventListener('click', function() {
+        document.getElementById('sidebar-toggler')?.click();
+        setTimeout(function() {
+            document.getElementById('menuSearchInput')?.focus();
+        }, 200);
+    });
+
+    syncSidebarSearch();
+    setTimeout(syncSidebarSearch, 300);
+});
+		
+		
+		
 
 	document.addEventListener('DOMContentLoaded', function() {
     const titleText = document.title || 'Dashboard';  // fallback text if no title
@@ -742,6 +930,92 @@
     if (span) {
         span.textContent = titleText;
     }
+
+    // Dynamic sidebar active state detection
+    function initSidebarActiveState() {
+        const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+        const currentSearch = window.location.search;
+        const currentFull = currentPath + currentSearch;
+
+        const allLinks = Array.from(document.querySelectorAll('#sidebar-menu a.sidenav-item-link'));
+        if (!allLinks.length) return;
+
+        // Clear existing active / expand
+        document.querySelectorAll('#sidebar-menu li.active').forEach(li => li.classList.remove('active'));
+        document.querySelectorAll('#sidebar-menu li.expand').forEach(li => li.classList.remove('expand'));
+
+        let bestMatch = null;
+        let maxMatchLen = -1;
+
+        allLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href || href === 'javascript:void(0)' || href === '#' || href.startsWith('#')) return;
+
+            let linkPath = href;
+            try {
+                const parsed = new URL(href, window.location.origin);
+                linkPath = parsed.pathname.replace(/\/+$/, '') || '/';
+                if (parsed.search && currentFull === (linkPath + parsed.search)) {
+                    bestMatch = link;
+                    maxMatchLen = 99999;
+                    return;
+                }
+            } catch(e) {
+                linkPath = href.replace(/\/+$/, '') || '/';
+            }
+
+            // Exact match
+            if (currentPath === linkPath) {
+                const score = linkPath.length + 1000;
+                if (score > maxMatchLen) {
+                    bestMatch = link;
+                    maxMatchLen = score;
+                }
+            } else if (linkPath !== '/' && linkPath !== '/whm' && linkPath !== '/users' && currentPath.startsWith(linkPath)) {
+                // Prefix match for nested routes
+                if (linkPath.length > maxMatchLen) {
+                    bestMatch = link;
+                    maxMatchLen = linkPath.length;
+                }
+            }
+        });
+
+        // Fallback for dashboard
+        if (!bestMatch) {
+            if (currentPath === '/whm' || currentPath === '/whm/' || currentPath === '') {
+                bestMatch = document.querySelector('#sidebar-menu a[href="/whm"], #sidebar-menu a[href="/whm/"]');
+            } else if (currentPath === '/users' || currentPath === '/users/' || currentPath === '/') {
+                bestMatch = document.querySelector('#sidebar-menu a[href="/users"], #sidebar-menu a[href="/users/"], #sidebar-menu a[href="/"]');
+            }
+        }
+
+        if (bestMatch) {
+            const targetLi = bestMatch.closest('li');
+            if (targetLi) {
+                targetLi.classList.add('active');
+            }
+
+            // If inside a submenu accordion
+            const collapseParent = bestMatch.closest('.collapse');
+            if (collapseParent) {
+                collapseParent.classList.add('show');
+                collapseParent.style.display = 'block';
+
+                const parentLi = collapseParent.closest('li.has-sub');
+                if (parentLi) {
+                    parentLi.classList.add('active');
+                    parentLi.classList.add('expand');
+                    const toggleLink = parentLi.querySelector('a.sidenav-item-link');
+                    if (toggleLink) {
+                        toggleLink.setAttribute('aria-expanded', 'true');
+                        toggleLink.classList.remove('collapsed');
+                    }
+                }
+            }
+        }
+    }
+
+    initSidebarActiveState();
 });	
     </script>
                     

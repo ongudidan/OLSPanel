@@ -1,169 +1,223 @@
 {% extends "whm/base.html" %}
-{% block title %}My Domain{% endblock title %}
+{% block title %}SSL Manager{% endblock title %}
 {% block content %}
 
+<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
+    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>Installing SSL certificate, please wait...</span>
+</div>
 
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">SSL Installing, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
     <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
-	
-<div class="card card-default">
-      <div class="card-header">
-        <h2>SSL Manger</h2>
-		
-        
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
+</div>
 
-      </div>
-    
-   <div class="card-body">
-  
-  
-<div class="d-flex justify-content-end">
-   <form action="{% url 'domain_list_ssl' %}" method="post" class="form-inline mb-3">
-        <div class="form-group mr-2">
-            <input type="text" id="search" name="search" class="form-control" placeholder="Search for domains...">
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-shield-lock-outline text-brand"></i> SSL Certificate Manager
+        </h4>
+    </div>
+    <div class="p-4">
+        <!-- Top Toolbar -->
+        <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
+            <div>
+                <span class="text-slate-500 text-xs font-medium">Manage Let's Encrypt and custom SSL certificates for all domains</span>
+            </div>
+            <div>
+                <form id="sslSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
+                    <div class="relative w-60">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="sslSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search domains..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <button type="button" id="clearSslSearchBtn" onclick="clearSslSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Filter</button>
-    </form>
-	</div>
-	
-<div class="table-responsive">
-    <table class="table table-bordered">
-        <thead class="thead-light">
-             <tr>
-                <th>Domain</th>
-                
-                <th>Expire</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-         <tbody id="domainTable">
-            {% for domain in domains %}
-            <tr>
-                <td><a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer">{{ domain.domain }}</a></td>
 
-                
-                 <td>{{ domain.ssl }}
-				 <br/>
-				 {{ domain.type }}</td>
-                <td>
-                     
-                        <button type="submit" name="ssl" class="btn btn-primary btn-sm" onclick="issueSSL('{{domain.id}}')">Issue SSL</button>
-
-                    
-                    
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="text-center">No domains found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <!-- Domains SSL Table -->
+        <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-700">
+                <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <tr>
+                        <th class="px-3.5 py-2.5">Domain</th>
+                        <th class="px-3.5 py-2.5">Certificate Status</th>
+                        <th class="px-3.5 py-2.5">Expiration Date</th>
+                        <th class="px-3.5 py-2.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="sslTableBody" class="divide-y divide-slate-100">
+                    {% for domain in domains %}
+                    <tr data-domain="{{ domain.domain|lower }}" class="hover:bg-slate-50 transition-colors">
+                        <td class="px-3.5 py-2.5">
+                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="font-bold text-brand hover:underline">
+                                {{ domain.domain }}
+                            </a>
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            {% if domain.type and 'valid' in domain.type|lower and 'invalid' not in domain.type|lower %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-600 text-white shadow-xs">
+                                    <i class="mdi mdi-shield-check-outline"></i> {{ domain.type }}
+                                </span>
+                            {% elif domain.type and 'invalid' in domain.type|lower %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">
+                                    <i class="mdi mdi-shield-alert-outline"></i> {{ domain.type }}
+                                </span>
+                            {% elif domain.type %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ domain.type }}</span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">
+                                    <i class="mdi mdi-shield-off-outline"></i> No Certificate
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3.5 py-2.5">
+                            {% if domain.ssl %}
+                                <span class="font-mono text-slate-600 text-[11px]">{{ domain.ssl }}</span>
+                            {% else %}
+                                <span class="text-slate-400">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right">
+                            <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors" onclick="issueSSL('{{ domain.id }}')">
+                                <i class="mdi mdi-lock-reset"></i> Issue SSL
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-3.5 py-6 text-center text-slate-400">No domains found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-    <!-- No Results Message -->
-    <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-
-</div>
-</div>
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-  
-
-
 
 <script>
-function issueSSL(id) {
-    if (id) {
-        console.log('ID found:', id);
-        const responseDisplay = document.getElementById('responseContainer');
-        const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
+const sslSearchInput = document.getElementById("sslSearchInput");
+const clearSslBtn = document.getElementById("clearSslSearchBtn");
+const sslTableBody = document.getElementById("sslTableBody");
 
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
+function performSslFilter(query) {
+    const q = (query || "").trim().toLowerCase();
+    const rows = sslTableBody ? Array.from(sslTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
+    let visibleCount = 0;
 
-            // Call the URL (replace '/your-url' with your actual URL)
-            fetch('/whm/domain_list_ssl_first_all/' + id, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.text(); // Retrieve response as plain text
-            })
-            .then(data => {
-                console.log('Response:', data);
-                responseDisplay.style.display = 'none';
-
-                if (data.includes('success')) {
-                    // Set alert for success
-                    alertContainer.className = "alert alert-success alert-dismissible fade show";
-                    messageDisplay.innerText = data; // Displaying success message
-                } else {
-                    // Set alert for error
-                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
-                    messageDisplay.innerText = data; // Displaying error message
-                }
-
-                alertContainer.style.display = "block";
-                setTimeout(function() {
-                    window.location.href = '/whm/domain_list_ssl_all'; // Change this to your desired URL
-                }, 5000); // 5000 milliseconds = 5 seconds
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }, 0); // 1000 milliseconds = 1 second
-
-    } else {
-        console.log('No ID parameter found.');
+    if (clearSslBtn) {
+        clearSslBtn.style.display = q ? "block" : "none";
     }
+
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (!q || text.includes(q)) {
+            row.style.display = "";
+            visibleCount++;
+        } else {
+            row.style.display = "none";
+        }
+    });
+
+    let noMatchRow = document.getElementById("noSslSearchMatchRow");
+    if (visibleCount === 0 && rows.length > 0) {
+        if (!noMatchRow) {
+            noMatchRow = document.createElement("tr");
+            noMatchRow.id = "noSslSearchMatchRow";
+            noMatchRow.className = "no-search-results-row";
+            noMatchRow.innerHTML = `<td colspan="4" class="px-3.5 py-4 text-center text-slate-400">No domains match "<strong>${q}</strong>"</td>`;
+            sslTableBody.appendChild(noMatchRow);
+        } else {
+            noMatchRow.querySelector("strong").textContent = q;
+            noMatchRow.style.display = "";
+        }
+    } else if (noMatchRow) {
+        noMatchRow.style.display = "none";
+    }
+
+    if (q) {
+        sessionStorage.setItem("whm_ssl_search", q);
+        const url = new URL(window.location);
+        url.searchParams.set("search", q);
+        window.history.replaceState({}, "", url);
+    } else {
+        sessionStorage.removeItem("whm_ssl_search");
+        const url = new URL(window.location);
+        url.searchParams.delete("search");
+        window.history.replaceState({}, "", url);
+    }
+}
+
+function clearSslSearch() {
+    if (sslSearchInput) {
+        sslSearchInput.value = "";
+        performSslFilter("");
+        sslSearchInput.focus();
+    }
+}
+
+let sslDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (sslSearchInput) {
+        sslSearchInput.addEventListener("input", function () {
+            clearTimeout(sslDebounceTimer);
+            const val = this.value;
+            sslDebounceTimer = setTimeout(() => {
+                performSslFilter(val);
+            }, 100);
+        });
+
+        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_ssl_search") || "";
+        if (savedQuery) {
+            sslSearchInput.value = savedQuery;
+            performSslFilter(savedQuery);
+        }
+    }
+});
+
+function issueSSL(id) {
+    if (!id) return;
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (alertContainer) alertContainer.style.display = 'none';
+
+    fetch('/whm/domain_list_ssl_first/' + id, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response error: ' + response.statusText);
+        return response.text();
+    })
+    .then(data => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = data.includes('success') ? "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4" : "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = data;
+            alertContainer.style.display = "flex";
+        }
+        setTimeout(function() {
+            window.location.href = '/whm/domain_list_ssl/';
+        }, 3500);
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = error.toString();
+            alertContainer.style.display = "flex";
+        }
+    });
 }
 </script>
 
-
-
-
 {% endblock content %}
-
-{% include "whm/footer.html" %}

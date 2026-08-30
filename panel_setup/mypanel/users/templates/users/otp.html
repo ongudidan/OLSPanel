@@ -1,79 +1,229 @@
 {% extends "users/base.html" %}
-{% block title %}Verify OTP | {{ branding.brand_title }}{% endblock title %}
+{% block title %}Two-Step Verification | {{ branding.brand_title }}{% endblock title %}
 {% block content %}
 
-<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-    <div class="card shadow-lg border-0 rounded-4" style="max-width: 420px; width: 100%;">
-        <div class="card-body p-4 p-md-5 text-center">
-            <a href="/" class="d-block mb-4">
-                <img src="{{ branding.brand_image }}?v=1.0.7" width="220" alt="{{ branding.brand_title }}" class="img-fluid">
-            </a>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="col-12" style="max-width: 380px;">
+        <div class="card shadow-sm border bg-white" style="border-radius: 10px; border-color: #e2e8f0 !important;">
+            <div class="card-header border-0 bg-transparent pt-4 pb-2 px-4 text-center">
+                <div class="d-flex justify-content-center align-items-center w-100">
+                    <a href="/" class="d-inline-flex justify-content-center align-items-center">
+                        <img src="{{ branding.brand_image }}?v=1.0.7" style="max-height: 52px; max-width: 210px; object-fit: contain; display: block;" alt="{{ branding.brand_title }}">
 
-            <h4 class="fw-bold mb-3 text-primary">Two-Step Verification</h4>
-            <p class="text-muted mb-4">Enter the 6-digit code from your Google Authenticator app.</p>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body px-4 pb-4 pt-1 text-center">
+                <h6 class="font-weight-bold text-dark mb-1">Two-Step Verification</h6>
+                <p class="text-muted small mb-3">
+                    {% if has_passkeys and has_totp %}
+                        Verify with Passkey or Authenticator code.
+                    {% elif has_passkeys %}
+                        Touch your sensor or connect security key.
+                    {% else %}
+                        Enter the 6-digit code from your Authenticator app.
+                    {% endif %}
+                </p>
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            {% if form.errors %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {% for key, value in form.errors.items %}
-                        <strong>{{ value }}</strong>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger alert-dismissible fade show text-left mb-3 py-2 px-3 small" role="alert" style="border-radius: 6px;">
+                            {{ message }}
+                            <button type="button" class="close py-2 px-3" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
                     {% endfor %}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endif %}
+                {% endif %}
 
-            <form method="POST" class="text-start mt-3">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="otp" class="form-label fw-semibold">OTP Code</label>
-                    <input type="password"
-                           name="otp"
-                           id="otp"
-                           maxlength="6"
-                           class="form-control form-control-lg text-center"
-                           placeholder="••••••"
-                           required>
-                    <input type="hidden" name="username" value="{{ username }}">
-                    <input type="hidden" name="password" value="{{ password }}">
-                </div>
+                <div id="passkeyAuthStatus" class="d-none alert alert-info text-left mb-3 py-2 px-3 small" style="border-radius: 6px;"></div>
 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-pill">
-                    <i class="bi bi-shield-lock me-1"></i> Verify OTP
-                </button>
+                {% if has_passkeys %}
+                    <!-- Passkey Verification Section -->
+                    <div id="passkeySection">
+                        <button type="button" id="authPasskeyBtn" onclick="authenticatePasskey()" class="btn btn-primary w-100 font-weight-bold shadow-xs cursor-pointer d-flex align-items-center justify-content-center mb-2" style="border-radius: 6px; padding: 7px 14px; font-size: 13px;">
+                            <i class="mdi mdi-key-wireless mr-1.5"></i> Verify with Passkey
+                        </button>
 
-                <div class="text-center mt-3">
-                    <small class="text-muted">
-                        Lost access? <a href="#" class="text-decoration-none">Contact support</a>
-                    </small>
-                </div>
-            </form>
+                        {% if has_totp %}
+                            <div class="mt-2 text-center">
+                                <a href="javascript:void(0)" onclick="showOtpFallback()" class="small text-primary font-weight-bold">
+                                    Use Authenticator App Code &rarr;
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                {% if has_totp %}
+                    <!-- Authenticator App OTP Form -->
+                    <form method="POST" id="otpForm" class="text-left {% if has_passkeys %}d-none mt-2{% endif %}">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            <label class="small font-weight-bold mb-1" style="color: #334155;">6-Digit Code</label>
+                            <input type="text" name="otp" id="otp" maxlength="6" class="form-control text-center font-weight-bold" style="font-size: 1.15rem; letter-spacing: 4px; border-radius: 6px;" placeholder="000000" {% if not has_passkeys %}autofocus{% endif %} autocomplete="one-time-code">
+                            <input type="hidden" name="username" id="usernameInput" value="{{ username }}">
+                            <input type="hidden" name="password" value="{{ password }}">
+                        </div>
+
+
+                        <button type="submit" class="btn btn-primary w-100 font-weight-bold shadow-xs cursor-pointer mb-2" style="border-radius: 6px; padding: 7px 14px; font-size: 13px;">Sign In</button>
+
+                        {% if has_passkeys %}
+                            <div class="text-center mt-2">
+                                <a href="javascript:void(0)" onclick="showPasskeySection()" class="small text-primary font-weight-bold">
+                                    &larr; Back to Passkey
+                                </a>
+                            </div>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
-<style>
-    body {
-        background: linear-gradient(135deg, #f8fafc, #e9eef5);
+<script>
+function showOtpFallback() {
+    const pSec = document.getElementById('passkeySection');
+    const oForm = document.getElementById('otpForm');
+    if (pSec) pSec.classList.add('d-none');
+    if (oForm) {
+        oForm.classList.remove('d-none');
+        const otpInput = document.getElementById('otp');
+        if (otpInput) otpInput.focus();
     }
-    .card {
-        animation: fadeIn 0.4s ease-in-out;
+}
+
+function showPasskeySection() {
+    const pSec = document.getElementById('passkeySection');
+    const oForm = document.getElementById('otpForm');
+    if (pSec) pSec.classList.remove('d-none');
+    if (oForm) oForm.classList.add('d-none');
+}
+
+// Base64URL helpers
+function bufferToBase64Url(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let str = '';
+    for (let char of bytes) str += String.fromCharCode(char);
+    return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlToBuffer(base64url) {
+    const padding = '='.repeat((4 - base64url.length % 4) % 4);
+    const base64 = (base64url + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+    return outputArray.buffer;
+}
+
+async function authenticatePasskey() {
+    const statusDiv = document.getElementById('passkeyAuthStatus');
+    const btn = document.getElementById('authPasskeyBtn');
+    const username = document.getElementById('usernameInput')?.value || '{{ username }}';
+
+    if (!window.PublicKeyCredential) {
+        const hasTotp = document.getElementById('otpForm') !== null;
+        if (hasTotp) {
+            showOtpFallback();
+        } else {
+            if (statusDiv) {
+                statusDiv.className = 'alert alert-danger text-left mb-3 py-2 px-3 small';
+                statusDiv.textContent = 'WebAuthn is not supported in this browser (requires HTTPS).';
+                statusDiv.classList.remove('d-none');
+            }
+        }
+        return;
     }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Waiting...';
+        }
+
+        if (statusDiv) {
+            statusDiv.className = 'alert alert-info text-left mb-3 py-2 px-3 small';
+            statusDiv.textContent = 'Touch your biometric sensor or security key...';
+            statusDiv.classList.remove('d-none');
+        }
+
+        // 1. Fetch authentication options
+        const optRes = await fetch(`/api/passkey/auth/options/?username=${encodeURIComponent(username)}`);
+        if (!optRes.ok) {
+            const errData = await optRes.json();
+            throw new Error(errData.message || 'Failed to get authentication options.');
+        }
+        const options = await optRes.json();
+
+        // Convert base64url fields
+        options.challenge = base64UrlToBuffer(options.challenge);
+        if (options.allowCredentials) {
+            options.allowCredentials.forEach(cred => {
+                cred.id = base64UrlToBuffer(cred.id);
+            });
+        }
+
+        // 2. Request assertion from authenticator
+        const assertion = await navigator.credentials.get({ publicKey: options });
+
+        // 3. Prepare payload
+        const assertionJSON = {
+            id: assertion.id,
+            rawId: bufferToBase64Url(assertion.rawId),
+            type: assertion.type,
+            response: {
+                clientDataJSON: bufferToBase64Url(assertion.response.clientDataJSON),
+                authenticatorData: bufferToBase64Url(assertion.response.authenticatorData),
+                signature: bufferToBase64Url(assertion.response.signature),
+                userHandle: assertion.response.userHandle ? bufferToBase64Url(assertion.response.userHandle) : null
+            }
+        };
+
+        // 4. Verify assertion with server
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || '{{ csrf_token }}';
+        const verifyRes = await fetch('/api/passkey/auth/verify/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                credential: assertionJSON,
+                username: username
+            })
+        });
+
+        const verifyData = await verifyRes.json();
+        if (verifyData.status === 'success') {
+            if (statusDiv) {
+                statusDiv.className = 'alert alert-success text-left mb-3 py-2 px-3 small';
+                statusDiv.textContent = 'Verification successful! Signing in...';
+            }
+            window.location.href = verifyData.redirect_url || '/';
+        } else {
+            throw new Error(verifyData.message || 'Passkey verification failed.');
+        }
+    } catch (err) {
+        if (statusDiv) {
+            statusDiv.className = 'alert alert-warning text-left mb-3 py-2 px-3 small';
+            statusDiv.textContent = err.message || 'Verification cancelled.';
+            statusDiv.classList.remove('d-none');
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="mdi mdi-key-wireless mr-1.5"></i> Verify with Passkey';
+        }
     }
-    input[type="password"] {
-        font-size: 1.3rem;
-        letter-spacing: 4px;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('passkeySection')) {
+        setTimeout(authenticatePasskey, 300);
     }
-</style>
+});
+</script>
 
 {% endblock content %}

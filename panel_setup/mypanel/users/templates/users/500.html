@@ -1,16 +1,25 @@
 {% extends "users/base.html" %}
-{% block title %}500 - Server Error{% endblock title %}
+{% block title %}500 - Internal Server Error{% endblock title %}
 {% block content %}
 
-<div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <div class="text-center p-4 shadow-lg rounded-4 bg-white" style="max-width: 500px; width: 100%;">
-        <a href="/" class="d-block mb-4">
-            <img src="{{ branding.brand_image }}?v=1.0.7" alt="{{ branding.brand_title }}" style="max-width: 250px;">
-        </a>
-        <h1 class="display-3 fw-bold text-danger">500</h1>
-        <p class="fs-5 text-muted">Oops! Something went wrong on our end.</p>
-        <a href="/" class="btn btn-primary mt-3 px-4">Go Back Home</a>
+<div class="max-w-md mx-auto py-12">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center p-8 space-y-4">
+        <div class="w-16 h-16 rounded-full bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mx-auto text-2xl font-bold font-mono">
+            500
+        </div>
+        <div>
+            <h3 class="text-base font-bold text-slate-900 m-0">Internal Server Error</h3>
+            <p class="text-xs text-slate-500 mt-2 max-w-xs mx-auto leading-relaxed">
+                Oops! Something went wrong while processing your request. Please try again later.
+            </p>
+        </div>
+        <div class="pt-2">
+            <a href="/" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Return to Homepage
+            </a>
+        </div>
     </div>
 </div>
 
+{% include "users/footer.html" %}
 {% endblock content %}

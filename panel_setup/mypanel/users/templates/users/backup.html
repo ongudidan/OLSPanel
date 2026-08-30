@@ -1,208 +1,147 @@
 {% extends "users/base.html" %}
-{% block title %}My Backup schedule{% endblock title %}
+{% block title %}Backup Schedule{% endblock title %}
 {% block content %}
 
-<!-- wrap both cards in a row -->
-<div class="row align-items-start">
-
-  <!-- LEFT: main card -->
-  <div class="col-xl-8">
-    <div class="card card-default">
-      <div class="card-header">
-        <h2>List of backup schedule</h2>
-      </div>
-      <div class="card-body">
-        <a class="mb-3 btn btn-pill btn-success" href="{% url 'new_backup' %}" role="button" style="text-transform:none;">+ Add Backup</a>
-
-      
-
-        <div class="table-responsive mt-2">
-          <table class="table table-bordered">
-            <thead class="thead-light">
-              <tr>
-                <th>Schedule</th>
-                <th>Type</th>
-                <th>Format</th>
-                <th>Location</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="domainTable">
-              <tr>
-                <td>All</td><td>ALL</td><td>All</td>
-                <td>Local</td>
-                <td><a href="{% url 'backup_lists' %}" class="btn btn-success btn-sm">View Backup</a></td>
-              </tr>
-              {% for backupp in backups %}
-              <tr>
-                <td>Every {{ backupp.schedule }}</td>
-                <td>{{ backupp.type }}</td>
-                <td>{{ backupp.category }}</td>
-                <td>{{ backupp.path }}</td>
-                <td>
-                  <a href="{% url 'backup_list' backupp.id %}" class="btn btn-success btn-sm">View Backup</a>
-                  <a href="{% url 'backup_delete' backupp.id %}" class="btn btn-primary btn-sm"
-                     onclick="return confirm('Are you sure?');">Delete</a>
-                </td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="5" class="text-center">No backup schedule found.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+    <!-- Main Backup Schedule Card -->
+    <div class="lg:col-span-8">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+            <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-archive-outline text-brand"></i> Backup Schedules
+                </h4>
+                <div>
+                    <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'new_backup' %}">
+                        <i class="mdi mdi-plus"></i> Add Backup
+                    </a>
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
+                    <table class="w-full text-xs text-left text-slate-700">
+                        <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                            <tr>
+                                <th class="px-3.5 py-2.5">Schedule</th>
+                                <th class="px-3.5 py-2.5">Type</th>
+                                <th class="px-3.5 py-2.5">Format</th>
+                                <th class="px-3.5 py-2.5">Location</th>
+                                <th class="px-3.5 py-2.5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="domainTable" class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-3.5 py-2.5 font-bold text-slate-900">All Backups</td>
+                                <td class="px-3.5 py-2.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">ALL</span>
+                                </td>
+                                <td class="px-3.5 py-2.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">All</span>
+                                </td>
+                                <td class="px-3.5 py-2.5 text-slate-500 flex items-center gap-1">
+                                    <i class="mdi mdi-folder-home-outline text-slate-400"></i> Local
+                                </td>
+                                <td class="px-3.5 py-2.5 text-right">
+                                    <a href="{% url 'backup_lists' %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                        <i class="mdi mdi-eye-outline"></i> View Backups
+                                    </a>
+                                </td>
+                            </tr>
+                            {% for backupp in backups %}
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-3.5 py-2.5 font-medium text-slate-900 flex items-center gap-1">
+                                    <i class="mdi mdi-clock-outline text-brand"></i> Every {{ backupp.schedule }}
+                                </td>
+                                <td class="px-3.5 py-2.5">
+                                    <code class="font-mono text-[11px] text-slate-800">{{ backupp.type }}</code>
+                                </td>
+                                <td class="px-3.5 py-2.5">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ backupp.category }}</span>
+                                </td>
+                                <td class="px-3.5 py-2.5 text-slate-500 font-mono text-[11px]">{{ backupp.path }}</td>
+                                <td class="px-3.5 py-2.5 text-right space-x-1 whitespace-nowrap">
+                                    <a href="{% url 'backup_list' backupp.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                                        <i class="mdi mdi-eye-outline"></i> View
+                                    </a>
+                                    <a href="{% url 'backup_delete' backupp.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded shadow-xs transition-colors" onclick="return confirm('Are you sure you want to delete this backup schedule?');">
+                                        <i class="mdi mdi-trash-can-outline"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-3.5 py-6 text-center text-slate-400">No backup schedule found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div id="noResults" class="text-center text-danger" style="display:none;">No results found.</div>
-      </div>
     </div>
-  </div>
 
-  <!-- RIGHT: completely separate retention card -->
-  <div class="col-xl-4">
-    <div class="card card-default">
-      <div class="card-header">
-        <h2>Backup keep</h2>
-      </div>
-      <div class="card-body">
-	    <div id="alert-container" style="display:none;">
-          <span id="message-display"></span>
+    <!-- Retention Limit Card -->
+    <div class="lg:col-span-4">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+            <div class="px-4 py-3 bg-white border-b border-slate-200">
+                <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-history text-brand"></i> Retention Limits
+                </h4>
+            </div>
+            <div class="p-4">
+                <div id="alert-container" style="display: none;" class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs mb-3">
+                    <span id="message-display"></span>
+                </div>
+
+                <div class="border border-slate-200 rounded-md overflow-hidden">
+                    <table class="w-full text-xs text-left text-slate-700">
+                        <tbody class="divide-y divide-slate-100">
+                            <tr>
+                                <td class="px-3.5 py-2.5 font-bold text-slate-800 w-28">Hourly</td>
+                                <td class="px-3.5 py-2">
+                                    <select id="hourBackup" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="100">100</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3.5 py-2.5 font-bold text-slate-800">Daily</td>
+                                <td class="px-3.5 py-2">
+                                    <select id="dayBackup" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="100">100</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3.5 py-2.5 font-bold text-slate-800">Weekly</td>
+                                <td class="px-3.5 py-2">
+                                    <select id="weekBackup" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="100">100</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-3.5 py-2.5 font-bold text-slate-800">Monthly</td>
+                                <td class="px-3.5 py-2">
+                                    <select id="monthBackup" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="12">12</option><option value="15">15</option><option value="20">20</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="100">100</option>
+                                    </select>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-	  
-	  
-        <table class="table table-bordered mb-0">
-          <tbody>
-            <tr>
-              <td class="align-middle text-muted">Hourly</td>
-              <td>
-                <select id="hourBackup" class="form-control form-control-sm">
-                 <option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10">10</option>
-<option value="12">12</option>
-<option value="15">15</option>
-<option value="20">20</option>
-<option value="24">24</option>
-<option value="25">25</option>
-<option value="30">30</option>
-<option value="35">35</option>
-<option value="40">40</option>
-<option value="45">45</option>
-<option value="50">50</option>
-<option value="100">100</option>
-<option value="200">200</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="align-middle text-muted">Daily</td>
-              <td>
-                <select id="dayBackup" class="form-control form-control-sm">
-                 <option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10">10</option>
-<option value="12">12</option>
-<option value="15">15</option>
-<option value="20">20</option>
-<option value="24">24</option>
-<option value="25">25</option>
-<option value="30">30</option>
-<option value="35">35</option>
-<option value="40">40</option>
-<option value="45">45</option>
-<option value="50">50</option>
-<option value="100">100</option>
-<option value="200">200</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="align-middle text-muted">Weekly</td>
-              <td>
-                <select id="weekBackup" class="form-control form-control-sm">
-                <option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10">10</option>
-<option value="12">12</option>
-<option value="15">15</option>
-<option value="20">20</option>
-<option value="24">24</option>
-<option value="25">25</option>
-<option value="30">30</option>
-<option value="35">35</option>
-<option value="40">40</option>
-<option value="45">45</option>
-<option value="50">50</option>
-<option value="100">100</option>
-<option value="200">200</option>
-                </select>
-              </td>
-            </tr>
-            <tr>
-              <td class="align-middle text-muted">Monthly</td>
-              <td>
-                <select id="monthBackup" class="form-control form-control-sm">
-               <option value="1">1</option>
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10">10</option>
-<option value="12">12</option>
-<option value="15">15</option>
-<option value="20">20</option>
-<option value="24">24</option>
-<option value="25">25</option>
-<option value="30">30</option>
-<option value="35">35</option>
-<option value="40">40</option>
-<option value="45">45</option>
-<option value="50">50</option>
-<option value="100">100</option>
-<option value="200">200</option>
-                </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
-  </div>
-
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = "{{ csrf_token }}";
-
     const hourSelect = document.getElementById('hourBackup');
     const daySelect = document.getElementById('dayBackup');
     const weekSelect = document.getElementById('weekBackup');
     const monthSelect = document.getElementById('monthBackup');
-
     const alertContainer = document.getElementById('alert-container');
     const messageDisplay = document.getElementById('message-display');
 
@@ -226,38 +165,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fetch("{% url 'backup_settings' %}", {
             method: 'POST',
-            headers: {
-                "X-CSRFToken": csrfToken,
-            },
+            headers: { "X-CSRFToken": csrfToken },
             body: formData
         })
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                alertContainer.className = "alert alert-success";
-                messageDisplay.innerText = "Backup limits updated successfully";
+                alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs mb-3";
+                messageDisplay.innerText = "Backup retention limits updated.";
             } else {
-                alertContainer.className = "alert alert-danger";
+                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs mb-3";
                 messageDisplay.innerText = data.message || "Error updating settings";
             }
-
             alertContainer.style.display = 'block';
             setTimeout(() => alertContainer.style.display = 'none', 3000);
         });
     }
 
-    // load current values
     fetchSettings();
-
-    // auto save on change
     [hourSelect, daySelect, weekSelect, monthSelect].forEach(el => {
-        el.addEventListener('change', updateSettings);
+        if (el) el.addEventListener('change', updateSettings);
     });
 });
-
 </script>
 
-
-{% endblock content %}
-
 {% include "users/footer.html" %}
+{% endblock content %}

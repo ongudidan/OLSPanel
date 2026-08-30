@@ -1,179 +1,129 @@
 {% extends "whm/base.html" %}
-{% block title %}My Services{% endblock title %}
+{% block title %}System Services{% endblock title %}
 {% block content %}
 
+<div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 mb-4">
+    <svg class="animate-spin h-4 w-4 text-sky-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+    <span>Executing service command, please wait...</span>
+</div>
 
-<div id="responseContainer" style="position: relative; display: none;"> <!-- Container for the response -->
-        <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb breadcrumb-inverse">
-                   
-           <li class="breadcrumb-item active" aria-current="page" style="margin-top:10px">Action running, please wait.....</li> 
-			<li> <div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>
-</li> 
-       </ol>
-                </nav>
-    </div>
-	
-	
-
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
+<div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between mb-4">
     <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
+    <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
+</div>
 
- <div class="card card-default">
-      <div class="card-header">
-        <h2>List of services</h2>
-		
-        
-
-      </div>
-    
-   <div class="card-body">
-   
-  <div class="row">
-    {% for custom_name, service in services.items %}
-    <div class="col-xl-3 col-sm-6 ">
-        <div class="card card-default">
-            <div class="card-header" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 15px; background-color: #f8f9fa; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                <h2>{{ custom_name }}</h2>
-                <div class="sub-title">
-                    <span class="mr-1">
+<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
+    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-server-network text-brand"></i> System Service Manager
+        </h4>
+        <span class="text-slate-500 text-xs font-medium">Manage and restart background daemon processes</span>
+    </div>
+    <div class="p-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            {% for custom_name, service in services.items %}
+            <div class="bg-white border border-slate-200 rounded-lg p-3.5 flex flex-col justify-between hover:border-slate-300 hover:shadow-xs transition-all">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                        <span class="text-xs font-bold text-slate-900 truncate">{{ custom_name }}</span>
                         {% if service.status == 'active' %}
-                            <span class="badge badge-success">Running</span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-600 text-white shadow-xs">
+                                <i class="mdi mdi-check-circle"></i> Running
+                            </span>
                         {% elif service.status == 'inactive' %}
-                            <span class="badge badge-danger">Stopped</span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-600 text-white shadow-xs">
+                                <i class="mdi mdi-close-circle"></i> Stopped
+                            </span>
                         {% else %}
-                            <span class="badge badge-warning">{{ service.status }}</span>
-                        {% endif %}
-                    </span>
-                    <div class="action-icons" style="margin-top: 10px;">
-                        {% if service.status == 'active' %}
-                            <img src="/media/icon/restart.svg" alt="Restart" onclick="operateService('{{ service.system_name }}', 'restart')" style="cursor: pointer; margin-right: 10px;"/>
-                            <img src="/media/icon/stop.svg" alt="Stop" onclick="operateService('{{ service.system_name }}', 'stop')" style="cursor: pointer; margin-right: 10px;"/>
-                        {% elif service.status == 'inactive' %}
-                            <img src="/media/icon/play.svg" alt="Play" onclick="operateService('{{ service.system_name }}', 'start')" style="cursor: pointer; margin-right: 10px;"/>
-                            <img src="/media/icon/restart.svg" alt="Restart" onclick="operateService('{{ service.system_name }}', 'restart')" style="cursor: pointer; margin-right: 10px;"/>
-                        {% else %}
-                            <img src="/media/icon/play.svg" alt="Play" onclick="operateService('{{ service.system_name }}', 'start')" style="cursor: pointer; margin-right: 10px;"/>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-600 text-white shadow-xs">
+                                {{ service.status }}
+                            </span>
                         {% endif %}
                     </div>
+                    <code class="text-[11px] text-slate-400 font-mono block truncate">{{ service.system_name }}</code>
+                </div>
+
+                <div class="flex items-center gap-2 pt-3 mt-3 border-t border-slate-100">
+                    {% if service.status == 'active' %}
+                        <button type="button" onclick="operateService('{{ service.system_name }}', 'restart')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded transition-colors">
+                            <i class="mdi mdi-restart"></i> Restart
+                        </button>
+                        <button type="button" onclick="operateService('{{ service.system_name }}', 'stop')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 rounded transition-colors">
+                            <i class="mdi mdi-stop"></i> Stop
+                        </button>
+                    {% elif service.status == 'inactive' %}
+                        <button type="button" onclick="operateService('{{ service.system_name }}', 'start')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded transition-colors">
+                            <i class="mdi mdi-play"></i> Start
+                        </button>
+                        <button type="button" onclick="operateService('{{ service.system_name }}', 'restart')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 rounded transition-colors">
+                            <i class="mdi mdi-restart"></i> Restart
+                        </button>
+                    {% else %}
+                        <button type="button" onclick="operateService('{{ service.system_name }}', 'start')" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 rounded transition-colors">
+                            <i class="mdi mdi-play"></i> Start
+                        </button>
+                    {% endif %}
                 </div>
             </div>
+            {% empty %}
+            <div class="col-span-full text-center py-6 text-slate-400 text-xs">
+                No system services found.
+            </div>
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
 </div>
 
-
-   
-   
-   
-   
-   
-</div>
-</div>
-<style>
-.action-icons {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
-}
-
-.action-icons img {
-    width: 40px; /* Adjust icon size */
-    height: 40px;
-    margin: 0 3px; /* Spacing between icons */
-    padding: 4px;
-    background-color: #ffffff; /* Icon background */
-    border: 1px solid #e0e0e0; /* Border */
-    border-radius: 8px; /* Rounded edges */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Shadow effect */
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Hover effect transition */
-    cursor: pointer;
-}
-
-.action-icons img:hover {
-    transform: scale(1.1); /* Slight zoom on hover */
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
-}
-
-</style>
 <script>
 function operateService(serviceName, action) {
-    if (serviceName) {
-        // Generate the URL using Django's URL template tag
-        const url = "{% url 'service_action' service_name='service_name' action='action' %}"
-            .replace('service_name', serviceName)
-            .replace('action', action);
-        
-        const responseDisplay = document.getElementById('responseContainer');
-        const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
+    if (!serviceName) return;
+
+    const url = "{% url 'service_action' service_name='service_name' action='action' %}"
+        .replace('service_name', encodeURIComponent(serviceName))
+        .replace('action', encodeURIComponent(action));
+    
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (alertContainer) alertContainer.style.display = 'none';
+
+    fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network error: ' + response.statusText);
+        return response.json();
+    })
+    .then(data => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+
+        if (alertContainer && messageDisplay) {
+            if (data.status === 'success') {
+                alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4";
+                messageDisplay.innerText = data.message;
+            } else {
+                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+                messageDisplay.innerText = "Error: " + data.message;
+            }
+            alertContainer.style.display = "flex";
+        }
 
         setTimeout(function() {
-            // Show the response container while fetching the data
-            responseDisplay.style.display = 'inline-block';
-
-            // Call the URL to execute the service operation
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json(); // Retrieve response as JSON
-            })
-            .then(data => {
-                console.log('Response:', data);
-
-                // Hide the loading indicator after receiving the response
-                responseDisplay.style.display = 'none';
-
-                // Check if the operation was successful or failed
-                if (data.status === 'success') {
-                    // Set alert for success
-                    alertContainer.className = "alert alert-success alert-dismissible fade show";
-                    messageDisplay.innerText = `${data.message}`; // Displaying success message
-                } else {
-                    // Set alert for error
-                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
-                    messageDisplay.innerText = `Error: ${data.message}`; // Displaying error message
-                }
-
-                // Display the alert container
-                alertContainer.style.display = "block";
-
-                // Optionally reload the page after a delay
-                setTimeout(function() {
-                    location.reload(); 
-                }, 3000); // 5000 milliseconds = 5 seconds
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }, 0); // 0 milliseconds = immediate action
-    } else {
-        console.log('No service name or action provided.');
-    }
+            location.reload(); 
+        }, 1800);
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4";
+            messageDisplay.innerText = "Error: " + error.toString();
+            alertContainer.style.display = "flex";
+        }
+    });
 }
-
 </script>
-{% endblock content %}
 
-{% include "whm/footer.html" %}
+{% endblock content %}

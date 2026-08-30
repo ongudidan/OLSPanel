@@ -1,724 +1,158 @@
 {% extends "users/base.html" %}
-{% block title %}Manage domain{% endblock title %}
+{% block title %}Edit Cron Job{% endblock title %}
 {% block content %}
-<div class="card card-default">
-      <div class="card-header">
-        <h2>Edit cronjob</h2>
-        
 
-      </div>
-      <div class="card-body">
-    <form method="post">
-        {% csrf_token %}
-        
-     
+<div class="max-w-3xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-clock-edit-outline text-brand text-base"></i> Edit Cron Job
+            </h4>
+            <div>
+                <a href="{% url 'cronjob_list' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                    <i class="mdi mdi-arrow-left"></i> Back to Cron Jobs
+                </a>
+            </div>
+        </div>
 
-<div>
-                    <div class="form-group">
-                        <label id="lblCommonSettings" for="common_options">
-                            Common Settings
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                                <select id="common_options" onchange="select_common_option()" class="form-control">
-                                    <option value="--">
-                                        -- Common Settings --
-                                    </option>
-                                    <option value="* * * * *">
-                                        Once Per Minute(* * * * *)
-                                    </option>
-                                    <option value="*/5 * * * *">
-                                        Once Per Five Minutes(*/5 * * * *)
-                                    </option>
-                                    <option value="0,30 * * * *">
-                                        Twice Per Hour(0,30 * * * *)
-                                    </option>
-                                    <option value="0 * * * *">
-                                        Once Per Hour(0 * * * *)
-                                    </option>
-                                    <option value="0 0,12 * * *">
-                                        Twice Per Day(0 0,12 * * *)
-                                    </option>
-                                    <option value="0 0 * * *">
-                                        Once Per Day(0 0 * * *)
-                                    </option>
-                                    <option value="0 0 * * 0">
-                                        Once Per Week(0 0 * * 0)
-                                    </option>
-                                    <option value="0 0 1,15 * *">
-                                        On the 1st and 15th of the Month(0 0 1,15 * *)
-                                    </option>
-                                    <option value="0 0 1 * *">
-                                        Once Per Month(0 0 1 * *)
-                                    </option>
-                                    <option value="0 0 1 1 *">
-                                        Once Per Year(0 0 1 1 *)
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                            </div>
+        <div class="p-5">
+            <form method="post" class="space-y-4 max-w-2xl">
+                {% csrf_token %}
+
+                <!-- Common Settings Preset -->
+                <div>
+                    <label for="common_options" class="block text-xs font-semibold text-slate-700 mb-1">Common Presets</label>
+                    <select id="common_options" onchange="select_common_option()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-800 font-semibold focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                        <option value="--">-- Select a Common Setting Preset --</option>
+                        <option value="* * * * *">Once Per Minute (* * * * *)</option>
+                        <option value="*/5 * * * *">Once Per Five Minutes (*/5 * * * *)</option>
+                        <option value="0,30 * * * *">Twice Per Hour (0,30 * * * *)</option>
+                        <option value="0 * * * *">Once Per Hour (0 * * * *)</option>
+                        <option value="0 0,12 * * *">Twice Per Day (0 0,12 * * *)</option>
+                        <option value="0 0 * * *">Once Per Day (0 0 * * *)</option>
+                        <option value="0 0 * * 0">Once Per Week (0 0 * * 0)</option>
+                        <option value="0 0 1,15 * *">On the 1st and 15th of the Month (0 0 1,15 * *)</option>
+                        <option value="0 0 1 * *">Once Per Month (0 0 1 * *)</option>
+                        <option value="0 0 1 1 *">Once Per Year (0 0 1 1 *)</option>
+                    </select>
+                </div>
+
+                <!-- 5 Cron Fields Grid -->
+                <div class="space-y-3 pt-2">
+                    <!-- Minute -->
+                    <div>
+                        <label for="minute" class="block text-xs font-semibold text-slate-700 mb-1">Minute</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                            <input id="minute" name="minute" type="text" value="{{ cronjob.minute|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <select id="minute_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('minute')">
+                                <option value="--">-- Quick Presets --</option>
+                                <option value="*">Once Per Minute (*)</option>
+                                <option value="*/2">Once Per Two Minutes (*/2)</option>
+                                <option value="*/5">Once Per Five Minutes (*/5)</option>
+                                <option value="*/10">Once Per Ten Minutes (*/10)</option>
+                                <option value="*/15">Once Per Fifteen Minutes (*/15)</option>
+                                <option value="0,30">Once Per Thirty Minutes (0,30)</option>
+                                <option value="0">:00 At beginning of hour (0)</option>
+                                <option value="15">:15 At quarter past hour (15)</option>
+                                <option value="30">:30 At half past hour (30)</option>
+                                <option value="45">:45 At quarter to hour (45)</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label id="lblMinute" for="minute">
-                            Minute:
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-2">
-                                <input id="minute" name="minute" type="text" class="form-control" value="{{ cronjob.minute }}" size="4">
-                            </div>
-                            <div class="col-xs-4">
-                                <select id="minute_options" class="form-control" onchange="select_single_option('minute')">
-                                    <option value="--">
-                                        -- Common Settings --
-                                    </option>
-                                    <option value="*">
-                                        Once Per Minute(*)
-                                    </option>
-                                    <option value="*/2">
-                                        Once Per Two Minutes(*/2)
-                                    </option>
-                                    <option value="*/5">
-                                        Once Per Five Minutes(*/5)
-                                    </option>
-                                    <option value="*/10">
-                                        Once Per Ten Minutes(*/10)
-                                    </option>
-                                    <option value="*/15">
-                                        Once Per Fifteen Minutes(*/15)
-                                    </option>
-                                    <option value="0,30">
-                                        Once Per Thirty Minutes(0,30)
-                                    </option>
-                                    <option value="--">
-                                        -- Minutes --
-                                    </option>
-                                    <option value="0">
-                                        :00 (At the beginning of the hour.) (0)
-                                    </option>
-                                    <option value="1">
-                                        :01 (1)
-                                    </option>
-                                    <option value="2">
-                                        :02 (2)
-                                    </option>
-                                    <option value="3">
-                                        :03 (3)
-                                    </option>
-                                    <option value="4">
-                                        :04 (4)
-                                    </option>
-                                    <option value="5">
-                                        :05 (5)
-                                    </option>
-                                    <option value="6">
-                                        :06 (6)
-                                    </option>
-                                    <option value="7">
-                                        :07 (7)
-                                    </option>
-                                    <option value="8">
-                                        :08 (8)
-                                    </option>
-                                    <option value="9">
-                                        :09 (9)
-                                    </option>
-                                    <option value="10">
-                                        :10 (10)
-                                    </option>
-                                    <option value="11">
-                                        :11 (11)
-                                    </option>
-                                    <option value="12">
-                                        :12 (12)
-                                    </option>
-                                    <option value="13">
-                                        :13 (13)
-                                    </option>
-                                    <option value="14">
-                                        :14 (14)
-                                    </option>
-                                    <option value="15">
-                                        :15 (At one quarter past the hour.) (15)
-                                    </option>
-                                    <option value="16">
-                                        :16 (16)
-                                    </option>
-                                    <option value="17">
-                                        :17 (17)
-                                    </option>
-                                    <option value="18">
-                                        :18 (18)
-                                    </option>
-                                    <option value="19">
-                                        :19 (19)
-                                    </option>
-                                    <option value="20">
-                                        :20 (20)
-                                    </option>
-                                    <option value="21">
-                                        :21 (21)
-                                    </option>
-                                    <option value="22">
-                                        :22 (22)
-                                    </option>
-                                    <option value="23">
-                                        :23 (23)
-                                    </option>
-                                    <option value="24">
-                                        :24 (24)
-                                    </option>
-                                    <option value="25">
-                                        :25 (25)
-                                    </option>
-                                    <option value="26">
-                                        :26 (26)
-                                    </option>
-                                    <option value="27">
-                                        :27 (27)
-                                    </option>
-                                    <option value="28">
-                                        :28 (28)
-                                    </option>
-                                    <option value="29">
-                                        :29 (29)
-                                    </option>
-                                    <option value="30">
-                                        :30 (At half past the hour.) (30)
-                                    </option>
-                                    <option value="31">
-                                        :31 (31)
-                                    </option>
-                                    <option value="32">
-                                        :32 (32)
-                                    </option>
-                                    <option value="33">
-                                        :33 (33)
-                                    </option>
-                                    <option value="34">
-                                        :34 (34)
-                                    </option>
-                                    <option value="35">
-                                        :35 (35)
-                                    </option>
-                                    <option value="36">
-                                        :36 (36)
-                                    </option>
-                                    <option value="37">
-                                        :37 (37)
-                                    </option>
-                                    <option value="38">
-                                        :38 (38)
-                                    </option>
-                                    <option value="39">
-                                        :39 (39)
-                                    </option>
-                                    <option value="40">
-                                        :40 (40)
-                                    </option>
-                                    <option value="41">
-                                        :41 (41)
-                                    </option>
-                                    <option value="42">
-                                        :42 (42)
-                                    </option>
-                                    <option value="43">
-                                        :43 (43)
-                                    </option>
-                                    <option value="44">
-                                        :44 (44)
-                                    </option>
-                                    <option value="45">
-                                        :45 (At one quarter until the hour.) (45)
-                                    </option>
-                                    <option value="46">
-                                        :46 (46)
-                                    </option>
-                                    <option value="47">
-                                        :47 (47)
-                                    </option>
-                                    <option value="48">
-                                        :48 (48)
-                                    </option>
-                                    <option value="49">
-                                        :49 (49)
-                                    </option>
-                                    <option value="50">
-                                        :50 (50)
-                                    </option>
-                                    <option value="51">
-                                        :51 (51)
-                                    </option>
-                                    <option value="52">
-                                        :52 (52)
-                                    </option>
-                                    <option value="53">
-                                        :53 (53)
-                                    </option>
-                                    <option value="54">
-                                        :54 (54)
-                                    </option>
-                                    <option value="55">
-                                        :55 (55)
-                                    </option>
-                                    <option value="56">
-                                        :56 (56)
-                                    </option>
-                                    <option value="57">
-                                        :57 (57)
-                                    </option>
-                                    <option value="58">
-                                        :58 (58)
-                                    </option>
-                                    <option value="59">
-                                        :59 (59)
-                                    </option>
-                                </select>
-                            </div>
-                            
+
+                    <!-- Hour -->
+                    <div>
+                        <label for="hour" class="block text-xs font-semibold text-slate-700 mb-1">Hour</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                            <input id="hour" name="hour" type="text" value="{{ cronjob.hour|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <select id="hour_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('hour')">
+                                <option value="--">-- Quick Presets --</option>
+                                <option value="*">Every Hour (*)</option>
+                                <option value="*/2">Every Other Hour (*/2)</option>
+                                <option value="*/3">Every Third Hour (*/3)</option>
+                                <option value="*/4">Every Fourth Hour (*/4)</option>
+                                <option value="*/6">Every Sixth Hour (*/6)</option>
+                                <option value="0,12">Every Twelve Hours (0,12)</option>
+                                <option value="0">12:00 AM Midnight (0)</option>
+                                <option value="6">6:00 AM (6)</option>
+                                <option value="12">12:00 PM Noon (12)</option>
+                                <option value="18">6:00 PM (18)</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label id="lblHour" for="hour">
-                            Hour:
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-2">
-                                <input id="hour" name="hour" type="text" class="form-control" size="4" value="{{ cronjob.hour }}">
-                            </div>
-                            <div class="col-xs-4">
-                                <select id="hour_options" class="form-control" onchange="select_single_option('hour')">
-                                    <option value="--">
-                                        --
-                                        Common Settings
-                                            --
-                                    </option>
-                                    <option value="*">
-                                        Every Hour
-                                            (*)
-                                    </option>
-                                    <option value="*/2">
-                                        Every Other Hour
-                                            (*/2)
-                                    </option>
-                                    <option value="*/3">
-                                        Every Third Hour
-                                            (*/3)
-                                    </option>
-                                    <option value="*/4">
-                                        Every Fourth Hour
-                                            (*/4)
-                                    </option>
-                                    <option value="*/6">
-                                        Every Sixth Hour
-                                            (*/6)
-                                    </option>
-                                    <option value="0,12">
-                                        Every Twelve Hours
-                                            (0,12)
-                                    </option>
-                                    <option value="--">
-                                        --
-                                        Hours
-                                            --
-                                    </option>
-                                    <option value="0">
-                                        12:00 a.m.
-                                        Midnight
-                                            (0)
-                                    </option>
-                                    <option value="1">
-                                        1:00 a.m. (1)
-                                    </option>
-                                    <option value="2">
-                                        2:00 a.m. (2)
-                                    </option>
-                                    <option value="3">
-                                        3:00 a.m. (3)
-                                    </option>
-                                    <option value="4">
-                                        4:00 a.m. (4)
-                                    </option>
-                                    <option value="5">
-                                        5:00 a.m. (5)
-                                    </option>
-                                    <option value="6">
-                                        6:00 a.m. (6)
-                                    </option>
-                                    <option value="7">
-                                        7:00 a.m. (7)
-                                    </option>
-                                    <option value="8">
-                                        8:00 a.m. (8)
-                                    </option>
-                                    <option value="9">
-                                        9:00 a.m. (9)
-                                    </option>
-                                    <option value="10">
-                                        10:00 a.m. (10)
-                                    </option>
-                                    <option value="11">
-                                        11:00 a.m. (11)
-                                    </option>
-                                    <option value="12">
-                                        12:00 p.m.
-                                        Noon
-                                            (12)
-                                    </option>
-                                    <option value="13">
-                                        1:00 p.m. (13)
-                                    </option>
-                                    <option value="14">
-                                        2:00 p.m. (14)
-                                    </option>
-                                    <option value="15">
-                                        3:00 p.m. (15)
-                                    </option>
-                                    <option value="16">
-                                        4:00 p.m. (16)
-                                    </option>
-                                    <option value="17">
-                                        5:00 p.m. (17)
-                                    </option>
-                                    <option value="18">
-                                        6:00 p.m. (18)
-                                    </option>
-                                    <option value="19">
-                                        7:00 p.m. (19)
-                                    </option>
-                                    <option value="20">
-                                        8:00 p.m. (20)
-                                    </option>
-                                    <option value="21">
-                                        9:00 p.m. (21)
-                                    </option>
-                                    <option value="22">
-                                        10:00 p.m. (22)
-                                    </option>
-                                    <option value="23">
-                                        11:00 p.m. (23)
-                                    </option>
-                                </select>
-                            </div>
-                            
+
+                    <!-- Day -->
+                    <div>
+                        <label for="day" class="block text-xs font-semibold text-slate-700 mb-1">Day of Month</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                            <input id="day" name="day" type="text" value="{{ cronjob.day|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <select id="day_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('day')">
+                                <option value="--">-- Quick Presets --</option>
+                                <option value="*">Every Day (*)</option>
+                                <option value="*/2">Every Other Day (*/2)</option>
+                                <option value="1,15">On 1st and 15th (1,15)</option>
+                                <option value="1">1st of month (1)</option>
+                                <option value="15">15th of month (15)</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label id="lblDay" for="day">
-                            Day:
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-2">
-                                <input type="text" class="form-control" size="4" id="day" name="day" value="{{ cronjob.day }}">
-                            </div>
-                            <div class="col-xs-4">
-                                <select id="day_options" onchange="select_single_option('day')" class="form-control">
-                                    <option value="--">
-                                        --
-                                        Common Settings
-                                            --
-                                    </option>
-                                    <option value="*">
-                                        Every Day
-                                            (*)
-                                    </option>
-                                    <option value="*/2">
-                                        Every Other Day
-                                            (*/2)
-                                    </option>
-                                    <option value="1,15">
-                                        On the 1st and 15th of the Month
-                                            (1,15)
-                                    </option>
-                                    <option value="--">
-                                        -- Days --
-                                    </option>
-                                    <option value="1">
-                                        1st (1)
-                                    </option>
-                                    <option value="2">
-                                        2nd (2)
-                                    </option>
-                                    <option value="3">
-                                        3rd (3)
-                                    </option>
-                                    <option value="4">
-                                        4th (4)
-                                    </option>
-                                    <option value="5">
-                                        5th (5)
-                                    </option>
-                                    <option value="6">
-                                        6th (6)
-                                    </option>
-                                    <option value="7">
-                                        7th (7)
-                                    </option>
-                                    <option value="8">
-                                        8th (8)
-                                    </option>
-                                    <option value="9">
-                                        9th (9)
-                                    </option>
-                                    <option value="10">
-                                        10th (10)
-                                    </option>
-                                    <option value="11">
-                                        11th (11)
-                                    </option>
-                                    <option value="12">
-                                        12th (12)
-                                    </option>
-                                    <option value="13">
-                                        13th (13)
-                                    </option>
-                                    <option value="14">
-                                        14th (14)
-                                    </option>
-                                    <option value="15">
-                                        15th (15)
-                                    </option>
-                                    <option value="16">
-                                        16th (16)
-                                    </option>
-                                    <option value="17">
-                                        17th (17)
-                                    </option>
-                                    <option value="18">
-                                        18th (18)
-                                    </option>
-                                    <option value="19">
-                                        19th (19)
-                                    </option>
-                                    <option value="20">
-                                        20th (20)
-                                    </option>
-                                    <option value="21">
-                                        21st (21)
-                                    </option>
-                                    <option value="22">
-                                        22nd (22)
-                                    </option>
-                                    <option value="23">
-                                        23rd (23)
-                                    </option>
-                                    <option value="24">
-                                        24th (24)
-                                    </option>
-                                    <option value="25">
-                                        25th (25)
-                                    </option>
-                                    <option value="26">
-                                        26th (26)
-                                    </option>
-                                    <option value="27">
-                                        27th (27)
-                                    </option>
-                                    <option value="28">
-                                        28th (28)
-                                    </option>
-                                    <option value="29">
-                                        29th (29)
-                                    </option>
-                                    <option value="30">
-                                        30th (30)
-                                    </option>
-                                    <option value="31">
-                                        31st (31)
-                                    </option>
-                                </select>
-                            </div>
-                           
+
+                    <!-- Month -->
+                    <div>
+                        <label for="month" class="block text-xs font-semibold text-slate-700 mb-1">Month</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                            <input id="month" name="month" type="text" value="{{ cronjob.month|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <select id="month_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('month')">
+                                <option value="--">-- Quick Presets --</option>
+                                <option value="*">Every Month (*)</option>
+                                <option value="*/2">Every Other Month (*/2)</option>
+                                <option value="*/4">Every Quarter (*/4)</option>
+                                <option value="1,7">Every Six Months (1,7)</option>
+                                <option value="1">January (1)</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label id="lblMonth" for="month">
-                            Month:
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-2">
-                                <input type="text" class="form-control" size="4" id="month" name="month" value="{{ cronjob.month }}">
-                            </div>
-                            <div class="col-xs-4">
-                                <select id="month_options" onchange="select_single_option('month')" class="form-control">
-                                    <option value="--">
-                                        -- Common Settings --
-                                    </option>
-                                    <option value="*">
-                                        Every Month
-                                            (*)
-                                    </option>
-                                    <option value="*/2">
-                                        Every Other Month
-                                            (*/2)
-                                    </option>
-                                    <option value="*/4">
-                                        Every Third Month
-                                            (*/4)
-                                    </option>
-                                    <option value="1,7">
-                                        Every Six Months
-                                            (1,7)
-                                    </option>
-                                    <option value="--">
-                                        -- Months --
-                                    </option>
-                                    <option value="1">
-                                        January
-                                            (1)
-                                    </option>
-                                    <option value="2">
-                                        February
-                                            (2)
-                                    </option>
-                                    <option value="3">
-                                        March
-                                            (3)
-                                    </option>
-                                    <option value="4">
-                                        April
-                                            (4)
-                                    </option>
-                                    <option value="5">
-                                        May
-                                            (5)
-                                    </option>
-                                    <option value="6">
-                                        June
-                                            (6)
-                                    </option>
-                                    <option value="7">
-                                        July
-                                            (7)
-                                    </option>
-                                    <option value="8">
-                                        August
-                                            (8)
-                                    </option>
-                                    <option value="9">
-                                        September
-                                            (9)
-                                    </option>
-                                    <option value="10">
-                                        October
-                                            (10)
-                                    </option>
-                                    <option value="11">
-                                        November
-                                            (11)
-                                    </option>
-                                    <option value="12">
-                                        December
-                                            (12)
-                                    </option>
-                                </select>
-                            </div>
-                           
+
+                    <!-- Weekday -->
+                    <div>
+                        <label for="weekday" class="block text-xs font-semibold text-slate-700 mb-1">Weekday</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                            <input id="weekday" name="weekday" type="text" value="{{ cronjob.weekday|default:'*' }}" required class="sm:col-span-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono text-center focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                            <select id="weekday_options" class="sm:col-span-3 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" onchange="select_single_option('weekday')">
+                                <option value="--">-- Quick Presets --</option>
+                                <option value="*">Every Day (*)</option>
+                                <option value="1-5">Every Weekday Mon-Fri (1-5)</option>
+                                <option value="0,6">Every Weekend Day Sat-Sun (0,6)</option>
+                                <option value="1,3,5">Every Mon, Wed, Fri (1,3,5)</option>
+                                <option value="2,4">Every Tue, Thu (2,4)</option>
+                                <option value="0">Sunday (0)</option>
+                                <option value="1">Monday (1)</option>
+                            </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label id="lblWeekday" for="weekday">
-                            Weekday:
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-2">
-                                <input type="text" class="form-control" size="4" id="weekday" name="weekday" value="{{ cronjob.weekday }}">
-                            </div>
-                            <div class="col-xs-4">
-                                <select id="weekday_options" class="form-control" onchange="select_single_option('weekday')">
-                                    <option value="--">
-                                        -- Common Settings --
-                                    </option>
-                                    <option value="*">
-                                        Every Day
-                                            (*)
-                                    </option>
-                                    <option value="1-5">
-                                        Every Weekday
-                                            (1-5)
-                                    </option>
-                                    <option value="0,6">
-                                        Every Weekend Day
-                                            (6,0)
-                                    </option>
-                                    <option value="1,3,5">
-                                        Every Monday, Wednesday, and Friday
-                                            (1,3,5)
-                                    </option>
-                                    <option value="2,4">
-                                        Every Tuesday and Thursday
-                                            (2,4)
-                                    </option>
-                                    <option value="--">
-                                        --
-                                        Weekdays
-                                            --
-                                    </option>
-                                    <option value="0">
-                                        Sunday
-                                            (0)
-                                    </option>
-                                    <option value="1">
-                                        Monday
-                                            (1)
-                                    </option>
-                                    <option value="2">
-                                        Tuesday
-                                            (2)
-                                    </option>
-                                    <option value="3">
-                                        Wednesday
-                                            (3)
-                                    </option>
-                                    <option value="4">
-                                        Thursday
-                                            (4)
-                                    </option>
-                                    <option value="5">
-                                        Friday
-                                            (5)
-                                    </option>
-                                    <option value="6">
-                                        Saturday
-                                            (6)
-                                    </option>
-                                </select>
-                            </div>
-                           
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label id="lblCommand" for="command">
-                            Command:
-                        </label>
-                        <div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                                <input type="text" class="form-control" size="45" id="command" name="comm" value="{{ cronjob.command }}">
-                            </div>
-                           
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <input type="submit" id="add_new_cron" class="mb-1 btn btn-success" style="text-transform: none;" value="Update Cron Job">
-                        <span id="add_new_cron_status">
-                        </span>
                     </div>
                 </div>
 
+                <!-- Command Input -->
+                <div class="pt-2">
+                    <label for="command" class="block text-xs font-semibold text-slate-700 mb-1">Command to Execute</label>
+                    <input type="text" id="command" name="comm" value="{{ cronjob.command }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+                </div>
 
-        
-      
-    </form>
-	</div>
-	
-	
-   <script>
-      function select_common_option() {
+                <div class="pt-3">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Update Cron Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function select_common_option() {
     const commonOption = document.getElementById("common_options").value;
+    if (commonOption === "--") return;
     const cronParts = commonOption.split(" ");
-	
-	
 
     setFieldAndSelectOption("minute", cronParts[0] || "*");
     setFieldAndSelectOption("hour", cronParts[1] || "*");
@@ -727,62 +161,31 @@
     setFieldAndSelectOption("weekday", cronParts[4] || "*");
 }
 
-// Helper function to set both input and select option
 function setFieldAndSelectOption(fieldId, value) {
     const inputElement = document.getElementById(fieldId);
     const selectElement = document.getElementById(fieldId + "_options");
 
-    inputElement.value = value;
+    if (inputElement) inputElement.value = value;
 
-    // Set the selected option in the dropdown
-    for (let i = 0; i < selectElement.options.length; i++) {
-        if (selectElement.options[i].value === value) {
-            selectElement.selectedIndex = i;
-            return;
+    if (selectElement) {
+        for (let i = 0; i < selectElement.options.length; i++) {
+            if (selectElement.options[i].value === value) {
+                selectElement.selectedIndex = i;
+                return;
+            }
         }
+        selectElement.selectedIndex = 0;
     }
-
-    // If no matching option is found, reset to default (no selection)
-    selectElement.selectedIndex = 0;
 }
-        // Function to update the input based on individual dropdown selection
-        function select_single_option(fieldId) {
-            const selectElement = document.getElementById(fieldId + "_options");
-            const inputElement = document.getElementById(fieldId);
-            inputElement.value = selectElement.value;
-        }
 
-        // Function to generate and display the cron expression
-        function generateCronExpression() {
-            const minute = document.getElementById("minute").value || "*";
-            const hour = document.getElementById("hour").value || "*";
-            const day = document.getElementById("day").value || "*";
-            const month = document.getElementById("month").value || "*";
-            const weekday = document.getElementById("weekday").value || "*";
-            const command = document.getElementById("command").value;
+function select_single_option(fieldId) {
+    const selectElement = document.getElementById(fieldId + "_options");
+    const inputElement = document.getElementById(fieldId);
+    if (selectElement.value !== "--") {
+        inputElement.value = selectElement.value;
+    }
+}
+</script>
 
-            const cronExpression = `${minute} ${hour} ${day} ${month} ${weekday} ${command}`;
-            document.getElementById("cron-expression").textContent = `Cron Expression: ${cronExpression}`;
-            console.log(`Generated Cron Expression: ${cronExpression}`);
-        }
-		
-		
-		
-document.addEventListener("DOMContentLoaded", function() {
-        // Function to set field values and select options
-        
-
-        // Set fields with the cronjob values or default to "*"
-        setFieldAndSelectOption("minute", "{{ cronjob.minute|default:'*' }}");
-        setFieldAndSelectOption("hour", "{{ cronjob.hour|default:'*' }}");
-        setFieldAndSelectOption("day", "{{ cronjob.day|default:'*' }}");
-        setFieldAndSelectOption("month", "{{ cronjob.month|default:'*' }}");
-        setFieldAndSelectOption("weekday", "{{ cronjob.weekday|default:'*' }}");
-    });		
-		
-    </script>
-	
-	
-</div>
-{% endblock content %}
 {% include "users/footer.html" %}
+{% endblock content %}

@@ -1,181 +1,129 @@
 {% extends "users/base.html" %}
-{% block title %}Webmail Service{% endblock title %}
+{% block title %}Webmail Service - {{ email }}{% endblock title %}
 
 {% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <!-- Left 2 Cols: Webmail Client Launchers & Security -->
+    <div class="lg:col-span-2 space-y-5">
+        <!-- Webmail Client Applications -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-email-open-outline text-brand text-base"></i> Open Webmail Client
+                </h4>
+            </div>
 
-  <div class="row">
-                  <div class="col-md-9 col-xl-9">
-                      
-                    <!-- manu -->
-                    <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                            <h3><img src="/media/icon/mail.svg" width="28px" height="28px" style="margin-right: 10px;" />  Mail</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#domain-manu" aria-expanded="true" aria-controls="domain-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="domain-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-						
-						{% if list %}
-						 {% for plugin in list %}
-                            <div class="col-xl-6 mb-4">
-							<div class="card rounded h-100 overflow-hidden d-flex flex-column">
-							
-							
-							 {% if plugin.icon %}
-                <div class="px-4 py-2" >
-                  <img src="{{ plugin.icon }}" alt="{{ plugin.name }}"
-                       class="" style="width: 100%;">
-                </div>
-              {% else %}
-                <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary" style="height: 200px;">
-                  <span class="mdi mdi-email-outline text-white" style="font-size: 60px;"></span>
-                </div>
-              {% endif %}
-			  
-			  
-			   <div class="mt-auto px-3 pb-3">
-			     <form method="post" action="" target="_blank">
-    {% csrf_token %}
-			   <input type="hidden" name="plugin_name" value="{{ plugin.name }}"/>
-                {% if plugin.auto_login_url %}
-                  <button type="submit" class="btn btn-success btn-sm">
-                    Open Mail
-                  </button>
-                {% else %}
-                  <button type="submit" class="btn btn-success btn-sm">
-                    Open Mail
-                  </button>
-                {% endif %}
-				
-				</form>
-              </div>
-			  
+            <div class="p-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {% if list %}
+                        {% for plugin in list %}
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col justify-between items-center text-center space-y-3">
+                            {% if plugin.icon %}
+                                <img src="{{ plugin.icon }}" alt="{{ plugin.name }}" class="h-12 object-contain">
+                            {% else %}
+                                <div class="w-12 h-12 rounded-full bg-brand/10 text-brand flex items-center justify-center">
+                                    <i class="mdi mdi-email-outline text-2xl"></i>
+                                </div>
+                            {% endif %}
 
-						
-							</div></div>
-							 {% endfor %}
-							{% endif %}
-							
-							
-							
-							
-							
-                           	</div>
-                      </div>
-                      </div>
-                    </div>
-                  
-                   
- <div class="card card-default">
-                      <div class="has-sub">
-                          <div class="card-header border-bottom">
-                           <h3><img src="/media/icon/ssl.svg" width="28px" height="28px" style="margin-right: 10px;" />Email Security</h3>
-                            <a class="" href="javascript:void(0)" data-toggle="collapse" data-target="#security-manu" aria-expanded="true" aria-controls="security-manu"><b class="caret"></b></a>
-                          </div>
-                          
-                      </div>  
-                      <div class="collapse show"  id="security-manu" data-parent="">
-                          <div class="card-body sub-menu ptop-6">
-                        <div class="row">
-						<div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'email_accounts_create' %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/mail.svg" style="margin-right: 10px;" /> <span>Create Email</span></div></a></div>
-                            
-                            <div class="col-sm-9 col-md-3 col-lg-3"><a href="{% url 'email_edit' email_id %}"><div class="d-flex justify-content-start align-items-center"><img src="/media/icon/ssl.svg" style="margin-right: 10px;" /> <span>Change Password</span></div></a></div>
-                            
-                           
+                            <div class="text-xs font-bold text-slate-800">{{ plugin.name }}</div>
+
+                            <form method="post" action="" target="_blank" class="w-full m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="plugin_name" value="{{ plugin.name }}"/>
+                                <button type="submit" class="w-full inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                                    <i class="mdi mdi-open-in-new text-xs"></i> Open {{ plugin.name }}
+                                </button>
+                            </form>
                         </div>
-                      </div>
-                      </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-span-2 text-center py-6 text-slate-400 text-xs">
+                            No webmail client plugins configured.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Management Shortcuts -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-shield-key-outline text-brand text-base"></i> Email Actions & Security
+                </h4>
+            </div>
+
+            <div class="p-5 flex items-center gap-3 flex-wrap">
+                <a href="{% url 'email_accounts_create' %}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 hover:text-brand transition-colors">
+                    <i class="mdi mdi-email-plus-outline"></i> Create Another Email
+                </a>
+                <a href="{% url 'email_edit' email_id %}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 hover:text-brand transition-colors">
+                    <i class="mdi mdi-lock-reset"></i> Change Account Password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Col: Server Connection Info -->
+    <div class="space-y-5">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                    <i class="mdi mdi-server-network text-brand text-base"></i> Client Configuration
+                </h4>
+            </div>
+
+            <div class="p-5 space-y-3 text-xs">
+                <div class="pb-2 border-b border-slate-100">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Email Address</span>
+                    <span class="font-mono font-bold text-slate-900">{{ email }}</span>
+                </div>
+
+                <div class="pb-2 border-b border-slate-100">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Incoming Host (IMAP/POP3)</span>
+                    <span class="font-mono text-slate-800" id="incoming-server">mail.domain.com</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pb-2 border-b border-slate-100">
+                    <div>
+                        <span class="block text-[11px] text-slate-400 font-semibold mb-0.5">IMAP (SSL)</span>
+                        <span class="font-mono font-bold text-slate-800">Port 993</span>
                     </div>
-					
-					
-					
+                    <div>
+                        <span class="block text-[11px] text-slate-400 font-semibold mb-0.5">POP3 (SSL)</span>
+                        <span class="font-mono font-bold text-slate-800">Port 995</span>
+                    </div>
+                </div>
 
-                  </div>
-                  <div class="col-md-3 col-xl-3">
-                    <!-- Current Users  -->
-                <!-- Email Settings Card -->
-<div class="card card-default">
-  <div class="card-header">
-    <span class="cardtitle">General Information</span>
-  </div>
+                <div class="pb-2 border-b border-slate-100">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Outgoing Host (SMTP)</span>
+                    <span class="font-mono text-slate-800" id="smtp-server">mail.domain.com</span>
+                </div>
 
-  <div class="bottom-border_right">
-    <div class="infotitle">Current Email</div>
-    <div class="infovalue">{{ email }}</div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">Username</div>
-    <div class="infovalue">{{ email }}</div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">Password</div>
-    <div class="infovalue">Use the email account's password.</div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">Incoming Server</div>
-    <div class="infovalue" id="incoming-server"></div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">IMAP Port</div>
-    <div class="infovalue">993</div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">POP3 Port</div>
-    <div class="infovalue">995</div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">Outgoing Server (SMTP)</div>
-    <div class="infovalue" id="smtp-server"></div>
-  </div>
-
-  <div class="bottom-border_right">
-    <div class="infotitle">SMTP Port</div>
-    <div class="infovalue">465</div>
-  </div>
+                <div>
+                    <span class="block text-[11px] text-slate-400 font-semibold mb-0.5">SMTP (SSL)</span>
+                    <span class="font-mono font-bold text-slate-800">Port 465</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-        
-                     </div>
-                </div>
-				
-				
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- JavaScript to parse domain -->
 <script>
-  function getEmailDomain(email) {
+function getEmailDomain(email) {
     if (typeof email !== 'string') return '';
     const parts = email.trim().split('@');
-    return parts.length === 2 ? parts[1] : '';
-  }
+    return parts.length === 2 ? `mail.${parts[1]}` : '';
+}
 
-  const email = "{{ email }}"; // Django template value
-  const domain = getEmailDomain(email);
-  document.getElementById("incoming-server").textContent = domain;
-  document.getElementById("smtp-server").textContent = domain;
+const email = "{{ email }}";
+const domain = getEmailDomain(email);
+if (domain) {
+    document.getElementById("incoming-server").textContent = domain;
+    document.getElementById("smtp-server").textContent = domain;
+}
 </script>
 
-
-
+{% include "users/footer.html" %}
 {% endblock content %}

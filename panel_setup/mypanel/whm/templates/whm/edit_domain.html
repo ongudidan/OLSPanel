@@ -1,188 +1,128 @@
 {% extends "whm/base.html" %}
-{% block title %}Manage domain{% endblock title %}
+{% block title %}Manage Domain{% endblock title %}
 {% block content %}
 
 <script src="/media/editor/ace.js"></script>
-<style>
- #editor { 
-            width: 100%; 
-            height: 400px; 
-            border: 1px solid #ccc; 
-        }
-</style>
 
- 
-
-<div class="card card-default">
-      <div class="card-header">
-        <h2>Edit Domain</h2>
-        
-
-      </div>
-      <div class="card-body">
-    <form method="post"  enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="form-row">
-            <div class="col-md-5">
-                <div class="form-group">
-                    <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Domain:</label>
-                    <input type="text" id="path"  class="form-control" value="{{ domain }}" readonly>
-                </div>
-				 <label class="small mb-1" for="{{ user_form.domain.id_for_label }}">Document Root (File System Location):</label>
-				  <div class="input-group mb-2 mr-sm-2">
-				 
-            <div class="input-group-prepend">
-			
-              <div class="input-group-text"><span class="mdi mdi-home"></span></div>
-            </div>
-            <input type="text" id="path" name="path" class="form-control" value="{{ relevant_path }}">
-          </div>
-				 
-				
-				
-				
+<div class="space-y-5">
+    <!-- Domain Settings Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-domain text-brand"></i> Edit Domain: <span class="text-brand">{{ domain }}</span>
+            </h4>
+            <div>
+                <a href="{% url 'domain_list_all' %}" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors">
+                    <i class="mdi mdi-arrow-left"></i> Back to Domains
+                </a>
             </div>
         </div>
-        <button type="submit" class="mb-1 btn btn-success" style="text-transform: none;">Save domain</button>
-    </form>
-	
-<form action="{% url 'domain_delete_all' domain.id %}" method="post" style="display:inline;">
+        <div class="p-5">
+            <form method="post" enctype="multipart/form-data" class="space-y-4 max-w-xl">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Domain Name</label>
+                    <input type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-600 cursor-not-allowed shadow-xs font-bold" value="{{ domain }}" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Document Root (File System Location)</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md">
+                            <i class="mdi mdi-home text-sm"></i>
+                        </span>
+                        <input type="text" id="path" name="path" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all" value="{{ relevant_path }}">
+                    </div>
+                </div>
+                
+                <div class="pt-2 flex items-center gap-2.5">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
+                        <i class="mdi mdi-content-save-outline"></i> Save Domain
+                    </button>
+                    <form action="{% url 'domain_delete_all' domain.id %}" method="post" class="inline m-0">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this domain?');">Remove Domain</button>
-                    </form>	
-	
-</div>
-</div>
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-md shadow-xs transition-colors" onclick="return confirm('Are you sure you want to delete this domain?');">
+                            <i class="mdi mdi-trash-can-outline"></i> Remove Domain
+                        </button>
+                    </form>
+                </div>
+            </form>
+        </div>
+    </div>
 
+    <!-- Virtual Host Configuration Card -->
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-code-tags text-brand"></i> Virtual Host Configuration
+            </h4>
+            <div id="responseContainer" style="display: none;" class="flex items-center gap-1 text-xs text-brand font-semibold">
+                <svg class="animate-spin h-3.5 w-3.5 text-brand" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span>Loading...</span>
+            </div>
+        </div>
+        <div class="p-5 space-y-4">
+            <div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between">
+                <div id="message"></div>
+                <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
+            </div>
 
+            <div class="border border-slate-200 rounded-md overflow-hidden">
+                <div id="editor" class="w-full h-96 text-xs font-mono"></div>
+            </div>
 
-	  
-	<div class="card card-default">
-      <div class="card-header">
-        <h2>Virtual Host:</h2>
-        
-
-      </div>
-      <div class="card-body">
-	     <div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
+            <div>
+                <button id="save" class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors">
+                    <i class="mdi mdi-content-save-outline"></i> Save Virtual Host
                 </button>
-</div>	
-<div id="responseContainer" style="display: none;" class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          
-        </div>	 
-
-		
-<div id="editor"></div>
-<div class="form-group">
- <button id="save"  class="btn btn-primary mt-3">Save</button>
+            </div>
+        </div>
+    </div>
 </div>
-          
-		  
-</div>		  
-		  
-		  
-
-
-
-</div>
-
-
-
-
 
 <script>
-
-
 document.addEventListener("DOMContentLoaded", function () {
     load("{{ domain }}");
 });
 
+const editor = ace.edit("editor");
+editor.setTheme("ace/theme/xcode");
+editor.session.setMode("ace/mode/apache_conf");
 
+const alertContainer = document.getElementById('alertContainer');
+const messageDisplay = document.getElementById('message');
+const responseDisplay = document.getElementById('responseContainer');
 
-    const editor = ace.edit("editor");
-        editor.setTheme("ace/theme/xcode"); // You can change the theme
-        editor.session.setMode("ace/mode/apache_conf"); // Set the mode to PHP
-
-        document.addEventListener('keydown', function(event) {
-            // Detect if 'Ctrl' (or 'Cmd' for Mac) + 'F' is pressed
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
-                event.preventDefault();  // Prevent the default browser action (find)
-                toggleSearch();  // Open or close the search box
-            }
+function load(domain) {
+    if (domain) {
+        if (responseDisplay) responseDisplay.style.display = 'flex';
+        fetch(`{% url 'fetch_vhost' %}?domain=${domain}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok: ' + response.statusText);
+            return response.json();
+        })
+        .then(response => {
+            if (responseDisplay) responseDisplay.style.display = 'none';
+            editor.setValue(response.content, -1);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (responseDisplay) responseDisplay.style.display = 'none';
         });
-
-       const alertContainer = document.getElementById('alertContainer');
-       const messageDisplay = document.getElementById('message');
-      const responseDisplay = document.getElementById('responseContainer');
-      
-
-   function load(domain) {
-    if (domain) {  // Ensuring selectedVersion is available
-       
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
-
-            // Call the URL with GET method, appending php_version as a query parameter
-            fetch(`{% url 'fetch_vhost' %}?domain=${domain}`, {
-                method: 'GET',  // Using GET to pass php_version as a query parameter
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json(); // Retrieve response as JSON
-            })
-            .then(response => {
-                console.log('Response:', response);
-               responseDisplay.style.display = 'none';
-
-              
-               
-				
-editor.setValue(response.content, -1);
-
-
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // You can show an alert to notify the user about the error
-               responseDisplay.style.display = 'none';
-               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
-            });
-        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
-    } else {
-        console.log('No PHP version selected.');
     }
 }
 
-
-       
-		
-	document.getElementById('save').onclick = function () {
-   event.preventDefault();
+document.getElementById('save').onclick = function (event) {
+    event.preventDefault();
     const content = editor.getValue();
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
-    const alertContainer = document.getElementById('alertContainer'); // Assuming this is your alert container
-    const messageDisplay = document.getElementById('message'); // Assuming this is your message container
- const domain = "{{ domain }}";
-    responseDisplay.style.display = 'inline-block';
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const domain = "{{ domain }}";
 
-    // Get the value of the input field
-   
-    // Use fetch to send a POST request to save the file content
-    fetch("{% url 'save_vhost' %}", { // Assuming `inputValue` contains the API URL
+    if (responseDisplay) responseDisplay.style.display = 'flex';
+
+    fetch("{% url 'save_vhost' %}", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -191,40 +131,38 @@ editor.setValue(response.content, -1);
         },
         body: new URLSearchParams({
             'content': content,
-			'domain': domain
+            'domain': domain
         })
     })
     .then(response => {
-        responseDisplay.style.display = 'none';
-        if (!response.ok) {
-            throw new Error('Network response was not ok: ' + response.statusText);
-        }
-        return response.json(); // Parse response as JSON
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (!response.ok) throw new Error('Network response was not ok: ' + response.statusText);
+        return response.json();
     })
     .then(data => {
-        console.log('Response:', data);
-        responseDisplay.style.display = 'none';
- alertContainer.style.display = 'block';
-        if (data.status === 'success') {
-            alertContainer.className = "alert alert-success alert-dismissible fade show";
-            messageDisplay.innerText = 'Save successful'; // Displaying success message
-        } else {
-            alertContainer.className = "alert alert-danger alert-dismissible fade show";
-            messageDisplay.innerText = "Failed: " + data.message; // Displaying error message
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.style.display = 'flex';
+            if (data.status === 'success') {
+                alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between";
+                messageDisplay.innerText = 'Save successful';
+            } else {
+                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between";
+                messageDisplay.innerText = "Failed: " + data.message;
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        responseDisplay.style.display = 'none';
-		alertContainer.style.display = 'block';
-        alertContainer.className = "alert alert-danger alert-dismissible fade show";
-        messageDisplay.innerText = 'An error occurred: ' + error.message; // Displaying network error
+        if (responseDisplay) responseDisplay.style.display = 'none';
+        if (alertContainer && messageDisplay) {
+            alertContainer.style.display = 'flex';
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between";
+            messageDisplay.innerText = 'An error occurred: ' + error.message;
+        }
     });
 };
-	
-
 </script>
 
-
-{% endblock content %}
 {% include "whm/footer.html" %}
+{% endblock content %}

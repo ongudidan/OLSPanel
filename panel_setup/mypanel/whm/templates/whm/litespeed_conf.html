@@ -2,222 +2,111 @@
 {% block title %}LiteSpeed Configuration{% endblock title %}
 {% block content %}
 
+<div class="max-w-3xl space-y-5">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-server-network text-brand text-base"></i> OpenLiteSpeed Global Configuration
+            </h4>
+        </div>
 
-<div id="alertContainer" class="alert alert-success alert-dismissible fade show" role="alert" style="display: none;">
-    <div id="message"></div>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                  <span aria-hidden="true">×</span>
-                </button>
-</div>	
+        <div class="p-5">
+            <form method="post" action="" class="space-y-6">
+                {% csrf_token %}
 
+                <!-- Section 1: Server Connections & Performance -->
+                <div>
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                        <i class="mdi mdi-speedometer text-brand"></i> Server Connections & Tuning
+                    </h5>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="maxConnections" class="block text-xs font-semibold text-slate-700 mb-1">Max Connections</label>
+                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxConnections" name="maxConnections" placeholder="e.g., 2000" value="{{ current_settings.maxConnections }}">
+                        </div>
 
+                        <div>
+                            <label for="maxSSLConnections" class="block text-xs font-semibold text-slate-700 mb-1">Max SSL Connections</label>
+                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="maxSSLConnections" name="maxSSLConnections" placeholder="e.g., 1000" value="{{ current_settings.maxSSLConnections }}">
+                        </div>
 
+                        <div>
+                            <label for="connTimeout" class="block text-xs font-semibold text-slate-700 mb-1">Connection Timeout (sec)</label>
+                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="connTimeout" name="connTimeout" placeholder="e.g., 60" value="{{ current_settings.connTimeout }}">
+                        </div>
 
+                        <div>
+                            <label for="keepAliveTimeout" class="block text-xs font-semibold text-slate-700 mb-1">Keep-Alive Timeout (sec)</label>
+                            <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="keepAliveTimeout" name="keepAliveTimeout" placeholder="e.g., 5" value="{{ current_settings.keepAliveTimeout }}">
+                        </div>
+                    </div>
 
-<form method="post" action="">
-            {% csrf_token %}
-<div class="row">
-                            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">  
-<div class="card card-default">
-    <div class="card-header">
-        <h2>LiteSpeed Configuration</h2>
+                    <div class="mt-4 p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-800">Enable GZIP Compression</span>
+                            <span class="block text-[11px] text-slate-500">Compresses static assets (HTML, CSS, JS) over the wire to reduce bandwidth.</span>
+                        </div>
+                        <input type="checkbox" name="enableGzipCompress" id="enableGzipCompress" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.enableGzipCompress == '1' %}checked{% endif %}>
+                    </div>
+                </div>
+
+                <!-- Section 2: LSCache Acceleration Engine -->
+                <div>
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+                        <i class="mdi mdi-flash text-brand"></i> LiteSpeed Cache (LSCache) Module
+                    </h5>
+
+                    <div class="space-y-4">
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="block text-xs font-bold text-slate-800">Enable LSCache Module</span>
+                                <span class="block text-[11px] text-slate-500">Enables server-level page caching for ultra-fast WordPress, Laravel, and dynamic PHP performance.</span>
+                            </div>
+                            <input type="checkbox" name="ls_enabled" id="ls_enabled" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.ls_enabled == '1' %}checked{% endif %}>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                                <label for="totalInMemCacheSize" class="block text-xs font-semibold text-slate-700 mb-1">In-Memory Cache (MB)</label>
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="totalInMemCacheSize" name="totalInMemCacheSize" placeholder="e.g., 64M" value="{{ current_settings.totalInMemCacheSize }}">
+                            </div>
+
+                            <div>
+                                <label for="expireInSeconds" class="block text-xs font-semibold text-slate-700 mb-1">Public Expire (sec)</label>
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="expireInSeconds" name="expireInSeconds" placeholder="e.g., 86400" value="{{ current_settings.expireInSeconds }}">
+                            </div>
+
+                            <div>
+                                <label for="privateExpireInSeconds" class="block text-xs font-semibold text-slate-700 mb-1">Private Expire (sec)</label>
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="privateExpireInSeconds" name="privateExpireInSeconds" placeholder="e.g., 1800" value="{{ current_settings.privateExpireInSeconds }}">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-700">Public Page Cache</span>
+                                <input type="checkbox" name="enableCache" id="enableCache" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.enableCache == '1' %}checked{% endif %}>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                                <span class="text-xs font-semibold text-slate-700">Private User Cache</span>
+                                <input type="checkbox" name="enablePrivateCache" id="enablePrivateCache" value="1" class="w-4 h-4 text-brand rounded border-slate-300 focus:ring-brand/30 cursor-pointer" {% if current_settings.enablePrivateCache == '1' %}checked{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save-outline"></i> Save LiteSpeed Settings
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    <div class="card-body">
-	 
-	       
-            <div class="tab-content mt-5" id="nav-tabContent">
-              <div class="tab-pane fade show active" id="nav-tabs-home" role="tabpanel" aria-labelledby="nav-home-tab">
-                
-           
-
-<div class="form-group mt-3">
-    <label for="maxConnections">Max Connections:</label>
-    <input type="text" class="form-control" id="maxConnections" name="maxConnections" placeholder="e.g., 128M" value="{{ current_settings.maxConnections }}">
 </div>
 
-<div class="form-group">
-    <label for="maxSSLConnections">Max SSL Connections:</label>
-    <input type="text" class="form-control" id="maxSSLConnections" name="maxSSLConnections" placeholder="e.g., 64M" value="{{ current_settings.maxSSLConnections }}">
-</div>
-
-<div class="form-group">
-    <label for="connTimeout">Connection Timeout:</label>
-    <input type="text" class="form-control" id="connTimeout" name="connTimeout" placeholder="e.g., 64M" value="{{ current_settings.connTimeout }}">
-</div>
-
-<div class="form-group">
-    <label for="keepAliveTimeout">Keep Alive Timeout:</label>
-    <input type="text" class="form-control" id="keepAliveTimeout" name="keepAliveTimeout" placeholder="e.g., 30" value="{{ current_settings.keepAliveTimeout }}">
-</div>
-
-<div class="form-group">
-    <label for="enableGzipCompress">Enable GZIP Compression:</label>
-    <label class="switch switch-primary form-control-label mr-2">
-        <input type="checkbox" name="enableGzipCompress" id="enableGzipCompress" class="switch-input form-check-input" value="1"
-               {% if current_settings.enableGzipCompress == '1' %}checked{% endif %}>
-        <span class="switch-label"></span>
-        <span class="switch-handle"></span>
-    </label>
-</div>
-
-<div class="form-group">
-    <label for="ls_enabled">Cache Module:</label>
-    <label class="switch switch-primary form-control-label mr-2">
-        <input type="checkbox" name="ls_enabled" id="ls_enabled" class="switch-input form-check-input" value="1"
-               {% if current_settings.ls_enabled == '1' %}checked{% endif %}>
-        <span class="switch-label"></span>
-        <span class="switch-handle"></span>
-    </label>
-</div>
-
-<div class="form-group">
-    <label for="totalInMemCacheSize">Cache Size in memory:</label>
-    <input type="text" class="form-control" id="totalInMemCacheSize" name="totalInMemCacheSize" placeholder="e.g., 30" value="{{ current_settings.totalInMemCacheSize }}">
-</div>
-
-<div class="form-group">
-    <label for="expireInSeconds">Cache expire In Seconds:</label>
-    <input type="text" class="form-control" id="expireInSeconds" name="expireInSeconds" placeholder="e.g., 30" value="{{ current_settings.expireInSeconds }}">
-</div>
-
-<div class="form-group">
-    <label for="privateExpireInSeconds">Private Cache expire In Seconds:</label>
-    <input type="text" class="form-control" id="privateExpireInSeconds" name="privateExpireInSeconds" placeholder="e.g., 30" value="{{ current_settings.privateExpireInSeconds }}">
-</div>
-
-<div class="form-group">
-    <label for="enableCache">Public Cache:</label>
-    <label class="switch switch-primary form-control-label mr-2">
-        <input type="checkbox" name="enableCache" id="enableCache" class="switch-input form-check-input" value="1"
-               {% if current_settings.enableCache == '1' %}checked{% endif %}>
-        <span class="switch-label"></span>
-        <span class="switch-handle"></span>
-    </label>
-</div>
-
-<div class="form-group">
-    <label for="enablePrivateCache">Private Cache:</label>
-    <label class="switch switch-primary form-control-label mr-2">
-        <input type="checkbox" name="enablePrivateCache" id="enablePrivateCache" class="switch-input form-check-input" value="1"
-               {% if current_settings.enablePrivateCache == '1' %}checked{% endif %}>
-        <span class="switch-label"></span>
-        <span class="switch-handle"></span>
-    </label>
-</div>
-
-
-
-
-
-            <button type="submit" class="btn btn-primary mt-3">Save Settings</button>
-       
-    
-	    </div>
-              
-
-          </div>
-	
-	
-	
-     
-	
-</div>
-
- </div>
-</div>
-
- </form>
- 
- <script>
-   
-
-       const alertContainer = document.getElementById('alertContainer');
-       const messageDisplay = document.getElementById('message');
-      const responseDisplay = document.getElementById('responseContainer');
-      
-
-   function load(selectedVersion) {
-    if (selectedVersion) {  // Ensuring selectedVersion is available
-        console.log('Selected version:', selectedVersion);
-       
-        setTimeout(function() {
-            responseDisplay.style.display = 'inline-block';
-
-            // Call the URL with GET method, appending php_version as a query parameter
-            fetch(`{% url 'fetch_php_settings' %}?php_version=${selectedVersion}`, {
-                method: 'GET',  // Using GET to pass php_version as a query parameter
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json(); // Retrieve response as JSON
-            })
-            .then(response => {
-                console.log('Response:', response);
-               responseDisplay.style.display = 'none';
-
-                // Populate form fields with the response data
-                $('#memory_limit').val(response.memory_limit || '');
-                $('#upload_max_filesize').val(response.upload_max_filesize || '');
-                $('#post_max_size').val(response.post_max_size || '');
-                $('#max_execution_time').val(response.max_execution_time || '');
-				$('#max_input_time').val(response.max_input_time || '');
-				$('#allow_url_fopen').val(response.allow_url_fopen || '');
-				$('#allow_url_include').val(response.allow_url_include || '');
-				$('#display_errors').val(response.display_errors || '');
-				$('#file_uploads').val(response.file_uploads || '');
-				
-editor.setValue(response.content, -1);
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.allow_url_fopen === '1' || response.allow_url_fopen.toString().toLowerCase() === 'on') {
-    $('#allow_url_fopen').prop('checked', true);
-} else {
-    $('#allow_url_fopen').prop('checked', false);
-}
-
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.allow_url_include === '1' || response.allow_url_include.toString().toLowerCase() === 'on') {
-    $('#allow_url_include').prop('checked', true);
-} else {
-    $('#allow_url_include').prop('checked', false);
-}
-
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.display_errors === '1' || response.display_errors.toString().toLowerCase() === 'on') {
-    $('#display_errors').prop('checked', true);
-} else {
-    $('#display_errors').prop('checked', false);
-}
-
-// Toggle checkbox if the value matches '1' or 'on'
-if (response.file_uploads === '1' || response.file_uploads.toString().toLowerCase() === 'on') {
-    $('#file_uploads').prop('checked', true);
-} else {
-    $('#file_uploads').prop('checked', false);
-}
-
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                // You can show an alert to notify the user about the error
-               responseDisplay.style.display = 'none';
-               // messageDisplay.innerText = 'Failed to fetch PHP settings. Please try again.';
-            });
-        }, 0); // Delay set to 0 milliseconds to avoid any race conditions
-    } else {
-        console.log('No PHP version selected.');
-    }
-}
-
-
-   
-</script>
-
- 
 {% include "whm/footer.html" %}
 {% endblock content %}
