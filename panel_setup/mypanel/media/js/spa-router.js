@@ -448,6 +448,15 @@
         // Always finish top loader
         TopLoader.done();
 
+        // Initialize Searchable Selects
+        if (window.OLSSelect) {
+            try {
+                window.OLSSelect.initAll(spaContainer);
+            } catch (e) {
+                console.warn('[SPA] OLSSelect init error:', e);
+            }
+        }
+
         // Dispatch Global Events
         document.dispatchEvent(new CustomEvent('olspanel:page-loaded', { detail: { url: finalUrl } }));
         if (window.jQuery) {

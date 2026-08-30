@@ -2,541 +2,554 @@
 {% block title %}Restore Account Backup{% endblock title %}
 
 {% block content %}
-<div class="space-y-3 w-full">
-
-    <!-- Top Compact Header -->
-    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
-                <i class="mdi mdi-backup-restore text-lg"></i>
-            </div>
-            <div>
-                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Restore Account Backup</h4>
-                <p class="text-[11px] text-slate-500 m-0 leading-tight">Restore full cPanel, CyberPanel, Plesk, or OLSPanel backup archives into active accounts</p>
-            </div>
-        </div>
-        <a href="{% url 'backup_whm' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
-            <i class="mdi mdi-arrow-left text-xs"></i>
-            <span>Backups List</span>
-        </a>
-    </div>
-
-    <!-- Active Running Alert -->
-    <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
-        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-        <span class="font-semibold">Backup restore in progress. Please do not close or navigate away from this tab...</span>
-    </div>
-
-    <!-- Feedback Message Alert -->
-    <div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between shadow-xs">
-        <div id="message" class="font-medium"></div>
-        <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-base font-bold bg-transparent border-0 leading-none">&times;</button>
-    </div>
-
-    <!-- Main Restore Wizard Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
-                <i class="mdi mdi-cloud-download-outline text-brand text-sm"></i> Archive Source &amp; Configuration
-            </h5>
-            <span class="text-[10px] text-slate-400 font-medium">Select source location</span>
+<div class="max-w-2xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-visible">
+        <!-- Card Header -->
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-backup-restore text-brand text-base"></i> Restore Account Backup
+            </h4>
+            <a href="{% url 'backup_whm' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Backups
+            </a>
         </div>
 
-        <form action="#" method="POST" id="restoreBackupForm" onsubmit="event.preventDefault(); return false;" class="p-4 space-y-4">
-            {% csrf_token %}
-
-            <!-- Step 1: Source Selection Tabs / Radio Cards -->
-            <div class="space-y-1.5">
-                <label class="block text-[11px] font-semibold text-slate-700">1. Backup Source Location</label>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
-                        <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
-                        <i class="mdi mdi-folder-home-outline text-sm text-brand"></i>
-                        <span>Local Disk</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
-                        <input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
-                        <i class="mdi mdi-upload text-sm text-brand"></i>
-                        <span>File Upload</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
-                        <input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
-                        <i class="mdi mdi-link-variant text-sm text-brand"></i>
-                        <span>Direct URL</span>
-                    </label>
-                    <label class="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none has-checked:bg-emerald-50/70 has-checked:border-brand has-checked:text-brand">
-                        <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
-                        <i class="mdi mdi-server-network text-sm text-brand"></i>
-                        <span>Remote FTP</span>
-                    </label>
-                </div>
+        <!-- Form Body -->
+        <div class="p-5">
+            <!-- Active Running Alert -->
+            <div id="responseContainer" style="display: none;" class="mb-4 p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-md text-xs flex items-center gap-2 shadow-xs">
+                <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span class="font-semibold">Backup restore in progress. Please do not close or navigate away from this tab...</span>
             </div>
 
-            <!-- Dynamic Source Panels -->
-            <div>
-                <!-- Local Backup File Selector -->
-                <div id="sbackup" style="display: none;" class="space-y-1">
-                    <label for="backup-files-select" class="block text-[11px] font-semibold text-slate-700">Select Local Backup Archive</label>
-                    <div class="relative">
-                        <i class="mdi mdi-file-archive-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select id="backup-files-select" name="backup-files-select" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
-                        </select>
-                    </div>
-                </div>
-
-                <!-- FTP Credentials Panel -->
-                <div class="ftp-fields p-3 bg-slate-50 border border-slate-200 rounded space-y-2.5" style="display: none;">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div class="space-y-1">
-                            <label for="ftp_host" class="block text-[11px] font-semibold text-slate-700">FTP Server Host</label>
-                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
-                        </div>
-                        <div class="space-y-1">
-                            <label for="ftp_user" class="block text-[11px] font-semibold text-slate-700">FTP Username</label>
-                            <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_user" name="ftp_user" placeholder="username">
-                        </div>
-                        <div class="space-y-1">
-                            <label for="ftp_pass" class="block text-[11px] font-semibold text-slate-700">FTP Password</label>
-                            <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
-                        </div>
-                    </div>
-                    <div class="flex justify-end">
-                        <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" type="button" onclick="fatchbackup('ftp');">
-                            <i class="mdi mdi-download text-xs"></i>
-                            <span>Fetch Backup Files</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Upload File Panel -->
-                <div id="upload" style="display: none;" class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
-                    <label for="bk_up" class="block text-[11px] font-semibold text-slate-700">Upload Backup Archive (.zip, .tar, .tar.gz)</label>
-                    <div class="flex items-center rounded overflow-hidden border border-slate-200 bg-white">
-                        <input type="file" id="bk_up" name="bk_up" accept=".zip,.tar,.gz" class="w-full px-2.5 py-1.5 text-xs text-slate-800 focus:outline-none">
-                        <button type="button" id="upload-button" class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0">
-                            <i class="mdi mdi-upload text-xs"></i>
-                            <span>Upload &amp; Restore</span>
-                        </button>
-                    </div>
-                    <div id="file-preview" class="file-preview"></div>
-                </div>
-
-                <!-- URL Import Panel -->
-                <div id="curl" style="display: none;" class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
-                    <label for="url-input" class="block text-[11px] font-semibold text-slate-700">Import Backup from Direct URL</label>
-                    <div class="flex items-center rounded overflow-hidden border border-slate-200 bg-white">
-                        <input type="text" id="url-input" name="url-input" placeholder="https://example.com/backup.tar.gz" class="w-full px-2.5 py-1.5 text-xs font-mono text-slate-800 focus:outline-none">
-                        <button type="button" id="upload-button-url" class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0">
-                            <i class="mdi mdi-cloud-download text-xs"></i>
-                            <span>Fetch &amp; Restore</span>
-                        </button>
-                    </div>
-                    <div class="upload-item">
-                        <div id="prog" class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" style="display: none;">
-                            <div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
-                        </div>
-                        <div class="progress-percentage text-[10px] text-slate-500 font-semibold mt-1" style="display: none;">0%</div>
-                    </div>
-                </div>
+            <!-- Feedback Message Alert -->
+            <div id="alertContainer" style="display: none;" class="mb-4 p-3 rounded-md text-xs flex items-center justify-between shadow-xs">
+                <div id="message" class="font-medium"></div>
+                <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-base font-bold bg-transparent border-0 leading-none">&times;</button>
             </div>
 
-            <!-- Step 2: Format & Scope -->
-            <div class="space-y-3 pt-2 border-t border-slate-100">
-                <label class="block text-[11px] font-semibold text-slate-700">2. Archive Format &amp; Credentials</label>
+            <form action="#" method="POST" id="restoreBackupForm" onsubmit="event.preventDefault(); return false;" class="space-y-4">
+                {% csrf_token %}
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label for="common_options" class="block text-[11px] font-semibold text-slate-700">Backup Format Type</label>
-                        <select id="common_options" name="category" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
-                            <option value="default">OLSPanel Default Backup</option>
-                            <option value="cpanel">cPanel Archive (cpmove-*.tar.gz)</option>
-                            <option value="cyberpanel">CyberPanel Backup</option>
-                            <option value="pleask">Plesk Panel Backup</option>
-                        </select>
+                <!-- Step 1: Source Selection Radio Cards -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700">1. Backup Source Location</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none">
+                            <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" checked class="w-3.5 h-3.5 text-brand focus:ring-brand cursor-pointer">
+                            <span class="flex items-center gap-1.5"><i class="mdi mdi-folder-home-outline text-sm text-brand"></i> Local Disk</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none">
+                            <input type="radio" name="backup_type" value="upload" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand cursor-pointer">
+                            <span class="flex items-center gap-1.5"><i class="mdi mdi-upload text-sm text-brand"></i> File Upload</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none">
+                            <input type="radio" name="backup_type" value="url" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand cursor-pointer">
+                            <span class="flex items-center gap-1.5"><i class="mdi mdi-link-variant text-sm text-brand"></i> Direct URL</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-md hover:bg-slate-100/80 cursor-pointer transition-colors text-xs font-semibold text-slate-800 select-none">
+                            <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand cursor-pointer">
+                            <span class="flex items-center gap-1.5"><i class="mdi mdi-server-network text-sm text-brand"></i> Remote FTP</span>
+                        </label>
                     </div>
-                    <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                            <label for="dbpassc" class="block text-[11px] font-semibold text-slate-700">New Account Password</label>
-                            <span class="text-[10px] text-slate-400">Optional override</span>
+                </div>
+
+                <!-- Dynamic Source Panels -->
+                <div>
+                    <!-- Local / Fetched Backup File Selector -->
+                    <div id="sbackup" style="display: none;" class="space-y-1">
+                        <label for="backup-files-select" class="block text-xs font-semibold text-slate-700">Select Backup Archive File</label>
+                        <div>
+                            <select id="backup-files-select" name="backup-files-select" class="searchable-select w-full" data-placeholder="Select backup archive..." data-search-placeholder="Search archives..." data-icon="mdi-file-archive-outline">
+                            </select>
                         </div>
-                        <div class="flex rounded border border-slate-200 overflow-hidden focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-white">
-                            <input type="text" id="dbpassc" name="dbpassc" placeholder="Set or generate password" class="w-full px-2.5 py-1.5 bg-transparent border-0 text-xs text-slate-800 font-mono focus:outline-none">
-                            <button id="gen" type="button" onclick="generateAndFillPassword();" class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border-l border-slate-200 transition-colors flex items-center gap-1 shrink-0 cursor-pointer">
-                                <i class="mdi mdi-key-variant text-xs text-brand"></i>
-                                <span>Generate</span>
+                    </div>
+
+                    <!-- FTP Credentials Panel -->
+                    <div class="ftp-fields p-3.5 bg-slate-50 border border-slate-200 rounded-md space-y-3" style="display: none;">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="space-y-1">
+                                <label for="ftp_host" class="block text-[11px] font-semibold text-slate-700">FTP Server Host</label>
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="ftp_user" class="block text-[11px] font-semibold text-slate-700">FTP Username</label>
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_user" name="ftp_user" placeholder="username">
+                            </div>
+                            <div class="space-y-1">
+                                <label for="ftp_pass" class="block text-[11px] font-semibold text-slate-700">FTP Password</label>
+                                <input type="password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors cursor-pointer" type="button" onclick="fatchbackup('ftp');">
+                                <i class="mdi mdi-download"></i>
+                                <span>Fetch Backup Files</span>
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Restore Scope -->
-                <div class="space-y-1">
-                    <label class="block text-[11px] font-semibold text-slate-700">Restore Scope Components</label>
-                    <div class="flex flex-wrap items-center gap-3 p-2.5 bg-slate-50 border border-slate-200 rounded text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold text-slate-900 select-none">
-                            <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand">
-                            <span>Full Backup</span>
-                        </label>
-                        <span class="text-slate-300">|</span>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
-                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
-                            <span>Database</span>
-                        </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
-                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
-                            <span>Email</span>
-                        </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
-                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
-                            <span>DNS</span>
-                        </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
-                            <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
-                            <span>Files</span>
-                        </label>
+                    <!-- Upload File Panel -->
+                    <div id="upload" style="display: none;" class="p-3.5 bg-slate-50 border border-slate-200 rounded-md space-y-2.5">
+                        <label for="bk_up" class="block text-xs font-semibold text-slate-700">Upload Backup Archive (.zip, .tar, .tar.gz)</label>
+                        <div class="flex items-center rounded-md overflow-hidden border border-slate-200 bg-white">
+                            <input type="file" id="bk_up" name="bk_up" accept=".zip,.tar,.gz,.tar.gz" class="w-full px-3 py-2 text-xs text-slate-800 focus:outline-none">
+                            <button type="button" id="upload-button" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0">
+                                <i class="mdi mdi-upload"></i>
+                                <span>Upload &amp; Restore</span>
+                            </button>
+                        </div>
+                        <div id="file-preview" class="file-preview"></div>
+                    </div>
+
+                    <!-- URL Import Panel -->
+                    <div id="curl" style="display: none;" class="p-3.5 bg-slate-50 border border-slate-200 rounded-md space-y-2.5">
+                        <label for="url-input" class="block text-xs font-semibold text-slate-700">Import Backup from Direct URL</label>
+                        <div class="flex items-center rounded-md overflow-hidden border border-slate-200 bg-white">
+                            <input type="text" id="url-input" name="url-input" placeholder="https://example.com/backup.tar.gz" class="w-full px-3 py-2 text-xs font-mono text-slate-800 focus:outline-none">
+                            <button type="button" id="upload-button-url" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0">
+                                <i class="mdi mdi-cloud-download"></i>
+                                <span>Fetch &amp; Restore</span>
+                            </button>
+                        </div>
+                        <div class="upload-item">
+                            <div id="prog" class="w-full h-2 bg-slate-200 rounded-full overflow-hidden" style="display: none;">
+                                <div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress-percentage text-[10px] text-slate-500 font-semibold mt-1" style="display: none;">0%</div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Action Button for Local / Fetched file -->
-            <div id="file_name" class="pt-2 border-t border-slate-100 flex items-center justify-between" style="display: none;">
-                <a href="{% url 'backup_whm' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
-                    Cancel
-                </a>
-                <button class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" type="button" onclick="issuebackup();">
-                    <i class="mdi mdi-play text-xs"></i>
-                    <span>Start Backup Restore</span>
-                </button>
-            </div>
-        </form>
+                <!-- Step 2: Format & Scope -->
+                <div class="space-y-3 pt-2 border-t border-slate-100">
+                    <label class="block text-xs font-semibold text-slate-700">2. Archive Format &amp; Credentials</label>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                        <div class="sm:col-span-6 space-y-1">
+                            <label for="common_options" class="block text-xs font-semibold text-slate-700">Backup Format Type <span class="text-rose-500">*</span></label>
+                            <div>
+                                <select id="common_options" name="category" class="searchable-select w-full" data-placeholder="Select format type..." data-search-placeholder="Search format..." data-icon="mdi-file-cabinet" required>
+                                    <option value="default" selected>OLSPanel Default Backup</option>
+                                    <option value="cpanel">cPanel Archive (cpmove-*.tar.gz)</option>
+                                    <option value="cyberpanel">CyberPanel Backup</option>
+                                    <option value="pleask">Plesk Panel Backup</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-6 space-y-1">
+                            <div class="flex items-center justify-between">
+                                <label for="dbpassc" class="block text-xs font-semibold text-slate-700">Account Password</label>
+                                <span class="text-[10px] text-slate-400">Optional override</span>
+                            </div>
+                            <div class="flex rounded-md border border-slate-200 overflow-hidden focus-within:border-brand focus-within:ring-1 focus-within:ring-brand bg-white shadow-xs">
+                                <input type="text" id="dbpassc" name="dbpassc" placeholder="Set or generate password" class="w-full px-3 py-2 bg-transparent border-0 text-xs text-slate-800 font-mono focus:outline-none">
+                                <button id="gen" type="button" onclick="generateAndFillPassword();" class="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold border-l border-slate-200 transition-colors flex items-center gap-1 shrink-0 cursor-pointer">
+                                    <i class="mdi mdi-key-variant text-xs text-brand"></i>
+                                    <span>Generate</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Restore Scope -->
+                    <div class="space-y-1.5 pt-1">
+                        <label class="block text-xs font-semibold text-slate-700">Restore Scope Components</label>
+                        <div class="flex flex-wrap items-center gap-4 p-3 bg-slate-50 border border-slate-200 rounded-md text-xs">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold text-slate-900 select-none">
+                                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                                <span>Full Backup</span>
+                            </label>
+                            <div class="h-4 w-px bg-slate-200"></div>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="database" checked>
+                                <span>Database</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="email" checked>
+                                <span>Email</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="dns" checked>
+                                <span>DNS</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="files" checked>
+                                <span>Files</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls for Local / Fetched file -->
+                <div id="file_name" class="pt-3 border-t border-slate-100 flex items-center justify-between" style="display: none;">
+                    <a href="{% url 'backup_whm' %}" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-semibold transition-colors">
+                        Cancel
+                    </a>
+                    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors cursor-pointer" type="button" onclick="issuebackup();">
+                        <i class="mdi mdi-play"></i>
+                        <span>Start Backup Restore</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-var csrfToken = "{{ csrf_token }}";
-var upload_url = "{% url 'upload_bk' %}";
-var upload_url_from_url = "{% url 'upload_from_url_bk' %}";
+(function initBackupRestorePage() {
+    var csrfToken = "{{ csrf_token }}";
+    var upload_url = "{% url 'upload_bk' %}";
+    var upload_url_from_url = "{% url 'upload_from_url_bk' %}";
 
-function toggleFtpFields() {
-    var checkedRadio = document.querySelector('input[name="backup_type"]:checked');
-    if (!checkedRadio) return;
-    var backupType = checkedRadio.value;
+    // Initialize custom searchable selects
+    if (window.OLSSelect) {
+        window.OLSSelect.initAll(document.getElementById('spa-content') || document);
+    }
 
-    var ftpFields = document.querySelector('.ftp-fields');
-    var uploadSection = document.getElementById('upload');
-    var urlSection = document.getElementById('curl');
-    var localFileSelect = document.getElementById('file_name');
-    var sbackup = document.getElementById('sbackup');
+    window.toggleFtpFields = function() {
+        var checkedRadio = document.querySelector('input[name="backup_type"]:checked');
+        if (!checkedRadio) return;
+        var backupType = checkedRadio.value;
 
-    if (ftpFields) ftpFields.style.display = 'none';
-    if (uploadSection) uploadSection.style.display = 'none';
-    if (urlSection) urlSection.style.display = 'none';
-    if (localFileSelect) localFileSelect.style.display = 'none';
-    if (sbackup) sbackup.style.display = 'none';
+        var ftpFields = document.querySelector('.ftp-fields');
+        var uploadSection = document.getElementById('upload');
+        var urlSection = document.getElementById('curl');
+        var localFileSelect = document.getElementById('file_name');
+        var sbackup = document.getElementById('sbackup');
 
-    if (backupType === 'ftp') {
-        if (ftpFields) ftpFields.style.display = 'block';
-    } else if (backupType === 'local') {
+        if (ftpFields) ftpFields.style.display = 'none';
+        if (uploadSection) uploadSection.style.display = 'none';
+        if (urlSection) urlSection.style.display = 'none';
+        if (localFileSelect) localFileSelect.style.display = 'none';
+        if (sbackup) sbackup.style.display = 'none';
+
+        if (backupType === 'ftp') {
+            if (ftpFields) ftpFields.style.display = 'block';
+        } else if (backupType === 'local') {
+            if (sbackup) sbackup.style.display = 'block';
+            if (localFileSelect) localFileSelect.style.display = 'flex';
+            fatchbackup('local');
+        } else if (backupType === 'upload') {
+            if (uploadSection) uploadSection.style.display = 'block';
+        } else if (backupType === 'url') {
+            if (urlSection) urlSection.style.display = 'block';
+        }
+    };
+
+    window.toggleFullBackup = function(fullBackupCheckbox) {
+        var backupOptions = document.querySelectorAll('.backup-option');
+        backupOptions.forEach(function(option) {
+            option.checked = fullBackupCheckbox.checked;
+        });
+    };
+
+    document.querySelectorAll('.backup-option').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function () {
+            var fullBackupCheckbox = document.getElementById('full_backup');
+            var allChecked = Array.from(document.querySelectorAll('.backup-option')).every(function(cb) { return cb.checked; });
+            if (fullBackupCheckbox) fullBackupCheckbox.checked = allChecked;
+        });
+    });
+
+    window.issuebackup = function(backupfile) {
+        backupfile = backupfile || "";
+        var responseDisplay = document.getElementById('responseContainer');
+        var alertContainer = document.getElementById('alertContainer');
+        var messageDisplay = document.getElementById('message');
+
+        if (!backupfile) {
+            var sel = document.querySelector('[name="backup-files-select"]');
+            backupfile = sel ? sel.value : "";
+        }
+        var backupOptions = Array.from(document.querySelectorAll('input[name="backup_option"]:checked')).map(function(option) { return option.value; });
+        var checkedRadio = document.querySelector('input[name="backup_type"]:checked');
+        var backupType = checkedRadio ? checkedRadio.value : "";
+        var ftpHostElem = document.querySelector('[name="ftp_host"]');
+        var ftpUserElem = document.querySelector('[name="ftp_user"]');
+        var ftpPassElem = document.querySelector('[name="ftp_pass"]');
+        var categoryElem = document.querySelector('[name="category"]');
+        var passElem = document.querySelector('[name="dbpassc"]');
+
+        var ftpHost = ftpHostElem ? ftpHostElem.value : "";
+        var ftpUser = ftpUserElem ? ftpUserElem.value : "";
+        var ftpPass = ftpPassElem ? ftpPassElem.value : "";
+        var category = categoryElem ? categoryElem.value : "default";
+        var pass = passElem ? passElem.value : "";
+
+        if (responseDisplay) responseDisplay.style.display = 'flex';
+        if (alertContainer) alertContainer.style.display = 'none';
+
+        var formData = new FormData();
+        formData.append('backup_file', backupfile);
+        formData.append('type', backupOptions.join(','));
+        if (backupType === 'ftp') {
+            formData.append('ftp_host', ftpHost);
+            formData.append('ftp_user', ftpUser);
+            formData.append('ftp_pass', ftpPass);
+        }
+        formData.append('category', category);
+        formData.append('pass', pass);
+
+        fetch('{% url "backup_restore_start" %}', {
+            method: 'POST',
+            headers: { "X-CSRFToken": csrfToken },
+            body: formData
+        })
+        .then(function(response) {
+            if (responseDisplay) responseDisplay.style.display = 'none';
+            if (!response.ok) {
+                messageDisplay.innerText = response.statusText;
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(function(responseData) {
+            var message = responseData.message || "Operation completed.";
+            if (alertContainer) alertContainer.style.display = "flex";
+            if (responseData.status === 'success') {
+                alertContainer.className = "mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = message;
+            } else {
+                alertContainer.className = "mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = message;
+            }
+        })
+        .catch(function(error) {
+            if (responseDisplay) responseDisplay.style.display = 'none';
+            if (alertContainer) {
+                alertContainer.style.display = "flex";
+                alertContainer.className = "mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = error.toString();
+            }
+        });
+    };
+
+    window.fatchbackup = function(type) {
+        var file_id = document.getElementById('file_name');
+        var responseDisplay = document.getElementById('responseContainer');
+        var alertContainer = document.getElementById('alertContainer');
+        var messageDisplay = document.getElementById('message');
+        var sbackup = document.getElementById('sbackup');
+
         if (sbackup) sbackup.style.display = 'block';
-        if (localFileSelect) localFileSelect.style.display = 'flex';
-        fatchbackup('local');
-    } else if (backupType === 'upload') {
-        if (uploadSection) uploadSection.style.display = 'block';
-    } else if (backupType === 'url') {
-        if (urlSection) urlSection.style.display = 'block';
-    }
-}
+        if (responseDisplay) responseDisplay.style.display = 'flex';
+        if (alertContainer) alertContainer.style.display = "none";
+        if (file_id) file_id.style.display = "none";
 
-function toggleFullBackup(fullBackupCheckbox) {
-    var backupOptions = document.querySelectorAll('.backup-option');
-    backupOptions.forEach(function(option) {
-        option.checked = fullBackupCheckbox.checked;
-    });
-}
-
-function issuebackup(backupfile) {
-    backupfile = backupfile || "";
-    var responseDisplay = document.getElementById('responseContainer');
-    var alertContainer = document.getElementById('alertContainer');
-    var messageDisplay = document.getElementById('message');
-
-    if (!backupfile) {
-        var sel = document.querySelector('[name="backup-files-select"]');
-        backupfile = sel ? sel.value : "";
-    }
-    var backupOptions = Array.from(document.querySelectorAll('input[name="backup_option"]:checked')).map(function(option) { return option.value; });
-    var checkedRadio = document.querySelector('input[name="backup_type"]:checked');
-    var backupType = checkedRadio ? checkedRadio.value : "";
-    var ftpHostElem = document.querySelector('[name="ftp_host"]');
-    var ftpUserElem = document.querySelector('[name="ftp_user"]');
-    var ftpPassElem = document.querySelector('[name="ftp_pass"]');
-    var categoryElem = document.querySelector('[name="category"]');
-    var passElem = document.querySelector('[name="dbpassc"]');
-
-    var ftpHost = ftpHostElem ? ftpHostElem.value : "";
-    var ftpUser = ftpUserElem ? ftpUserElem.value : "";
-    var ftpPass = ftpPassElem ? ftpPassElem.value : "";
-    var category = categoryElem ? categoryElem.value : "default";
-    var pass = passElem ? passElem.value : "";
-
-    if (responseDisplay) responseDisplay.style.display = 'flex';
-    if (alertContainer) alertContainer.style.display = 'none';
-
-    var formData = new FormData();
-    formData.append('backup_file', backupfile);
-    formData.append('type', backupOptions.join(','));
-    if (backupType === 'ftp') {
-        formData.append('ftp_host', ftpHost);
-        formData.append('ftp_user', ftpUser);
-        formData.append('ftp_pass', ftpPass);
-    }
-    formData.append('category', category);
-    formData.append('pass', pass);
-
-    fetch('{% url "backup_restore_start" %}', {
-        method: 'POST',
-        headers: { "X-CSRFToken": csrfToken },
-        body: formData
-    })
-    .then(function(response) {
-        if (responseDisplay) responseDisplay.style.display = 'none';
-        if (!response.ok) {
-            messageDisplay.innerText = response.statusText;
-            throw new Error('Network response was not ok: ' + response.statusText);
+        var formData = new FormData();
+        formData.append('fetch_type', type);
+        if (type === 'ftp') {
+            var hElem = document.querySelector('[name="ftp_host"]');
+            var uElem = document.querySelector('[name="ftp_user"]');
+            var pElem = document.querySelector('[name="ftp_pass"]');
+            formData.append('ftp_host', hElem ? hElem.value : "");
+            formData.append('ftp_user', uElem ? uElem.value : "");
+            formData.append('ftp_pass', pElem ? pElem.value : "");
         }
-        return response.json();
-    })
-    .then(function(responseData) {
-        var message = responseData.message || "Operation completed.";
-        if (alertContainer) alertContainer.style.display = "flex";
-        if (responseData.status === 'success') {
-            alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
-            messageDisplay.innerText = message;
-        } else {
-            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
-            messageDisplay.innerText = message;
-        }
-    })
-    .catch(function(error) {
-        if (responseDisplay) responseDisplay.style.display = 'none';
-        if (alertContainer) {
-            alertContainer.style.display = "flex";
-            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
-            messageDisplay.innerText = error.toString();
-        }
-    });
-}
 
-function fatchbackup(type) {
-    var file_id = document.getElementById('file_name');
-    var responseDisplay = document.getElementById('responseContainer');
-    var alertContainer = document.getElementById('alertContainer');
-    var messageDisplay = document.getElementById('message');
-    var sbackup = document.getElementById('sbackup');
-
-    if (sbackup) sbackup.style.display = 'block';
-    if (responseDisplay) responseDisplay.style.display = 'flex';
-    if (alertContainer) alertContainer.style.display = "none";
-    if (file_id) file_id.style.display = "none";
-
-    var formData = new FormData();
-    formData.append('fetch_type', type);
-    if (type === 'ftp') {
-        var hElem = document.querySelector('[name="ftp_host"]');
-        var uElem = document.querySelector('[name="ftp_user"]');
-        var pElem = document.querySelector('[name="ftp_pass"]');
-        formData.append('ftp_host', hElem ? hElem.value : "");
-        formData.append('ftp_user', uElem ? uElem.value : "");
-        formData.append('ftp_pass', pElem ? pElem.value : "");
-    }
-
-    fetch('{% url "list_backup_files" %}', {
-        method: 'POST',
-        headers: { "X-CSRFToken": csrfToken },
-        body: formData
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (responseDisplay) responseDisplay.style.display = 'none';
-        if (data.status === 'success' && data.files && data.files.length > 0) {
-            if (file_id) file_id.style.display = "flex";
+        fetch('{% url "list_backup_files" %}', {
+            method: 'POST',
+            headers: { "X-CSRFToken": csrfToken },
+            body: formData
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (responseDisplay) responseDisplay.style.display = 'none';
             var selectElement = document.getElementById('backup-files-select');
-            selectElement.innerHTML = '';
-            data.files.forEach(function(file) {
-                var option = document.createElement('option');
-                option.value = file;
-                option.textContent = file;
-                selectElement.appendChild(option);
-            });
-        } else if (data.status === 'success') {
+            if (data.status === 'success' && data.files && data.files.length > 0) {
+                if (file_id) file_id.style.display = "flex";
+                if (selectElement) {
+                    selectElement.innerHTML = '';
+                    data.files.forEach(function(file) {
+                        var option = document.createElement('option');
+                        option.value = file;
+                        option.textContent = file;
+                        selectElement.appendChild(option);
+                    });
+                    if (window.OLSSelect) {
+                        window.OLSSelect.init(selectElement);
+                    }
+                }
+            } else if (data.status === 'success') {
+                if (selectElement) selectElement.innerHTML = '';
+                if (window.OLSSelect) window.OLSSelect.init(selectElement);
+                if (alertContainer) {
+                    alertContainer.style.display = "flex";
+                    alertContainer.className = "mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-md text-xs flex items-center justify-between shadow-xs";
+                    messageDisplay.innerText = "No local backup archives found in /home/backup or user directories yet.";
+                }
+            } else {
+                if (selectElement) selectElement.innerHTML = '';
+                if (window.OLSSelect) window.OLSSelect.init(selectElement);
+                if (alertContainer) {
+                    alertContainer.style.display = "flex";
+                    alertContainer.className = "mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs flex items-center justify-between shadow-xs";
+                    messageDisplay.innerText = data.message || "No backup files found in this location.";
+                }
+            }
+        })
+        .catch(function(error) {
+            if (responseDisplay) responseDisplay.style.display = 'none';
             if (alertContainer) {
                 alertContainer.style.display = "flex";
-                alertContainer.className = "p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
-                messageDisplay.innerText = "No local backup archives found in /home/backup or user directories yet.";
+                alertContainer.className = "mb-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-md text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = "Failed to fetch backup files. Please try again.";
             }
-        } else {
-            if (alertContainer) {
-                alertContainer.style.display = "flex";
-                alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
-                messageDisplay.innerText = data.message || "No backup files found in this location.";
+        });
+    };
+
+    window.generateStrongPassword = function(length) {
+        length = length || 16;
+        var lowercase = 'abcdefghijklmnopqrstuvwxyz';
+        var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var digits = '0123456789';
+        var specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+        var all = lowercase + uppercase + digits + specialChars;
+        var password = lowercase[Math.floor(Math.random() * lowercase.length)] +
+                       uppercase[Math.floor(Math.random() * uppercase.length)] +
+                       digits[Math.floor(Math.random() * digits.length)] +
+                       specialChars[Math.floor(Math.random() * specialChars.length)];
+        for (var i = 4; i < length; i++) {
+            password += all[Math.floor(Math.random() * all.length)];
+        }
+        return password.split('').sort(function() { return Math.random() - 0.5; }).join('');
+    };
+
+    window.generateAndFillPassword = function() {
+        var password = generateStrongPassword(16);
+        var passElem = document.getElementById('dbpassc');
+        if (passElem) passElem.value = password;
+        return false;
+    };
+
+    function uploadFile(file) {
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('target_name', 'backup');
+
+        $('#file-preview').html(
+            '<div id="uploadingFileProgress" class="p-2.5 border border-slate-200 rounded-md bg-white text-xs space-y-1.5">' +
+                '<div class="flex justify-between font-bold text-slate-800">' +
+                    '<span class="truncate font-mono">' + file.name + '</span>' +
+                    '<span class="progress-percentage text-brand font-semibold">0%</span>' +
+                '</div>' +
+                '<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">' +
+                    '<div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>' +
+                '</div>' +
+            '</div>'
+        );
+
+        var progressBar = $('#uploadingFileProgress .progress-bar');
+        var progressPercentage = $('#uploadingFileProgress .progress-percentage');
+
+        $.ajax({
+            url: upload_url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { "X-CSRFToken": csrfToken },
+            xhr: function () {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        var percentComplete = Math.round((e.loaded / e.total) * 100);
+                        progressBar.css('width', percentComplete + '%');
+                        progressPercentage.text(percentComplete + '%');
+                    }
+                }, false);
+                return xhr;
+            },
+            success: function (response) {
+                progressBar.removeClass('bg-brand').addClass('bg-emerald-600');
+                progressPercentage.text('Complete');
+                issuebackup(file.name);
+            },
+            error: function (xhr, status, error) {
+                progressBar.removeClass('bg-brand').addClass('bg-rose-600');
+                progressPercentage.text('Upload Failed');
             }
-        }
-    })
-    .catch(function(error) {
-        if (responseDisplay) responseDisplay.style.display = 'none';
-        if (alertContainer) {
-            alertContainer.style.display = "flex";
-            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
-            messageDisplay.innerText = "Failed to fetch backup files. Please try again.";
-        }
-    });
-}
-
-function generateStrongPassword(length) {
-    length = length || 16;
-    var lowercase = 'abcdefghijklmnopqrstuvwxyz';
-    var uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    var digits = '0123456789';
-    var specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
-    var all = lowercase + uppercase + digits + specialChars;
-    var password = lowercase[Math.floor(Math.random() * lowercase.length)] +
-                   uppercase[Math.floor(Math.random() * uppercase.length)] +
-                   digits[Math.floor(Math.random() * digits.length)] +
-                   specialChars[Math.floor(Math.random() * specialChars.length)];
-    for (var i = 4; i < length; i++) {
-        password += all[Math.floor(Math.random() * all.length)];
+        });
     }
-    return password.split('').sort(function() { return Math.random() - 0.5; }).join('');
-}
 
-function generateAndFillPassword() {
-    var password = generateStrongPassword(16);
-    var passElem = document.getElementById('dbpassc');
-    if (passElem) passElem.value = password;
-    return false;
-}
-
-function uploadFile(file) {
-    var formData = new FormData();
-    formData.append('file', file);
-    formData.append('target_name', 'backup');
-
-    $('#file-preview').html(
-        '<div id="uploadingFileProgress" class="p-2.5 border border-slate-200 rounded bg-white text-xs space-y-1.5">' +
-            '<div class="flex justify-between font-bold text-slate-800">' +
-                '<span class="truncate font-mono">' + file.name + '</span>' +
-                '<span class="progress-percentage text-brand font-semibold">0%</span>' +
-            '</div>' +
-            '<div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden">' +
-                '<div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>' +
-            '</div>' +
-        '</div>'
-    );
-
-    var progressBar = $('#uploadingFileProgress .progress-bar');
-    var progressPercentage = $('#uploadingFileProgress .progress-percentage');
-
-    $.ajax({
-        url: upload_url,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: { "X-CSRFToken": csrfToken },
-        xhr: function () {
-            var xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', function (e) {
-                if (e.lengthComputable) {
-                    var percentComplete = Math.round((e.loaded / e.total) * 100);
-                    progressBar.css('width', percentComplete + '%');
-                    progressPercentage.text(percentComplete + '%');
-                }
-            }, false);
-            return xhr;
-        },
-        success: function (response) {
-            progressBar.removeClass('bg-brand').addClass('bg-emerald-600');
-            progressPercentage.text('Complete');
-            issuebackup(file.name);
-        },
-        error: function (xhr, status, error) {
-            progressBar.removeClass('bg-brand').addClass('bg-rose-600');
-            progressPercentage.text('Upload Failed');
-        }
-    });
-}
-
-$('#upload-button').on('click', function () {
-    var fileInput = document.getElementById('bk_up');
-    var file = (fileInput && fileInput.files) ? fileInput.files[0] : null;
-    if (!file) {
-        alert('Please select a file to upload.');
-        return;
+    var uploadBtn = document.getElementById('upload-button');
+    if (uploadBtn) {
+        uploadBtn.onclick = function () {
+            var fileInput = document.getElementById('bk_up');
+            var file = (fileInput && fileInput.files) ? fileInput.files[0] : null;
+            if (!file) {
+                alert('Please select a file to upload.');
+                return;
+            }
+            uploadFile(file);
+        };
     }
-    uploadFile(file);
-});
 
-function uploadFileFromUrl(fileUrl, targetPath) {
-    var formData = new FormData();
-    formData.append('file_url', fileUrl);
-    formData.append('target_name', targetPath);
+    function uploadFileFromUrl(fileUrl, targetPath) {
+        var formData = new FormData();
+        formData.append('file_url', fileUrl);
+        formData.append('target_name', targetPath);
 
-    var progBar = $('#prog');
-    var bar = progBar.find('.progress-bar');
-    var percentText = $('.upload-item .progress-percentage');
+        var progBar = $('#prog');
+        var bar = progBar.find('.progress-bar');
+        var percentText = $('.upload-item .progress-percentage');
 
-    progBar.show();
-    percentText.show();
-    bar.css('width', '0%');
-    percentText.text('0%');
+        progBar.show();
+        percentText.show();
+        bar.css('width', '0%');
+        percentText.text('0%');
 
-    $.ajax({
-        url: upload_url_from_url,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: { "X-CSRFToken": csrfToken },
-        beforeSend: function () {
-            var progress = 0;
-            this.interval = setInterval(function () {
-                if (progress < 80) {
-                    progress += 5;
-                    bar.css('width', progress + '%');
-                    percentText.text(progress + '%');
-                }
-            }, 200);
-        },
-        success: function (response) {
-            clearInterval(this.interval);
-            bar.css('width', '100%').removeClass('bg-brand').addClass('bg-emerald-600');
-            percentText.text('Complete');
-            issuebackup(response.file_name);
-        },
-        error: function () {
-            clearInterval(this.interval);
-            bar.css('width', '100%').removeClass('bg-brand').addClass('bg-rose-600');
-            percentText.text('Failed');
-        }
-    });
-}
-
-$('#upload-button-url').on('click', function () {
-    var urlElem = document.getElementById('url-input');
-    var url = urlElem ? urlElem.value.trim() : "";
-    if (!url) {
-        alert('Please enter a direct file URL.');
-        return;
+        $.ajax({
+            url: upload_url_from_url,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { "X-CSRFToken": csrfToken },
+            beforeSend: function () {
+                var progress = 0;
+                this.interval = setInterval(function () {
+                    if (progress < 80) {
+                        progress += 5;
+                        bar.css('width', progress + '%');
+                        percentText.text(progress + '%');
+                    }
+                }, 200);
+            },
+            success: function (response) {
+                clearInterval(this.interval);
+                bar.css('width', '100%').removeClass('bg-brand').addClass('bg-emerald-600');
+                percentText.text('Complete');
+                issuebackup(response.file_name);
+            },
+            error: function () {
+                clearInterval(this.interval);
+                bar.css('width', '100%').removeClass('bg-brand').addClass('bg-rose-600');
+                percentText.text('Failed');
+            }
+        });
     }
-    uploadFileFromUrl(url, 'backup');
-});
 
-document.addEventListener("DOMContentLoaded", function () {
+    var urlUploadBtn = document.getElementById('upload-button-url');
+    if (urlUploadBtn) {
+        urlUploadBtn.onclick = function () {
+            var urlElem = document.getElementById('url-input');
+            var url = urlElem ? urlElem.value.trim() : "";
+            if (!url) {
+                alert('Please enter a direct file URL.');
+                return;
+            }
+            uploadFileFromUrl(url, 'backup');
+        };
+    }
+
     var localRadio = document.querySelector('input[name="backup_type"][value="local"]');
     if (localRadio) {
         localRadio.checked = true;
         toggleFtpFields();
     }
-});
+})();
 </script>
 {% endblock content %}

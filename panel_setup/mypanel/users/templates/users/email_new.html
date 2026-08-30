@@ -2,92 +2,74 @@
 {% block title %}Create Email Account{% endblock title %}
 
 {% block content %}
-<div class="space-y-3 w-full">
-
-    <!-- Top Compact Header -->
-    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
-                <i class="mdi mdi-email-plus-outline text-lg"></i>
-            </div>
-            <div>
-                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Create Email Account</h4>
-                <p class="text-[11px] text-slate-500 m-0 leading-tight">Provision POP3 / IMAP mailboxes with Maildir storage and encrypted authentication</p>
-            </div>
-        </div>
-        <a href="{% url 'email_accounts' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
-            <i class="mdi mdi-arrow-left text-xs"></i>
-            <span>Email Accounts</span>
-        </a>
-    </div>
-
-    <!-- Main Creation Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
-                <i class="mdi mdi-mailbox-outline text-brand text-sm"></i> Mailbox Credentials &amp; Domain
-            </h5>
-            <span class="text-[10px] text-slate-400 font-medium">Standard IMAP/SMTP TLS</span>
+<div class="max-w-2xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-visible">
+        <!-- Card Header -->
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-email-plus-outline text-brand text-base"></i> Create Email Account
+            </h4>
+            <a href="{% url 'email_accounts' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Email Accounts
+            </a>
         </div>
 
-        <form method="post" class="p-4 space-y-3">
-            {% csrf_token %}
+        <!-- Form Body -->
+        <div class="p-5">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <!-- Domain Selection -->
-                <div class="space-y-1">
-                    <label for="domainx" class="block text-[11px] font-semibold text-slate-700">Domain Name</label>
-                    <div class="relative">
-                        <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select id="domainx" name="domain" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer" onchange="updateEmail();">
-                            {% for domain in domains %}
-                                <option value="{{ domain.id }}">{{ domain.domain }}</option>
-                            {% endfor %}
-                        </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Domain Selection -->
+                    <div class="space-y-1">
+                        <label for="domainx" class="block text-xs font-semibold text-slate-700">Domain Name <span class="text-rose-500">*</span></label>
+                        <div>
+                            <select id="domainx" name="domain" class="searchable-select w-full" data-placeholder="Select domain..." data-search-placeholder="Search domains..." data-icon="mdi-web">
+                                {% for domain in domains %}
+                                    <option value="{{ domain.id }}">{{ domain.domain }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Username & Email Preview -->
+                    <div class="space-y-1">
+                        <label for="username" class="block text-xs font-semibold text-slate-700">Mailbox User <span class="text-rose-500">*</span></label>
+                        <div class="flex rounded-md shadow-xs">
+                            <input type="text" id="username" name="username" required placeholder="contact, info, support" class="w-full px-3 py-2 bg-white border border-r-0 border-slate-200 rounded-l-md text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" autocomplete="off">
+                            <span id="emailSuffix" class="inline-flex items-center px-3 py-2 border border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono rounded-r-md select-none font-semibold whitespace-nowrap shrink-0">
+                                @example.com
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Username & Email Preview -->
-                <div class="space-y-1">
-                    <label for="username" class="block text-[11px] font-semibold text-slate-700">Mailbox User</label>
-                    <div class="flex rounded shadow-2xs">
-                        <input type="text" id="username" name="username" required placeholder="contact, info, support" class="w-full px-2.5 py-1.5 bg-white border border-r-0 border-slate-200 rounded-l text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        <span id="emailSuffix" class="inline-flex items-center px-2.5 py-1.5 border border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono rounded-r select-none font-bold">
-                            @example.com
-                        </span>
+                <!-- Password Fields -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label for="dbpass" class="block text-xs font-semibold text-slate-700">Mailbox Password <span class="text-rose-500">*</span></label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="text" id="dbpass" name="password" required placeholder="Strong Password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                            <button type="button" onclick="generateAndFillPassword();" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200 text-xs font-semibold transition-colors shrink-0 cursor-pointer" title="Generate Strong Password">
+                                <i class="mdi mdi-refresh text-xs"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Password Fields -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div class="space-y-1">
-                    <label for="dbpass" class="block text-[11px] font-semibold text-slate-700">Mailbox Password</label>
-                    <div class="flex items-center gap-1">
-                        <input type="text" id="dbpass" name="password" required placeholder="Strong Password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        <button type="button" onclick="generateAndFillPassword();" class="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded border border-slate-200 text-xs font-semibold transition-colors shrink-0 cursor-pointer" title="Generate Strong Password">
-                            <i class="mdi mdi-refresh"></i>
-                        </button>
+                    <div class="space-y-1">
+                        <label for="dbpassc" class="block text-xs font-semibold text-slate-700">Confirm Password <span class="text-rose-500">*</span></label>
+                        <input type="text" id="dbpassc" name="passwordc" required placeholder="Repeat Password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
                     </div>
                 </div>
 
-                <div class="space-y-1">
-                    <label for="dbpassc" class="block text-[11px] font-semibold text-slate-700">Confirm Password</label>
-                    <input type="text" id="dbpassc" name="passwordc" required placeholder="Repeat Password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-plus-circle-outline"></i> Create Email Account
+                    </button>
                 </div>
-            </div>
-
-            <!-- Action Controls -->
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <a href="{% url 'email_accounts' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
-                    Cancel
-                </a>
-                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
-                    <i class="mdi mdi-check text-xs"></i>
-                    <span>Create Email Account</span>
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -125,12 +107,23 @@ function generateStrongPassword(length = 16) {
 
 function generateAndFillPassword() {
     const password = generateStrongPassword();
-    document.getElementById('dbpass').value = password;
-    document.getElementById('dbpassc').value = password;
+    const p1 = document.getElementById('dbpass');
+    const p2 = document.getElementById('dbpassc');
+    if (p1) p1.value = password;
+    if (p2) p2.value = password;
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+(function initEmailForm() {
+    if (window.OLSSelect) {
+        window.OLSSelect.initAll(document.getElementById('spa-content') || document);
+    }
+    const domainSelect = document.getElementById('domainx');
+    if (domainSelect) {
+        domainSelect.addEventListener('change', updateEmail);
+    }
     updateEmail();
-});
+})();
 </script>
+
+{% include "users/footer.html" %}
 {% endblock content %}

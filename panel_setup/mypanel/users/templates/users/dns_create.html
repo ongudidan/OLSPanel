@@ -1,14 +1,14 @@
 {% extends "users/base.html" %}
-{% block title %}Add DNS Record{% endblock title %}
+{% block title %}Add DNS Record{% if domain %} - {{ domain.domain_name }}{% endif %}{% endblock title %}
 
 {% block content %}
 <div class="max-w-2xl">
-    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-visible">
         <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
             <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                <i class="mdi mdi-dns text-brand text-base"></i> Add DNS Record
+                <i class="mdi mdi-dns text-brand text-base"></i> Add DNS Record {% if domain %}<span class="text-xs font-mono text-slate-500 font-normal">({{ domain.domain_name }})</span>{% endif %}
             </h4>
-            <a href="{% url 'dns_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+            <a href="{% if domain_id %}{% url 'dns_list' domain_id %}{% else %}{% url 'dns' %}{% endif %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
                 <i class="mdi mdi-arrow-left"></i> Back to DNS Records
             </a>
         </div>
@@ -16,19 +16,32 @@
         <div class="p-5">
             <form method="post" action="" class="space-y-4">
                 {% csrf_token %}
+                {% if not domain_id %}
+                <div>
+                    <label for="domain_id" class="block text-xs font-semibold text-slate-700 mb-1">Select Domain</label>
+                    <select class="w-full searchable-select" id="domain_id" name="domain_id" required>
+                        <option value="">Select Domain...</option>
+                        {% for d in domains %}
+                        <option value="{{ d.id }}">{{ d.domain_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% else %}
+                <input type="hidden" name="domain_id" value="{{ domain_id }}">
+                {% endif %}
                 
                 <!-- DNS Record Name -->
                 <div>
                     <label for="dns_name" class="block text-xs font-semibold text-slate-700 mb-1">Record Host / Name</label>
                     <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-mono transition-all" id="dns_name" name="dns_name" placeholder="e.g. sub.example.com or @" required>
-                    <p class="text-[11px] text-slate-400 mt-1">Host name or subdomain for this DNS record.</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Host name, subdomain, or <span class="font-mono text-[11px] font-semibold text-slate-600 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">@</span> for the apex domain.</p>
                 </div>
 
                 <!-- Record Type & TTL Grid -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="type" class="block text-xs font-semibold text-slate-700 mb-1">Record Type</label>
-                        <select class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all font-mono font-semibold" id="type" name="type" required>
+                        <select class="w-full searchable-select font-mono font-semibold" id="type" name="type" required>
                             <option value="A">A (IPv4 Address)</option>
                             <option value="AAAA">AAAA (IPv6 Address)</option>
                             <option value="CNAME">CNAME (Canonical Alias)</option>
@@ -73,18 +86,26 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const typeSelect = document.getElementById('type');
-    const prioContainer = document.getElementById('prio-container');
+(function() {
+    function initDnsForm() {
+        const typeSelect = document.getElementById('type');
+        const prioContainer = document.getElementById('prio-container');
 
-    function togglePrioInput() {
-        if (!typeSelect || !prioContainer) return;
-        prioContainer.style.display = (typeSelect.value === 'MX') ? 'block' : 'none';
+        function togglePrioInput() {
+            if (!typeSelect || !prioContainer) return;
+            prioContainer.style.display = (typeSelect.value === 'MX') ? 'block' : 'none';
+        }
+
+        typeSelect?.addEventListener('change', togglePrioInput);
+        togglePrioInput();
     }
 
-    typeSelect?.addEventListener('change', togglePrioInput);
-    togglePrioInput();
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDnsForm);
+    } else {
+        initDnsForm();
+    }
+})();
 </script>
 
 {% include "users/footer.html" %}

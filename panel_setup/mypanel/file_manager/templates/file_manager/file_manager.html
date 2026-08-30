@@ -24,30 +24,45 @@
    
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="/media/css/tailwind.min.css">
     <link rel="stylesheet" crossorigin="" href="/media/css/filemanager.css?id=120056">
-   <link rel="stylesheet" href="/media/notify/notification.css">
+    <link rel="stylesheet" href="/media/notify/notification.css">
   </head>
   <body>
 <style>
- .context-menu {
-            display: none;
-            position: absolute;
-            background-color: #fff;
-            border: 1px solid #ccc;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-        }
-        .context-menu-item {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-        .context-menu-item:hover {
-            background-color: #eee;
-        }
+  .context-menu {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    overflow: hidden;
+    min-width: 150px;
+    padding: 0.25rem 0;
+  }
+  .context-menu-item {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.15s ease;
+  }
+  .context-menu-item:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+  }
 </style>  
   
     <header><img src="{{ branding.brand_icon }}"><button onclick="toggleSidebar();" aria-label="Toggle sidebar" title="Toggle sidebar" class="action menu-button"><i class="material-icons">menu</i><span>Toggle sidebar</span><!----></button>

@@ -12,7 +12,7 @@
         <!-- Top Toolbar -->
         <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
             <div>
-                <a class="inline-flex items-center gap-1 px-3.5 py-1.5 bg-brand hover:bg-brand-hover text-white text-xs font-semibold rounded-md shadow-sm transition-all" href="{% url 'add_user_all' %}">
+                <a class="btn btn-primary inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-semibold rounded-md shadow-sm" href="{% url 'add_user_all' %}">
                     <i class="mdi mdi-plus text-sm"></i> Add User
                 </a>
             </div>
@@ -62,7 +62,7 @@
                         </td>
                         <td class="px-3 py-2.5">
                             {% if myuser.main_domain %}
-                            <a href="http://{{ myuser.main_domain }}" target="_blank" class="text-brand font-medium hover:underline">{{ myuser.main_domain }}</a>
+                            <a href="http://{{ myuser.main_domain }}" target="_blank" class="domain-link text-xs font-semibold hover:underline">{{ myuser.main_domain }}</a>
                             {% else %}
                             <span class="text-slate-400">—</span>
                             {% endif %}

@@ -24,7 +24,7 @@
     </div>
 
     <!-- Main Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-visible">
         <form action="" method="post" id="backupScheduleForm">
             {% csrf_token %}
 
@@ -38,22 +38,25 @@
                     <span class="text-slate-500 text-[11px]">Select accounts below to apply schedule</span>
                 </div>
 
-                <div class="relative w-52">
+                <div class="relative w-64 sm:w-72">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
-                        <i class="mdi mdi-magnify text-xs"></i>
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
                     </span>
-                    <input type="text" id="userSearchInput" class="w-full pl-7 pr-6 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Search user..." value="{{ search_query|default:'' }}" autocomplete="off">
-                    <button type="button" id="clearUserSearchBtn" onclick="clearUserSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-xs bg-transparent border-0">&times;</button>
+                    <input type="text" id="userSearchInput" oninput="handleUserSearchInput();" class="w-full text-left text-xs bg-white border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" style="padding-left: 2rem !important; padding-right: 1.75rem !important; padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; text-align: left !important;" placeholder="Search user accounts..." value="{{ search_query|default:'' }}" autocomplete="off">
+                    <button type="button" id="clearUserSearchBtn" onclick="clearUserSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
                 </div>
             </div>
 
             <!-- Users Table (Compact High-Density) -->
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto border-b border-slate-200">
                 <table class="w-full text-xs text-left text-slate-700">
                     <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
                         <tr>
                             <th class="w-8 px-3 py-2 text-center">
-                                <input type="checkbox" id="checkAllHead" onclick="checkallbox(this);" class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand">
+                                <input type="checkbox" id="checkAllHead" onclick="checkallbox(this);" class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
                             </th>
                             <th class="px-3 py-2">User Account</th>
                             <th class="px-3 py-2">Schedule</th>
@@ -71,27 +74,27 @@
                             <td class="px-3 py-2 font-mono font-semibold text-slate-900">{{ user.username }}</td>
                             {% if user.latest_backup %}
                                 <td class="px-3 py-2">
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <i class="mdi mdi-clock-outline text-[11px]"></i>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="mdi mdi-clock-outline text-xs"></i>
                                         <span>Every {{ user.latest_backup.schedule }}</span>
                                     </span>
                                 </td>
                                 <td class="px-3 py-2">
-                                    <code class="font-mono text-[11px] text-slate-700 bg-slate-100 px-1 py-0.5 rounded">{{ user.latest_backup.type }}</code>
+                                    <code class="font-mono text-[11px] text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ user.latest_backup.type }}</code>
                                 </td>
                                 <td class="px-3 py-2">
-                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ user.latest_backup.category }}</span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">{{ user.latest_backup.category }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-600 font-mono text-[11px]">
                                     {% if user.latest_backup.path == 'ftp' %}
-                                        <span class="inline-flex items-center gap-1 text-indigo-600"><i class="mdi mdi-server-network"></i> FTP ({{ user.latest_backup.host }})</span>
+                                        <span class="inline-flex items-center gap-1 text-indigo-600 font-medium"><i class="mdi mdi-server-network"></i> FTP ({{ user.latest_backup.host }})</span>
                                     {% else %}
-                                        <span class="inline-flex items-center gap-1 text-slate-600"><i class="mdi mdi-folder-home-outline text-brand"></i> /backup/</span>
+                                        <span class="inline-flex items-center gap-1 text-slate-600 font-medium"><i class="mdi mdi-folder-home-outline text-brand"></i> /backup/</span>
                                     {% endif %}
                                 </td>
                             {% else %}
                                 <td class="px-3 py-2">
-                                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">Disabled</span>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">Disabled</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-400">&mdash;</td>
                                 <td class="px-3 py-2 text-slate-400">&mdash;</td>
@@ -100,103 +103,110 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="px-3 py-6 text-center text-slate-400">No users found.</td>
+                            <td colspan="6" class="px-3.5 py-6 text-center text-slate-400">No users found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
 
-            <!-- Configuration & Storage Section (Compact) -->
-            <div class="p-4 bg-slate-50/70 border-t border-slate-200 space-y-3">
-                <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
-                    <i class="mdi mdi-cog-outline text-brand text-sm"></i> Apply Schedule &amp; Storage Settings
-                </h5>
+            <!-- Configuration & Storage Section (Compact with SearchableSelect) -->
+            <div class="p-5 bg-slate-50/60 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                        <i class="mdi mdi-cog-outline text-brand text-sm"></i> Apply Schedule &amp; Storage Settings
+                    </h5>
+                    <span class="text-[11px] text-slate-400">Applies to all selected accounts</span>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
-                    <div class="md:col-span-3 space-y-1">
-                        <label for="common_schedule" class="block text-[11px] font-semibold text-slate-700">Frequency</label>
-                        <select id="common_schedule" name="schedule" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
-                            <option value="no">Disabled (No Backup)</option>
-                            <option value="hour">Every Hour</option>
-                            <option value="day" selected>Every Day</option>
-                            <option value="week">Every Week</option>
-                            <option value="month">Every Month</option>
-                        </select>
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div class="sm:col-span-3 space-y-1">
+                        <label for="common_schedule" class="block text-xs font-semibold text-slate-700">Frequency</label>
+                        <div>
+                            <select id="common_schedule" name="schedule" class="searchable-select w-full" data-placeholder="Select frequency..." data-search-placeholder="Search frequency..." data-icon="mdi-calendar-clock">
+                                <option value="no">Disabled (No Backup)</option>
+                                <option value="hour">Every Hour</option>
+                                <option value="day" selected>Every Day</option>
+                                <option value="week">Every Week</option>
+                                <option value="month">Every Month</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="md:col-span-3 space-y-1">
-                        <label for="common_category" class="block text-[11px] font-semibold text-slate-700">Format</label>
-                        <select id="common_category" name="category" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
-                            <option value="default">Default</option>
-                            <option value="cyberpanel">CyberPanel</option>
-                        </select>
+                    <div class="sm:col-span-3 space-y-1">
+                        <label for="common_category" class="block text-xs font-semibold text-slate-700">Format</label>
+                        <div>
+                            <select id="common_category" name="category" class="searchable-select w-full" data-placeholder="Select format..." data-search-placeholder="Search format..." data-icon="mdi-file-cabinet">
+                                <option value="default" selected>Default (OLSPanel)</option>
+                                <option value="cyberpanel">CyberPanel</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="md:col-span-6 space-y-1">
-                        <label class="block text-[11px] font-semibold text-slate-700">Included Components</label>
-                        <div class="flex flex-wrap items-center gap-3 p-1.5 bg-white border border-slate-200 rounded text-xs">
-                            <label class="inline-flex items-center gap-1 cursor-pointer font-bold text-slate-900 select-none">
-                                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand">
+                    <div class="sm:col-span-6 space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700">Included Components</label>
+                        <div class="flex flex-wrap items-center gap-3 p-2 bg-white border border-slate-200 rounded-md text-xs shadow-xs">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer font-bold text-slate-900 select-none">
+                                <input type="checkbox" id="full_backup" name="backup_option" value="full" onchange="toggleFullBackup(this)" checked class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
                                 <span>Full</span>
                             </label>
-                            <span class="text-slate-300">|</span>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
-                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="database" checked>
+                            <div class="h-3.5 w-px bg-slate-200"></div>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="database" checked>
                                 <span>Database</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
-                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="email" checked>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="email" checked>
                                 <span>Email</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
-                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="dns" checked>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="dns" checked>
                                 <span>DNS</span>
                             </label>
-                            <label class="inline-flex items-center gap-1 cursor-pointer text-slate-700 select-none">
-                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand" name="backup_option" value="files" checked>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 select-none">
+                                <input type="checkbox" class="backup-option w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer" name="backup_option" value="files" checked>
                                 <span>Files</span>
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <!-- Destination Location -->
-                <div class="pt-2 border-t border-slate-200 space-y-2">
-                    <label class="block text-[11px] font-semibold text-slate-700">Destination Storage Location</label>
-                    <div class="flex items-center gap-4 text-xs">
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-800 font-medium select-none">
-                            <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" checked class="w-3.5 h-3.5 text-brand focus:ring-brand">
-                            <span><i class="mdi mdi-folder-home-outline text-brand"></i> Local Disk (/backup/)</span>
+                <!-- Destination Storage Location -->
+                <div class="pt-3 border-t border-slate-200/80 space-y-2.5">
+                    <label class="block text-xs font-semibold text-slate-700">Destination Storage Location</label>
+                    <div class="flex items-center gap-5 text-xs">
+                        <label class="inline-flex items-center gap-2 cursor-pointer text-slate-800 font-semibold select-none">
+                            <input type="radio" name="backup_type" value="local" onchange="toggleFtpFields()" checked class="w-3.5 h-3.5 text-brand focus:ring-brand cursor-pointer">
+                            <span class="flex items-center gap-1.5"><i class="mdi mdi-folder-home-outline text-brand text-sm"></i> Local Disk (<code class="font-mono text-[11px] text-slate-700 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">/backup/</code>)</span>
                         </label>
-                        <label class="inline-flex items-center gap-1.5 cursor-pointer text-slate-800 font-medium select-none">
-                            <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand">
-                            <span><i class="mdi mdi-server-network text-indigo-600"></i> Remote FTP Server</span>
+                        <label class="inline-flex items-center gap-2 cursor-pointer text-slate-800 font-semibold select-none">
+                            <input type="radio" name="backup_type" value="ftp" onchange="toggleFtpFields()" class="w-3.5 h-3.5 text-brand focus:ring-brand cursor-pointer">
+                            <span class="flex items-center gap-1.5"><i class="mdi mdi-server-network text-indigo-600 text-sm"></i> Remote FTP Server</span>
                         </label>
                     </div>
 
-                    <div class="ftp-fields p-2.5 bg-white border border-slate-200 rounded text-xs" style="display: none;">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <div class="ftp-fields p-3.5 bg-white border border-slate-200 rounded-md text-xs space-y-3" style="display: none;">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div class="space-y-1">
-                                <label for="ftp_host" class="block text-[11px] font-semibold text-slate-700">FTP Host</label>
-                                <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
+                                <label for="ftp_host" class="block text-[11px] font-semibold text-slate-700">FTP Server Host</label>
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_host" name="ftp_host" placeholder="ftp.example.com">
                             </div>
                             <div class="space-y-1">
                                 <label for="ftp_user" class="block text-[11px] font-semibold text-slate-700">FTP Username</label>
-                                <input type="text" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_user" name="ftp_user" placeholder="username">
+                                <input type="text" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_user" name="ftp_user" placeholder="username">
                             </div>
                             <div class="space-y-1">
                                 <label for="ftp_pass" class="block text-[11px] font-semibold text-slate-700">FTP Password</label>
-                                <input type="password" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
+                                <input type="password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="ftp_pass" name="ftp_pass" placeholder="••••••••">
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Submit Action Footer -->
-                <div class="pt-2 border-t border-slate-200 flex justify-end">
-                    <button class="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" type="submit">
-                        <i class="mdi mdi-content-save-outline text-xs"></i>
+                <div class="pt-3 border-t border-slate-200/80 flex justify-end">
+                    <button class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-brand hover:bg-brand/90 rounded-md shadow-xs transition-colors cursor-pointer" type="submit">
+                        <i class="mdi mdi-content-save-outline"></i>
                         <span>Save Backup Schedules</span>
                     </button>
                 </div>
@@ -206,12 +216,14 @@
 </div>
 
 <script>
-const userSearchInput = document.getElementById("userSearchInput");
-const clearUserBtn = document.getElementById("clearUserSearchBtn");
-const userTableBody = document.getElementById("userTableBody");
+window.__userDebounceTimer = null;
 
 function performUserFilter(query) {
-    const q = (query || "").trim().toLowerCase();
+    const userSearchInput = document.getElementById("userSearchInput");
+    const clearUserBtn = document.getElementById("clearUserSearchBtn");
+    const userTableBody = document.getElementById("userTableBody");
+
+    const q = (query !== undefined ? query : (userSearchInput ? userSearchInput.value : "")).trim().toLowerCase();
     const rows = userTableBody ? Array.from(userTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
     let visibleCount = 0;
 
@@ -238,7 +250,8 @@ function performUserFilter(query) {
             noMatchRow.innerHTML = `<td colspan="6" class="px-3.5 py-4 text-center text-slate-400">No users match "<strong>${q}</strong>"</td>`;
             userTableBody.appendChild(noMatchRow);
         } else {
-            noMatchRow.querySelector("strong").textContent = q;
+            const strongElem = noMatchRow.querySelector("strong");
+            if (strongElem) strongElem.textContent = q;
             noMatchRow.style.display = "";
         }
     } else if (noMatchRow) {
@@ -258,7 +271,17 @@ function performUserFilter(query) {
     }
 }
 
+function handleUserSearchInput() {
+    clearTimeout(window.__userDebounceTimer);
+    const input = document.getElementById("userSearchInput");
+    const val = input ? input.value : "";
+    window.__userDebounceTimer = setTimeout(() => {
+        performUserFilter(val);
+    }, 100);
+}
+
 function clearUserSearch() {
+    const userSearchInput = document.getElementById("userSearchInput");
     if (userSearchInput) {
         userSearchInput.value = "";
         performUserFilter("");
@@ -266,30 +289,25 @@ function clearUserSearch() {
     }
 }
 
-let userDebounceTimer = null;
-
-document.addEventListener("DOMContentLoaded", function () {
-    if (userSearchInput) {
-        userSearchInput.addEventListener("input", function () {
-            clearTimeout(userDebounceTimer);
-            const val = this.value;
-            userDebounceTimer = setTimeout(() => {
-                performUserFilter(val);
-            }, 100);
-        });
-
-        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_backup_search") || "";
-        if (savedQuery) {
-            userSearchInput.value = savedQuery;
-            performUserFilter(savedQuery);
-        }
+// Immediate execution for SPA navigation
+(function initWhmBackupPage() {
+    if (window.OLSSelect) {
+        window.OLSSelect.initAll(document.getElementById('spa-content') || document);
     }
-});
+
+    const input = document.getElementById("userSearchInput");
+    const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_backup_search") || "";
+    if (input && savedQuery) {
+        input.value = savedQuery;
+    }
+    performUserFilter(savedQuery);
+})();
 
 function checkallbox(source) {
     const checkboxes = document.querySelectorAll('.user-select-cb');
     checkboxes.forEach(cb => {
-        if (cb.closest('tr').style.display !== 'none') {
+        const row = cb.closest('tr');
+        if (!row || row.style.display !== 'none') {
             cb.checked = source.checked;
         }
     });
@@ -317,5 +335,13 @@ function toggleFullBackup(fullBackupCheckbox) {
         option.checked = fullBackupCheckbox.checked;
     });
 }
+
+document.querySelectorAll('.backup-option').forEach(checkbox => {
+    checkbox.addEventListener('change', function () {
+        const fullBackupCheckbox = document.getElementById('full_backup');
+        const allChecked = Array.from(document.querySelectorAll('.backup-option')).every(cb => cb.checked);
+        if (fullBackupCheckbox) fullBackupCheckbox.checked = allChecked;
+    });
+});
 </script>
 {% endblock content %}

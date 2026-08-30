@@ -26,6 +26,8 @@ def branding(request):
         "brand_image": "/media/ow.png",
         "brand_icon": "/media/logo.png",
         "brand_color": "#ef6d19",
+        "button_primary_color": "#9e6de0",
+        "button_secondary_color": "#fd5190",
     }
 
     # license check FIRST (clean exit)

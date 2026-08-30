@@ -22,7 +22,7 @@
         <!-- Top Toolbar -->
         <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
             <div>
-                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'add_domain' %}">
+                <a class="btn btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs" href="{% url 'add_domain' %}">
                     <i class="mdi mdi-plus"></i> Add Domain
                 </a>
             </div>
@@ -34,14 +34,14 @@
                             <option value="{{ auser.id }}" {% if selected_user == auser.id|stringformat:"s" %}selected{% endif %}>{{ auser.username }}</option>
                         {% endfor %}
                     </select>
-                    <div class="relative w-56">
+                    <div class="relative w-64 sm:w-72 md:w-80">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </span>
-                        <input type="text" id="domainSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search domain, path..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <input type="text" id="domainSearchInput" oninput="handleWhmDomainSearchInput();" class="w-full text-left text-xs bg-white border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" style="padding-left: 2rem !important; padding-right: 1.75rem !important; padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; text-align: left !important;" placeholder="Search domain, path..." value="{{ search_query|default:'' }}" autocomplete="off">
                         <button type="button" id="clearDomainSearchBtn" onclick="clearDomainSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
                     </div>
                 </form>
@@ -63,7 +63,7 @@
                     {% for domain in domains %}
                     <tr data-userid="{{ domain.userid }}" class="hover:bg-slate-50 transition-colors">
                         <td class="px-3.5 py-2.5">
-                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="font-bold text-brand hover:underline">
+                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="domain-link text-xs font-semibold hover:underline">
                                 {{ domain.domain }}
                             </a>
                         </td>
@@ -74,7 +74,7 @@
                             <code class="font-mono text-[11px] text-slate-600">{{ domain.path }}</code>
                         </td>
                         <td class="px-3.5 py-2.5 text-right space-x-1">
-                            <a href="{% url 'domain_edit_all' domain.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                            <a href="{% url 'domain_edit_all' domain.id %}" class="btn btn-primary inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded shadow-xs">
                                 <i class="mdi mdi-square-edit-outline"></i> Manage
                             </a>
                             {% if domain_pre %}
@@ -96,12 +96,14 @@
 </div>
 
 <script>
-const domainSearchInput = document.getElementById("domainSearchInput");
-const clearDomainBtn = document.getElementById("clearDomainSearchBtn");
-const userFilterSelect = document.getElementById("userFilterSelect");
-const domainTableBody = document.getElementById("domainTableBody");
+window.__whmDomainDebounce = null;
 
 function performDomainFilter() {
+    const domainSearchInput = document.getElementById("domainSearchInput");
+    const clearDomainBtn = document.getElementById("clearDomainSearchBtn");
+    const userFilterSelect = document.getElementById("userFilterSelect");
+    const domainTableBody = document.getElementById("domainTableBody");
+
     const q = (domainSearchInput ? domainSearchInput.value : "").trim().toLowerCase();
     const selectedUid = userFilterSelect ? userFilterSelect.value.trim() : "";
     const rows = domainTableBody ? Array.from(domainTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
@@ -156,7 +158,13 @@ function performDomainFilter() {
     window.history.replaceState({}, "", url);
 }
 
+function handleWhmDomainSearchInput() {
+    clearTimeout(window.__whmDomainDebounce);
+    window.__whmDomainDebounce = setTimeout(performDomainFilter, 100);
+}
+
 function clearDomainSearch() {
+    const domainSearchInput = document.getElementById("domainSearchInput");
     if (domainSearchInput) {
         domainSearchInput.value = "";
         performDomainFilter();
@@ -164,26 +172,21 @@ function clearDomainSearch() {
     }
 }
 
-let domainDebounceTimer = null;
+// Immediate execution for SPA page navigation
+(function initWhmDomainListPage() {
+    const input = document.getElementById("domainSearchInput");
+    const userSelect = document.getElementById("userFilterSelect");
 
-document.addEventListener("DOMContentLoaded", function () {
-    if (domainSearchInput) {
-        domainSearchInput.addEventListener("input", function () {
-            clearTimeout(domainDebounceTimer);
-            domainDebounceTimer = setTimeout(performDomainFilter, 100);
-        });
-
-        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_domain_search") || "";
-        if (savedQuery) {
-            domainSearchInput.value = savedQuery;
-            performDomainFilter();
-        }
+    if (userSelect) {
+        userSelect.onchange = performDomainFilter;
     }
 
-    if (userFilterSelect) {
-        userFilterSelect.addEventListener("change", performDomainFilter);
+    const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_domain_search") || "";
+    if (input && savedQuery) {
+        input.value = savedQuery;
     }
-});
+    performDomainFilter();
+})();
 </script>
 
 {% endblock content %}

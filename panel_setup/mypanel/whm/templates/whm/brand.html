@@ -7,12 +7,12 @@
     <!-- Top Compact Header -->
     <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
         <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+            <div class="w-8 h-8 rounded-md bg-purple-50 text-[#9e6de0] border border-purple-100 flex items-center justify-center shrink-0">
                 <i class="mdi mdi-palette-outline text-lg"></i>
             </div>
             <div>
                 <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Brand &amp; White-label Settings</h4>
-                <p class="text-[11px] text-slate-500 m-0 leading-tight">Customize panel logo, favicon icon, brand title, and primary theme accent color</p>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Customize panel logo, favicon icon, brand title, brand accent color, and dedicated button colors</p>
             </div>
         </div>
         <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
@@ -25,93 +25,218 @@
     <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
         <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
             <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
-                <i class="mdi mdi-brush text-brand text-sm"></i> Visual Identity &amp; Assets
+                <i class="mdi mdi-brush text-brand text-sm"></i> Visual Identity &amp; Color Scheme
             </h5>
             <span class="text-[10px] text-slate-400 font-medium">Applied panel-wide</span>
         </div>
 
-        <form method="post" action="" enctype="multipart/form-data" class="p-4 space-y-3">
+        <form method="post" action="" enctype="multipart/form-data" class="p-4 space-y-4">
             {% csrf_token %}
 
-            <!-- Row 1: Brand Title & Theme Color -->
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div class="sm:col-span-7 space-y-1">
-                    <label for="brand_title" class="block text-[11px] font-semibold text-slate-700">Brand Name</label>
-                    <div class="relative">
-                        <i class="mdi mdi-tag-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" id="brand_title" name="brand_title" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="e.g. Fortune Developers" value="{% if current_settings.brand_title is not None %}{{ current_settings.brand_title }}{% else %}Fortune Developers{% endif %}">
-                    </div>
+            <!-- SECTION 1: Brand Identity & Brand Accent Color -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="mdi mdi-tag-outline text-brand text-sm"></i> 1. Brand Identity &amp; Brand Accent Color
+                    </span>
+                    <span class="text-[10px] text-slate-400">Controls brand title, logo text &amp; active navigation accents</span>
                 </div>
 
-                <div class="sm:col-span-5 space-y-1">
-                    <label for="brand_color" class="block text-[11px] font-semibold text-slate-700">Primary Accent Color</label>
-                    <div class="flex items-center gap-2">
-                        <div class="relative w-8 h-8 rounded border border-slate-200 overflow-hidden shadow-2xs shrink-0">
-                            <input type="color" id="brand_color" name="brand_color" class="absolute -inset-2 w-12 h-12 cursor-pointer border-0" value="{{ current_settings.brand_color|default:'#059669' }}">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                    <!-- Brand Title -->
+                    <div class="md:col-span-5 space-y-1">
+                        <label for="brand_title" class="block text-[11px] font-semibold text-slate-700">Brand Name</label>
+                        <div class="relative">
+                            <i class="mdi mdi-tag-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" id="brand_title" name="brand_title" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="e.g. Fortune Developers" value="{% if current_settings.brand_title is not None %}{{ current_settings.brand_title }}{% else %}Fortune Developers{% endif %}">
                         </div>
-                        <div class="relative flex-1">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-slate-400 text-xs font-mono">#</span>
-                            <input type="text" id="brand_color_hex" class="w-full pl-5 pr-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono uppercase text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{{ current_settings.brand_color|default:'#059669'|slice:'1:' }}" maxlength="6">
+                    </div>
+
+                    <!-- Brand Accent Color Picker -->
+                    <div class="md:col-span-7 p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="brand_color" class="block text-[11px] font-semibold text-slate-700">Brand Accent Color (Theme Color)</label>
+                            <span class="text-[10px] text-slate-400">Logo text &amp; sidebar active accents</span>
                         </div>
-                        <div class="flex items-center gap-1 pl-1.5 border-l border-slate-200">
-                            <button type="button" onclick="setBrandColor('#059669')" class="w-4 h-4 rounded-full bg-[#059669] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Emerald (Default)"></button>
-                            <button type="button" onclick="setBrandColor('#2563eb')" class="w-4 h-4 rounded-full bg-[#2563eb] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Blue"></button>
-                            <button type="button" onclick="setBrandColor('#ef6d19')" class="w-4 h-4 rounded-full bg-[#ef6d19] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Orange"></button>
-                            <button type="button" onclick="setBrandColor('#6366f1')" class="w-4 h-4 rounded-full bg-[#6366f1] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Indigo"></button>
-                            <button type="button" onclick="setBrandColor('#9333ea')" class="w-4 h-4 rounded-full bg-[#9333ea] ring-1 ring-slate-200 hover:scale-110 transition-transform cursor-pointer" title="Purple"></button>
+                        <div class="flex items-center gap-2">
+                            <label for="brand_color" class="relative w-8 h-8 rounded border border-slate-300 overflow-hidden shadow-2xs shrink-0 cursor-pointer block m-0">
+                                <input type="color" id="brand_color" name="brand_color" class="absolute -inset-2 w-12 h-12 cursor-pointer border-0 p-0" value="{{ current_settings.brand_color|default:'#ef6d19' }}">
+                            </label>
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-slate-400 text-xs font-mono">#</span>
+                                <input type="text" id="brand_color_hex" class="w-full pl-5 pr-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono uppercase text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{{ current_settings.brand_color|default:'#ef6d19'|slice:'1:' }}" maxlength="6">
+                            </div>
+                            <div class="flex items-center gap-1.5 pl-1.5 border-l border-slate-200">
+                                <button type="button" data-color="#ef6d19" style="background-color: #ef6d19;" class="btn-swatch-brand w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Orange (Default)"></button>
+                                <button type="button" data-color="#059669" style="background-color: #059669;" class="btn-swatch-brand w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Emerald"></button>
+                                <button type="button" data-color="#2563eb" style="background-color: #2563eb;" class="btn-swatch-brand w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Blue"></button>
+                                <button type="button" data-color="#6366f1" style="background-color: #6366f1;" class="btn-swatch-brand w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Indigo"></button>
+                                <button type="button" data-color="#9e6de0" style="background-color: #9e6de0;" class="btn-swatch-brand w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Purple"></button>
+                                <button type="button" data-color="#334155" style="background-color: #334155;" class="btn-swatch-brand w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Dark Slate"></button>
+                            </div>
+                        </div>
+
+                        <!-- Live Brand Preview -->
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="text-[10px] text-slate-400 font-medium">Brand Preview:</span>
+                            <div class="flex items-center gap-1.5">
+                                <span id="previewBrandText" class="text-xs font-bold transition-all px-2 py-0.5 rounded bg-slate-900 text-white" style="color: {{ current_settings.brand_color|default:'#ef6d19' }};">
+                                    {{ current_settings.brand_title|default:'Fortune Developers' }}
+                                </span>
+                                <span id="previewBrandBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded text-white transition-all shadow-2xs" style="background-color: {{ current_settings.brand_color|default:'#ef6d19' }};">
+                                    Active Highlight
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Row 2: Logo and Favicon Uploads -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                <!-- Panel Logo -->
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-[11px] font-semibold text-slate-700">Panel Brand Logo</label>
-                        <span class="text-[10px] text-slate-400">PNG or SVG</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="h-10 px-3 bg-[#0b132b] rounded border border-slate-800 flex items-center justify-center shrink-0">
-                            {% if current_settings.brand_image %}
-                                <img id="logoPreview" src="{{ current_settings.brand_image }}" alt="Logo" class="max-h-6 max-w-[120px] object-contain">
-                            {% else %}
-                                <img id="logoPreview" src="/media/ow.png" alt="Logo" class="max-h-6 max-w-[120px] object-contain">
-                            {% endif %}
+            <!-- SECTION 2: Button Colors (Primary & Secondary) -->
+            <div class="space-y-3 pt-3 border-t border-slate-100">
+                <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="mdi mdi-gesture-tap-button text-purple-600 text-sm"></i> 2. Dynamic Button Colors
+                    </span>
+                    <span class="text-[10px] text-slate-400">Controls action and secondary buttons separately</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- 1. Primary Button Color -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="button_primary_color" class="block text-[11px] font-semibold text-slate-700">Primary Button Color</label>
+                            <span class="text-[10px] text-slate-400">Submit, Save &amp; Login (.btn-primary)</span>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <label for="brand_image" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded shadow-2xs cursor-pointer transition-colors">
-                                <i class="mdi mdi-upload text-xs"></i>
-                                <span>Upload Logo</span>
+                        <div class="flex items-center gap-2">
+                            <label for="button_primary_color" class="relative w-8 h-8 rounded border border-slate-300 overflow-hidden shadow-2xs shrink-0 cursor-pointer block m-0">
+                                <input type="color" id="button_primary_color" name="button_primary_color" class="absolute -inset-2 w-12 h-12 cursor-pointer border-0 p-0" value="{{ current_settings.button_primary_color|default:'#9e6de0' }}">
                             </label>
-                            <input type="file" id="brand_image" name="brand_image" accept="image/*" class="hidden" onchange="previewImage(this, 'logoPreview')">
-                            <span id="logoFileName" class="block text-[10px] text-slate-400 truncate mt-0.5">Transparent recommended</span>
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-slate-400 text-xs font-mono">#</span>
+                                <input type="text" id="button_primary_color_hex" class="w-full pl-5 pr-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono uppercase text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{{ current_settings.button_primary_color|default:'#9e6de0'|slice:'1:' }}" maxlength="6">
+                            </div>
+                            <div class="flex items-center gap-1.5 pl-1.5 border-l border-slate-200">
+                                <button type="button" data-color="#9e6de0" style="background-color: #9e6de0;" class="btn-swatch-primary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Purple (Default)"></button>
+                                <button type="button" data-color="#059669" style="background-color: #059669;" class="btn-swatch-primary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Emerald"></button>
+                                <button type="button" data-color="#2563eb" style="background-color: #2563eb;" class="btn-swatch-primary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Blue"></button>
+                                <button type="button" data-color="#ef6d19" style="background-color: #ef6d19;" class="btn-swatch-primary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Orange"></button>
+                                <button type="button" data-color="#6366f1" style="background-color: #6366f1;" class="btn-swatch-primary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Indigo"></button>
+                                <button type="button" data-color="#334155" style="background-color: #334155;" class="btn-swatch-primary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Dark Slate"></button>
+                            </div>
+                        </div>
+
+                        <!-- Live Primary Preview -->
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="text-[10px] text-slate-400 font-medium">Primary Button:</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" id="previewPrimary" class="px-2.5 py-0.5 rounded text-[11px] font-semibold text-white shadow-2xs transition-all pointer-events-none" style="background-color: {{ current_settings.button_primary_color|default:'#9e6de0' }}; border: 1px solid {{ current_settings.button_primary_color|default:'#9e6de0' }};">
+                                    Submit / Sign In
+                                </button>
+                                <button type="button" id="previewPrimaryOutline" class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-white transition-all pointer-events-none" style="color: {{ current_settings.button_primary_color|default:'#9e6de0' }}; border: 1px solid {{ current_settings.button_primary_color|default:'#9e6de0' }};">
+                                    Outline Primary
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Secondary Button Color -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label for="button_secondary_color" class="block text-[11px] font-semibold text-slate-700">Secondary Button Color</label>
+                            <span class="text-[10px] text-slate-400">Cancel &amp; Secondary Actions (.btn-secondary)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label for="button_secondary_color" class="relative w-8 h-8 rounded border border-slate-300 overflow-hidden shadow-2xs shrink-0 cursor-pointer block m-0">
+                                <input type="color" id="button_secondary_color" name="button_secondary_color" class="absolute -inset-2 w-12 h-12 cursor-pointer border-0 p-0" value="{{ current_settings.button_secondary_color|default:'#fd5190' }}">
+                            </label>
+                            <div class="relative flex-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-slate-400 text-xs font-mono">#</span>
+                                <input type="text" id="button_secondary_color_hex" class="w-full pl-5 pr-2 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono uppercase text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" value="{{ current_settings.button_secondary_color|default:'#fd5190'|slice:'1:' }}" maxlength="6">
+                            </div>
+                            <div class="flex items-center gap-1.5 pl-1.5 border-l border-slate-200">
+                                <button type="button" data-color="#fd5190" style="background-color: #fd5190;" class="btn-swatch-secondary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Pink (Default)"></button>
+                                <button type="button" data-color="#64748b" style="background-color: #64748b;" class="btn-swatch-secondary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Slate"></button>
+                                <button type="button" data-color="#0284c7" style="background-color: #0284c7;" class="btn-swatch-secondary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Sky"></button>
+                                <button type="button" data-color="#f59e0b" style="background-color: #f59e0b;" class="btn-swatch-secondary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Amber"></button>
+                                <button type="button" data-color="#10b981" style="background-color: #10b981;" class="btn-swatch-secondary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Mint"></button>
+                                <button type="button" data-color="#475569" style="background-color: #475569;" class="btn-swatch-secondary w-5 h-5 rounded-full ring-1 ring-slate-300 hover:scale-110 active:scale-95 transition-transform cursor-pointer border-0 shadow-2xs" title="Steel"></button>
+                            </div>
+                        </div>
+
+                        <!-- Live Secondary Preview -->
+                        <div class="flex items-center gap-2 pt-1">
+                            <span class="text-[10px] text-slate-400 font-medium">Secondary Button:</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" id="previewSecondary" class="px-2.5 py-0.5 rounded text-[11px] font-semibold text-white shadow-2xs transition-all pointer-events-none" style="background-color: {{ current_settings.button_secondary_color|default:'#fd5190' }}; border: 1px solid {{ current_settings.button_secondary_color|default:'#fd5190' }};">
+                                    Secondary Action
+                                </button>
+                                <button type="button" id="previewSecondaryOutline" class="px-2.5 py-0.5 rounded text-[11px] font-semibold bg-white transition-all pointer-events-none" style="color: {{ current_settings.button_secondary_color|default:'#fd5190' }}; border: 1px solid {{ current_settings.button_secondary_color|default:'#fd5190' }};">
+                                    Outline Secondary
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Favicon -->
-                <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-[11px] font-semibold text-slate-700">Browser Favicon</label>
-                        <span class="text-[10px] text-slate-400">32x32 / 64x64</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-white rounded border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs">
-                            {% if current_settings.brand_icon %}
-                                <img id="faviconPreview" src="{{ current_settings.brand_icon }}" alt="Favicon" class="w-6 h-6 object-contain">
-                            {% else %}
-                                <img id="faviconPreview" src="/media/logo.png" alt="Favicon" class="w-6 h-6 object-contain">
-                            {% endif %}
+            <!-- SECTION 3: Logo and Favicon Uploads -->
+            <div class="space-y-3 pt-3 border-t border-slate-100">
+                <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+                    <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                        <i class="mdi mdi-image-outline text-sky-600 text-sm"></i> 3. Brand Assets (Logo &amp; Favicon)
+                    </span>
+                    <span class="text-[10px] text-slate-400">Custom images for sidebar and browser tab</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Panel Logo -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-semibold text-slate-700">Panel Brand Logo</label>
+                            <span class="text-[10px] text-slate-400">PNG or SVG</span>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <label for="brand_icon" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded shadow-2xs cursor-pointer transition-colors">
-                                <i class="mdi mdi-upload text-xs"></i>
-                                <span>Upload Icon</span>
-                            </label>
-                            <input type="file" id="brand_icon" name="brand_icon" accept="image/png,image/x-icon,image/jpeg,image/webp,image/svg+xml" class="hidden" onchange="previewImage(this, 'faviconPreview')">
-                            <span id="faviconFileName" class="block text-[10px] text-slate-400 truncate mt-0.5">PNG, ICO, SVG</span>
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 px-3 bg-[#0b132b] rounded border border-slate-800 flex items-center justify-center shrink-0">
+                                {% if current_settings.brand_image %}
+                                    <img id="logoPreview" src="{{ current_settings.brand_image }}" alt="Logo" class="max-h-6 max-w-[120px] object-contain">
+                                {% else %}
+                                    <img id="logoPreview" src="/media/ow.png" alt="Logo" class="max-h-6 max-w-[120px] object-contain">
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <label for="brand_image" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded shadow-2xs cursor-pointer transition-colors">
+                                    <i class="mdi mdi-upload text-xs"></i>
+                                    <span>Upload Logo</span>
+                                </label>
+                                <input type="file" id="brand_image" name="brand_image" accept="image/*" class="hidden" onchange="previewImage(this, 'logoPreview')">
+                                <span id="logoFileName" class="block text-[10px] text-slate-400 truncate mt-0.5">Transparent recommended</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Favicon -->
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-semibold text-slate-700">Browser Favicon</label>
+                            <span class="text-[10px] text-slate-400">32x32 / 64x64</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-white rounded border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs">
+                                {% if current_settings.brand_icon %}
+                                    <img id="faviconPreview" src="{{ current_settings.brand_icon }}" alt="Favicon" class="w-6 h-6 object-contain">
+                                {% else %}
+                                    <img id="faviconPreview" src="/media/logo.png" alt="Favicon" class="w-6 h-6 object-contain">
+                                {% endif %}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <label for="brand_icon" class="inline-flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded shadow-2xs cursor-pointer transition-colors">
+                                    <i class="mdi mdi-upload text-xs"></i>
+                                    <span>Upload Icon</span>
+                                </label>
+                                <input type="file" id="brand_icon" name="brand_icon" accept="image/png,image/x-icon,image/jpeg,image/webp,image/svg+xml" class="hidden" onchange="previewImage(this, 'faviconPreview')">
+                                <span id="faviconFileName" class="block text-[10px] text-slate-400 truncate mt-0.5">PNG, ICO, SVG</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -122,7 +247,7 @@
                 <a href="{% url 'whm_home' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <button type="submit" class="btn btn-primary px-4 py-1.5 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
                     <i class="mdi mdi-check text-xs"></i>
                     <span>Save Brand Settings</span>
                 </button>
@@ -132,40 +257,190 @@
 </div>
 
 <script>
-const colorPicker = document.getElementById('brand_color');
-const hexInput = document.getElementById('brand_color_hex');
-
-if (colorPicker && hexInput) {
-    colorPicker.addEventListener('input', function() {
-        hexInput.value = this.value.replace('#', '').toUpperCase();
-    });
-
-    hexInput.addEventListener('input', function() {
-        let val = this.value.trim().replace('#', '');
-        if (val.length === 6 && /^[0-9A-Fa-f]{6}$/.test(val)) {
-            colorPicker.value = '#' + val;
+(function initBrandControls() {
+    // 1. Brand Accent Color Handler
+    window.updateBrandPreview = function(hex) {
+        const brandText = document.getElementById('previewBrandText');
+        const brandBadge = document.getElementById('previewBrandBadge');
+        if (brandText) {
+            brandText.style.setProperty('color', hex, 'important');
         }
-    });
-}
+        if (brandBadge) {
+            brandBadge.style.setProperty('background-color', hex, 'important');
+        }
+    };
 
-function setBrandColor(hex) {
-    if (colorPicker) colorPicker.value = hex;
-    if (hexInput) hexInput.value = hex.replace('#', '').toUpperCase();
-}
+    window.setBrandColor = function(hex) {
+        const picker = document.getElementById('brand_color');
+        const hexInp = document.getElementById('brand_color_hex');
+        if (picker) picker.value = hex;
+        if (hexInp) hexInp.value = hex.replace('#', '').toUpperCase();
+        window.updateBrandPreview(hex);
+    };
 
-function previewImage(input, previewId) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById(previewId);
-            if (preview) preview.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+    // 2. Primary Button Color Handler
+    window.updatePrimaryPreview = function(hex) {
+        const pBtn = document.getElementById('previewPrimary');
+        const pOut = document.getElementById('previewPrimaryOutline');
+        if (pBtn) {
+            pBtn.style.setProperty('background-color', hex, 'important');
+            pBtn.style.setProperty('border-color', hex, 'important');
+        }
+        if (pOut) {
+            pOut.style.setProperty('color', hex, 'important');
+            pOut.style.setProperty('border-color', hex, 'important');
+        }
+    };
 
-        const nameDisplay = document.getElementById(previewId === 'logoPreview' ? 'logoFileName' : 'faviconFileName');
-        if (nameDisplay) nameDisplay.textContent = file.name;
+    window.setPrimaryColor = function(hex) {
+        const picker = document.getElementById('button_primary_color');
+        const hexInp = document.getElementById('button_primary_color_hex');
+        if (picker) picker.value = hex;
+        if (hexInp) hexInp.value = hex.replace('#', '').toUpperCase();
+        window.updatePrimaryPreview(hex);
+    };
+
+    // 3. Secondary Button Color Handler
+    window.updateSecondaryPreview = function(hex) {
+        const sBtn = document.getElementById('previewSecondary');
+        const sOut = document.getElementById('previewSecondaryOutline');
+        if (sBtn) {
+            sBtn.style.setProperty('background-color', hex, 'important');
+            sBtn.style.setProperty('border-color', hex, 'important');
+        }
+        if (sOut) {
+            sOut.style.setProperty('color', hex, 'important');
+            sOut.style.setProperty('border-color', hex, 'important');
+        }
+    };
+
+    window.setSecondaryColor = function(hex) {
+        const picker = document.getElementById('button_secondary_color');
+        const hexInp = document.getElementById('button_secondary_color_hex');
+        if (picker) picker.value = hex;
+        if (hexInp) hexInp.value = hex.replace('#', '').toUpperCase();
+        window.updateSecondaryPreview(hex);
+    };
+
+    // 4. Image Previews Handler
+    window.previewImage = function(input, previewId) {
+        if (input && input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                if (preview) preview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            const nameDisplay = document.getElementById(previewId === 'logoPreview' ? 'logoFileName' : 'faviconFileName');
+            if (nameDisplay) nameDisplay.textContent = file.name;
+        }
+    };
+
+    // Wire listeners
+    function bindInputs() {
+        // Brand Accent
+        const bPicker = document.getElementById('brand_color');
+        const bHex = document.getElementById('brand_color_hex');
+        if (bPicker && bHex) {
+            bPicker.oninput = function() {
+                bHex.value = this.value.replace('#', '').toUpperCase();
+                window.updateBrandPreview(this.value);
+            };
+            bHex.oninput = function() {
+                let val = this.value.trim().replace('#', '');
+                if (val.length === 6 && /^[0-9A-Fa-f]{6}$/.test(val)) {
+                    bPicker.value = '#' + val;
+                    window.updateBrandPreview('#' + val);
+                }
+            };
+            window.updateBrandPreview(bPicker.value || '#ef6d19');
+        }
+
+        // Live Brand Title Sync
+        const bTitleInput = document.getElementById('brand_title');
+        const bTitlePreview = document.getElementById('previewBrandText');
+        if (bTitleInput && bTitlePreview) {
+            bTitleInput.oninput = function() {
+                bTitlePreview.textContent = this.value.trim() || 'Fortune Developers';
+            };
+        }
+
+        // Primary Button Pickers
+        const pPicker = document.getElementById('button_primary_color');
+        const pHex = document.getElementById('button_primary_color_hex');
+        if (pPicker && pHex) {
+            pPicker.oninput = function() {
+                pHex.value = this.value.replace('#', '').toUpperCase();
+                window.updatePrimaryPreview(this.value);
+            };
+            pHex.oninput = function() {
+                let val = this.value.trim().replace('#', '');
+                if (val.length === 6 && /^[0-9A-Fa-f]{6}$/.test(val)) {
+                    pPicker.value = '#' + val;
+                    window.updatePrimaryPreview('#' + val);
+                }
+            };
+            window.updatePrimaryPreview(pPicker.value || '#9e6de0');
+        }
+
+        // Secondary Button Pickers
+        const sPicker = document.getElementById('button_secondary_color');
+        const sHex = document.getElementById('button_secondary_color_hex');
+        if (sPicker && sHex) {
+            sPicker.oninput = function() {
+                sHex.value = this.value.replace('#', '').toUpperCase();
+                window.updateSecondaryPreview(this.value);
+            };
+            sHex.oninput = function() {
+                let val = this.value.trim().replace('#', '');
+                if (val.length === 6 && /^[0-9A-Fa-f]{6}$/.test(val)) {
+                    sPicker.value = '#' + val;
+                    window.updateSecondaryPreview('#' + val);
+                }
+            };
+            window.updateSecondaryPreview(sPicker.value || '#fd5190');
+        }
+
+        // Swatches via Event Delegation
+        document.querySelectorAll('.btn-swatch-brand').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                const col = this.getAttribute('data-color');
+                if (col) window.setBrandColor(col);
+            };
+        });
+
+        document.querySelectorAll('.btn-swatch-primary').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                const col = this.getAttribute('data-color');
+                if (col) window.setPrimaryColor(col);
+            };
+        });
+
+        document.querySelectorAll('.btn-swatch-secondary').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                const col = this.getAttribute('data-color');
+                if (col) window.setSecondaryColor(col);
+            };
+        });
+
+        // File upload inputs
+        const brandImg = document.getElementById('brand_image');
+        if (brandImg) {
+            brandImg.onchange = function() { window.previewImage(this, 'logoPreview'); };
+        }
+        const brandIco = document.getElementById('brand_icon');
+        if (brandIco) {
+            brandIco.onchange = function() { window.previewImage(this, 'faviconPreview'); };
+        }
     }
-}
+
+    bindInputs();
+    setTimeout(bindInputs, 100);
+})();
 </script>
 {% endblock content %}

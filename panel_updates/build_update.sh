@@ -10,6 +10,12 @@ echo "📦 Packaging Custom OLSPanel Update & Plugins..."
 mkdir -p "${UPDATES_DIR}"
 mkdir -p "${PROJECT_ROOT}/plugin"
 
+# Compile Tailwind CSS bundle
+if command -v npx &> /dev/null && [ -d "${PROJECT_ROOT}/panel_setup/mypanel" ]; then
+    echo "🎨 Compiling Tailwind CSS..."
+    (cd "${PROJECT_ROOT}/panel_setup/mypanel" && npx -y tailwindcss@3.4.17 -i ./media/css/tailwind-input.css -o ./media/css/tailwind.min.css --minify)
+fi
+
 # Build panel_setup.zip and plugin zip files using Python3
 python3 - <<EOF
 import zipfile, os

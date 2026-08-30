@@ -602,24 +602,36 @@ def dns_delete_all(request, rid):
 
 @alogin_required
 def dns_create_all(request, domain_id=None):
+    domain = None
+    if domain_id:
+        domain = Domain.objects.filter(id=domain_id).first()
+
     # Handle form submission
     if request.method == 'POST':
-        dns_name = request.POST.get('dns_name')
-        dns_value = request.POST.get('dns_value')
+        dns_name = (request.POST.get('dns_name') or '').strip()
+        dns_value = (request.POST.get('dns_value') or '').strip()
 
         # Check if domain_id is provided, if not get it from the POST data
         if domain_id is None:
-            domain_id = request.POST.get('id')
+            domain_id = request.POST.get('domain_id') or request.POST.get('id')
 
-        dm = Domain.objects.get(id=domain_id)
-        ptype = request.POST.get('type')  # Fix indentation here
-        ttl = request.POST.get('ttl')
+        dm = Domain.objects.filter(id=domain_id).first()
+        if not dm:
+            messages.error(request, 'Domain not found.')
+            return redirect('/whm/dns_all/')
+
+        ptype = request.POST.get('type')
+        ttl = request.POST.get('ttl', 3600)
         prio = request.POST.get('prio', 0)  # Optional for non-MX types
+        try:
+            prio = int(prio)
+        except (ValueError, TypeError):
+            prio = 0
         
         # Check if a record with the same name, content, and type already exists in the domain
         if Dns_record.objects.filter(domain_id=domain_id, name=dns_name, content=dns_value, type=ptype).exists():
             messages.error(request, 'A DNS record with the same name and content already exists in this domain.')
-            return redirect(f'/whm/dns/list/{domain_id}')
+            return redirect(f'/whm/dns_all/list/{domain_id}/')
 
         # Create a new DNS record
         new_dns = Dns_record(
@@ -635,9 +647,10 @@ def dns_create_all(request, domain_id=None):
 
         # Display a success message and redirect to the list page
         messages.success(request, 'DNS record has been added successfully.')
-        return redirect(f'/whm/dns/list/{domain_id}')
+        return redirect(f'/whm/dns_all/list/{domain_id}/')
 
-    return render(request, 'whm/dns_create.html', {'domain_id': domain_id})
+    domains = Domain.objects.all().order_by('domain_name')
+    return render(request, 'whm/dns_create.html', {'domain_id': domain_id, 'domain': domain, 'domains': domains})
 
     
 
@@ -3657,11 +3670,17 @@ def panel_brand(request):
         # -------------------------
         # SAVE SETTINGS
         # -------------------------
+        brand_color = request.POST.get('brand_color', '#ef6d19').strip()
+        button_primary_color = request.POST.get('button_primary_color', '#9e6de0').strip()
+        button_secondary_color = request.POST.get('button_secondary_color', '#fd5190').strip()
+
         filtered_post = {
             'brand_title': request.POST.get('brand_title', '').strip(),
             'brand_image': brand_image_path,
             'brand_icon': brand_icon_path,
-            'brand_color': request.POST.get('brand_color', '#0d6efd'),
+            'brand_color': brand_color,
+            'button_primary_color': button_primary_color,
+            'button_secondary_color': button_secondary_color,
         }
 
         for key, value in filtered_post.items():

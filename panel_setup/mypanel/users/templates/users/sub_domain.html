@@ -2,112 +2,93 @@
 {% block title %}Add New Subdomain{% endblock title %}
 
 {% block content %}
-<div class="space-y-3 w-full">
-
-    <!-- Top Compact Header -->
-    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
-                <i class="mdi mdi-source-branch text-lg"></i>
-            </div>
-            <div>
-                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Add New Subdomain</h4>
-                <p class="text-[11px] text-slate-500 m-0 leading-tight">Create a subdomain under one of your primary domains with custom document root</p>
-            </div>
-        </div>
-        <a href="{% url 'domain_list' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
-            <i class="mdi mdi-arrow-left text-xs"></i>
-            <span>Domains List</span>
-        </a>
-    </div>
-
-    <!-- Main Subdomain Form Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
-                <i class="mdi mdi-plus-box-outline text-brand text-sm"></i> Subdomain Configuration
-            </h5>
-            <span class="text-[10px] text-slate-400 font-medium">Automatic vHost mapping</span>
+<div class="max-w-2xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-visible">
+        <!-- Card Header -->
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-source-branch text-brand text-base"></i> Add New Subdomain
+            </h4>
+            <a href="{% url 'domain_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Domains
+            </a>
         </div>
 
-        <form method="post" action="{% url 'users-domain' %}" enctype="multipart/form-data" class="p-4 space-y-3">
-            {% csrf_token %}
-            <input type="hidden" name="domain" id="id_domain" required>
+        <!-- Form Body -->
+        <div class="p-5">
+            <form method="post" action="{% url 'users-domain' %}" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="domain" id="id_domain" required>
 
-            <!-- Parent Domain & Subdomain Prefix -->
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div class="sm:col-span-6 space-y-1">
-                    <label class="block text-[11px] font-semibold text-slate-700" for="main_domain">Parent Domain</label>
-                    <div class="relative">
-                        <i class="mdi mdi-web absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select name="main_domain" id="main_domain" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
-                            {% for d in domains %}
-                                <option value="{{ d.domain }}">{{ d.domain }}</option>
-                            {% endfor %}
-                        </select>
+                <!-- Parent Domain & Subdomain Prefix Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div class="sm:col-span-6 space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="main_domain">Parent Domain <span class="text-rose-500">*</span></label>
+                        <div>
+                            <select name="main_domain" id="main_domain" class="searchable-select w-full" data-placeholder="Select parent domain..." data-search-placeholder="Search domains..." data-icon="mdi-web" required>
+                                {% for d in domains %}
+                                    <option value="{{ d.domain }}">{{ d.domain }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-6 space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="subdomain_prefix">Subdomain Prefix <span class="text-rose-500">*</span></label>
+                        <div class="flex items-stretch rounded-md shadow-xs">
+                            <input type="text" id="subdomain_prefix" name="username" placeholder="e.g. blog" required class="w-full flex-1 min-w-[100px] px-3 py-2 bg-white border border-r-0 border-slate-200 rounded-l-md text-xs font-mono font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" autocomplete="off">
+                            <span id="domainSuffix" class="inline-flex items-center px-3 py-2 border border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono rounded-r-md select-none font-semibold whitespace-nowrap shrink-0">
+                                .example.com
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="sm:col-span-6 space-y-1">
-                    <label class="block text-[11px] font-semibold text-slate-700" for="subdomain_prefix">Subdomain Prefix</label>
-                    <div class="flex items-center rounded shadow-2xs">
-                        <input type="text" id="subdomain_prefix" name="username" placeholder="e.g. blog" required class="w-full px-2.5 py-1.5 bg-white border border-r-0 border-slate-200 rounded-l text-xs font-mono font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                        <span id="domainSuffix" class="inline-flex items-center px-2.5 py-1.5 border border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono rounded-r select-none font-semibold truncate max-w-[140px]">
-                            .example.com
-                        </span>
+                <!-- Document Root & PHP Version Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div class="sm:col-span-8 space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="id_path">Document Root Directory</label>
+                        <div class="flex items-center rounded-md shadow-xs">
+                            <span class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l-md font-mono select-none">
+                                /home/{{ user.username }}
+                            </span>
+                            <input type="text" id="id_path" name="path" value="/public_html" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                        </div>
+                    </div>
+
+                    <div class="sm:col-span-4 space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="php_version">PHP Version <span class="text-rose-500">*</span></label>
+                        <div>
+                            <select name="php_version" id="php_version" class="searchable-select w-full" data-placeholder="Select PHP version..." data-search-placeholder="Search PHP versions..." data-icon="mdi-language-php">
+                                {% for version in php_versions %}
+                                    <option value="{{ version }}">PHP {{ version }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Document Root & PHP Version -->
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-1">
-                <div class="sm:col-span-8 space-y-1">
-                    <label class="block text-[11px] font-semibold text-slate-700">Document Root Directory</label>
-                    <div class="flex items-center rounded shadow-2xs">
-                        <span class="inline-flex items-center px-2.5 py-1.5 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs rounded-l font-mono select-none">
-                            /home/{{ user.username }}
-                        </span>
-                        <input type="text" id="id_path" name="path" value="/public_html" class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-r text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
-                    </div>
+                <!-- Share Document Root Checkbox -->
+                <div class="pt-0.5">
+                    <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs text-slate-600 select-none">
+                        <input type="checkbox" id="dtype" name="dtype" class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                        <span>Share main document root (<span class="font-mono text-[11px] font-semibold text-slate-700 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">/public_html</span>)</span>
+                    </label>
                 </div>
 
-                <div class="sm:col-span-4 space-y-1">
-                    <label class="block text-[11px] font-semibold text-slate-700" for="php_version">PHP Version</label>
-                    <div class="relative">
-                        <i class="mdi mdi-language-php absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select name="php_version" id="php_version" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
-                            {% for version in php_versions %}
-                                <option value="{{ version }}">PHP {{ version }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-plus-circle-outline"></i> Create Subdomain
+                    </button>
                 </div>
-            </div>
-
-            <!-- Share public_html Toggle -->
-            <div>
-                <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs text-slate-600 select-none">
-                    <input type="checkbox" id="dtype" name="dtype" class="w-3.5 h-3.5 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
-                    <span>Share main document root (<code class="font-mono text-slate-800 font-semibold">/public_html</code>)</span>
-                </label>
-            </div>
-
-            <!-- Action Controls -->
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <a href="{% url 'domain_list' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
-                    Cancel
-                </a>
-                <button type="submit" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
-                    <i class="mdi mdi-plus text-xs"></i>
-                    <span>Create Subdomain</span>
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+(function initSubdomainForm() {
     const prefixInput = document.getElementById("subdomain_prefix");
     const domainSelect = document.getElementById("main_domain");
     const domainSuffix = document.getElementById("domainSuffix");
@@ -115,18 +96,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const checkbox = document.getElementById("dtype");
     const pathInput = document.getElementById("id_path");
 
+    // Initialize custom searchable selects
+    if (window.OLSSelect) {
+        window.OLSSelect.initAll(document.getElementById('spa-content') || document);
+    }
+
     function syncSubdomain() {
-        const domain = domainSelect ? domainSelect.value : "";
+        const domain = domainSelect ? domainSelect.value.trim() : "";
         const prefix = prefixInput ? prefixInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '') : "";
 
         if (domainSuffix) {
-            domainSuffix.textContent = '.' + (domain || 'example.com');
+            domainSuffix.textContent = domain ? ('.' + domain) : '.example.com';
         }
 
         if (prefix && domain) {
-            domainInput.value = prefix + '.' + domain;
+            if (domainInput) domainInput.value = prefix + '.' + domain;
         } else {
-            domainInput.value = "";
+            if (domainInput) domainInput.value = "";
         }
 
         if (checkbox && pathInput) {
@@ -140,11 +126,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    if (domainSelect) domainSelect.addEventListener("change", syncSubdomain);
-    if (prefixInput) prefixInput.addEventListener("input", syncSubdomain);
-    if (checkbox) checkbox.addEventListener("change", syncSubdomain);
+    if (domainSelect) {
+        domainSelect.addEventListener("change", syncSubdomain);
+        domainSelect.addEventListener("input", syncSubdomain);
+    }
+    if (prefixInput) {
+        prefixInput.addEventListener("input", syncSubdomain);
+    }
+    if (checkbox) {
+        checkbox.addEventListener("change", syncSubdomain);
+    }
 
     syncSubdomain();
-});
+})();
 </script>
+
+{% include "users/footer.html" %}
 {% endblock content %}

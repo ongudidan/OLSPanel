@@ -146,23 +146,26 @@
 .simplebar-scrollbar:before {
   position: absolute;
   content: '';
-  background: black;
-  border-radius: 7px;
+  background: #64748b;
+  border-radius: 9999px;
   left: 2px;
   right: 2px;
   opacity: 0;
-  transition: opacity 0.2s linear;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
 }
 
 .simplebar-scrollbar.simplebar-visible:before {
-  /* When hovered, remove all transitions from drag handle */
-  opacity: 0.5;
-  transition: opacity 0s linear;
+  opacity: 0.45;
+}
+
+.simplebar-scrollbar:hover:before {
+  opacity: 0.75;
+  background: #475569;
 }
 
 .simplebar-track.simplebar-vertical {
   top: 0;
-  width: 11px;
+  width: 8px;
 }
 
 .simplebar-track.simplebar-vertical .simplebar-scrollbar:before {
@@ -172,7 +175,7 @@
 
 .simplebar-track.simplebar-horizontal {
   left: 0;
-  height: 11px;
+  height: 8px;
 }
 
 .simplebar-track.simplebar-horizontal .simplebar-scrollbar:before {
@@ -185,7 +188,7 @@
   right: auto;
   left: 0;
   top: 2px;
-  height: 7px;
+  height: 6px;
   min-height: 0;
   min-width: 10px;
   width: auto;

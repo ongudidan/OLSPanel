@@ -1251,24 +1251,27 @@ def dns_delete(request, rid):
 @login_required
 @admincheck
 def dns_create(request, domain_id=None):
+    domain = None
+    if domain_id:
+        domain = Domain.objects.filter(id=domain_id, userid=request.user.id).first()
+
     # Handle form submission
     if request.method == 'POST':
-        dns_name = request.POST.get('dns_name')
-        dns_value = request.POST.get('dns_value')
+        dns_name = (request.POST.get('dns_name') or '').strip()
+        dns_value = (request.POST.get('dns_value') or '').strip()
 
         # Check if domain_id is provided, if not get it from the POST data
         if domain_id is None:
-            domain_id = request.POST.get('id')
+            domain_id = request.POST.get('domain_id') or request.POST.get('id')
 
         ptype = request.POST.get('type')
-        ttl = request.POST.get('ttl')
+        ttl = request.POST.get('ttl', 3600)
         prio = request.POST.get('prio', 0)  # Optional for non-MX types
         try:
             prio = int(prio)
         except (ValueError, TypeError):
             prio = 0
             
-        
         # Check if a record with the same name, content, and type already exists in the domain
         if Dns_record.objects.filter(domain_id=domain_id, name=dns_name, content=dns_value, type=ptype).exists():
             messages.error(request, 'A DNS record with the same name and content already exists in this domain.')
@@ -1290,7 +1293,8 @@ def dns_create(request, domain_id=None):
         messages.success(request, 'DNS record has been added successfully.')
         return redirect(f'/dns/list/{domain_id}')
 
-    return render(request, 'users/dns_create.html', {'domain_id': domain_id})
+    domains = Domain.objects.filter(userid=request.user.id)
+    return render(request, 'users/dns_create.html', {'domain_id': domain_id, 'domain': domain, 'domains': domains})
     
     
     

@@ -2,8 +2,382 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  /* Typography & Base Resets */
+  body, html, input, button, select, textarea, .form-control, table, h1, h2, h3, h4, h5, h6, .nav, .sidebar, .brand-name {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+  }
+
+  code, pre, kbd, samp, .font-mono, input.font-mono, td.font-mono, span.font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: -0.01em;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-size: 0.6875rem !important; /* 11px */
+    line-height: 1.25 !important;
+    padding: 0.1rem 0.35rem !important;
+    margin: 0 0.125rem !important;
+    border-radius: 0.25rem !important;
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    font-weight: 600 !important;
+    border: 1px solid #e2e8f0 !important;
+    display: inline-block !important;
+    vertical-align: baseline !important;
+  }
+
+  input[type="text"],
+  input[type="search"],
+  input[type="password"],
+  input[type="email"],
+  input[type="number"],
+  textarea,
+  select {
+    text-align: left;
+    box-sizing: border-box;
+  }
+
+  select.searchable-select,
+  select[data-searchable-select],
+  .ols-select-native-hidden {
+    display: none !important;
+  }
+}
+
+@layer components {
+  /* Universal Filter Tabs / Pill Buttons */
+  .domain-pill-btn, .dns-pill-btn {
+    @apply inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 shadow-xs transition-all cursor-pointer no-underline;
+  }
+
+  .domain-pill-btn:hover:not(.active), .dns-pill-btn:hover:not(.active) {
+    @apply bg-slate-200 border-slate-300 text-slate-900 no-underline;
+  }
+
+  .domain-pill-btn.active, .dns-pill-btn.active {
+    @apply bg-brand border-brand text-white font-semibold shadow-xs no-underline;
+  }
+
+  .domain-pill-btn.active:hover, .dns-pill-btn.active:hover {
+    @apply brightness-95 text-white no-underline;
+  }
+
+  /* Custom OLS Searchable Select Component */
+  .ols-select-container {
+    @apply relative w-full;
+  }
+
+  .ols-select-container.open {
+    z-index: 99999;
+  }
+
+  .ols-select-trigger {
+    @apply w-full flex items-center justify-between gap-2 px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 shadow-xs transition-all cursor-pointer text-left focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand;
+    min-height: 34px;
+  }
+
+  .ols-select-trigger.focused {
+    @apply border-brand ring-1 ring-brand outline-none;
+  }
+
+  .ols-select-menu {
+    @apply absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden;
+    z-index: 999999;
+    min-width: 180px;
+  }
+
+  .ols-select-search {
+    @apply w-full text-left text-xs bg-white border border-slate-200 rounded text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand;
+    padding: 0.35rem 1.5rem 0.35rem 1.85rem;
+    box-sizing: border-box;
+  }
+
+  /* Universal Modal Overlay / Backdrop */
+  .modal-backdrop-dark, .modal-overlay, #passkeyModal {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+  }
+
+  /* Modern Tailwind Form Controls (Replacing Bootstrap .form-control) */
+  .form-control {
+    @apply w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 shadow-xs transition-all;
+    @apply focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand;
+    min-height: 34px;
+    height: auto !important;
+  }
+
+  .form-control-sm {
+    @apply px-2.5 py-1 text-xs rounded;
+    min-height: 28px;
+    height: auto !important;
+  }
+
+  .form-control:disabled, .form-control[readonly] {
+    @apply bg-slate-50 text-slate-500 cursor-not-allowed border-slate-200;
+  }
+
+  .form-group {
+    @apply mb-3.5 space-y-1;
+  }
+
+  /* Modern Tailwind Cards (Replacing Bootstrap .card) */
+  .card {
+    @apply bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden;
+  }
+
+  .card-header {
+    @apply px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between;
+  }
+
+  .card-body {
+    @apply p-5;
+  }
+
+  .card-footer {
+    @apply px-5 py-3 bg-slate-50 border-t border-slate-200;
+  }
+
+  /* Modern Tailwind Buttons (Replacing Bootstrap .btn) */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1 px-3.5 py-1.5 text-xs font-semibold rounded-md shadow-sm transition-all cursor-pointer no-underline border;
+    min-height: 32px;
+    height: 32px;
+    line-height: 1.25rem;
+  }
+
+  .btn-sm {
+    @apply px-2.5 py-1 text-xs rounded;
+    min-height: 26px;
+    height: 26px;
+  }
+
+  .btn-lg {
+    @apply px-5 py-2 text-sm rounded-md;
+    min-height: 38px;
+    height: 38px;
+  }
+
+  .btn-primary, .btn-brand {
+    @apply text-white;
+    background-color: var(--button-primary, #9e6de0) !important;
+    border: 1px solid var(--button-primary, #9e6de0) !important;
+    color: #ffffff !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .btn-primary:hover, .btn-primary:focus, .btn-primary.focus,
+  .btn-brand:hover, .btn-brand:focus, .btn-brand.focus {
+    background-color: transparent !important;
+    border-color: var(--button-primary, #9e6de0) !important;
+    color: var(--button-primary, #9e6de0) !important;
+    box-shadow: none !important;
+  }
+  .btn-primary:active, .btn-primary.active,
+  .btn-brand:active, .btn-brand.active {
+    background-color: transparent !important;
+    border-color: var(--button-primary, #9e6de0) !important;
+    color: var(--button-primary, #9e6de0) !important;
+  }
+
+  .btn-secondary {
+    @apply text-white;
+    background-color: var(--button-secondary, #fd5190) !important;
+    border: 1px solid var(--button-secondary, #fd5190) !important;
+    color: #ffffff !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .btn-secondary:hover, .btn-secondary:focus, .btn-secondary.focus {
+    background-color: transparent !important;
+    border-color: var(--button-secondary, #fd5190) !important;
+    color: var(--button-secondary, #fd5190) !important;
+    box-shadow: none !important;
+  }
+  .btn-secondary:active, .btn-secondary.active {
+    background-color: transparent !important;
+    border-color: var(--button-secondary, #fd5190) !important;
+    color: var(--button-secondary, #fd5190) !important;
+  }
+
+  .btn-success {
+    @apply bg-emerald-600 border-emerald-600 text-white;
+  }
+  .btn-success:hover {
+    @apply bg-emerald-700 border-emerald-700 text-white;
+  }
+
+  .btn-danger {
+    @apply bg-rose-600 border-rose-600 text-white;
+  }
+  .btn-danger:hover {
+    @apply bg-rose-700 border-rose-700 text-white;
+  }
+
+  .btn-warning {
+    @apply bg-amber-500 border-amber-500 text-white;
+  }
+  .btn-warning:hover {
+    @apply bg-amber-600 border-amber-600 text-white;
+  }
+
+  .btn-info {
+    @apply bg-sky-500 border-sky-500 text-white;
+  }
+  .btn-info:hover {
+    @apply bg-sky-600 border-sky-600 text-white;
+  }
+
+  .btn-light, .btn-white {
+    @apply bg-white hover:bg-slate-50 border-slate-200 text-slate-700;
+  }
+
+  .btn-outline-primary {
+    @apply bg-white;
+    background-color: transparent !important;
+    border: 1px solid var(--button-primary, #9e6de0) !important;
+    color: var(--button-primary, #9e6de0) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .btn-outline-primary:hover {
+    background-color: var(--button-primary, #9e6de0) !important;
+    border-color: var(--button-primary, #9e6de0) !important;
+    color: #ffffff !important;
+  }
+
+  .btn-outline-secondary {
+    @apply bg-white;
+    background-color: transparent !important;
+    border: 1px solid var(--button-secondary, #fd5190) !important;
+    color: var(--button-secondary, #fd5190) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .btn-outline-secondary:hover {
+    background-color: var(--button-secondary, #fd5190) !important;
+    border-color: var(--button-secondary, #fd5190) !important;
+    color: #ffffff !important;
+  }
+
+  .btn-outline-danger {
+    @apply bg-white border-rose-300 text-rose-600 hover:bg-rose-600 hover:text-white;
+  }
+
+  /* Domain Name Links */
+  .domain-link {
+    color: #0a1943 !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease-in-out !important;
+  }
+  .domain-link:hover {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+  }
+
+  /* Modern Tailwind Badges (Replacing Bootstrap .badge) */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold rounded-md border;
+    line-height: 1.3;
+  }
+
+  .badge-pill {
+    @apply rounded-full;
+  }
+
+  .badge-primary, .badge-success {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+
+  .badge-danger {
+    @apply bg-rose-50 text-rose-700 border-rose-200;
+  }
+
+  .badge-warning {
+    @apply bg-amber-50 text-amber-800 border-amber-200;
+  }
+
+  .badge-info {
+    @apply bg-sky-50 text-sky-700 border-sky-200;
+  }
+
+  .badge-secondary, .badge-light {
+    @apply bg-slate-100 text-slate-700 border-slate-200;
+  }
+
+  .badge-dark {
+    @apply bg-slate-800 text-white border-slate-800;
+  }
+
+  /* Modern Tailwind Tables (Replacing Bootstrap .table) */
+  .table {
+    @apply w-full text-left text-xs border-collapse;
+  }
+
+  .table thead th {
+    @apply px-4 py-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase tracking-wider select-none;
+  }
+
+  .table tbody td {
+    @apply px-4 py-3 border-b border-slate-100 text-xs text-slate-700 align-middle;
+  }
+
+  .table-hover tbody tr:hover {
+    @apply bg-slate-50/70;
+  }
+
+  .table-striped tbody tr:nth-of-type(odd) {
+    @apply bg-slate-50/40;
+  }
+
+  /* Modern Tailwind Modals */
+  .modal-dialog {
+    @apply relative w-auto my-6 mx-auto max-w-lg;
+  }
+
+  .modal-content {
+    @apply bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden;
+  }
+
+  .modal-header {
+    @apply px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between;
+  }
+
+  .modal-body {
+    @apply p-5 text-xs text-slate-700;
+  }
+
+  .modal-footer {
+    @apply px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2;
+  }
+
+  /* Modern Tailwind Alerts */
+  .alert {
+    @apply p-4 rounded-md border text-xs flex items-start gap-3;
+  }
+
+  .alert-success {
+    @apply bg-emerald-50 border-emerald-200 text-emerald-800;
+  }
+
+  .alert-danger {
+    @apply bg-rose-50 border-rose-200 text-rose-800;
+  }
+
+  .alert-warning {
+    @apply bg-amber-50 border-amber-200 text-amber-800;
+  }
+
+  .alert-info {
+    @apply bg-sky-50 border-sky-200 text-sky-800;
+  }
+}
+
 @layer utilities {
   .shadow-xs {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  .shadow-2xs {
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.03);
   }
 }

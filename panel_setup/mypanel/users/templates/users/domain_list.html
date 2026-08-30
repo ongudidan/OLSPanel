@@ -21,28 +21,28 @@
     <div class="p-4">
         <!-- Type Filter Pills -->
         <div class="flex flex-wrap gap-2 pb-3 mb-3 border-b border-slate-100" id="typeTabs">
-            <a class="px-3 py-1 text-xs font-semibold rounded-md border transition-all domain-pill-btn active bg-brand text-white border-brand" data-type="" href="javascript:void(0)">All Domains</a>
-            <a class="px-3 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all domain-pill-btn" data-type="domain" href="javascript:void(0)">Main Domains</a>
-            <a class="px-3 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all domain-pill-btn" data-type="subdomain" href="javascript:void(0)">Subdomains</a>
+            <button type="button" class="domain-pill-btn active" data-type="" onclick="filterDomainType(this, '')">All Domains</button>
+            <button type="button" class="domain-pill-btn" data-type="domain" onclick="filterDomainType(this, 'domain')">Main Domains</button>
+            <button type="button" class="domain-pill-btn" data-type="subdomain" onclick="filterDomainType(this, 'subdomain')">Subdomains</button>
         </div>
 
         <!-- Top Toolbar -->
         <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
             <div>
-                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'users-domain' %}">
+                <a class="btn btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs" href="{% url 'users-domain' %}">
                     <i class="mdi mdi-plus"></i> Add Domain
                 </a>
             </div>
             <div>
                 <form id="domainSearchForm" onsubmit="event.preventDefault(); return false;" class="m-0">
-                    <div class="relative w-60">
+                    <div class="relative w-64 sm:w-72 md:w-80">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-400">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
                         </span>
-                        <input type="text" id="domainSearchInput" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" placeholder="Search domains..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        <input type="text" id="domainSearchInput" oninput="handleDomainSearchInput();" class="w-full text-left text-xs bg-white border border-slate-200 rounded-md text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" style="padding-left: 2rem !important; padding-right: 1.75rem !important; padding-top: 0.375rem !important; padding-bottom: 0.375rem !important; text-align: left !important;" placeholder="Search domains..." value="{{ search_query|default:'' }}" autocomplete="off">
                         <button type="button" id="clearDomainSearchBtn" onclick="clearDomainSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
                     </div>
                 </form>
@@ -65,7 +65,7 @@
                     {% for domain in domains %}
                     <tr data-type="{{ domain.type }}" class="hover:bg-slate-50 transition-colors">
                         <td class="px-3.5 py-2.5">
-                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="font-bold text-brand hover:underline">
+                            <a href="http://{{ domain.domain }}" target="_blank" rel="noopener noreferrer" class="domain-link text-xs font-semibold hover:underline">
                                 {{ domain.domain }}
                             </a>
                         </td>
@@ -87,7 +87,7 @@
                             </a>
                         </td>
                         <td class="px-3.5 py-2.5 text-right space-x-1">
-                            <a href="{% url 'domain_edit' domain.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors">
+                            <a href="{% url 'domain_edit' domain.id %}" class="btn btn-primary inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded shadow-xs">
                                 <i class="mdi mdi-square-edit-outline"></i> Manage
                             </a>
                             {% if domain_pre %}
@@ -109,12 +109,15 @@
 </div>
 
 <script>
-const domainSearchInput = document.getElementById("domainSearchInput");
-const clearDomainBtn = document.getElementById("clearDomainSearchBtn");
-const domainTableBody = document.getElementById("domainTableBody");
-let currentTypeFilter = "";
+window.__currentDomainTypeFilter = "";
+window.__domainSearchDebounce = null;
 
 function performDomainFilter() {
+    const domainSearchInput = document.getElementById("domainSearchInput");
+    const clearDomainBtn = document.getElementById("clearDomainSearchBtn");
+    const domainTableBody = document.getElementById("domainTableBody");
+    const typeFilter = window.__currentDomainTypeFilter || "";
+
     const q = (domainSearchInput ? domainSearchInput.value : "").trim().toLowerCase();
     const rows = domainTableBody ? Array.from(domainTableBody.querySelectorAll("tr:not(.no-search-results-row)")) : [];
     let visibleCount = 0;
@@ -127,7 +130,7 @@ function performDomainFilter() {
         const text = row.textContent.toLowerCase();
         const rowType = row.getAttribute("data-type") || "";
         const matchesQuery = !q || text.includes(q);
-        const matchesType = !currentTypeFilter || rowType === currentTypeFilter;
+        const matchesType = !typeFilter || rowType === typeFilter;
 
         if (matchesQuery && matchesType) {
             row.style.display = "";
@@ -165,7 +168,23 @@ function performDomainFilter() {
     }
 }
 
+function filterDomainType(btn, type) {
+    const typePills = document.querySelectorAll(".domain-pill-btn");
+    typePills.forEach(p => p.classList.remove("active"));
+    if (btn) {
+        btn.classList.add("active");
+    }
+    window.__currentDomainTypeFilter = type || "";
+    performDomainFilter();
+}
+
+function handleDomainSearchInput() {
+    clearTimeout(window.__domainSearchDebounce);
+    window.__domainSearchDebounce = setTimeout(performDomainFilter, 100);
+}
+
 function clearDomainSearch() {
+    const domainSearchInput = document.getElementById("domainSearchInput");
     if (domainSearchInput) {
         domainSearchInput.value = "";
         performDomainFilter();
@@ -173,37 +192,15 @@ function clearDomainSearch() {
     }
 }
 
-let searchDebounceTimer = null;
-
-document.addEventListener("DOMContentLoaded", function () {
-    const typePills = document.querySelectorAll(".domain-pill-btn");
-    typePills.forEach(pill => {
-        pill.addEventListener("click", function (e) {
-            e.preventDefault();
-            typePills.forEach(p => {
-                p.classList.remove("active", "bg-brand", "text-white", "border-brand");
-                p.classList.add("border-slate-200", "bg-slate-50", "text-slate-600");
-            });
-            this.classList.add("active", "bg-brand", "text-white", "border-brand");
-            this.classList.remove("border-slate-200", "bg-slate-50", "text-slate-600");
-            currentTypeFilter = this.getAttribute("data-type") || "";
-            performDomainFilter();
-        });
-    });
-
-    if (domainSearchInput) {
-        domainSearchInput.addEventListener("input", function () {
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(performDomainFilter, 100);
-        });
-
-        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("user_domain_search") || "";
-        if (savedQuery) {
-            domainSearchInput.value = savedQuery;
-            performDomainFilter();
-        }
+// Immediate execution for SPA page navigation
+(function initDomainListPage() {
+    const input = document.getElementById("domainSearchInput");
+    const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("user_domain_search") || "";
+    if (input && savedQuery) {
+        input.value = savedQuery;
     }
-});
+    performDomainFilter();
+})();
 </script>
 
 {% include "users/footer.html" %}

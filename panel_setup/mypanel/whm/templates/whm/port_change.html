@@ -2,89 +2,79 @@
 {% block title %}Panel Port{% endblock title %}
 
 {% block content %}
-<div class="space-y-3 w-full">
-
-    <!-- Top Compact Header -->
-    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
-                <i class="mdi mdi-lan-connect text-lg"></i>
-            </div>
-            <div>
-                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Change OLSPanel Port</h4>
-                <p class="text-[11px] text-slate-500 m-0 leading-tight">Update web control panel HTTPS listener port and redirect session</p>
-            </div>
-        </div>
-        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
-            <i class="mdi mdi-arrow-left text-xs"></i>
-            <span>Dashboard</span>
-        </a>
-    </div>
-
-    <!-- Active Loading Alert -->
-    <div id="responseContainer" style="display: none;" class="p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
-        <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-        <span class="font-semibold">Updating panel port and restarting listener daemon. Please wait...</span>
-    </div>
-
-    <!-- Feedback Message Alert -->
-    <div id="alertContainer" style="display: none;" class="p-3 rounded-lg text-xs flex items-center justify-between shadow-xs">
-        <div id="message" class="font-medium"></div>
-        <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-base font-bold bg-transparent border-0 leading-none">&times;</button>
-    </div>
-
-    <!-- Main Panel Port Form Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
-                <i class="mdi mdi-web-sync text-brand text-sm"></i> HTTPS Listener Port
-            </h5>
-            <span class="text-[10px] text-slate-400 font-medium">Current: Port {{ port }}</span>
+<div class="max-w-2xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-visible">
+        <!-- Card Header -->
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-lan-connect text-brand text-base"></i> Change OLSPanel Port
+            </h4>
+            <a href="{% url 'whm_home' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to Dashboard
+            </a>
         </div>
 
-        <form method="post" enctype="multipart/form-data" id="panelPortForm" class="p-4 space-y-3">
-            {% csrf_token %}
-
-            <div class="space-y-1">
-                <label for="port" class="block text-[11px] font-semibold text-slate-700">New Panel Port Number</label>
-                <div class="relative">
-                    <i class="mdi mdi-pound absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="number" id="port" name="port" value="{{ port }}" required class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" min="1" max="65535">
-                </div>
+        <!-- Form Body -->
+        <div class="p-5">
+            <!-- Active Loading Alert -->
+            <div id="responseContainer" style="display: none;" class="mb-4 p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-md text-xs flex items-center gap-2 shadow-xs">
+                <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                <span class="font-semibold">Updating panel port and restarting listener daemon. Please wait...</span>
             </div>
 
-            <!-- Cloudflare Reference -->
-            <div class="p-3 bg-slate-50 border border-slate-200 rounded text-xs space-y-2">
-                <div class="flex items-center gap-1.5 font-semibold text-slate-800">
-                    <i class="mdi mdi-cloud-check-outline text-amber-600 text-sm"></i> Cloudflare Proxy Compatibility
-                </div>
-                <p class="text-[11px] text-slate-500 m-0">
-                    If your panel domain routes through Cloudflare CDN, use one of the supported HTTPS ports:
-                </p>
-                <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
-                    <span class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-700">2053</span>
-                    <span class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-700">2083</span>
-                    <span class="px-1.5 py-0.5 bg-emerald-50 border border-emerald-300 rounded text-emerald-800 font-bold">2087 (Default)</span>
-                    <span class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-700">2096</span>
-                    <span class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-700">8443</span>
-                </div>
-                <div class="text-[11px] text-rose-600 font-semibold flex items-center gap-1 pt-1 border-t border-slate-200">
-                    <i class="mdi mdi-alert-circle-outline"></i>
-                    <span>Do not assign port 80 or 443 (reserved for web vhosts).</span>
-                </div>
+            <!-- Feedback Message Alert -->
+            <div id="alertContainer" style="display: none;" class="mb-4 p-3 rounded-md text-xs flex items-center justify-between shadow-xs">
+                <div id="message" class="font-medium"></div>
+                <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-base font-bold bg-transparent border-0 leading-none">&times;</button>
             </div>
 
-            <!-- Action Controls -->
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <a href="{% url 'whm_home' %}" class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors">
-                    Cancel
-                </a>
-                <button type="button" id="savePortBtn" class="px-4 py-1.5 bg-brand hover:bg-brand/90 text-white rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
-                    <i class="mdi mdi-content-save text-xs"></i>
-                    <span>Save &amp; Apply Port</span>
-                </button>
-            </div>
-        </form>
+            <form method="post" enctype="multipart/form-data" id="panelPortForm" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="port" class="block text-xs font-semibold text-slate-700">HTTPS Listener Port <span class="text-rose-500">*</span></label>
+                        <span class="text-[11px] text-slate-400">Current: Port <strong class="text-slate-700 font-mono">{{ port }}</strong></span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-pound absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="number" id="port" name="port" value="{{ port }}" required class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all" min="1" max="65535">
+                    </div>
+                </div>
+
+                <!-- Cloudflare Reference -->
+                <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-md text-xs space-y-2">
+                    <div class="flex items-center gap-1.5 font-semibold text-slate-800">
+                        <i class="mdi mdi-cloud-check-outline text-amber-600 text-sm"></i> Cloudflare Proxy Compatibility
+                    </div>
+                    <p class="text-[11px] text-slate-500 m-0 leading-relaxed">
+                        If your panel domain routes through Cloudflare CDN, use one of the supported HTTPS ports:
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                        <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">2053</span>
+                        <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">2083</span>
+                        <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-300 rounded text-emerald-800 font-bold">2087 (Default)</span>
+                        <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">2096</span>
+                        <span class="px-2 py-0.5 bg-white border border-slate-200 rounded text-slate-700">8443</span>
+                    </div>
+                    <div class="text-[11px] text-rose-600 font-semibold flex items-center gap-1 pt-1.5 border-t border-slate-200">
+                        <i class="mdi mdi-alert-circle-outline"></i>
+                        <span>Do not assign port 80 or 443 (reserved for web vhosts).</span>
+                    </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <a href="{% url 'whm_home' %}" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-md text-xs font-semibold transition-colors">
+                        Cancel
+                    </a>
+                    <button type="button" id="savePortBtn" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white rounded-md text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-content-save"></i>
+                        <span>Save &amp; Apply Port</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -103,6 +93,7 @@ function updatePanelPort() {
     const messageDisplay = document.getElementById('message');
 
     if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (alertContainer) alertContainer.style.display = 'none';
 
     fetch("{% url 'panel_port_update' %}", {
         method: "POST",
@@ -117,7 +108,7 @@ function updatePanelPort() {
         if (responseDisplay) responseDisplay.style.display = 'none';
 
         if (alertContainer && messageDisplay) {
-            alertContainer.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
+            alertContainer.className = "mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-md text-xs flex items-center justify-between shadow-xs";
             messageDisplay.innerText = (data.message || "Port updated successfully.") + " Redirecting to new port...";
             alertContainer.style.display = "flex";
         }
