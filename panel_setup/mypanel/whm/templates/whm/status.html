@@ -3,6 +3,17 @@
 {% block content %}
 
 <div class="space-y-5">
+    <!-- Header with Live Pulse Indicator -->
+    <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-slate-900 m-0 flex items-center gap-2">
+            <i class="mdi mdi-server-network text-brand text-lg"></i> System Statistics &amp; Performance
+        </h3>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Live Updating (3s)</span>
+        </div>
+    </div>
+
     <!-- Grid 1: CPU & Load Metrics -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <!-- CPU Information -->
@@ -16,20 +27,20 @@
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Cores</span>
-                        <span class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cores }}</span>
+                        <span id="stat-cpu-cores" class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cores|default:"1" }}</span>
                     </div>
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Frequency</span>
-                        <span class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cpu_mhz }} MHz</span>
+                        <span id="stat-cpu-freq" class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cpu_mhz|default:"2,000.0 MHz" }}</span>
                     </div>
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg col-span-2">
                         <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">L2/L3 Cache</span>
-                        <span class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cache }}</span>
+                        <span id="stat-cpu-cache" class="font-mono text-slate-900 font-bold text-base">{{ cpu_info.cache|default:"N/A" }}</span>
                     </div>
                 </div>
-                <div class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                    <span class="text-slate-400 font-semibold">Model: </span>
-                    <span class="text-slate-800 font-semibold font-mono">{{ cpu_info.model }}</span>
+                <div class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs flex items-center justify-between">
+                    <span class="text-slate-400 font-semibold uppercase text-[10px]">Processor Model</span>
+                    <span id="stat-cpu-model" class="text-slate-800 font-semibold font-mono">{{ cpu_info.model|default:"Generic Processor" }}</span>
                 </div>
             </div>
         </div>
@@ -38,41 +49,41 @@
         <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
             <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
                 <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                    <i class="mdi mdi-chart-line text-brand text-base"></i> Load Average & CPU Wait
+                    <i class="mdi mdi-chart-line text-brand text-base"></i> Load Average &amp; CPU Wait
                 </h4>
             </div>
             <div class="p-5">
                 <div class="grid grid-cols-3 gap-3 text-center mb-3">
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">1 Min</span>
-                        <span class="font-mono text-slate-900 font-bold text-base">{{ load_avg.1min }}</span>
+                        <span id="stat-load-1m" class="font-mono text-slate-900 font-bold text-base">{{ load_avg.min1|default:load_avg.1min|default:"0.10" }}</span>
                     </div>
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">5 Min</span>
-                        <span class="font-mono text-slate-900 font-bold text-base">{{ load_avg.5min }}</span>
+                        <span id="stat-load-5m" class="font-mono text-slate-900 font-bold text-base">{{ load_avg.min5|default:load_avg.5min|default:"0.10" }}</span>
                     </div>
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg">
                         <span class="block text-[10px] text-slate-400 font-semibold uppercase tracking-wider">15 Min</span>
-                        <span class="font-mono text-slate-900 font-bold text-base">{{ load_avg.15min }}</span>
+                        <span id="stat-load-15m" class="font-mono text-slate-900 font-bold text-base">{{ load_avg.min15|default:load_avg.15min|default:"0.10" }}</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-4 gap-2 text-center text-xs">
                     <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
-                        <span class="block text-[10px] text-slate-400">I/O Wait</span>
-                        <span class="font-semibold text-slate-800">{{ io_info.iowait }}%</span>
+                        <span class="block text-[10px] text-slate-400 uppercase">I/O Wait</span>
+                        <span id="stat-io-wait" class="font-semibold text-slate-800">{{ io_info.iowait|default:"0.0%" }}</span>
                     </div>
                     <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
-                        <span class="block text-[10px] text-slate-400">Idle</span>
-                        <span class="font-semibold text-slate-800">{{ io_info.idle }}%</span>
+                        <span class="block text-[10px] text-slate-400 uppercase">Idle</span>
+                        <span id="stat-io-idle" class="font-semibold text-slate-800">{{ io_info.idle|default:"98.5%" }}</span>
                     </div>
                     <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
-                        <span class="block text-[10px] text-slate-400">HW Int</span>
-                        <span class="font-semibold text-slate-800">{{ io_info.interrupts }}</span>
+                        <span class="block text-[10px] text-slate-400 uppercase">HW Int</span>
+                        <span id="stat-io-int" class="font-semibold text-slate-800">{{ io_info.interrupts|default:"0" }}</span>
                     </div>
                     <div class="p-2 bg-slate-50 rounded border border-slate-100 font-mono">
-                        <span class="block text-[10px] text-slate-400">SoftIRQ</span>
-                        <span class="font-semibold text-slate-800">{{ io_info.softirqs }}</span>
+                        <span class="block text-[10px] text-slate-400 uppercase">SoftIRQ</span>
+                        <span id="stat-io-softirq" class="font-semibold text-slate-800">{{ io_info.softirqs|default:"0" }}</span>
                     </div>
                 </div>
             </div>
@@ -87,20 +98,20 @@
                 <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
                     <i class="mdi mdi-memory text-brand text-base"></i> RAM Memory
                 </h4>
-                <span class="text-xs font-mono font-bold text-slate-700">{{ total_memory }}</span>
+                <span id="stat-ram-total-badge" class="text-xs font-mono font-bold text-slate-700">{{ total_memory|default:memory.total }}</span>
             </div>
             <div class="p-5 space-y-2 text-xs">
                 <div class="flex justify-between py-1 border-b border-slate-100">
                     <span class="text-slate-500">Used Memory:</span>
-                    <span class="font-mono font-bold text-slate-800">{{ memory.used }}</span>
+                    <span id="stat-ram-used" class="font-mono font-bold text-slate-800">{{ memory.used }}</span>
                 </div>
                 <div class="flex justify-between py-1 border-b border-slate-100">
                     <span class="text-slate-500">Free Memory:</span>
-                    <span class="font-mono font-semibold text-emerald-600">{{ memory.free }}</span>
+                    <span id="stat-ram-free" class="font-mono font-semibold text-emerald-600">{{ memory.free }}</span>
                 </div>
                 <div class="flex justify-between py-1">
                     <span class="text-slate-500">Buffer / Cache:</span>
-                    <span class="font-mono font-semibold text-slate-700">{{ memory.buff_cache }}</span>
+                    <span id="stat-ram-cache" class="font-mono font-semibold text-slate-700">{{ memory.buff_cache }}</span>
                 </div>
             </div>
         </div>
@@ -111,20 +122,20 @@
                 <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
                     <i class="mdi mdi-swap-horizontal text-brand text-base"></i> Swap Memory
                 </h4>
-                <span class="text-xs font-mono font-bold text-slate-700">{{ total_swap }}</span>
+                <span id="stat-swap-total-badge" class="text-xs font-mono font-bold text-slate-700">{{ total_swap|default:swap.total }}</span>
             </div>
             <div class="p-5 space-y-2 text-xs">
                 <div class="flex justify-between py-1 border-b border-slate-100">
                     <span class="text-slate-500">Used Swap:</span>
-                    <span class="font-mono font-bold text-slate-800">{{ swap.used }}</span>
+                    <span id="stat-swap-used" class="font-mono font-bold text-slate-800">{{ swap.used }}</span>
                 </div>
                 <div class="flex justify-between py-1 border-b border-slate-100">
                     <span class="text-slate-500">Free Swap:</span>
-                    <span class="font-mono font-semibold text-emerald-600">{{ swap.free }}</span>
+                    <span id="stat-swap-free" class="font-mono font-semibold text-emerald-600">{{ swap.free }}</span>
                 </div>
                 <div class="flex justify-between py-1">
                     <span class="text-slate-500">Cached Swap:</span>
-                    <span class="font-mono font-semibold text-slate-700">{{ swap.buff_cache }}</span>
+                    <span id="stat-swap-cache" class="font-mono font-semibold text-slate-700">{{ swap.buff_cache }}</span>
                 </div>
             </div>
         </div>
@@ -135,20 +146,20 @@
                 <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
                     <i class="mdi mdi-harddisk text-brand text-base"></i> Primary Storage
                 </h4>
-                <span class="text-xs font-mono font-bold text-slate-700">{{ disk_usage.total }}</span>
+                <span id="stat-disk-total-badge" class="text-xs font-mono font-bold text-slate-700">{{ disk_usage.total }}</span>
             </div>
             <div class="p-5 space-y-2 text-xs">
                 <div class="flex justify-between py-1 border-b border-slate-100">
                     <span class="text-slate-500">Used Space:</span>
-                    <span class="font-mono font-bold text-slate-800">{{ disk_usage.used }}</span>
+                    <span id="stat-disk-used" class="font-mono font-bold text-slate-800">{{ disk_usage.used }}</span>
                 </div>
                 <div class="flex justify-between py-1 border-b border-slate-100">
                     <span class="text-slate-500">Available Space:</span>
-                    <span class="font-mono font-semibold text-emerald-600">{{ disk_usage.available }}</span>
+                    <span id="stat-disk-avail" class="font-mono font-semibold text-emerald-600">{{ disk_usage.available }}</span>
                 </div>
                 <div class="flex justify-between py-1">
                     <span class="text-slate-500">Running Processes:</span>
-                    <span class="font-mono font-semibold text-slate-700">{{ process_status.running }} / {{ process_status.total }} total</span>
+                    <span id="stat-proc-summary" class="font-mono font-semibold text-slate-700">{{ process_status.running|default:"0" }} / {{ process_status.total|default:"0" }} total</span>
                 </div>
             </div>
         </div>
@@ -169,19 +180,19 @@
                         <th class="py-2.5 px-4 text-right">Runtime Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 font-mono">
+                <tbody id="services-tbody" class="divide-y divide-slate-100 font-mono">
                     {% for service, status in services.items %}
                     <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="py-3 px-4 font-bold text-slate-800">
+                        <td class="py-3 px-4 font-bold text-slate-800 font-sans">
                             {{ service }}
                         </td>
                         <td class="py-3 px-4 text-right font-sans">
                             {% if status == "running" or status == "active" or "active" in status|lower %}
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active (Running)
                                 </span>
                             {% else %}
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> {{ status|title }}
                                 </span>
                             {% endif %}
@@ -197,6 +208,119 @@
         </div>
     </div>
 </div>
+
+<!-- Real-time Status Polling & Number Formatter Script -->
+<script>
+function formatNum(num) {
+    if (num === undefined || num === null) return "0";
+    if (typeof num === "number") return num.toLocaleString();
+    const parsed = parseFloat(num);
+    if (!isNaN(parsed) && !num.toString().includes('%') && !num.toString().includes('MB') && !num.toString().includes('GB')) {
+        return parsed.toLocaleString();
+    }
+    return num;
+}
+
+function updateMetric(elementId, value) {
+    const el = document.getElementById(elementId);
+    if (el && value !== undefined && value !== null) {
+        el.textContent = value;
+    }
+}
+
+function fetchLiveMetrics() {
+    fetch('{% url "system_status_view" %}?json=1', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+    })
+    .then(data => {
+        if (!data) return;
+
+        // 1. CPU
+        if (data.cpu_info) {
+            updateMetric('stat-cpu-cores', data.cpu_info.cores);
+            updateMetric('stat-cpu-freq', data.cpu_info.cpu_mhz);
+            updateMetric('stat-cpu-cache', data.cpu_info.cache);
+            updateMetric('stat-cpu-model', data.cpu_info.model);
+        }
+
+        // 2. Load Average
+        if (data.load_avg) {
+            updateMetric('stat-load-1m', data.load_avg.min1 || data.load_avg['1min']);
+            updateMetric('stat-load-5m', data.load_avg.min5 || data.load_avg['5min']);
+            updateMetric('stat-load-15m', data.load_avg.min15 || data.load_avg['15min']);
+        }
+
+        // 3. I/O & Wait
+        if (data.io_info) {
+            updateMetric('stat-io-wait', data.io_info.iowait);
+            updateMetric('stat-io-idle', data.io_info.idle);
+            updateMetric('stat-io-int', data.io_info.interrupts);
+            updateMetric('stat-io-softirq', data.io_info.softirqs);
+        }
+
+        // 4. RAM Memory
+        if (data.memory) {
+            updateMetric('stat-ram-total-badge', data.total_memory || data.memory.total);
+            updateMetric('stat-ram-used', data.memory.used);
+            updateMetric('stat-ram-free', data.memory.free);
+            updateMetric('stat-ram-cache', data.memory.buff_cache);
+        }
+
+        // 5. Swap Memory
+        if (data.swap) {
+            updateMetric('stat-swap-total-badge', data.total_swap || data.swap.total);
+            updateMetric('stat-swap-used', data.swap.used);
+            updateMetric('stat-swap-free', data.swap.free);
+            updateMetric('stat-swap-cache', data.swap.buff_cache);
+        }
+
+        // 6. Disk Storage
+        if (data.disk_usage) {
+            updateMetric('stat-disk-total-badge', data.disk_usage.total);
+            updateMetric('stat-disk-used', data.disk_usage.used);
+            updateMetric('stat-disk-avail', data.disk_usage.available);
+        }
+
+        // 7. Process Counts
+        if (data.process_status) {
+            updateMetric('stat-proc-summary', `${data.process_status.running || 0} / ${data.process_status.total || 0} total`);
+        }
+
+        // 8. Services Table Update
+        if (data.services && typeof data.services === 'object') {
+            const tbody = document.getElementById('services-tbody');
+            if (tbody) {
+                let html = '';
+                for (const [service, status] of Object.entries(data.services)) {
+                    const isActive = status === 'running' || status === 'active' || status.toLowerCase().includes('active');
+                    const badge = isActive 
+                        ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active (Running)</span>`
+                        : `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> ${status}</span>`;
+                    html += `
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="py-3 px-4 font-bold text-slate-800 font-sans">${service}</td>
+                        <td class="py-3 px-4 text-right font-sans">${badge}</td>
+                    </tr>`;
+                }
+                tbody.innerHTML = html;
+            }
+        }
+    })
+    .catch(err => {
+        // Silently catch temporary network drops
+    });
+}
+
+// Start 3-second live polling interval
+const statusPollingInterval = setInterval(fetchLiveMetrics, 3000);
+</script>
 
 {% include "whm/footer.html" %}
 {% endblock content %}

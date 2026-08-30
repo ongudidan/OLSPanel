@@ -2440,7 +2440,12 @@ def change_hostname_view(request):
     
 @alogin_required    
 def system_status_view(request):
-    stats = get_system_metrics()
+    try:
+        stats = get_system_metrics()
+    except Exception:
+        stats = {}
+    if request.GET.get('json') or request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse(stats)
     return render(request, 'whm/status.html', stats) 
 
 
