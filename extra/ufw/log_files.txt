@@ -1,0 +1,8 @@
+/usr/local/lsws/logs/access.log,
+/usr/local/lsws/logs/error.log,
+/usr/local/lsws/logs/panel.log,
+/var/log/cron,
+/var/log/lfd.log,
+/var/log/maillog,
+/var/log/messages,
+/var/log/secure,

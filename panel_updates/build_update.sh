@@ -1,37 +1,66 @@
 #!/usr/bin/env bash
 # OLSPanel Custom Update Packaging Script
 
-# Paths
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 UPDATES_DIR="${PROJECT_ROOT}/panel_updates"
 BUILD_ZIP="${UPDATES_DIR}/panel_setup.zip"
 
-echo "📦 Packaging Custom OLSPanel Update..."
+echo "📦 Packaging Custom OLSPanel Update & Plugins..."
 
-# Ensure output directory exists
 mkdir -p "${UPDATES_DIR}"
+mkdir -p "${PROJECT_ROOT}/plugin"
 
-# Step 1: Zip the panel code
-# The zip root must be 'mypanel/' matching the /usr/local/olspanel/ structure
-if [ -d "${PROJECT_ROOT}/panel_setup/mypanel" ]; then
-    echo "Using panel source directory: ${PROJECT_ROOT}/panel_setup/mypanel"
-    cd "${PROJECT_ROOT}/panel_setup"
-    zip -r "${BUILD_ZIP}" mypanel -x "*.pyc" "__pycache__/*" "etc/update" "etc/license.key"
-    echo "✅ Created panel_setup.zip successfully!"
-elif [ -d "${PROJECT_ROOT}/mypanel" ]; then
-    echo "Using panel source directory: ${PROJECT_ROOT}/mypanel"
-    cd "${PROJECT_ROOT}"
-    zip -r "${BUILD_ZIP}" mypanel -x "*.pyc" "__pycache__/*" "etc/update" "etc/license.key"
-    echo "✅ Created panel_setup.zip successfully!"
-else
-    echo "❌ Error: Panel source directory 'mypanel' not found."
-    echo ""
-    echo "💡 How to customize and build updates:"
-    echo "1. Extract the base panel zip to a folder named 'panel_setup':"
-    echo "   mkdir -p panel_setup && unzip olspanel_v3.0.18/panel_setup.zip -d panel_setup"
-    echo "2. Make your code modifications inside 'panel_setup/mypanel/'"
-    echo "3. Run this script again: ./panel_updates/build_update.sh"
-    exit 1
-fi
+# Build panel_setup.zip and plugin zip files using Python3
+python3 - <<EOF
+import zipfile, os
 
-echo "🎉 Build Complete. Copy files in ${UPDATES_DIR} to your update server."
+base_dir = "${PROJECT_ROOT}"
+
+# 1. Create plugin/ufw.zip
+ufw_zip_path = os.path.join(base_dir, "plugin", "ufw.zip")
+with zipfile.ZipFile(ufw_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    extra_ufw = os.path.join(base_dir, "extra", "ufw")
+    if os.path.exists(extra_ufw):
+        for root, dirs, files in os.walk(extra_ufw):
+            rel_to_extra_ufw = os.path.relpath(root, extra_ufw)
+            if rel_to_extra_ufw.startswith("config"):
+                continue
+            for file in files:
+                full_p = os.path.join(root, file)
+                arc_p = os.path.join("ufw", os.path.relpath(full_p, extra_ufw))
+                zf.write(full_p, arc_p)
+        print("✅ Rebuilt plugin/ufw.zip")
+
+# 2. Create plugin/config_ufw.zip
+config_zip_path = os.path.join(base_dir, "plugin", "config_ufw.zip")
+with zipfile.ZipFile(config_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    config_dir = os.path.join(base_dir, "extra", "ufw", "config")
+    if os.path.exists(config_dir):
+        for root, dirs, files in os.walk(config_dir):
+            for file in files:
+                full_p = os.path.join(root, file)
+                arc_p = os.path.join("config", os.path.relpath(full_p, config_dir))
+                zf.write(full_p, arc_p)
+        print("✅ Rebuilt plugin/config_ufw.zip")
+
+# 3. Create panel_updates/panel_setup.zip
+panel_zip_path = os.path.join(base_dir, "panel_updates", "panel_setup.zip")
+mypanel_dir = os.path.join(base_dir, "panel_setup", "mypanel")
+if not os.path.exists(mypanel_dir):
+    mypanel_dir = os.path.join(base_dir, "mypanel")
+
+if os.path.exists(mypanel_dir):
+    with zipfile.ZipFile(panel_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(mypanel_dir):
+            for file in files:
+                if file.endswith(".pyc") or "__pycache__" in root or file in ["update", "license.key"]:
+                    continue
+                full_p = os.path.join(root, file)
+                arc_p = os.path.join("mypanel", os.path.relpath(full_p, mypanel_dir))
+                zf.write(full_p, arc_p)
+    print("✅ Created panel_updates/panel_setup.zip successfully!")
+else:
+    print("❌ Error: Panel source directory 'mypanel' not found.")
+EOF
+
+echo "🎉 Build Complete. Distribution archives are up to date."

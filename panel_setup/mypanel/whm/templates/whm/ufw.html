@@ -1,92 +1,182 @@
 {% extends "whm/base.html" %}
 {% block title %}UFW Firewall & Security{% endblock title %}
+
 {% block content %}
+<div class="space-y-3 w-full">
 
-<div class="bg-white border border-slate-200 rounded-lg shadow-sm mb-5">
-    <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
-        <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
-            <i class="mdi mdi-shield-check text-brand"></i> UFW Firewall &amp; Security
-        </h4>
-    </div>
-    <div class="p-4">
-        {% if csf == "yes" %}
-        <div class="p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex items-center justify-between" role="alert">
-            <span>You are currently using CSF. To access the UFW Firewall Manager, please remove CSF from your system.</span>
-        </div>
-        {% else %}
-        <div class="border border-slate-200 rounded-lg overflow-hidden mb-5">
-            <iframe border="0" name="myiframe" id="myiframe" src="{% url 'configservercsfiframe' %}" class="w-full min-h-[460px] border-0" onload="resizeIframe(this);"></iframe>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-            <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <h4 class="text-sm font-bold text-slate-900 m-0 flex items-center gap-2">
-                    <i class="mdi mdi-account-cancel text-rose-600"></i> Blocked IP Addresses
-                </h4>
-                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">{{ blocked_ips|length }}</span>
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between flex-wrap gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-shield-check-outline text-lg"></i>
             </div>
-            <div class="p-3">
-                <div class="border border-slate-200 rounded-md overflow-hidden overflow-x-auto">
-                    <table class="w-full text-xs text-left text-slate-700">
-                        <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                            <tr>
-                                <th class="px-3.5 py-2.5">IP Address</th>
-                                <th class="px-3.5 py-2.5">Block Type</th>
-                                <th class="px-3.5 py-2.5">Trigger / Service</th>
-                                <th class="px-3.5 py-2.5">Failed Attempts</th>
-                                <th class="px-3.5 py-2.5">Last Detected</th>
-                                <th class="px-3.5 py-2.5">Block Expires</th>
-                                <th class="px-3.5 py-2.5 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            {% for ip in blocked_ips %}
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-3.5 py-2.5 font-bold text-slate-900 font-mono">{{ ip.ip_address }}</td>
-                                <td class="px-3.5 py-2.5">
-                                    {% if ip.block_type == "TEMP" %}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-600 text-white shadow-xs">Temporary Block</span>
-                                    {% elif ip.block_type == "PERM" %}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-600 text-white shadow-xs">Permanent Block</span>
-                                    {% else %}
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-600 text-white shadow-xs">{{ ip.block_type }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-3.5 py-2.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-600 text-white uppercase shadow-xs">{{ ip.type }}</span>
-                                </td>
-                                <td class="px-3.5 py-2.5">
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-slate-100 text-slate-800 border border-slate-200">{{ ip.attempts }}</span>
-                                </td>
-                                <td class="px-3.5 py-2.5 text-slate-500">{{ ip.last_detected|date:"Y-m-d H:i:s" }}</td>
-                                <td class="px-3.5 py-2.5">
-                                    {% if ip.temp_block_expires %}
-                                        <span class="text-amber-700 font-semibold">{{ ip.temp_block_expires|date:"Y-m-d H:i:s" }}</span>
-                                    {% else %}
-                                        <span class="text-rose-600 font-bold">Never (Permanent)</span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-3.5 py-2.5 text-right">
-                                    <form action="{% url 'unblock_ip' ip.id %}" method="post" onsubmit="return confirm('Are you sure you want to unblock IP {{ ip.ip_address }}?');" class="inline m-0">
-                                        {% csrf_token %}
-                                        <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition-colors shadow-xs">
-                                            <i class="mdi mdi-lock-open-outline"></i> Unblock
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="px-3 py-6 text-center text-slate-400">No IP addresses are currently blocked.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">UFW Firewall &amp; Security Manager</h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Manage packet filtering rules, port access lists, intrusion detection, and IP address blocks</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> UFW Active
+            </span>
+            <a href="{% url 'firewall_port' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                <i class="mdi mdi-lan-connect text-xs text-brand"></i>
+                <span>Open Ports</span>
+            </a>
+            <a href="{% url 'ssh_port' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                <i class="mdi mdi-console text-xs"></i>
+                <span>SSH Port</span>
+            </a>
+        </div>
+    </div>
+
+    {% if csf == "yes" %}
+    <!-- CSF Conflict Alert -->
+    <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-xs space-y-2">
+        <div class="flex items-start gap-2.5">
+            <i class="mdi mdi-alert-circle text-amber-600 text-lg shrink-0 mt-0.5"></i>
+            <div class="space-y-1">
+                <h5 class="text-xs font-bold text-amber-900 m-0">ConfigServer Security &amp; Firewall (CSF) is currently active</h5>
+                <p class="text-xs text-amber-800 m-0">
+                    Your server is currently managed by CSF. To use native UFW firewall rules, you must first uninstall CSF from the CSF Management view.
+                </p>
+            </div>
+        </div>
+        <div class="pt-2 flex items-center gap-2">
+            <a href="{% url 'configserver' %}" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1">
+                <i class="mdi mdi-shield-lock-outline"></i> Go to CSF Manager
+            </a>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Top Tabs Navigation -->
+    <div class="bg-white border border-slate-200 rounded-lg p-1 shadow-xs flex items-center gap-1">
+        <button type="button" id="tabBtnEngine" onclick="switchUfwTab('engine')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all bg-brand text-white shadow-xs cursor-pointer">
+            <i class="mdi mdi-firewall text-sm"></i>
+            <span>UFW Configuration Engine</span>
+        </button>
+
+        <button type="button" id="tabBtnBlocked" onclick="switchUfwTab('blocked')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer">
+            <i class="mdi mdi-account-cancel-outline text-sm text-rose-600"></i>
+            <span>Blocked IP Addresses</span>
+            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" id="blockedCountBadge">
+                {{ blocked_ips|length }}
+            </span>
+        </button>
+    </div>
+
+    <!-- Tab 1: UFW Interactive Management Console Frame -->
+    <div id="tabContentEngine" class="space-y-3">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+                <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                    <i class="mdi mdi-firewall text-brand text-sm"></i> UFW Configuration Engine
+                </h5>
+                <span class="text-[10px] text-slate-400 font-medium">Native Linux iptables/nftables backend</span>
+            </div>
+            <div class="p-2 bg-slate-50/30">
+                <iframe border="0" name="myiframe" id="myiframe" src="{% url 'configservercsfiframe' %}" class="w-full min-h-[520px] border-0 rounded" onload="resizeIframe(this);"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Blocked IPs Database Card -->
+    <div id="tabContentBlocked" class="space-y-3" style="display: none;">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                    <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                        <i class="mdi mdi-account-cancel-outline text-rose-600 text-sm"></i> Blocked IP Addresses
+                    </h5>
+                    <span class="inline-flex items-center px-2 py-0.2 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                        {{ blocked_ips|length }} Blocked
+                    </span>
+                </div>
+                <div class="relative w-full sm:w-60">
+                    <i class="mdi mdi-magnify absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="blockedIpSearchInput" class="w-full pl-8 pr-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" placeholder="Search IP or service..." autocomplete="off">
                 </div>
             </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left text-slate-700">
+                    <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                        <tr>
+                            <th class="px-3 py-2">IP Address</th>
+                            <th class="px-3 py-2">Block Type</th>
+                            <th class="px-3 py-2">Trigger / Service</th>
+                            <th class="px-3 py-2 text-center">Attempts</th>
+                            <th class="px-3 py-2">Last Detected</th>
+                            <th class="px-3 py-2">Block Expiry</th>
+                            <th class="px-3 py-2 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blockedIpsTableBody" class="divide-y divide-slate-100">
+                        {% for ip in blocked_ips %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-3 py-2 font-mono font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="mdi mdi-ip-network-outline text-slate-400"></i>
+                                <span>{{ ip.ip_address }}</span>
+                            </td>
+                            <td class="px-3 py-2">
+                                {% if ip.block_type == "TEMP" %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span> Temporary
+                                    </span>
+                                {% elif ip.block_type == "PERM" %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Permanent
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        {{ ip.block_type }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2 font-mono text-slate-800">
+                                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase">
+                                    {{ ip.type }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                    {{ ip.attempts }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2 text-slate-500 text-[11px]">
+                                {{ ip.last_detected|date:"Y-m-d H:i:s" }}
+                            </td>
+                            <td class="px-3 py-2 text-[11px]">
+                                {% if ip.temp_block_expires %}
+                                    <span class="text-amber-700 font-semibold font-mono">{{ ip.temp_block_expires|date:"Y-m-d H:i:s" }}</span>
+                                {% else %}
+                                    <span class="text-rose-600 font-bold">Never (Permanent)</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2 text-right whitespace-nowrap">
+                                <form action="{% url 'unblock_ip' ip.id %}" method="post" onsubmit="return confirm('Are you sure you want to unblock IP {{ ip.ip_address }}?');" class="inline m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors shadow-2xs cursor-pointer">
+                                        <i class="mdi mdi-lock-open-outline text-xs"></i>
+                                        <span>Unblock</span>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-3 py-8 text-center text-slate-400 italic">No IP addresses are currently blocked by intrusion filters.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div id="noBlockedResults" class="text-center text-slate-400 text-xs py-4" style="display:none;">No matching blocked IP addresses found.</div>
         </div>
-        {% endif %}
     </div>
+    {% endif %}
+
 </div>
 
 <script>
@@ -106,6 +196,79 @@ function resizeIframe(obj) {
         } catch(err) {}
     }
 }
-</script>
 
+function switchUfwTab(tabKey) {
+    const btnEngine = document.getElementById('tabBtnEngine');
+    const btnBlocked = document.getElementById('tabBtnBlocked');
+    const contentEngine = document.getElementById('tabContentEngine');
+    const contentBlocked = document.getElementById('tabContentBlocked');
+    const blockedBadge = document.getElementById('blockedCountBadge');
+
+    if (tabKey === 'blocked') {
+        if (contentEngine) contentEngine.style.display = 'none';
+        if (contentBlocked) contentBlocked.style.display = 'block';
+
+        if (btnEngine) {
+            btnEngine.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer';
+        }
+        if (btnBlocked) {
+            btnBlocked.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all bg-brand text-white shadow-xs cursor-pointer';
+        }
+        if (blockedBadge) {
+            blockedBadge.className = 'inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-white/20 text-white';
+        }
+        window.location.hash = 'blocked';
+    } else {
+        if (contentEngine) contentEngine.style.display = 'block';
+        if (contentBlocked) contentBlocked.style.display = 'none';
+
+        if (btnEngine) {
+            btnEngine.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all bg-brand text-white shadow-xs cursor-pointer';
+        }
+        if (btnBlocked) {
+            btnBlocked.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer';
+        }
+        if (blockedBadge) {
+            blockedBadge.className = 'inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200';
+        }
+        window.location.hash = 'engine';
+        
+        const iframe = document.getElementById('myiframe');
+        if (iframe) resizeIframe(iframe);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Check initial hash
+    if (window.location.hash === '#blocked') {
+        switchUfwTab('blocked');
+    }
+
+    // Search filter for blocked IPs
+    const searchInput = document.getElementById('blockedIpSearchInput');
+    const tableRows = document.querySelectorAll('#blockedIpsTableBody tr');
+    const noResults = document.getElementById('noBlockedResults');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const q = searchInput.value.trim().toLowerCase();
+            let visible = 0;
+
+            tableRows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                if (!q || text.includes(q)) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (noResults) {
+                noResults.style.display = (visible === 0 && tableRows.length > 0) ? 'block' : 'none';
+            }
+        });
+    }
+});
+</script>
 {% endblock content %}
