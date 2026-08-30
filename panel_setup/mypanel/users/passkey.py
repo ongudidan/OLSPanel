@@ -35,8 +35,30 @@ def get_rp_id(request):
 def get_origin(request):
     """
     Extract origin (scheme + host:port).
+    Prioritizes the browser's actual Origin and Referer headers.
     """
-    scheme = "https" if request.is_secure() or request.headers.get("X-Forwarded-Proto") == "https" else "http"
+    origin = request.META.get('HTTP_ORIGIN') or request.headers.get('Origin')
+    if origin:
+        return str(origin).rstrip('/')
+
+    referer = request.META.get('HTTP_REFERER') or request.headers.get('Referer')
+    if referer:
+        try:
+            from urllib.parse import urlparse
+            p = urlparse(referer)
+            if p.scheme and p.netloc:
+                return f"{p.scheme}://{p.netloc}"
+        except Exception:
+            pass
+
+    scheme = "https" if (
+        request.is_secure() or
+        request.headers.get("X-Forwarded-Proto") == "https" or
+        request.META.get("HTTP_X_FORWARDED_PROTO") == "https" or
+        request.META.get("HTTPS") == "on" or
+        str(request.get_port()) in ('2087', '443') or
+        (not request.get_host().startswith("127.0.0.1") and not request.get_host().startswith("localhost"))
+    ) else "http"
     return f"{scheme}://{request.get_host()}"
 
 

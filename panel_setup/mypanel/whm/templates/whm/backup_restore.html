@@ -368,6 +368,12 @@ function fatchbackup(type) {
                 option.textContent = file;
                 selectElement.appendChild(option);
             });
+        } else if (data.status === 'success') {
+            if (alertContainer) {
+                alertContainer.style.display = "flex";
+                alertContainer.className = "p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex items-center justify-between shadow-xs";
+                messageDisplay.innerText = "No local backup archives found in /home/backup or user directories yet.";
+            }
         } else {
             if (alertContainer) {
                 alertContainer.style.display = "flex";

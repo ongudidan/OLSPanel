@@ -34,14 +34,12 @@ ALLOWED_HOSTS = ['*']
 # Redirect all HTTP traffic to HTTPS
 SECURE_SSL_REDIRECT = False
 
-# Enable secure cookies
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
+# CSRF Settings
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = []
 
-# Optionally, add HTTP Strict Transport Security (HSTS)
-# SECURE_HSTS_SECONDS = 3600  # Adjust the seconds as needed
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True  # Optionally, for HSTS preload list
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1064 * 1024 * 1024  # 1064 MB request body parser limit
 FILE_UPLOAD_MAX_MEMORY_SIZE = 1064 * 1024 * 1024 
 
@@ -77,12 +75,12 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware', 
     'whm.middleware.admin_dual_session.SeparateAdminSessionMiddleware',    
     'django.middleware.common.CommonMiddleware',
+    'users.middleware.DynamicCsrfMiddleware.DynamicCsrfMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'users.middleware.LicenseMiddleware.LicenseMiddleware',
-
 ]
 
 ROOT_URLCONF = 'user_management.urls'
@@ -210,33 +208,20 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = str(os.getenv('EMAIL_USER'))
 EMAIL_HOST_PASSWORD = str(os.getenv('EMAIL_PASSWORD'))
 
-SESSION_COOKIE_AGE = 60 * 60 * 24
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
-SESSION_COOKIE_SAVE = True 
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-# settings.py
-
-# If you want to enforce HTTPS in your Django application
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-VERSION = get_db_password('etc/version')
-MY_OS_NAME = get_db_password('etc/osName')
-MY_OS_VERSION = get_db_password('etc/osVersion')
-
 # ---- SESSION SETTINGS ----
 SESSION_COOKIE_NAME = "sessionid" 
 ADMIN_SESSION_COOKIE_NAME = "session_admin"   # admin users
 
-
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_COOKIE_PATH = '/'
+SESSION_COOKIE_DOMAIN = None
 SESSION_COOKIE_SECURE = False                 # set True in prod (HTTPS)
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 
-# Admin cookie mirrors the normal one (you can tweak)
+# Admin cookie mirrors the normal one
 ADMIN_SESSION_COOKIE_AGE = SESSION_COOKIE_AGE
 ADMIN_SESSION_COOKIE_SECURE = SESSION_COOKIE_SECURE
 ADMIN_SESSION_COOKIE_HTTPONLY = SESSION_COOKIE_HTTPONLY

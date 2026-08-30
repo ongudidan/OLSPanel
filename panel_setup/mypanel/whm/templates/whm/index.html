@@ -6,7 +6,6 @@
 
     <!-- Notices Placeholder -->
     <div id="ols-notices"></div>
-    <script src="/media/js/notice-render.js"></script>
 
     <!-- Update Available Alert -->
     {% if update_available %}
@@ -443,9 +442,19 @@ function updateBar(elementId, percentage, spanId) {
 
 // Fetch realtime system stats (CPU, RAM, DISK, Load)
 function fetchSystemStatus() {
-    fetch('{% url "system_status" %}', {
+    if (!document.getElementById("cpup") && !document.getElementById("ramp")) {
+        if (window.dashboardPollInterval) {
+            clearInterval(window.dashboardPollInterval);
+            window.dashboardPollInterval = null;
+        }
+        return;
+    }
+    fetch('/whm/system_status/', {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
     .then(response => {
         if (!response.ok) throw new Error(response.statusText);
@@ -469,12 +478,15 @@ function fetchSystemStatus() {
     });
 }
 
-// Initial fetch + interval every 3.5s
+// Clear any existing poller and start fresh 3-second cycle
+if (window.dashboardPollInterval) {
+    clearInterval(window.dashboardPollInterval);
+}
 fetchSystemStatus();
-const systemPollInterval = setInterval(fetchSystemStatus, 3500);
+window.dashboardPollInterval = setInterval(fetchSystemStatus, 3000);
 
 // Live Instant Search across all categorized app cards
-document.getElementById('search').addEventListener('input', function() {
+document.getElementById('search')?.addEventListener('input', function() {
     const filter = this.value.toLowerCase().trim();
     const container = document.getElementById('search_here');
     if (!container) return;

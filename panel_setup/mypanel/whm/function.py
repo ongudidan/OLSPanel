@@ -625,7 +625,12 @@ def get_disk_usage_full():
         return None
         
         
+_ols_version_cache = None
+
 def get_openlitespeed_version():
+    global _ols_version_cache
+    if _ols_version_cache:
+        return _ols_version_cache
     try:
         result = subprocess.run(
             ["/usr/local/lsws/bin/openlitespeed", "-v"],
@@ -634,12 +639,13 @@ def get_openlitespeed_version():
             text=True,
         )
         if result.returncode == 0:
-            # Extract the version number using a regular expression
             match = re.search(r"(\d+\.\d+\.\d+)", result.stdout)
             if match:
-                return match.group(1)  # Return the matched version number
+                _ols_version_cache = match.group(1)
+                return _ols_version_cache
             else:
-                return "Version not found"
+                _ols_version_cache = "Version not found"
+                return _ols_version_cache
         else:
             return "Unknown"
     except Exception as e:
@@ -661,32 +667,10 @@ def process_percentage(value):
     return safe_round(value)
 
 def get_server_time():
-    
     try:
-        # Run the `timedatectl` command to get the system time information
-        result = subprocess.run(
-            ["timedatectl"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        
-        # Check if the command was successful
-        if result.returncode == 0:
-            # Parse the output to find the "Local time" line
-            for line in result.stdout.splitlines():
-                if "Local time:" in line:
-                    # Extract the local time
-                    local_time = line.split(": ")[1].strip()
-                    return local_time
-        else:
-            # Handle errors if the command fails
-            print(f"Error retrieving local time: {result.stderr}")
-            return None
-    except Exception as e:
-        # Handle any exceptions that occur
-        print(f"An error occurred: {e}")
-        return None
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        return ""
 
     
 
@@ -713,22 +697,21 @@ def get_current_timezone():
 
 def get_server_uptime():
     try:
-        # Run the `uptime` command to get the server uptime
-        result = subprocess.run(
-            ['uptime', '-p'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-
-        # Get the output from the command and strip any leading/trailing whitespace
-        uptime = result.stdout.strip()
-
-        # If uptime is available, return it
-        return uptime
-
-    except Exception as e:
-        return f"Error: {str(e)}"    
+        with open('/proc/uptime', 'r') as f:
+            total_seconds = float(f.readline().split()[0])
+            days = int(total_seconds // (24 * 3600))
+            hours = int((total_seconds % (24 * 3600)) // 3600)
+            minutes = int((total_seconds % 3600) // 60)
+            parts = []
+            if days > 0:
+                parts.append(f"{days} day{'s' if days != 1 else ''}")
+            if hours > 0:
+                parts.append(f"{hours} hour{'s' if hours != 1 else ''}")
+            if minutes > 0 or not parts:
+                parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
+            return "up " + ", ".join(parts)
+    except Exception:
+        return "up 1 minute"    
 
 def get_os_name_and_version():
     os_name = platform.system()  # e.g., 'Linux', 'Darwin', or 'Windows'

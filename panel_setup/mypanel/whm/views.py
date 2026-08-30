@@ -2122,17 +2122,27 @@ def list_backup_files(request):
         fetch_type = request.POST.get('fetch_type', 'local')  # Default to 'local'
 
         if fetch_type == 'local':
-            # Fetch files from the local directory
-            backup_folder = '/home/backup'  # Path to the local backup folder
+            backup_folder = '/home/backup'
+            os.makedirs(backup_folder, exist_ok=True)
+            tar_gz_files = []
+
             try:
-                # List all files in the backup folder
-                files = os.listdir(backup_folder)
-                
-                # Filter only .tar.gz files
-                tar_gz_files = sorted(
-                    [file for file in files if file.endswith('.tar.gz')],
-                    reverse=True
-                )
+                # 1. List files in /home/backup
+                if os.path.exists(backup_folder):
+                    for file in os.listdir(backup_folder):
+                        if file.endswith('.tar.gz'):
+                            tar_gz_files.append(file)
+
+                # 2. List files across user home backup directories (/home/*/backup/)
+                if os.path.exists('/home'):
+                    for user_entry in os.listdir('/home'):
+                        user_backup_dir = os.path.join('/home', user_entry, 'backup')
+                        if os.path.isdir(user_backup_dir):
+                            for file in os.listdir(user_backup_dir):
+                                if file.endswith('.tar.gz') and file not in tar_gz_files:
+                                    tar_gz_files.append(file)
+
+                tar_gz_files = sorted(list(set(tar_gz_files)), reverse=True)
                 
                 # Return the list as a JSON response
                 return JsonResponse({
@@ -2140,7 +2150,7 @@ def list_backup_files(request):
                     'files': tar_gz_files
                 })
             except Exception as e:
-                # Handle errors (e.g., folder does not exist)
+                logger.error(f"Error in list_backup_files (local): {e}")
                 return JsonResponse({
                     'status': 'error',
                     'message': str(e)
@@ -2255,13 +2265,13 @@ def profile_all(request):
 @alogin_required
 def whm_logout(request):
     """
-    Log out the user and redirect to the home page.
+    Log out the user and redirect to login page.
     """
-    # Log out the user
-    request.admin_session.flush()
-    
-    # Redirect to the home page (or any other page)
-    return redirect(reverse_lazy('users-home'))
+    if hasattr(request, 'admin_session'):
+        request.admin_session.flush()
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        logout(request)
+    return redirect('/login/')
     
     
 @alogin_required

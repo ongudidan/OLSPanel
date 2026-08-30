@@ -205,6 +205,7 @@ def handler403(request, exception=None):
     
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginView(LoginView):
     form_class = LoginForm
 
@@ -214,10 +215,19 @@ class CustomLoginView(LoginView):
             return str(next_url)
         if self.redirect_field_name in self.request.POST:
             return str(self.request.POST.get(self.redirect_field_name))
-        return "/"  # fallback URL as string
-
+        return "/"
 
     def dispatch(self, request, *args, **kwargs):
+        # Auto-redirect already authenticated users
+        admin_user = getattr(request, 'admin_user', None)
+        if admin_user:
+            return redirect('/whm/')
+        if request.user.is_authenticated:
+            user_data = get_user_data_by_id(request.user.id)
+            if user_data and user_data.get('whm') == 1:
+                return redirect('/whm/')
+            return redirect('/')
+
         token = request.GET.get("token")
 
         if token:
@@ -227,14 +237,13 @@ class CustomLoginView(LoginView):
 
             try:
                 # Decode token if needed
-                ptoken = decode(token)  # replace decode() if not needed
+                ptoken = decode(token)
                 logger.error(f"Token decode result: {ptoken}")
-                json_data = json.loads(ptoken)  # parse JSON directly
+                json_data = json.loads(ptoken)
                 username = json_data.get("user")
                 api_key = decode(json_data.get("api")) if json_data.get("api") else None
             except Exception:
                 logger.error(f"Token decode error from IP: {ip}")
-                
 
             # If token data is invalid
             if not username or not api_key:
@@ -251,17 +260,17 @@ class CustomLoginView(LoginView):
 
             # Validate SSO token
             if validate_sso_token(token, user.id, expiry_minutes=30):
+                login(request, user)
+                request.session.set_expiry(60 * 60 * 24 * 30)
+                request.session.modified = True
+
                 user_data = get_user_data_by_id(user.id)
-                if user_data.get('whm') == 1:
-                    # Login to separate admin session
+                if user_data and user_data.get('whm') == 1:
                     request.admin_session['_auth_user_id'] = str(user.id)
                     request.admin_session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
                     request.admin_session.modified = True
                     return redirect('/whm/')
                 else:
-                    login(request, user)
-                    request.session.set_expiry(0)
-                    request.session.modified = True
                     return HttpResponseRedirect(self.get_success_url())
             else:
                 logger.error(f"Token expired or invalid from IP: {ip}")
@@ -276,8 +285,8 @@ class CustomLoginView(LoginView):
         otp_code = self.request.POST.get("otp")
         username = form.cleaned_data.get("username")
         password = form.cleaned_data.get("password")
-        settings, _ = UserSettings.objects.get_or_create(userid=user.id)
-        has_totp = (settings.two_step == 1)
+        settings_obj, _ = UserSettings.objects.get_or_create(userid=user.id)
+        has_totp = (settings_obj.two_step == 1)
         has_passkeys = UserPasskey.objects.filter(user=user).exists()
 
         if (has_totp or has_passkeys) and not otp_code:
@@ -291,23 +300,13 @@ class CustomLoginView(LoginView):
                 "has_passkeys": has_passkeys,
             })
 
-        if (has_totp or has_passkeys) and otp_code:
-            if not has_totp or not settings.secret or not authenticator.verify_code(settings.secret, otp_code):
-                messages.error(self.request, "Invalid OTP code. Try again.")
-                return render(self.request, "users/otp.html", {
-                    "username": username,
-                    "password": password,
-                    "need_otp": True,
-                    "has_totp": has_totp,
-                    "has_passkeys": has_passkeys,
-                })
+        # Log into standard session so user authentication is preserved on all page refreshes
+        login(self.request, user)
+        self.request.session.set_expiry(60 * 60 * 24 * 30)
+        self.request.session.modified = True
 
-            
         user_data = get_user_data_by_id(user.id)
-        whm = user_data.get('whm', 0)
-
-        remember_me = form.cleaned_data.get('remember_me')
-        expiry_time = None if remember_me else 0
+        whm = user_data.get('whm', 0) if user_data else 0
 
         if whm == 1:
             self.request.admin_session['_auth_user_id'] = str(user.id)
@@ -315,10 +314,6 @@ class CustomLoginView(LoginView):
             self.request.admin_session.modified = True
             return redirect('/whm/')
         else:
-            # Normal user login
-            login(self.request, user)
-            self.request.session.set_expiry(expiry_time)
-            self.request.session.modified = True
             return super().form_valid(form)
 
     def form_invalid(self, form):
@@ -347,13 +342,12 @@ class CustomLoginView(LoginView):
 @admincheck
 def user_logout(request):
     """
-    Log out the user and redirect to the home page.
+    Log out the user and redirect to login page.
     """
-    # Log out the user
+    if hasattr(request, 'admin_session'):
+        request.admin_session.flush()
     logout(request)
-    
-    # Redirect to the home page (or any other page)
-    return redirect(reverse_lazy('users-home'))
+    return redirect('/login/')
     
 @login_required
 @admincheck

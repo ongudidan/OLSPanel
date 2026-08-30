@@ -1522,10 +1522,11 @@ def create_backup(userid, backup_record,schedule=None):
             dst = f"/home/backup/{backup_file}"
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             if os.path.isfile(src):
-                shutil.move(src, dst)
+                shutil.copy2(src, dst)
             
+        # Ensure user owns their backup directory and file in File Manager
+        set_permissions_and_ownership_all(f"/home/{username}/backup", username)
 
-            
         return True  # Return success
     except Exception as e:
         logger.error(e)
@@ -1785,16 +1786,24 @@ def restore_backup(backup_file,btype,category,passwords):
     try:
         # Define paths
         backup_folder = backup_file.replace(".tar.gz", "")
-        if category == 'cpanel':
-            local_dir = f"/home/backup/{backup_folder}/{backup_folder}"
-            
-        else:
-            local_dir = f"/home/backup/{backup_folder}"
-            
-        
+        os.makedirs('/home/backup', exist_ok=True)
         backup_file_path = f"/home/backup/{backup_file}"
 
-       
+        # If not in /home/backup/, scan /home/*/backup/ to find the file
+        if not os.path.exists(backup_file_path) and os.path.exists('/home'):
+            for u in os.listdir('/home'):
+                candidate = os.path.join('/home', u, 'backup', backup_file)
+                if os.path.isfile(candidate):
+                    shutil.copy2(candidate, backup_file_path)
+                    break
+
+        if category == 'cpanel':
+            local_dir = f"/home/backup/{backup_folder}/{backup_folder}"
+        else:
+            local_dir = f"/home/backup/{backup_folder}"
+
+        os.makedirs(local_dir, exist_ok=True)
+
         # Extract the backup file
         if not os.path.exists(backup_file_path):
             error_message = f"Backup file not found: {backup_file_path}"

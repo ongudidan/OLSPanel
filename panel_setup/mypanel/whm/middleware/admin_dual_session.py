@@ -28,6 +28,8 @@ class SeparateAdminSessionMiddleware:
             User = get_user_model()
             try:
                 request.admin_user = User.objects.get(id=admin_user_id)
+                if hasattr(request, 'user') and not request.user.is_authenticated:
+                    request.user = request.admin_user
             except User.DoesNotExist:
                 request.admin_user = None
                 request.admin_session.flush()
@@ -38,21 +40,25 @@ class SeparateAdminSessionMiddleware:
         """Handle admin session cookie"""
         admin_cookie_name = getattr(settings, 'ADMIN_SESSION_COOKIE_NAME', 'session_admin')
         
-        if hasattr(request, 'admin_session') and request.admin_session.modified:
-            if request.admin_session._session:
-                request.admin_session.save()
-                response.set_cookie(
-                    admin_cookie_name,
-                    request.admin_session.session_key,
-                    max_age=getattr(settings, 'ADMIN_SESSION_COOKIE_AGE', settings.SESSION_COOKIE_AGE),
-                    path=settings.SESSION_COOKIE_PATH,
-                    domain=settings.SESSION_COOKIE_DOMAIN,
-                    secure=getattr(settings, 'ADMIN_SESSION_COOKIE_SECURE', settings.SESSION_COOKIE_SECURE),
-                    httponly=getattr(settings, 'ADMIN_SESSION_COOKIE_HTTPONLY', settings.SESSION_COOKIE_HTTPONLY),
-                    samesite=getattr(settings, 'ADMIN_SESSION_COOKIE_SAMESITE', settings.SESSION_COOKIE_SAMESITE),
-                )
-            else:
-                # Session is empty, delete the cookie
-                response.delete_cookie(admin_cookie_name)
+        if hasattr(request, 'admin_session'):
+            if request.admin_session.modified:
+                if request.admin_session._session:
+                    request.admin_session.save()
+                    response.set_cookie(
+                        admin_cookie_name,
+                        request.admin_session.session_key,
+                        max_age=getattr(settings, 'ADMIN_SESSION_COOKIE_AGE', settings.SESSION_COOKIE_AGE),
+                        path=getattr(settings, 'SESSION_COOKIE_PATH', '/'),
+                        domain=getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
+                        secure=getattr(settings, 'ADMIN_SESSION_COOKIE_SECURE', settings.SESSION_COOKIE_SECURE),
+                        httponly=getattr(settings, 'ADMIN_SESSION_COOKIE_HTTPONLY', settings.SESSION_COOKIE_HTTPONLY),
+                        samesite=getattr(settings, 'ADMIN_SESSION_COOKIE_SAMESITE', settings.SESSION_COOKIE_SAMESITE),
+                    )
+                else:
+                    response.delete_cookie(
+                        admin_cookie_name,
+                        path=getattr(settings, 'SESSION_COOKIE_PATH', '/'),
+                        domain=getattr(settings, 'SESSION_COOKIE_DOMAIN', None)
+                    )
         
         return response

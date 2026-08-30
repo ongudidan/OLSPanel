@@ -1,26 +1,28 @@
 from functools import wraps
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
-from django.contrib.auth.models import User
-from users.database import *  # Import your function
-from django.contrib.auth import authenticate, login, logout
+from users.database import get_user_data_by_id
 
 def alogin_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if request.user.id:
-            whm = get_user_data_by_id(request.user.id).get('whm')
-            if whm == 1:
-                logout(request)
-        # Check if the user is authenticated
-        if not hasattr(request, 'admin_user') or not request.admin_user:
-            return HttpResponseRedirect('/login/')
+        admin_user = getattr(request, 'admin_user', None)
         
-        # Check if the user's `whm_group` value is 1
+        # Fallback to standard request.user if authenticated and has whm=1
+        if not admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+            user_data = get_user_data_by_id(request.user.id)
+            if user_data and user_data.get('whm') == 1:
+                admin_user = request.user
+                request.admin_user = admin_user
+
+        # Check if the admin user is authenticated
+        if not admin_user:
+            return HttpResponseRedirect('/login/?next=' + request.path)
         
-        whm = get_user_data_by_id(request.admin_user.id).get('whm')
-        if whm != 1:
-            return redirect('/login/')  # Replace with the URL you want to redirect to
+        # Verify that the user's `whm` group value is 1
+        user_data = get_user_data_by_id(admin_user.id)
+        if not user_data or user_data.get('whm') != 1:
+            return redirect('/login/')
         
         return view_func(request, *args, **kwargs)
     return wrapper
