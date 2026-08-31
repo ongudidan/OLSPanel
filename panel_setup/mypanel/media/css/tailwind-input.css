@@ -73,7 +73,8 @@
   }
 
   .ols-select-container.open {
-    z-index: 99999;
+    z-index: 999999 !important;
+    position: relative !important;
   }
 
   .ols-select-trigger {
@@ -87,7 +88,7 @@
 
   .ols-select-menu {
     @apply absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden;
-    z-index: 999999;
+    z-index: 999999 !important;
     min-width: 180px;
   }
 
@@ -126,7 +127,7 @@
 
   /* Modern Tailwind Cards (Replacing Bootstrap .card) */
   .card {
-    @apply bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden;
+    @apply bg-white border border-slate-200 rounded-lg shadow-xs;
   }
 
   .card-header {
@@ -143,25 +144,34 @@
 
   /* Modern Tailwind Buttons (Replacing Bootstrap .btn) */
   .btn {
-    @apply inline-flex items-center justify-center gap-1 px-3.5 py-1.5 text-xs font-semibold rounded-md shadow-sm transition-all cursor-pointer no-underline border;
-    min-height: 32px;
-    height: 32px;
-    line-height: 1.25rem;
+    @apply inline-flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs transition-all cursor-pointer no-underline border;
+    border-color: transparent;
   }
 
   .btn-sm {
-    @apply px-2.5 py-1 text-xs rounded;
-    min-height: 26px;
-    height: 26px;
+    @apply px-2.5 py-1 text-[11px] rounded;
   }
 
   .btn-lg {
-    @apply px-5 py-2 text-sm rounded-md;
-    min-height: 38px;
-    height: 38px;
+    @apply px-4 py-2 text-sm rounded-md;
   }
 
-  .btn-primary, .btn-brand {
+  .btn-brand {
+    @apply text-white;
+    background-color: var(--brand-color, #ef6d19) !important;
+    border: 1px solid var(--brand-color, #ef6d19) !important;
+    color: #ffffff !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .btn-brand:hover, .btn-brand:focus, .btn-brand.focus,
+  .btn-brand:active, .btn-brand.active {
+    background-color: transparent !important;
+    border-color: var(--brand-color, #ef6d19) !important;
+    color: var(--brand-color, #ef6d19) !important;
+    box-shadow: none !important;
+  }
+
+  .btn-primary {
     @apply text-white;
     background-color: var(--button-primary, #9e6de0) !important;
     border: 1px solid var(--button-primary, #9e6de0) !important;
@@ -169,17 +179,11 @@
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
   .btn-primary:hover, .btn-primary:focus, .btn-primary.focus,
-  .btn-brand:hover, .btn-brand:focus, .btn-brand.focus {
+  .btn-primary:active, .btn-primary.active {
     background-color: transparent !important;
     border-color: var(--button-primary, #9e6de0) !important;
     color: var(--button-primary, #9e6de0) !important;
     box-shadow: none !important;
-  }
-  .btn-primary:active, .btn-primary.active,
-  .btn-brand:active, .btn-brand.active {
-    background-color: transparent !important;
-    border-color: var(--button-primary, #9e6de0) !important;
-    color: var(--button-primary, #9e6de0) !important;
   }
 
   .btn-secondary {
@@ -189,16 +193,30 @@
     color: #ffffff !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
-  .btn-secondary:hover, .btn-secondary:focus, .btn-secondary.focus {
+  .btn-secondary:hover, .btn-secondary:focus, .btn-secondary.focus,
+  .btn-secondary:active, .btn-secondary.active {
     background-color: transparent !important;
     border-color: var(--button-secondary, #fd5190) !important;
     color: var(--button-secondary, #fd5190) !important;
     box-shadow: none !important;
   }
-  .btn-secondary:active, .btn-secondary.active {
+
+  /* Form submit buttons default to secondary button style with outline on hover */
+  form button[type="submit"]:not(.btn-danger):not(.btn-delete):not(.btn-primary):not(.btn-brand):not([name="delete"]):not([name="suspend"]):not([name="action"][value="delete"]):not([name="action"][value="delete_all"]):not([name="action"][value="delete_email"]):not([name="action"][value="suspend"]):not([name="action"][value="unsuspend"]),
+  form input[type="submit"]:not(.btn-danger):not(.btn-delete):not(.btn-primary):not(.btn-brand) {
+    background-color: var(--button-secondary, #fd5190) !important;
+    border: 1px solid var(--button-secondary, #fd5190) !important;
+    color: #ffffff !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  form button[type="submit"]:not(.btn-danger):not(.btn-delete):not(.btn-primary):not(.btn-brand):not([name="delete"]):not([name="suspend"]):not([name="action"][value="delete"]):not([name="action"][value="delete_all"]):not([name="action"][value="delete_email"]):not([name="action"][value="suspend"]):not([name="action"][value="unsuspend"]):hover,
+  form button[type="submit"]:not(.btn-danger):not(.btn-delete):not(.btn-primary):not(.btn-brand):not([name="delete"]):not([name="suspend"]):not([name="action"][value="delete"]):not([name="action"][value="delete_all"]):not([name="action"][value="delete_email"]):not([name="action"][value="suspend"]):not([name="action"][value="unsuspend"]):focus,
+  form input[type="submit"]:not(.btn-danger):not(.btn-delete):not(.btn-primary):not(.btn-brand):hover,
+  form input[type="submit"]:not(.btn-danger):not(.btn-delete):not(.btn-primary):not(.btn-brand):focus {
     background-color: transparent !important;
     border-color: var(--button-secondary, #fd5190) !important;
     color: var(--button-secondary, #fd5190) !important;
+    box-shadow: none !important;
   }
 
   .btn-success {

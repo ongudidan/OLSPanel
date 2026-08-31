@@ -22,7 +22,7 @@
         <!-- Top Toolbar -->
         <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
             <div>
-                <a class="btn btn-primary inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs" href="{% url 'add_domain' %}">
+                <a class="btn btn-brand inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs" href="{% url 'add_domain' %}">
                     <i class="mdi mdi-plus"></i> Add Domain
                 </a>
             </div>
@@ -74,7 +74,7 @@
                             <code class="font-mono text-[11px] text-slate-600">{{ domain.path }}</code>
                         </td>
                         <td class="px-3.5 py-2.5 text-right space-x-1">
-                            <a href="{% url 'domain_edit_all' domain.id %}" class="btn btn-primary inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded shadow-xs">
+                            <a href="{% url 'domain_edit_all' domain.id %}" class="btn btn-brand inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded shadow-xs">
                                 <i class="mdi mdi-square-edit-outline"></i> Manage
                             </a>
                             {% if domain_pre %}

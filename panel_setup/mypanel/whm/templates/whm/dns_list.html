@@ -16,22 +16,22 @@
     <div class="p-4">
         <!-- Type Filter Pills -->
         <div class="flex flex-wrap gap-1.5 pb-3 mb-3 border-b border-slate-100" id="typeTabs">
-            <a class="px-2.5 py-1 text-xs font-semibold rounded-md border transition-all dns-pill-btn active bg-brand text-white border-brand" data-type="" href="javascript:void(0)">All Types</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="A" href="javascript:void(0)">A</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="AAAA" href="javascript:void(0)">AAAA</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="CAA" href="javascript:void(0)">CAA</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="CNAME" href="javascript:void(0)">CNAME</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="MX" href="javascript:void(0)">MX</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="SRV" href="javascript:void(0)">SRV</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="TXT" href="javascript:void(0)">TXT</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="SOA" href="javascript:void(0)">SOA</a>
-            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="NS" href="javascript:void(0)">NS</a>
+            <a class="px-2.5 py-1 text-xs font-semibold rounded-md border transition-all dns-pill-btn active bg-brand text-white border-brand" data-type="" href="javascript:void(0)" onclick="selectDnsType(this, '')">All Types</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="A" href="javascript:void(0)" onclick="selectDnsType(this, 'A')">A</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="AAAA" href="javascript:void(0)" onclick="selectDnsType(this, 'AAAA')">AAAA</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="CAA" href="javascript:void(0)" onclick="selectDnsType(this, 'CAA')">CAA</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="CNAME" href="javascript:void(0)" onclick="selectDnsType(this, 'CNAME')">CNAME</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="MX" href="javascript:void(0)" onclick="selectDnsType(this, 'MX')">MX</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="SRV" href="javascript:void(0)" onclick="selectDnsType(this, 'SRV')">SRV</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="TXT" href="javascript:void(0)" onclick="selectDnsType(this, 'TXT')">TXT</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="SOA" href="javascript:void(0)" onclick="selectDnsType(this, 'SOA')">SOA</a>
+            <a class="px-2.5 py-1 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all dns-pill-btn" data-type="NS" href="javascript:void(0)" onclick="selectDnsType(this, 'NS')">NS</a>
         </div>
 
         <!-- Top Toolbar -->
         <div class="flex items-center justify-between flex-wrap gap-2.5 mb-3.5">
             <div>
-                <a class="inline-flex items-center gap-1 px-3 py-1.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors" href="{% url 'dns_create_with_id_all' rid %}">
+                <a class="btn btn-brand inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs" href="{% url 'dns_create_with_id_all' rid %}">
                     <i class="mdi mdi-plus"></i> Add DNS Record
                 </a>
             </div>
@@ -102,15 +102,16 @@
 </div>
 
 <script>
-const recordSearchInput = document.getElementById("recordSearchInput");
-const clearRecordBtn = document.getElementById("clearRecordSearchBtn");
-const recordsTableBody = document.getElementById("recordsTableBody");
-const typeTabs = document.querySelectorAll("#typeTabs .dns-pill-btn");
-let selectedType = "";
+window.__selectedDnsType = "";
 
-function filterRecords() {
+window.filterDnsRecords = function() {
+    const recordSearchInput = document.getElementById("recordSearchInput");
+    const clearRecordBtn = document.getElementById("clearRecordSearchBtn");
+    const recordsTableBody = document.getElementById("recordsTableBody");
+    if (!recordsTableBody) return;
+
     const q = (recordSearchInput ? recordSearchInput.value : "").trim().toLowerCase();
-    const rows = recordsTableBody ? Array.from(recordsTableBody.querySelectorAll("tr:not(.no-records-row)")) : [];
+    const rows = Array.from(recordsTableBody.querySelectorAll("tr:not(.no-records-row)"));
     let visibleCount = 0;
 
     if (clearRecordBtn) {
@@ -119,9 +120,10 @@ function filterRecords() {
 
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
-        const rowType = row.getAttribute("data-type") || "";
+        const rowType = (row.getAttribute("data-type") || "").toUpperCase().trim();
+        const targetType = (window.__selectedDnsType || "").toUpperCase().trim();
         const matchesQuery = !q || text.includes(q);
-        const matchesType = !selectedType || rowType === selectedType;
+        const matchesType = !targetType || rowType === targetType;
 
         if (matchesQuery && matchesType) {
             row.style.display = "";
@@ -145,40 +147,62 @@ function filterRecords() {
     } else if (noMatchRow) {
         noMatchRow.style.display = "none";
     }
-}
+};
 
-function clearRecordSearch() {
+window.selectDnsType = function(tabEl, type) {
+    window.__selectedDnsType = type || "";
+    const typeTabs = document.querySelectorAll("#typeTabs .dns-pill-btn");
+    typeTabs.forEach(t => {
+        t.classList.remove("active", "bg-brand", "text-white", "border-brand");
+        t.classList.add("border-slate-200", "bg-slate-50", "text-slate-600");
+    });
+    if (tabEl) {
+        tabEl.classList.add("active", "bg-brand", "text-white", "border-brand");
+        tabEl.classList.remove("border-slate-200", "bg-slate-50", "text-slate-600");
+    }
+    window.filterDnsRecords();
+};
+
+window.clearRecordSearch = function() {
+    const recordSearchInput = document.getElementById("recordSearchInput");
     if (recordSearchInput) {
         recordSearchInput.value = "";
-        filterRecords();
+        window.filterDnsRecords();
         recordSearchInput.focus();
     }
-}
+};
 
-let dnsDebounceTimer = null;
-
-document.addEventListener("DOMContentLoaded", function () {
-    typeTabs.forEach(tab => {
-        tab.addEventListener("click", function (e) {
-            e.preventDefault();
-            typeTabs.forEach(t => {
-                t.classList.remove("active", "bg-brand", "text-white", "border-brand");
-                t.classList.add("border-slate-200", "bg-slate-50", "text-slate-600");
-            });
-            this.classList.add("active", "bg-brand", "text-white", "border-brand");
-            this.classList.remove("border-slate-200", "bg-slate-50", "text-slate-600");
-            selectedType = this.getAttribute("data-type") || "";
-            filterRecords();
-        });
-    });
-
-    if (recordSearchInput) {
+function initDnsPage() {
+    const recordSearchInput = document.getElementById("recordSearchInput");
+    if (recordSearchInput && !recordSearchInput.__boundDnsInput) {
+        recordSearchInput.__boundDnsInput = true;
+        let dnsDebounceTimer = null;
         recordSearchInput.addEventListener("input", function () {
             clearTimeout(dnsDebounceTimer);
-            dnsDebounceTimer = setTimeout(filterRecords, 100);
+            dnsDebounceTimer = setTimeout(window.filterDnsRecords, 100);
         });
     }
-});
+
+    const typeTabs = document.querySelectorAll("#typeTabs .dns-pill-btn");
+    typeTabs.forEach(tab => {
+        if (!tab.__boundDnsTab) {
+            tab.__boundDnsTab = true;
+            tab.addEventListener("click", function(e) {
+                e.preventDefault();
+                window.selectDnsType(this, this.getAttribute("data-type") || "");
+            });
+        }
+    });
+
+    window.filterDnsRecords();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initDnsPage);
+} else {
+    initDnsPage();
+}
+document.addEventListener("olspanel:page-loaded", initDnsPage);
 </script>
 
 {% endblock content %}

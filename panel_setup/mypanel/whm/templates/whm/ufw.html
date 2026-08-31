@@ -157,7 +157,7 @@
                             <td class="px-3 py-2 text-right whitespace-nowrap">
                                 <form action="{% url 'unblock_ip' ip.id %}" method="post" onsubmit="return confirm('Are you sure you want to unblock IP {{ ip.ip_address }}?');" class="inline m-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors shadow-2xs cursor-pointer">
+                                    <button type="submit" class="btn btn-secondary inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors shadow-2xs cursor-pointer">
                                         <i class="mdi mdi-lock-open-outline text-xs"></i>
                                         <span>Unblock</span>
                                     </button>
@@ -180,7 +180,7 @@
 </div>
 
 <script>
-function resizeIframe(obj) {
+window.resizeIframe = function(obj) {
     try {
         const doc = obj.contentDocument || obj.contentWindow.document;
         if (doc && doc.body) {
@@ -195,9 +195,9 @@ function resizeIframe(obj) {
             obj.style.height = (obj.contentWindow.document.body.scrollHeight + 30) + 'px';
         } catch(err) {}
     }
-}
+};
 
-function switchUfwTab(tabKey) {
+window.switchUfwTab = function(tabKey) {
     const btnEngine = document.getElementById('tabBtnEngine');
     const btnBlocked = document.getElementById('tabBtnBlocked');
     const contentEngine = document.getElementById('tabContentEngine');
@@ -217,7 +217,9 @@ function switchUfwTab(tabKey) {
         if (blockedBadge) {
             blockedBadge.className = 'inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-white/20 text-white';
         }
-        window.location.hash = 'blocked';
+        try {
+            history.replaceState(null, '', window.location.pathname + '#blocked');
+        } catch(e) {}
     } else {
         if (contentEngine) contentEngine.style.display = 'block';
         if (contentBlocked) contentBlocked.style.display = 'none';
@@ -231,17 +233,40 @@ function switchUfwTab(tabKey) {
         if (blockedBadge) {
             blockedBadge.className = 'inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200';
         }
-        window.location.hash = 'engine';
+        try {
+            history.replaceState(null, '', window.location.pathname + '#engine');
+        } catch(e) {}
         
         const iframe = document.getElementById('myiframe');
-        if (iframe) resizeIframe(iframe);
+        if (iframe && typeof window.resizeIframe === 'function') {
+            window.resizeIframe(iframe);
+        }
     }
-}
+};
 
-document.addEventListener("DOMContentLoaded", function() {
+function initUfwPage() {
     // Check initial hash
     if (window.location.hash === '#blocked') {
-        switchUfwTab('blocked');
+        window.switchUfwTab('blocked');
+    } else {
+        window.switchUfwTab('engine');
+    }
+
+    const btnEngine = document.getElementById('tabBtnEngine');
+    const btnBlocked = document.getElementById('tabBtnBlocked');
+
+    if (btnEngine) {
+        btnEngine.onclick = function(e) {
+            e.preventDefault();
+            window.switchUfwTab('engine');
+        };
+    }
+
+    if (btnBlocked) {
+        btnBlocked.onclick = function(e) {
+            e.preventDefault();
+            window.switchUfwTab('blocked');
+        };
     }
 
     // Search filter for blocked IPs
@@ -250,7 +275,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const noResults = document.getElementById('noBlockedResults');
 
     if (searchInput) {
-        searchInput.addEventListener('input', function() {
+        searchInput.oninput = function() {
             const q = searchInput.value.trim().toLowerCase();
             let visible = 0;
 
@@ -267,7 +292,21 @@ document.addEventListener("DOMContentLoaded", function() {
             if (noResults) {
                 noResults.style.display = (visible === 0 && tableRows.length > 0) ? 'block' : 'none';
             }
-        });
+        };
+    }
+}
+
+// Run immediately on render
+initUfwPage();
+
+// Also hook to page lifecycle events
+document.addEventListener("DOMContentLoaded", initUfwPage);
+document.addEventListener("olspanel:page-loaded", initUfwPage);
+window.addEventListener("hashchange", function() {
+    if (window.location.hash === '#blocked') {
+        window.switchUfwTab('blocked');
+    } else if (window.location.hash === '#engine') {
+        window.switchUfwTab('engine');
     }
 });
 </script>

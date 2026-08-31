@@ -73,8 +73,9 @@
 
             // Dropdown Menu
             const menu = document.createElement('div');
-            menu.className = 'ols-select-menu absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden hidden transform origin-top transition-all duration-150';
+            menu.className = 'ols-select-menu absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl overflow-hidden hidden transform origin-top transition-all duration-150';
             menu.style.minWidth = '180px';
+            menu.style.zIndex = '999999';
 
             // Search Header
             const searchContainer = document.createElement('div');
@@ -183,7 +184,7 @@
 
                 menu.classList.remove('hidden');
                 wrapper.classList.add('open');
-                wrapper.style.zIndex = '9999';
+                wrapper.style.zIndex = '999999';
                 trigger.classList.add('border-brand', 'ring-1', 'ring-brand');
                 const arrow = trigger.querySelector('.ols-select-arrow');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
@@ -296,11 +297,17 @@
 
         /**
          * Initialize all searchable selects in container
+         * Automatically applies to ALL <select> elements by default unless opted out with .no-searchable-select
          * @param {HTMLElement|Document} container 
          */
         initAll: function (container = document) {
-            const selects = container.querySelectorAll('select.searchable-select, select[data-searchable-select]');
-            selects.forEach(sel => this.init(sel));
+            if (!container || !container.querySelectorAll) return;
+            const selects = container.querySelectorAll('select:not(.no-searchable-select):not([data-no-search="true"]):not([data-no-searchable-select]):not(.ols-select-native-hidden)');
+            selects.forEach(sel => {
+                if (sel.closest('template')) return;
+                if (sel.nextElementSibling && sel.nextElementSibling.classList.contains('ols-select-container')) return;
+                this.init(sel);
+            });
         },
 
         /**
@@ -347,6 +354,47 @@
         document.addEventListener('DOMContentLoaded', () => OLSSelect.initAll());
     } else {
         OLSSelect.initAll();
+    }
+
+    // MutationObserver to automatically convert dynamically inserted <select> elements across the panel
+    if (typeof MutationObserver !== 'undefined') {
+        let debounceTimer = null;
+        const observer = new MutationObserver(mutations => {
+            let shouldInit = false;
+            for (let i = 0; i < mutations.length; i++) {
+                const added = mutations[i].addedNodes;
+                if (added && added.length > 0) {
+                    for (let j = 0; j < added.length; j++) {
+                        const node = added[j];
+                        if (node.nodeType === 1) {
+                            if (node.tagName === 'SELECT' && !node.classList.contains('ols-select-native-hidden')) {
+                                shouldInit = true;
+                                break;
+                            } else if (node.querySelector && node.querySelector('select:not(.ols-select-native-hidden)')) {
+                                shouldInit = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (shouldInit) break;
+            }
+
+            if (shouldInit) {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    OLSSelect.initAll();
+                }, 40);
+            }
+        });
+
+        if (document.body) {
+            observer.observe(document.body, { childList: true, subtree: true });
+        } else {
+            document.addEventListener('DOMContentLoaded', () => {
+                if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+            });
+        }
     }
 
 })(window, document);

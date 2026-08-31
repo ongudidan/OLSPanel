@@ -34,7 +34,7 @@
             <form method="post" action="" class="flex items-center gap-3 pt-2 m-0">
                 {% csrf_token %}
                 <input type="hidden" name="username" value="{{ username }}">
-                <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                <button type="submit" class="btn btn-secondary inline-flex items-center gap-1.5 px-4 py-2 hover:/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
                     <i class="mdi mdi-login-variant"></i> Log In as {{ username }}
                 </button>
                 <a href="{% url 'user_list' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md transition-colors">

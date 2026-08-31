@@ -289,14 +289,18 @@
                 });
                 document.head.appendChild(newScript);
             } else {
-                // Inline script: evaluate in a scoped Function context to prevent top-level const/let re-declaration errors
+                // Inline script: evaluate in global scope so functions/handlers bind to window
                 const code = oldScript.textContent;
                 if (code && code.trim()) {
                     try {
-                        const fn = new Function(code);
-                        fn.call(window);
+                        (0, eval)(code);
                     } catch (err) {
-                        console.warn('[SPA Inline Script Warning]:', err);
+                        try {
+                            const fn = new Function(code);
+                            fn.call(window);
+                        } catch (fnErr) {
+                            console.warn('[SPA Inline Script Warning]:', err);
+                        }
                     }
                 }
             }
