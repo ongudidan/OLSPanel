@@ -19,7 +19,7 @@ function reloadPageWithUrl() {
 
 // Initialize Ace Editor
 const editor = ace.edit("editor");
-editor.setTheme("ace/theme/chrome");
+editor.setTheme("ace/theme/monokai");
 
 // Resolve safe mode
 const availableModes = ['apache_conf', 'css', 'dart', 'html', 'ini', 'java', 'javascript', 'json', 'mysql', 'php', 'python', 'sql', 'svg', 'xml', 'text'];
