@@ -294,20 +294,34 @@
         }
         /* Modals & Popups Modern Design */
         .modal-overlay, .popup-overlay {
-            background: rgba(15, 23, 42, 0.5) !important;
-            backdrop-filter: blur(4px) !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             z-index: 2000 !important;
         }
-        .popup-content, .modal-content {
+        .popup-content {
             background: #ffffff !important;
-            border-radius: 14px !important;
+            border-radius: 12px !important;
             border: 1px solid #e2e8f0 !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2) !important;
             padding: 24px !important;
             width: 580px !important;
             max-width: 94% !important;
             position: relative !important;
             text-align: left !important;
+        }
+        #upload-modal .modal-content {
+            background: #ffffff !important;
+            border-radius: 12px !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2) !important;
+            padding: 24px !important;
+            width: 90% !important;
+            max-width: 90% !important;
+            min-height: 320px !important;
+            position: relative !important;
+            text-align: center !important;
+            box-sizing: border-box !important;
         }
         .modal-content h3 {
             font-size: 18px !important;
@@ -343,17 +357,17 @@
         }
         /* Upload Tabs */
         .upload-tabs {
-            display: flex !important;
-            gap: 4px !important;
+            display: inline-flex !important;
+            justify-content: center !important;
+            gap: 6px !important;
             background: #f1f5f9 !important;
             padding: 4px !important;
             border-radius: 8px !important;
             border: 1px solid #e2e8f0 !important;
-            margin-bottom: 16px !important;
+            margin-bottom: 20px !important;
         }
         .upload-tab {
-            flex: 1 !important;
-            padding: 6px 14px !important;
+            padding: 7px 22px !important;
             font-size: 13px !important;
             font-weight: 500 !important;
             border: none !important;
@@ -379,13 +393,13 @@
             border: 2px dashed #cbd5e1 !important;
             border-radius: 12px !important;
             background: #f8fafc !important;
-            padding: 32px 20px !important;
+            padding: 36px 20px !important;
             text-align: center !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 10px !important;
+            gap: 12px !important;
             transition: all 0.2s !important;
             margin-bottom: 16px !important;
             cursor: pointer !important;
@@ -398,7 +412,7 @@
         }
         #drop-zone p, .drop-zone p {
             margin: 0 !important;
-            font-size: 13px !important;
+            font-size: 14px !important;
             color: #64748b !important;
             font-weight: 500 !important;
         }
@@ -406,8 +420,8 @@
             background-color: var(--brand-color, #ef6d19) !important;
             border: 1px solid var(--brand-color, #ef6d19) !important;
             color: #ffffff !important;
-            padding: 6px 18px !important;
-            font-size: 12px !important;
+            padding: 7px 20px !important;
+            font-size: 13px !important;
             font-weight: 600 !important;
             border-radius: 6px !important;
             cursor: pointer !important;
@@ -483,10 +497,13 @@
         }
         /* Modal Action Submit Buttons */
         .modal-buttons {
-            display: flex !important;
-            justify-content: flex-end !important;
+            display: flex;
+            justify-content: center !important;
             margin-top: 16px !important;
             gap: 8px !important;
+        }
+        #furl[style*="display: none"], #fup[style*="display: none"] {
+            display: none !important;
         }
         #aaction, #upload-button, #upload-button-url {
             background-color: var(--button-secondary, #fd5190) !important;
@@ -494,7 +511,7 @@
             color: #ffffff !important;
             font-weight: 600 !important;
             font-size: 13px !important;
-            padding: 7px 22px !important;
+            padding: 8px 28px !important;
             border-radius: 6px !important;
             cursor: pointer !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
