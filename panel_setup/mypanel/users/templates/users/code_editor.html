@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.2.96/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ branding.brand_icon }}">
     <link rel="stylesheet" href="/media/editor/smart.css">
     <link rel="stylesheet" href="/media/notify/notification.css">
     <style>
@@ -18,12 +19,14 @@
             --button-primary: {{ branding.button_primary_color|default:"#9e6de0" }};
             --button-secondary: {{ branding.button_secondary_color|default:"#fd5190" }};
         }
-        body {
+        html, body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
+            background-color: #ffffff;
+            color: #1e293b;
             margin: 0;
+            padding: 0;
             overflow: hidden;
+            height: 100%;
         }
         #editor {
             position: absolute;
@@ -31,6 +34,7 @@
             right: 0;
             bottom: 0;
             left: 0;
+            background-color: #ffffff;
         }
         .btn-secondary {
             background-color: var(--button-secondary, #fd5190) !important;
@@ -45,40 +49,40 @@
         }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-screen flex flex-col bg-white text-slate-800 antialiased">
     <!-- Top Header Bar -->
-    <header class="h-[52px] bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between gap-3 select-none flex-shrink-0 z-10">
+    <header class="h-[52px] bg-slate-50 border-b border-slate-200 px-4 flex items-center justify-between gap-3 select-none flex-shrink-0 z-10">
         <!-- File Path & Reload -->
         <div class="flex items-center gap-2 flex-1 max-w-xl">
-            <span class="text-slate-500 font-mono text-xs hidden sm:inline"><i class="mdi mdi-file-code-outline text-brand text-sm"></i></span>
-            <input type="text" id="path" name="path" value="{{ file }}" class="w-full px-2.5 py-1 bg-slate-800 border border-slate-700 rounded text-xs font-mono text-slate-200 focus:outline-none focus:border-brand">
-            <button type="button" onclick="reloadPageWithUrl();" id="btnReOpen" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1 flex-shrink-0" title="Re-open File">
+            <span class="text-slate-400 font-mono text-xs hidden sm:inline"><i class="mdi mdi-file-code-outline text-brand text-sm"></i></span>
+            <input type="text" id="path" name="path" value="{{ file }}" class="w-full px-2.5 py-1 bg-white border border-slate-300 rounded text-xs font-mono text-slate-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
+            <button type="button" onclick="reloadPageWithUrl();" id="btnReOpen" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded text-xs font-semibold cursor-pointer transition-colors flex items-center gap-1 flex-shrink-0 shadow-xs" title="Re-open File">
                 <i class="mdi mdi-refresh"></i> Reopen
             </button>
         </div>
 
         <!-- Toolbar Buttons -->
         <div class="flex items-center gap-1.5">
-            <div class="flex items-center bg-slate-800 border border-slate-700 rounded p-0.5 gap-0.5">
-                <button id="search" type="button" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-700 text-xs transition-colors cursor-pointer" onclick="toggleSearch()" title="Search (Ctrl+F)">
+            <div class="flex items-center bg-white border border-slate-300 rounded p-0.5 gap-0.5 shadow-xs">
+                <button id="search" type="button" class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded text-xs transition-colors cursor-pointer" onclick="toggleSearch()" title="Search (Ctrl+F)">
                     <i class="fas fa-search"></i>
                 </button>
-                <button id="btnGoto" type="button" onclick="toolbarActions('goto')" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-700 text-xs transition-colors cursor-pointer" title="Go to Line">
+                <button id="btnGoto" type="button" onclick="toolbarActions('goto')" class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded text-xs transition-colors cursor-pointer" title="Go to Line">
                     <i class="fas fa-terminal"></i>
                 </button>
-                <button id="btnUndo" type="button" onclick="toolbarActions('undo')" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-700 text-xs transition-colors cursor-pointer" title="Undo (Ctrl+Z)">
+                <button id="btnUndo" type="button" onclick="toolbarActions('undo')" class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded text-xs transition-colors cursor-pointer" title="Undo (Ctrl+Z)">
                     <i class="fas fa-undo"></i>
                 </button>
-                <button id="btnRedo" type="button" onclick="toolbarActions('redo')" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-700 text-xs transition-colors cursor-pointer" title="Redo (Ctrl+Y)">
+                <button id="btnRedo" type="button" onclick="toolbarActions('redo')" class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded text-xs transition-colors cursor-pointer" title="Redo (Ctrl+Y)">
                     <i class="fas fa-redo"></i>
                 </button>
-                <button id="btnLineWrap" type="button" onclick="toolbarActions('linewrap')" class="p-1.5 text-slate-400 hover:text-white rounded hover:bg-slate-700 text-xs transition-colors cursor-pointer" title="Toggle Wrap">
+                <button id="btnLineWrap" type="button" onclick="toolbarActions('linewrap')" class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded text-xs transition-colors cursor-pointer" title="Toggle Wrap">
                     <i class="fas fa-arrows-alt-h"></i>
                 </button>
             </div>
 
             <!-- Font Size -->
-            <select id="ddlFontSizes" class="px-2 py-1 bg-slate-800 border border-slate-700 text-slate-300 rounded text-xs focus:outline-none cursor-pointer">
+            <select id="ddlFontSizes" class="px-2 py-1 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded text-xs focus:outline-none cursor-pointer shadow-xs transition-colors">
                 <option value="11">11px</option>
                 <option value="12">12px</option>
                 <option value="13">13px</option>
@@ -89,11 +93,11 @@
             </select>
 
             <!-- Save Changes Button -->
-            <button type="button" id="sform_submit" class="btn btn-secondary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-white rounded text-xs font-semibold shadow-xs transition-colors cursor-pointer">
+            <button type="button" id="sform_submit" class="btn btn-secondary inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md shadow-xs cursor-pointer">
                 <img id="responseContainer" style="display: none;" src="/media/loading.gif" width="16" height="16" class="animate-spin" />
-                <i class="mdi mdi-content-save"></i> Save
+                <i class="mdi mdi-content-save"></i> Save Changes
             </button>
-            <button type="button" onclick="closeTab();" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded text-xs font-semibold transition-colors cursor-pointer">
+            <button type="button" onclick="closeTab();" class="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded text-xs font-semibold transition-colors cursor-pointer shadow-xs">
                 Close
             </button>
         </div>
@@ -102,11 +106,11 @@
     <!-- Search / Replace Container -->
     <div class="flex-item center" id="search-container" style="display:none">
         <div class="ace_search right">
-            <span action="hide" onclick="toggleSearch()" class="ace_searchbtn_close"></span>
+            <span action="hide" onclick="toggleSearch()" class="ace_searchbtn_close">&times;</span>
             <div class="ace_search_form">
                 <input class="ace_search_field" id="search-input" placeholder="Search for" spellcheck="false">
-                <span id="find-prev" class="ace_searchbtn prev" disabled></span>
-                <span id="find-next" class="ace_searchbtn next" disabled></span>
+                <span id="find-prev" class="ace_searchbtn prev" disabled>Prev</span>
+                <span id="find-next" class="ace_searchbtn next" disabled>Next</span>
                 <span id="find-all" class="ace_searchbtn" title="Alt-Enter">All</span>
             </div>
             <div class="ace_replace_form" style="display: none;">
@@ -133,6 +137,6 @@
         });
     </script>
     <script src="/media/notify/notify.js"></script>
-    <script src="/media/editor/searchbox.js?id=3.0.8" defer></script>
+    <script src="/media/editor/searchbox.js?id=3.0.9" defer></script>
 </body>
 </html>
