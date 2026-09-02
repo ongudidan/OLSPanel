@@ -378,14 +378,15 @@
         }
         .popup-content {
             background: #ffffff !important;
-            border-radius: 12px !important;
+            border-radius: 14px !important;
             border: 1px solid #e2e8f0 !important;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2) !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25) !important;
             padding: 24px !important;
-            width: 580px !important;
-            max-width: 94% !important;
+            width: 480px !important;
+            max-width: 92% !important;
             position: relative !important;
             text-align: left !important;
+            overflow: visible !important;
         }
         #upload-modal .modal-content {
             background: #ffffff !important;
@@ -408,7 +409,24 @@
             margin-bottom: 16px !important;
             letter-spacing: -0.01em !important;
         }
-        .bclose-btn, .close-btn {
+        .title-bar {
+            background: transparent !important;
+            background-color: transparent !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+            padding: 0 0 14px 0 !important;
+            margin-bottom: 16px !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            cursor: default !important;
+        }
+        .title-text, #atitle, #atitle_settings {
+            font-size: 17px !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            letter-spacing: -0.01em !important;
+        }
+        .bclose-btn, .close-btn, #aclose {
             position: absolute !important;
             top: 16px !important;
             right: 16px !important;
@@ -427,10 +445,66 @@
             transition: all 0.2s !important;
             padding: 0 !important;
         }
-        .bclose-btn:hover, .close-btn:hover {
+        .bclose-btn:hover, .close-btn:hover, #aclose:hover {
             background: #fee2e2 !important;
             color: #ef4444 !important;
             border-color: #fecaca !important;
+        }
+        #cf-name {
+            display: block !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #334155 !important;
+            background: #f8fafc !important;
+            padding: 8px 12px !important;
+            border-radius: 6px !important;
+            border: 1px solid #e2e8f0 !important;
+            margin-bottom: 14px !important;
+            word-break: break-all !important;
+        }
+        #del {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            padding: 14px !important;
+            background: #fef2f2 !important;
+            border: 1px solid #fecaca !important;
+            border-radius: 8px !important;
+            margin-bottom: 16px !important;
+        }
+        #del p {
+            margin: 0 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: #b91c1c !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        #del p span.fa-trash {
+            color: #ef4444 !important;
+            font-size: 14px !important;
+        }
+        #del .input-group {
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+            margin-top: 4px !important;
+        }
+        #del input[type="checkbox"] {
+            width: 16px !important;
+            height: 16px !important;
+            accent-color: var(--button-secondary, #fd5190) !important;
+            cursor: pointer !important;
+            margin: 0 !important;
+        }
+        #del label {
+            font-size: 13px !important;
+            color: #475569 !important;
+            cursor: pointer !important;
+            user-select: none !important;
+            margin: 0 !important;
+            font-weight: 500 !important;
         }
         /* Upload Tabs */
         .upload-tabs {
@@ -573,11 +647,14 @@
             color: #ef4444 !important;
         }
         /* Modal Action Submit Buttons */
-        .modal-buttons {
-            display: flex;
-            justify-content: center !important;
-            margin-top: 16px !important;
+        .modal-buttons, .popup-buttons {
+            display: flex !important;
+            justify-content: flex-end !important;
+            margin-top: 20px !important;
             gap: 8px !important;
+        }
+        #upload-modal .modal-buttons {
+            justify-content: center !important;
         }
         #furl[style*="display: none"], #fup[style*="display: none"] {
             display: none !important;
@@ -588,7 +665,7 @@
             color: #ffffff !important;
             font-weight: 600 !important;
             font-size: 13px !important;
-            padding: 8px 28px !important;
+            padding: 8px 24px !important;
             border-radius: 6px !important;
             cursor: pointer !important;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
