@@ -1,110 +1,76 @@
-
-#maintbl {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-/* Header Styles */
-.header {
-    background: #f0f0f0;
-}
-
-.editor-toolbar {
-    display: flex;                /* Use flexbox for alignment */
-    justify-content: center;      /* Center items horizontally */
-    align-items: center;          /* Center items vertically */
-    margin: 10px 0;              /* Space above and below */
-}
-
-/* Button Group Styles */
-.btnx-group {
-    margin: 0 5px;               /* Margin between groups */
-}
-
-/* Button Styles */
-.btnx {
-    padding: 8px 12px;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-
-
-/* Primary Button Styles */
-.btnx-primary {
-    background-color: #007bff;
-    color: white;
-}
-
-
-
-/* Default Button Styles */
-
-
-
+/* Ace Editor Search & Smart Toolbar Styles */
 #search-container {
-   
+    position: absolute;
+    top: 58px;
+    right: 20px;
+    z-index: 99;
 }
 
-
-.arrow {
-    font-size: 13px;
-    color: black; /* Text color */
-    border: none; /* No border */
-    padding: 5px; /* Padding for the button */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s; /* Transition for background color */
+.ace_search {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 6px 10px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    color: #f8fafc;
 }
 
-
-#btnSearch {
-    cursor: pointer; /* Pointer cursor for close button */
-    color: red; /* Color for close button */
-    font-size: 18px; /* Size of close button text */
-    margin-right: 10px; /* Space to the right */
-}
-
-.action-buttons {
-    display: flex; /* Flexbox for action buttons */
-    gap: 5px; /* Space between action buttons */
-}
-
-
-#find-next, #find-prev {
-    margin-left: 5px; /* Space to the left of Next/Previous buttons */
-}
-
-
-/* Additional Input Button Styles */
-#find, #find-next, #find-prev {
-    margin-left: 5px; /* Add margin between search input and buttons */
-}
-
-/* Editor Styles */
-#editor {
-    width: 100%; 
-   height: calc(100vh - 150px); 
-    border: 1px solid #ccc;
-    border-radius: 4px; /* Add border radius for aesthetics */
-    background-color: #fdfdfd; /* Light background for the editor */
-	
-}
-.btn-default {
-    background-color: #007bff;
-	color: #ffffff
-}
-
-.flex-container {
-	background-color: #000000;
+.ace_search_form {
     display: flex;
-    justify-content: space-between; /* Space between items */
-    align-items: center; /* Align items vertically centered */
-    padding: 5px; /* Padding around the container */
+    align-items: center;
+    gap: 4px;
 }
 
-.flex-item {
-    flex: 1; /* Allow items to grow equally */
+.ace_search_field {
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    color: #f8fafc;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 12px;
+    outline: none;
+}
+
+.ace_search_field:focus {
+    border-color: #ef6d19;
+}
+
+.ace_searchbtn {
+    background-color: #334155;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ace_searchbtn:hover:not(:disabled) {
+    background-color: #475569;
+    color: #ffffff;
+}
+
+.ace_searchbtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ace_searchbtn_close {
+    cursor: pointer;
+    float: right;
+    color: #94a3b8;
+    margin-left: 8px;
+    font-weight: bold;
+}
+
+.ace_searchbtn_close:hover {
+    color: #f87171;
+}
+
+.ace_search_counter {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-left: 6px;
 }

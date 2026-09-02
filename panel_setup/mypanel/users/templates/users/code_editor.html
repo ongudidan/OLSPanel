@@ -13,8 +13,10 @@
     <link rel="stylesheet" href="/media/notify/notification.css">
     <style>
         :root {
-            --brand-color: #ef6d19;
-            --brand-hover: #d85c0d;
+            --brand-color: {{ branding.brand_color|default:"#ef6d19" }};
+            --brand-hover: {{ branding.brand_hover|default:"#d85c0d" }};
+            --button-primary: {{ branding.button_primary_color|default:"#9e6de0" }};
+            --button-secondary: {{ branding.button_secondary_color|default:"#fd5190" }};
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -29,6 +31,17 @@
             right: 0;
             bottom: 0;
             left: 0;
+        }
+        .btn-secondary {
+            background-color: var(--button-secondary, #fd5190) !important;
+            border: 1px solid var(--button-secondary, #fd5190) !important;
+            color: #ffffff !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .btn-secondary:hover {
+            background-color: transparent !important;
+            border-color: var(--button-secondary, #fd5190) !important;
+            color: var(--button-secondary, #fd5190) !important;
         }
     </style>
 </head>
