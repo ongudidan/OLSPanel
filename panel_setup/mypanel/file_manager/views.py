@@ -172,7 +172,7 @@ def php_editor(request):
         'ext': ext,
         'file': file_path,
         'name': os.path.basename(file),
-        'base_url': base_url,
+        'base_url': f"{request.scheme}://{request.get_host()}",
         'content': content,
         'my_settings': settings_data
     })

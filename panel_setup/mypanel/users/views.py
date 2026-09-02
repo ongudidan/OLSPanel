@@ -1467,7 +1467,7 @@ def php_editor(request):
     return render(request, 'users/code_editor.html', {
         'ext': ext,
         'file': file_path,
-        'base_url': base_url,
+        'base_url': f"{request.scheme}://{request.get_host()}",
         'content': content
     })
 
