@@ -1,0 +1,23 @@
+<div style="margin-top:50px">
+    <nav class="">
+        <div class="path">
+            <div class="input-group">
+                <span class="input-group-addon" style="background-color: transparent;">
+                    <span id="imgHome" class="fa fa-home"></span>
+                </span>
+                <input id="location" type="text" class="form-control" style="max-width:50%" wfd-id="id2">
+                <span class="input-group-btn">
+                    <button id="btnGo" class="btn btn-default" type="button">Go</button>
+                </span>
+            </div>
+        </div>
+        
+        <div class="folder-item" style="padding-left: 10px; padding-top: 10px; margin-top: 10px; max-width: 300px; font-weight: bold;">
+            <a href="javascript:void(0)" onclick="fetchFolderContents('/')">
+                <i class="fa fa-home"></i> /home/{{ user.username }}
+            </a>
+        </div>
+
+        <div id="sub-folder"></div>
+    </nav>
+</div>

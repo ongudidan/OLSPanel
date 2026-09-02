@@ -1,0 +1,43 @@
+<div>
+    <div class="item file-header" style="background:#f9f8f8">
+        <div></div>
+        <div>
+            <p class="active name" onclick="sortBy('name', this)" role="button" tabindex="0" title="Sort by name" aria-label="Sort by name">
+                <span>Name</span>
+                <i class="material-icons">arrow_upward</i>
+            </p>
+            <p class="size" role="button" onclick="sortBy('size', this)" tabindex="0" title="Sort by size" aria-label="Sort by size">
+                <span>Size</span>
+                <i class="material-icons">arrow_upward</i>
+            </p>
+            <p class="modified" onclick="sortBy('modified', this)" role="button" tabindex="0" title="Sort by last modified" aria-label="Sort by last modified">
+                <span>Last modified</span>
+                <i class="material-icons">arrow_upward</i>
+            </p>
+            <p class="permission">
+                <span>Permission</span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<h2>Files</h2>
+
+<!-- Loading container with text and spinner -->
+<div id="loading-container">
+    <span>Fetching data...</span>
+    <div id="loading-spinner"></div>
+</div>
+
+<div id="empty_data" style="display:none; text-align:center; padding:20px; color:#888; font-style:italic;">
+    <span>This folder is empty</span>
+</div>
+
+<input type="hidden" id="select_path"/>
+<input type="hidden" id="select_file_name"/>
+<input type="hidden" id="select_type"/>
+<input type="hidden" id="select_ext"/>
+<input type="hidden" id="select_permission"/>
+
+<!-- File List Container -->
+<div id="file-list"></div>

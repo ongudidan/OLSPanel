@@ -1,0 +1,40 @@
+<div id="upload-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button id="cancel-upload-button" class="bclose-btn" title="Close">&times;</button>
+        <h3>Upload File</h3>
+        
+        <div class="upload-tabs">
+            <button class="upload-tab active" data-tab="file">Upload File</button>
+            <button class="upload-tab" data-tab="url">Upload from URL</button>
+        </div>
+        
+        <div id="drop-zone" class="drop-zone">
+            <p>Drag & drop files here or</p>
+            <button id="file-select-button" type="button">Select Files</button>
+            <input type="file" id="file-input" multiple hidden>
+        </div>
+        
+        <div id="upload-url-section" class="drop-zonb" style="display: none;">
+            <div class="input-cgroup">
+                <span class="input-icon">
+                    <i class="fa fa-link" aria-hidden="true"></i>
+                </span>
+                <input type="text" id="url-input" placeholder="Enter file URL">
+            </div>
+            <div id="prog" class="progress-container">
+                <div class="progress-bar" style="width: 0%;"></div>
+                <span class="progress-percentage">0%</span>
+            </div>
+        </div>
+        
+        <div id="file-preview" class="file-preview"></div>
+        
+        <div id="fup" class="modal-buttons">
+            <button id="upload-button" type="button">Upload</button>
+        </div>
+        
+        <div id="furl" class="modal-buttons" style="display: none;">
+            <button id="upload-button-url" type="button">Upload</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+<div id="midtoolbar" class="clear">
+    <div id="srtoolbar">
+        <ul>
+            <li id="action-home">
+                <a href="javascript:void(0)" id="home-button" class="btn btn-link">
+                    <span class="fa fa-home"></span>
+                    Home
+                </a>
+            </li>
+            <li id="action-navback">
+                <a href="javascript:void(0)" id="back-button" class="btn btn-link">
+                    <i class="fa fa-arrow-left"></i>
+                    Back
+                </a>
+            </li>
+            <li id="action-refresh" onclick="return actionHandler('refresh');">
+                <a href="javascript:void(0)" id="refresh" class="btn btn-link">
+                    <i class="fa fa-refresh"></i>
+                    Reload
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0)" id="select-all-btn" class="btn btn-link">
+                    <i class="fa fa-check-square-o"></i>
+                    Select All
+                </a>
+            </li>
+            <li class="divider disabled">
+                <a href="javascript:void(0)" id="unselect-all-btn" class="btn btn-link">
+                    <i class="fa fa-square-o"></i>
+                    Unselect All
+                </a>
+            </li>
+            <li id="action-viewtrash" onclick="return actionHandler('viewtrash');">
+                <a href="javascript:void(0)" id="view-trash" title="View Trash" class="btn btn-link">
+                    <span class="fa fa-trash"></span>
+                    View Trash
+                </a>
+            </li>
+            <li id="action-emptytrash" onclick="return actionHandler('emptytrash');" class="disabled">
+                <a href="javascript:void(0)" title="Empty Trash" class="btn btn-link">
+                    <span class="fa fa-trash"></span>
+                    Empty Trash
+                </a>
+            </li>
+            <li id="action-settings" onclick="return openPopupSettings();">
+                <a href="javascript:void(0)" title="Settings" class="btn btn-link">
+                    <span class="fa fa-gear"></span>
+                    Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

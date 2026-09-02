@@ -1,36 +1,33 @@
-<html lang="en" class="light" dir="ltr"><head>
+<!DOCTYPE html>
+<html lang="en" class="light" dir="ltr">
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 
-    
-
     <title>File Manager</title>
 
     <meta name="robots" content="noindex,nofollow">
-
     <link rel="icon" type="image/png" sizes="32x32" href="{{ branding.brand_icon }}">
     
     <!-- Add to home screen for Android and modern mobile browsers -->
     <meta name="theme-color" content="#2979ff">
 
-    <!-- Add to home screen for Safai on iOS/iPadOS -->
+    <!-- Add to home screen for Safari on iOS/iPadOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="assets">
     <link rel="apple-touch-icon" href="/static/img/icons/apple-touch-icon.png">
 
-  
-   
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-   
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" crossorigin="" href="/media/css/filemanager.css?id=120057">
+    <link rel="stylesheet" crossorigin="" href="/media/css/filemanager.css?id=120058">
     <link rel="stylesheet" href="/media/notify/notification.css">
+
     <style>
         :root {
             --brand-color: {{ branding.brand_color|default:"#ef6d19" }};
@@ -38,11 +35,20 @@
             --button-primary: {{ branding.button_primary_color|default:"#9e6de0" }};
             --button-secondary: {{ branding.button_secondary_color|default:"#fd5190" }};
         }
-        body {
+
+        *, html, body, button, input, select, textarea, p, span, a, div, table {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+
+        body {
             background-color: #f8fafc;
             color: #1e293b;
         }
+
+        #location, .permission, #chmodtbl input[readonly] {
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+
         /* Modern Header */
         header {
             background: #ffffff !important;
@@ -171,6 +177,7 @@
             color: #94a3b8 !important;
             box-shadow: none !important;
         }
+
         /* Path Bar & Go Button */
         .path {
             background: transparent !important;
@@ -217,6 +224,31 @@
             background-color: transparent !important;
             color: var(--brand-color, #ef6d19) !important;
         }
+
+        /* Folder Tree View (Sidebar) */
+        .folder-item {
+            font-size: 13px !important;
+        }
+        .folder-item a {
+            color: #334155 !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            transition: all 0.15s ease !important;
+        }
+        .folder-item a:hover {
+            color: var(--brand-color, #ef6d19) !important;
+            background-color: #f1f5f9 !important;
+        }
+        .folder-item i.fa-plus, .folder-item i.fa-minus {
+            font-size: 10px !important;
+            color: #94a3b8 !important;
+            margin-right: 2px !important;
+        }
+
         /* Secondary Action Toolbar */
         #midtoolbar {
             background: #ffffff !important;
@@ -265,6 +297,41 @@
             cursor: not-allowed !important;
             pointer-events: none !important;
         }
+
+        /* File List Table & Rows */
+        .file-header {
+            background-color: #f8fafc !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        .file-header p {
+            font-weight: 600 !important;
+            font-size: 12px !important;
+            color: #475569 !important;
+            letter-spacing: 0.02em !important;
+        }
+        #listing .item {
+            transition: background-color 0.15s ease !important;
+            border-bottom: 1px solid #f1f5f9 !important;
+        }
+        #listing .item:hover {
+            background-color: #f8fafc !important;
+        }
+        #listing .item[aria-selected="true"] {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        #listing .item .name {
+            font-weight: 500 !important;
+            color: #1e293b !important;
+            font-size: 13px !important;
+        }
+        #listing .item .size,
+        #listing .item .modified,
+        #listing .item .permission {
+            font-size: 12px !important;
+            color: #64748b !important;
+        }
+
         /* Context Menu */
         .context-menu {
             display: none;
@@ -275,10 +342,10 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             z-index: 1000;
             padding: 4px;
-            min-width: 150px;
+            min-width: 160px;
         }
         .context-menu-item {
-            padding: 6px 12px;
+            padding: 7px 12px;
             font-size: 13px;
             color: #334155;
             border-radius: 6px;
@@ -292,6 +359,16 @@
             background-color: #f1f5f9;
             color: var(--brand-color, #ef6d19);
         }
+        .context-menu-item i, .context-menu-item span {
+            font-size: 12px;
+            color: #64748b;
+            width: 14px;
+            text-align: center;
+        }
+        .context-menu-item:hover i, .context-menu-item:hover span {
+            color: var(--brand-color, #ef6d19);
+        }
+
         /* Modals & Popups Modern Design */
         .modal-overlay, .popup-overlay {
             background: rgba(0, 0, 0, 0.5) !important;
@@ -530,656 +607,55 @@
             color: #0f172a !important;
         }
     </style>
-  </head>
-  <body>  
-  
-    <header><img src="{{ branding.brand_icon }}"><button onclick="toggleSidebar();" aria-label="Toggle sidebar" title="Toggle sidebar" class="action menu-button"><i class="material-icons">menu</i><span>Toggle sidebar</span><!----></button>
-    
-    
-    
-     <div id="listing" class="file-icons list">
-    <div id="topnav" class="clear">
-        <ul>
-            <li id="action-newfile"  class="">
-                <a href="javascript:void(0)" title="New File" id="new-file" class="btn btn-link">
-                    <span class="fa fa-plus"></span>
-                    File
-                </a>
-            </li>
-            <li id="action-newfolder"  class="">
-                <a href="javascript:void(0)" title="New Folder" id="new-folder" class="btn btn-link">
-                    <span class="fa fa-plus"></span>
-                    Folder
-                </a>
-            </li>
-            <li id="action-copy" onclick="return actionHandler('copy');" class="btn btn-link">
-                <a href="javascript:void(0)" id="top-copy" title="Copy"  class="btn btn-link">
-                    <i class="fa fa-copy"></i>
-                    Copy
-                </a>
-            </li>
-            <li id="action-move"  class="btn btn-link">
-                <a href="javascript:void(0)" id="top-move" title="Move File"  class="btn btn-link">
-                    <span class="fa fa-arrows"></span>
-                    Move
-                </a>
-            </li>
-            <li id="action-upload"  class="">
-                <a href="javascript:void(0)" id="open-upload-modal" title="Upload" class="btn btn-link">
-                    <i class="fa fa-upload"></i>
-                    Upload
-                </a>
-            </li>
-            <li id="action-download" class="btn btn-link">
-                <a href="javascript:void(0)" id="top-download" title="Download" class="btn btn-link">
-                    <i class="fa fa-download"></i>
-                    Download
-                </a>
-            </li>
-            <li id="action-delete" class="btn btn-link">
-                <a href="javascript:void(0)" id="top-delete" title="Delete" class="btn btn-link">
-                    <span class="fa fa-remove"></span>
-                    Delete
-                </a>
-            </li>
-           
-            <li id="action-rename"  class="btn btn-link">
-                <a href="javascript:void(0)" id="top-rename" title="Rename" class="btn btn-link">
-                    <i class="fa fa-file"></i>
-                    Rename
-                </a>
-            </li>
-            <li id="action-edit"  class="btn btn-link">
-                <a href="javascript:void(0)" id="top-edit" title="Edit" class="btn btn-link">
-                    <i class="fa fa-edit"></i>
-                    Edit
-                </a>
-            </li>
-            
-            <li id="action-htmledit" class="btn btn-link">
-                <a href="javascript:void(0)" id="top-edit-html" title="HTML Editor" class="btn btn-link">
-                    <i class="fa fa-edit"></i>
-                    HTML Editor
-                </a>
-            </li>
-            
-            <li id="action-chmod" class="btn btn-link">
-                <a href="javascript:void(0)" id="top-permission" title="Change Permissions" class="btn btn-link">
-                    <i class="fa fa-key"></i>
-                    Permissions
-                </a>
-            </li>
-            <li class="divider" id="action-view">
-                <a href="javascript:void(0)" title="View" id="top-view" class="btn btn-link">
-                    <i class="fa fa-eye"></i>
-                    View
-                </a>
-            </li>
-            <li id="action-extract"  class="btn btn-link">
-                <a href="javascript:void(0)" id="top-unzip" title="Extract" class="btn btn-link">
-                    <i class="fa fa-folder-open-o"></i>
-                    Extract
-                </a>
-            </li>
-            <li id="action-compress" class="btn btn-link">
-                <a href="javascript:void(0)" title="Compress" id="top-compress" class="btn btn-link">
-                    <i class="fa fa-file-zip-o"></i>
-                    Compress
-                </a>
-            </li>
-			 <li id="action-fixpermission" class="btn btn-link">
-                <a href="javascript:void(0)" title="Fix Permission" id="fix-permission" class="btn btn-link">
-                    <i class="fa fa-unlock"></i>
-                      Fix Permissions
-                </a>
-            </li>
-        </ul>
-    </div>
-    </div>
-    
-    </header><!---->   
-      
-   <div><!---->
-   
-   
-   <main><div><!---->
-    
-    
+</head>
+<body>
+    <!-- Top Header Component -->
+    {% include "file_manager/components/header.html" %}
+
     <div>
-        
-       <div style="margin-top:50px">
-   <nav class="">
-       <div class="path">
-        <div class="input-group">
-              <span class="input-group-addon" style="background-color: transparent;">
-                  <span id="imgHome" class="fa fa-home"></span>
-              </span>
-              <input id="location" type="text" class="form-control" style="max-width:50%" wfd-id="id2">
-              <span class="input-group-btn">
-                <button id="btnGo" class="btn btn-default" type="button">Go</button>
-              </span>
-        </div>
-    </div>
-	
-	<div class="folder-item" style="padding-left: 10px;padding-top: 10px; margin-top: 10px; max-width: 300px;font-weight: bold;">
-    <a href="javascript:void(0)" onclick="fetchFolderContents('/')">
-        <i class="fa fa-home"></i> /home/{{ user.username }}
-    </a>
-</div>
+        <main>
+            <div>
+                <div>
+                    <!-- Path & Sidebar Component -->
+                    {% include "file_manager/components/path_sidebar.html" %}
 
-	<div id="sub-folder">
-	
-	
-	</div>
-    
-  
-   
- </nav>
-   </div> 
-    <div class="item">
-    
-    <div id="listing" class="file-icons list">
-        <div id="midtoolbar" class="clear">
-        <div id="srtoolbar">
-           <ul>
-               <li id="action-home">
-                   <a href="javascript:void(0)" id="home-button" class="btn btn-link">
-                       <span class="fa fa-home"></span>
-                       Home
-                   </a>
-               </li>
-              
-               <li id="action-navback" >
-                   <a href="javascript:void(0)" id="back-button" class="btn btn-link">
-                       <i class="fa fa-arrow-left"></i>
-                       Back
-                   </a>
-               </li>
-              
-               <li id="action-refresh" onclick="return actionHandler('refresh');" class="">
-                   <a href="javascript:void(0)" id="refresh" class="btn btn-link">
-                       <i class="fa fa-refresh"></i>
-                       Reload
-                   </a>
-               </li>
-               <li class="">
-                   <a href="javascript:void(0)" id="select-all-btn" class="btn btn-link">
-                       <i class="fa fa-check-square-o"></i>
-                       Select All
-                   </a>
-               </li>
-               <li class="divider disabled">
-                   <a href="javascript:void(0)" id="unselect-all-btn" class="btn btn-link">
-                       <i class="fa fa-square-o"></i>
-                       Unselect All
-                   </a>
-               </li>
-               <li id="action-viewtrash" onclick="return actionHandler('viewtrash');" class="">
-                   <a href="javascript:void(0)" id="view-trash" title="View Trash" class="btn btn-link">
-                       <span class="fa fa-trash"></span>
-                       View Trash
-                   </a>
-               </li>
-               <li id="action-emptytrash" onclick="return actionHandler('emptytrash');" class="disabled">
-                   <a href="javascript:void(0)" title="Empty Trash" class="btn btn-link">
-                       <span class="fa fa-trash"></span>
-                       Empty Trash
-                   </a>
-               </li>
-			   <li id="action-emptytrash" onclick="return openPopupSettings();" class="">
-                   <a href="javascript:void(0)" title="Settings" class="btn btn-link">
-                       <span class="fa fa-gear"></span>
-                       Settings
-                   </a>
-               </li>
-           </ul>
-        </div>
-    </div>
-        <div>
-        
-        
-        <div class="item file-header" style="background:#f9f8f8"><div></div><div>
-        
-        <p class="active name" onclick="sortBy('name', this)" role="button" tabindex="0" title="Sort by name" aria-label="Sort by name"><span>Name</span><i class="material-icons">arrow_upward</i></p>
-    
-    <p class="size" role="button" onclick="sortBy('size', this)" tabindex="0" title="Sort by size" aria-label="Sort by size"><span>Size</span><i class="material-icons">arrow_upward</i></p>
-    
-    <p class="modified" onclick="sortBy('modified', this)" role="button" tabindex="0" title="Sort by last modified" aria-label="Sort by last modified"><span>Last modified</span><i class="material-icons">arrow_upward</i></p>
-    
-    <p class="permission "><span>Permission</span></p>
-    
-    </div></div></div>
-    
-    <!----><!----><h2>Files</h2>
-    <!-- HTML for Progress Bar -->
-<!-- Loading container with text and spinner -->
+                    <div class="item">
+                        <div id="listing" class="file-icons list">
+                            <!-- Mid Action Toolbar Component -->
+                            {% include "file_manager/components/midtoolbar.html" %}
 
-<div id="loading-container">
-    <span>Fetching data...</span>
-    <div id="loading-spinner"></div>
-</div>
-
-<div id="empty_data" style="display:none; text-align:center; padding:20px; color:#888; font-style:italic;">
-    <span>This folder is empty</span>
-</div>
-
-<input type="hidden" id="select_path"/>
-<input type="hidden" id="select_file_name"/>
-<input type="hidden" id="select_type"/>
-<input type="hidden" id="select_ext"/>
-<input type="hidden" id="select_permission"/>
-<!-- File List Container -->
-<div id="file-list"></div>
-
-        
-        
-       </div>
-        </div>
-        
-        
-        </div></div>
-        </main><!---->
-        </div>
-       
-
-    
-
-
-<div id="action-popup" class="popup-overlay">
-    <div class="popup-content">
-        <div class="title-bar">
-		<div id="loading-containera">
-		<div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          </div>
-		</div>
-            <span id="atitle" class="title-text">Action name</span>
-            <button  id="aclose" class="close-btn">&times;</button>
-        </div>
-        <div class="popup-body">
-           <span id="cf-name" style="font-weight: normal; font-style: normal; color: red;"></span>
-		   <div id="selected-items-list" style="max-height: 150px; overflow-y: auto; margin-top: 10px; padding: 8px; border: 1px solid #ddd; background: #f9f9f9; font-size: 14px;">
-    <!-- JS will insert selected item paths here -->
-</div>
-
-		   <span id="all">
-		   
-			<div class="input-group">
-           <span id="ahome" class="input-group-addon" style="background-color: transparent;display:none">
-                  <span id="imgHome" class="fa fa-home"></span>
-              </span> <input type="text" id="anames" placeholder="Enter name"/>
-			  </div>
-			  
-			  </span>
-			  
-			   <span id="del">
-			    <p style="font-weight: normal; color: #d32f2f;"><span class="fa fa-trash"></span> Are you sure you want to move the following files to the trash?</p>
-			   <div class="input-group">
-           <span id="ahome" class="input-group-addon" style="background-color: transparent;display:none">
-                  <span id="imgHome" class="fa fa-home"></span>
-              </span> <input type="checkbox" id='delete' placeholder="Enter name" checked/> Permanently delete
-			  </div>
-            
-	</span>	
-		 <span id="per">	  
-	 <table class="table table-stripped chmodtbl" id="chmodtbl">
-                  <tbody><tr>
-                    <td><b>Mode</b></td>
-                    <td>User</td>
-                    <td>Group</td>
-                    <td>World</td>
-                  </tr>
-                  <tr>
-                    <td>Read</td>
-                    <td><input type="checkbox" name="ur" value="4" onclick="calcperm();"></td>
-                    <td><input type="checkbox" name="gr" value="4" onclick="calcperm();"></td>
-                    <td><input type="checkbox" name="wr" value="4" onclick="calcperm();"></td>
-                  </tr>
-                  <tr>
-                    <td>Write</td>
-                    <td><input type="checkbox" name="uw" value="2" onclick="calcperm();"></td>
-                    <td><input type="checkbox" name="gw" value="2" onclick="calcperm();"></td>
-                    <td><input type="checkbox" name="ww" value="2" onclick="calcperm();"></td>
-                  </tr>
-                  <tr>
-                    <td>Execute</td>
-                    <td><input type="checkbox" name="ux" value="1" onclick="calcperm();"></td>
-                    <td><input type="checkbox" name="gx" value="1" onclick="calcperm();"></td>
-                    <td><input type="checkbox" name="wx" value="1" onclick="calcperm();"></td>
-                  </tr>
-                  <tr>
-                    <td>Permission</td>
-                    <td style="padding: 5px;"><input type="text" size="1" value="0" class="form-control" name="vu" readonly="readonly"></td>
-
-                    <td style="padding: 5px;"><input type="text" size="1" value="0" class="form-control" name="vg" readonly="readonly"></td>
-                    <td style="padding: 5px;"><input type="text" size="1" value="0" class="form-control" name="vw" readonly="readonly"></td>
-                  </tr>
-                </tbody></table>
-
-				<input type="hidden" size="1" value="0" class="form-control" id="u" >
-
-                    <input type="hidden" size="1" value="0" class="form-control" id="g" ></td>
-                   <input type="hidden" size="1" value="0" class="form-control" id="w" >
-			   </span>
-			<input type="hidden" id="apath"/>
-			
-           <div class="popup-buttons" style="display: flex; justify-content: flex-end; margin-top: 12px;">
-    <button id="aaction" style="background-color: #4CAF50; color: white; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
-        type
-    </button>
-</div>
-
-        </div>
-    </div>
-</div>
-
-
-
-
-<div id="upload-modal" class="modal-overlay">
-    <div class="modal-content">
-         <button  id="cancel-upload-button" class="bclose-btn">&times;</button> <!-- Close button (X) -->
-        <h3>Upload File</h3>
-		 <div class="upload-tabs">
-            <button class="upload-tab active" data-tab="file">Upload File</button>
-            <button class="upload-tab" data-tab="url">Upload from URL</button>
-        </div>
-        <div id="drop-zone" class="drop-zone">
-            <p style="margin-right:10px">Drag & drop files here or</p>
-            <button id="file-select-button">Select Files</button>
-            <input type="file" id="file-input" multiple hidden>
-        </div>
-		
-		<div id="upload-url-section" class="drop-zonb" style="display: none;">
-    <div class="input-cgroup">
-        <span class="input-icon">
-            <i class="fa fa-link" aria-hidden="true"></i>
-        </span>
-        <input type="text" id="url-input" placeholder="Enter file URL">
-		
-    </div>
-	<div id ="prog" class="progress-container">
-                        <div class="progress-bar" style="width: 0%;"></div>
-                        <span class="progress-percentage">0%</span>
+                            <!-- File List Container Component -->
+                            {% include "file_manager/components/file_list.html" %}
+                        </div>
                     </div>
-</div>
-
-		
-        <div id="file-preview" class="file-preview"></div>
-        <div id="fup" class="modal-buttons">
-            <button id="upload-button">Upload</button>
-           
-        </div>
-		
-		 <div id="furl" class="modal-buttons" style="display: none;">
-            <button id="upload-button-url">Upload</button>
-           
-        </div>
-		
-		
-    </div>
-</div>
-
-
-
-
-
-<div id="action-popup_settings" class="popup-overlay">
-    <div class="popup-content">
-        <div class="title-bar">
-		<div id="loading-containera">
-		<div class="sk-wave">
-            <div class="rect1"></div>
-            <div class="rect2"></div>
-            <div class="rect3"></div>
-            <div class="rect4"></div>
-            <div class="rect5"></div>
-          </div>
-		</div>
-            <span id="atitle" class="title-text">Settings</span>
-            <button  onclick="return closePopupSettings();" class="close-btn">&times;</button>
-        </div>
-       <div class="popup-body" style="padding: 24px; font-family: Arial, sans-serif; max-width: 500px; margin: auto;">
-
-    <!-- Section Header -->
-    <div style="margin-bottom: 16px; text-align: left;">
-        <span style="color: red; font-size: 14px; font-weight: 500; border-bottom: 2px dotted red; padding-bottom: 4px;">
-            File Settings
-        </span>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Hidden Files Option -->
-    <div style="margin-bottom: 10px; display: flex; align-items: center;">
-    <label style="display: flex; align-items: center; cursor: pointer;">
-        <input type="checkbox" name="hide_hiden_file" id="hidden" style="margin-right: 10px;" value="1"
-          {% if my_settings.hide_hiden_file == 0 %}checked{% endif %} />
-        Show Hidden Files <span style="color: #888;">(dotfiles)</span>
-    </label>
-</div>
+    <!-- Modals & Popups Components -->
+    {% include "file_manager/components/action_popups.html" %}
+    {% include "file_manager/components/upload_modal.html" %}
+    {% include "file_manager/components/context_menu.html" %}
 
-<!-- Folder Settings Header -->
-<div style="margin: 30px 0 16px; text-align: left;">
-    <span style="color: red; font-size: 14px; font-weight: 500; border-bottom: 2px dotted red; padding-bottom: 4px;">
-        Folder Settings
-    </span>
-</div>
+    <!-- JavaScript Variables & Logic -->
+    <script>
+        const csrfToken = "{{ csrf_token }}";
+        const actionUrl = "{% url 'file_action' %}";
+        const saveUrl = "{% url 'file_setting' %}";
+        const php_editor = "{% url 'php_editor' %}";
+        const view = "{% url 'view' %}";
+        const upload_url = "{% url 'upload' %}";
+        const upload_url_from_url = "{% url 'upload_from_url' %}";
+        const folder_list_url = "{% url 'folder_list' %}";
+        const file_folder_list_url = "{% url 'file_folder_list' %}";
+        const download_url = "{% url 'download' %}";
+        let currentSortField = null;
+        let currentSortDirection = null;
+        let currentEntries = [];
+    </script>
 
-<!-- Folder Size Option -->
-<div style="margin-bottom: 20px; display: flex; align-items: center;">
-    <label style="display: flex; align-items: center; cursor: pointer;">
-        <input type="checkbox" id="folder_size" name="hide_folder_size" style="margin-right: 10px;" value="1"
-          {% if my_settings.hide_folder_size == 0 %}checked{% endif %} />
-        Show Folder Total Size <span style="color: #888;">(may be slow)</span>
-    </label>
-</div>
-
-
-    <!-- Save Button -->
-    <div style="display: flex; justify-content: flex-end; margin-top: 30px;">
-        <button onclick="return saveSettings();"  style="
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;">
-            Save
-        </button>
-    </div>
-</div>
-
-		
-		
-		
-		
-    </div>
-</div>
-
-
-
-<style>
-#upload-button-url {
-    background-color: #4CAF50;
-    color: white;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.drop-zonb {
-    
-    padding: 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    background-color: #f9f9f9;
-    transition: background-color 0.2s ease;
-}
-#upload-url-section {
-    width: 100%;
-    height: 150px;
-    
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f8f9fa;
-    margin-top: 1em;
-}
-
-
-.input-cgroup {
-    position: relative;
-    width: 100%;
-   
-	 margin-left: auto;
-    margin-right: auto;  /* centers the block horizontally */
-}
-
-.input-cgroup input {
-    width: 100%;
-    padding: 10px 12px 10px 36px; /* left padding for icon */
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    outline: none;
-    transition: border 0.2s ease;
-}
-
-.input-cgroup input:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
-}
-
-.input-icon {
-    position: absolute;
-    top: 50%;
-    left: 10px;
-    transform: translateY(-50%);
-    color: #888;
-    pointer-events: none;
-    font-size: 16px;
-}
-
-.upload-tabs {
-    display: flex;
-    justify-content: flex-start;
-    background-color: #f1f3f5;
-    border-radius: 8px;
-    padding: 4px;
-    margin-bottom: 20px;
-    gap: 6px;
-    max-width: 300px;
-}
-
-.upload-tab {
-    flex: 1;
-    padding: 10px 16px;
-    font-size: 14px;
-    color: #333;
-    background-color: transparent;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.upload-tab:hover {
-    background-color: #e2e6ea;
-}
-
-.upload-tab.active {
-    background-color: #007bff;
-    color: #fff;
-    font-weight: 500;
-}
-
-
-
-.progress-container {
-    margin-top: 5px;
-    height: 20px;
-    background: #e0e0e0; /* Default grey background */
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    position: relative;
-    overflow: hidden;
-    width: 200px; /* Default width for PC */
-}
-
-.progress-bar {
-    height: 100%;
-    width: 0%; /* Starts empty */
-    background: #4CAF50; /* Green by default for success */
-    border-radius: 3px;
-    transition: width 0.4s ease; /* Smooth width transition */
-}
-
-.progress-bar.failed {
-    background: #f44336; /* Red for failure */
-}
-
-.progress-percentage {
-    position: absolute;
-    top: 2px;
-    right: 5px;
-    font-size: 12px;
-    color: #fff;
-}
-@media (max-width: 768px) {
-    .progress-container {
-        width: 70px; /* Reduced width for mobile */
-    }
-}
-
-</style>
- <script>
- 
- 
- const csrfToken = "{{ csrf_token }}";
- const actionUrl = "{% url 'file_action' %}";
- const saveUrl = "{% url 'file_setting' %}";
- const php_editor = "{% url 'php_editor' %}";
- const view = "{% url 'view' %}";
- const upload_url = "{% url "upload" %}";
- const upload_url_from_url = "{% url "upload_from_url" %}";
- const folder_list_url = "{% url 'folder_list' %}";
- const file_folder_list_url = "{% url 'file_folder_list' %}";
- const download_url = "{% url 'download' %}";
-let currentSortField = null;
-let currentSortDirection = null;
-let currentEntries = [];
-
-
-
-
-
-
-
-
- </script>
-    <!-- Custom Context Menu -->
-   <div id="context-menu" class="context-menu">
-  <div class="context-menu-item" id="menu-download"><i class="fa fa-download"></i> Download</div>
-  <div class="context-menu-item" id="menu-view"><i class="fa fa-eye"></i> View</div>
-  <div class="context-menu-item" id="menu-edit"><i class="fa fa-edit"></i> Edit</div>
-  <div class="context-menu-item" id="menu-html-edit"><i class="fa fa-edit"></i> HTML Edit</div>
-  <div class="context-menu-item" id="menu-move"> <span class="fa fa-arrows"></span> Move</div>
-  <div class="context-menu-item" id="menu-copy"> <i class="fa fa-copy"></i> Copy</div>
-  <div class="context-menu-item" id="menu-rename"> <i class="fa fa-file"></i> Rename</div>
-  <div class="context-menu-item" id="menu-permissions"><i class="fa fa-key"></i> Change Permissions</div>   
-   <div class="context-menu-item" id="menu-delete"><i class="fa fa-remove"></i> Delete</div>
-   <div class="context-menu-item" id="menu-extract" style="display:none"> <i class="fa fa-folder-open-o"></i> Extract</div>
-   <div class="context-menu-item" id="menu-compress"><i class="fa fa-file-zip-o"></i> Compress</div>
-        
-        
-       
-    </div>
-
-<script src="/media/js/filemanager.js?v=3.0.9"></script>
-<script src="/media/notify/notify.js"></script>
+    <script src="/media/js/filemanager.js?v=3.0.9"></script>
+    <script src="/media/notify/notify.js"></script>
+</body>
+</html>

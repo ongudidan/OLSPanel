@@ -1,0 +1,156 @@
+<!-- Action Popup (Chmod, Delete, Rename, etc.) -->
+<div id="action-popup" class="popup-overlay">
+    <div class="popup-content">
+        <div class="title-bar">
+            <div id="loading-containera">
+                <div class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </div>
+            <span id="atitle" class="title-text">Action name</span>
+            <button id="aclose" class="close-btn">&times;</button>
+        </div>
+        <div class="popup-body">
+            <span id="cf-name" style="font-weight: normal; font-style: normal; color: red;"></span>
+            <div id="selected-items-list" style="max-height: 150px; overflow-y: auto; margin-top: 10px; padding: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 13px; border-radius: 6px;"></div>
+
+            <span id="all">
+                <div class="input-group">
+                    <span id="ahome" class="input-group-addon" style="background-color: transparent; display:none">
+                        <span id="imgHome" class="fa fa-home"></span>
+                    </span>
+                    <input type="text" id="anames" placeholder="Enter name" style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; outline: none;"/>
+                </div>
+            </span>
+
+            <span id="del">
+                <p style="font-weight: 500; color: #ef4444; font-size: 14px; margin-bottom: 10px;">
+                    <span class="fa fa-trash"></span> Are you sure you want to delete the selected files?
+                </p>
+                <div class="input-group" style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id='delete' checked style="cursor: pointer;"/>
+                    <label for="delete" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">Permanently delete (skip trash)</label>
+                </div>
+            </span>
+
+            <span id="per">
+                <table class="table table-stripped chmodtbl" id="chmodtbl" style="width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                            <th style="padding: 8px; text-align: left;">Mode</th>
+                            <th style="padding: 8px; text-align: center;">User</th>
+                            <th style="padding: 8px; text-align: center;">Group</th>
+                            <th style="padding: 8px; text-align: center;">World</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 8px; font-weight: 500;">Read</td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="ur" value="4" onclick="calcperm();"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="gr" value="4" onclick="calcperm();"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="wr" value="4" onclick="calcperm();"></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 8px; font-weight: 500;">Write</td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="uw" value="2" onclick="calcperm();"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="gw" value="2" onclick="calcperm();"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="ww" value="2" onclick="calcperm();"></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 8px; font-weight: 500;">Execute</td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="ux" value="1" onclick="calcperm();"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="gx" value="1" onclick="calcperm();"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="checkbox" name="wx" value="1" onclick="calcperm();"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; font-weight: 600;">Permission</td>
+                            <td style="padding: 8px; text-align: center;"><input type="text" size="1" value="0" style="text-align: center; font-family: monospace; font-weight: 600; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; width: 36px;" name="vu" readonly="readonly"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="text" size="1" value="0" style="text-align: center; font-family: monospace; font-weight: 600; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; width: 36px;" name="vg" readonly="readonly"></td>
+                            <td style="padding: 8px; text-align: center;"><input type="text" size="1" value="0" style="text-align: center; font-family: monospace; font-weight: 600; padding: 4px; border: 1px solid #cbd5e1; border-radius: 4px; width: 36px;" name="vw" readonly="readonly"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <input type="hidden" size="1" value="0" id="u">
+                <input type="hidden" size="1" value="0" id="g">
+                <input type="hidden" size="1" value="0" id="w">
+            </span>
+            <input type="hidden" id="apath"/>
+            
+            <div class="popup-buttons" style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                <button id="aaction" type="button">type</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Popup -->
+<div id="action-popup_settings" class="popup-overlay">
+    <div class="popup-content">
+        <div class="title-bar">
+            <div id="loading-containera">
+                <div class="sk-wave">
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
+                </div>
+            </div>
+            <span id="atitle_settings" class="title-text">Settings</span>
+            <button onclick="return closePopupSettings();" class="close-btn">&times;</button>
+        </div>
+        <div class="popup-body" style="padding: 10px 0;">
+            <!-- Section Header -->
+            <div style="margin-bottom: 12px; text-align: left;">
+                <span style="color: var(--brand-color, #ef6d19); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                    File Settings
+                </span>
+            </div>
+
+            <!-- Hidden Files Option -->
+            <div style="margin-bottom: 16px; display: flex; align-items: center;">
+                <label style="display: flex; align-items: center; cursor: pointer; gap: 8px; font-size: 13px; color: #334155;">
+                    <input type="checkbox" name="hide_hiden_file" id="hidden" value="1"
+                           {% if my_settings.hide_hiden_file == 0 %}checked{% endif %} style="cursor: pointer;"/>
+                    Show Hidden Files <span style="color: #94a3b8;">(dotfiles)</span>
+                </label>
+            </div>
+
+            <!-- Folder Settings Header -->
+            <div style="margin: 20px 0 12px; text-align: left;">
+                <span style="color: var(--brand-color, #ef6d19); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                    Folder Settings
+                </span>
+            </div>
+
+            <!-- Folder Size Option -->
+            <div style="margin-bottom: 20px; display: flex; align-items: center;">
+                <label style="display: flex; align-items: center; cursor: pointer; gap: 8px; font-size: 13px; color: #334155;">
+                    <input type="checkbox" id="folder_size" name="hide_folder_size" value="1"
+                           {% if my_settings.hide_folder_size == 0 %}checked{% endif %} style="cursor: pointer;"/>
+                    Show Folder Total Size <span style="color: #94a3b8;">(may be slow)</span>
+                </label>
+            </div>
+
+            <!-- Save Button -->
+            <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                <button onclick="return saveSettings();" type="button" class="btn btn-secondary" style="
+                    background-color: var(--button-secondary, #fd5190) !important;
+                    border: 1px solid var(--button-secondary, #fd5190) !important;
+                    color: white !important;
+                    padding: 8px 24px;
+                    font-size: 13px;
+                    font-weight: 600;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

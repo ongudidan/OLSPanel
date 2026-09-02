@@ -1,0 +1,104 @@
+<header>
+    <img src="{{ branding.brand_icon }}" alt="Logo">
+    <button onclick="toggleSidebar();" aria-label="Toggle sidebar" title="Toggle sidebar" class="action menu-button">
+        <i class="material-icons">menu</i>
+        <span>Toggle sidebar</span>
+    </button>
+    
+    <div id="listing" class="file-icons list">
+        <div id="topnav" class="clear">
+            <ul>
+                <li id="action-newfile">
+                    <a href="javascript:void(0)" title="New File" id="new-file" class="btn btn-link">
+                        <span class="fa fa-plus"></span>
+                        File
+                    </a>
+                </li>
+                <li id="action-newfolder">
+                    <a href="javascript:void(0)" title="New Folder" id="new-folder" class="btn btn-link">
+                        <span class="fa fa-plus"></span>
+                        Folder
+                    </a>
+                </li>
+                <li id="action-copy" onclick="return actionHandler('copy');" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-copy" title="Copy" class="btn btn-link">
+                        <i class="fa fa-copy"></i>
+                        Copy
+                    </a>
+                </li>
+                <li id="action-move" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-move" title="Move File" class="btn btn-link">
+                        <span class="fa fa-arrows"></span>
+                        Move
+                    </a>
+                </li>
+                <li id="action-upload">
+                    <a href="javascript:void(0)" id="open-upload-modal" title="Upload" class="btn btn-link">
+                        <i class="fa fa-upload"></i>
+                        Upload
+                    </a>
+                </li>
+                <li id="action-download" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-download" title="Download" class="btn btn-link">
+                        <i class="fa fa-download"></i>
+                        Download
+                    </a>
+                </li>
+                <li id="action-delete" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-delete" title="Delete" class="btn btn-link">
+                        <span class="fa fa-remove"></span>
+                        Delete
+                    </a>
+                </li>
+                <li id="action-rename" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-rename" title="Rename" class="btn btn-link">
+                        <i class="fa fa-file"></i>
+                        Rename
+                    </a>
+                </li>
+                <li id="action-edit" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-edit" title="Edit" class="btn btn-link">
+                        <i class="fa fa-edit"></i>
+                        Edit
+                    </a>
+                </li>
+                <li id="action-htmledit" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-edit-html" title="HTML Editor" class="btn btn-link">
+                        <i class="fa fa-edit"></i>
+                        HTML Editor
+                    </a>
+                </li>
+                <li id="action-chmod" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-permission" title="Change Permissions" class="btn btn-link">
+                        <i class="fa fa-key"></i>
+                        Permissions
+                    </a>
+                </li>
+                <li class="divider" id="action-view">
+                    <a href="javascript:void(0)" title="View" id="top-view" class="btn btn-link">
+                        <i class="fa fa-eye"></i>
+                        View
+                    </a>
+                </li>
+                <li id="action-extract" class="btn btn-link">
+                    <a href="javascript:void(0)" id="top-unzip" title="Extract" class="btn btn-link">
+                        <i class="fa fa-folder-open-o"></i>
+                        Extract
+                    </a>
+                </li>
+                <li id="action-compress" class="btn btn-link">
+                    <a href="javascript:void(0)" title="Compress" id="top-compress" class="btn btn-link">
+                        <i class="fa fa-file-zip-o"></i>
+                        Compress
+                    </a>
+                </li>
+                <li id="action-fixpermission" class="btn btn-link">
+                    <a href="javascript:void(0)" title="Fix Permission" id="fix-permission" class="btn btn-link">
+                        <i class="fa fa-unlock"></i>
+                        Fix Permissions
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
