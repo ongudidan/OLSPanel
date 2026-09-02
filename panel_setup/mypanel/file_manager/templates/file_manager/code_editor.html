@@ -35,7 +35,7 @@
 			
            
 
-        <button type="submit" id="sform_submit" class="btn btn-secondary -md" style="font-weight: bold"><img id="responseContainer" style="margin-right: 5px; display: none;" src="/media/loading.gif" width="30px" height="30px"/> Save Changes</button>
+        <button type="button" id="sform_submit" class="btn btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded shadow-xs"><img id="responseContainer" style="margin-right: 5px; display: none;" src="/media/loading.gif" width="16px" height="16px"/> Save Changes</button>
 		<input type="button" style="margin-left:10px;" onclick="closeTab();" class="btn btn-white btn-md" value="Close">
     </div>
 </div>
@@ -123,30 +123,21 @@
    {% csrf_token %}              
 <div id="editor">{{ content}}</div>
    <script>
-    // Define the Django base URL and the URL for 'php_editor'
-	//const contents = `{{ content|escapejs }}`;
     const baseUrl = "{{ base_url }}";
     const phpEditorUrl = "{% url 'php_editor' %}";
-	const saveUrl = "{% url 'file_setting' %}";
-	const urlParams = new URLSearchParams(window.location.search);
-	const font_size = "{{my_settings.font_size}}"; 
-let ext = urlParams.get('ext'); 
+    const saveUrl = "{% url 'file_setting' %}";
+    const font_size = "{{ my_settings.font_size|default:'13' }}"; 
+    const urlParams = new URLSearchParams(window.location.search);
+    let ext = urlParams.get('ext') || "{{ ext|default:'text' }}";
 
-
-if (!ext) {
-    ext = "{{ext}}"; // Assign default value if 'ext' is empty or null
-} else {
-    ext = "html"; // Assign 'html' if 'ext' exists
-}
-        document.addEventListener('keydown', function(event) {
-            // Detect if 'Ctrl' (or 'Cmd' for Mac) + 'F' is pressed
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
-                event.preventDefault();  // Prevent the default browser action (find)
-                toggleSearch();  // Open or close the search box
-            }
-        });
-</script>
-   <script src="/media/editor/searchbox.js?id=3.0.4" defer></script>
+    document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+            event.preventDefault();
+            toggleSearch();
+        }
+    });
+   </script>
    <script src="/media/notify/notify.js"></script>
+   <script src="/media/editor/searchbox.js?id=3.0.5" defer></script>
 </body>
 </html>

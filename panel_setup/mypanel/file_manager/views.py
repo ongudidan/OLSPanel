@@ -44,6 +44,67 @@ def home(request):
 
     
     
+def get_ace_editor_mode(file_path):
+    if not file_path:
+        return 'text'
+    file_name = os.path.basename(file_path).lower()
+    
+    if file_name.startswith('.'):
+        name_part = file_name.lstrip('.')
+        if name_part in ('env', 'ini', 'conf', 'cnf', 'properties', 'env.example', 'env.local', 'env.production'):
+            return 'ini'
+        elif name_part == 'htaccess':
+            return 'apache_conf'
+        elif name_part in ('gitignore', 'npmignore', 'dockerignore'):
+            return 'ini'
+            
+    ext = os.path.splitext(file_name)[1].lower().lstrip('.')
+    if not ext and '.' in file_name:
+        ext = file_name.split('.')[-1].lower()
+
+    mode_map = {
+        'js': 'javascript',
+        'mjs': 'javascript',
+        'cjs': 'javascript',
+        'ts': 'javascript',
+        'jsx': 'javascript',
+        'tsx': 'javascript',
+        'json': 'json',
+        'py': 'python',
+        'php': 'php',
+        'phtml': 'php',
+        'php3': 'php',
+        'php4': 'php',
+        'php5': 'php',
+        'php7': 'php',
+        'php8': 'php',
+        'html': 'html',
+        'htm': 'html',
+        'css': 'css',
+        'scss': 'css',
+        'less': 'css',
+        'sql': 'sql',
+        'mysql': 'mysql',
+        'xml': 'xml',
+        'svg': 'svg',
+        'dart': 'dart',
+        'java': 'java',
+        'htaccess': 'apache_conf',
+        'apache_conf': 'apache_conf',
+        'conf': 'ini',
+        'cnf': 'ini',
+        'ini': 'ini',
+        'env': 'ini',
+        'properties': 'ini',
+        'sh': 'ini',
+        'bash': 'ini',
+        'txt': 'text',
+        'log': 'text',
+        'md': 'text',
+    }
+    return mode_map.get(ext, 'text')
+
+
 @login_required
 def php_editor(request):
     user_settings = UserSettings.objects.filter(userid=request.user.id).first()
@@ -58,38 +119,24 @@ def php_editor(request):
     }
     
     file = request.GET.get('file')
+    if not file and request.method == 'POST':
+        file = request.POST.get('file') or request.GET.get('file')
+    if not file:
+        return redirect('/')
     username_string = request.user.username
     file = remove_home_anyname(file)
     base_dir = f'/home/{username_string}/'
     file_path = os.path.join(base_dir, file.lstrip('/'))
-    file_path = ensure_user_home_prefix(file_path,username_string)
-    base_url = f"{request.scheme}://{request.get_host()}"
+    file_path = ensure_user_home_prefix(file_path, username_string)
     file_path = os.path.abspath(os.path.join(base_dir, file.lstrip('/')))
     if not file_path.startswith(base_dir):
         return JsonResponse({'status': 'error', 'message': 'Access denied.'}, status=403)
     file_name = os.path.basename(file_path)
-    ext = os.path.splitext(file_name)[1].lower().lstrip('.')
-    if ext == 'js':
-        ext = 'javascript'
-    elif file_name == '.htaccess':
-        ext = 'apache_conf'   
-    elif ext == 'py':
-        ext = 'python'
-    # Check file permissions
-    #has_permission, message = check_read_permission(file_path, username_string)
-    
-    #if not has_permission:
-        #return JsonResponse({'status': 'error', 'message': message}, status=403)
+    ext = get_ace_editor_mode(file_path)
 
     # Handle POST request to save the file content
-    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    if request.method == 'POST':
         new_content = request.POST.get('content')
-        
-        #has_permissionw, message = check_file_permission(file_path, username_string)
-    
-        #if not has_permissionw:
-            #return JsonResponse({'status': 'error', 'message': message}, status=403)
-
         
         # Check if content is provided
         if new_content is None:

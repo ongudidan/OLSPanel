@@ -1,84 +1,111 @@
-function reloadPageWithUrl(url) {
-	const inputElement = document.getElementById('path');
-    
-    // Get the value of the input field
-    const inputValue = inputElement.value;
-    window.location.href = baseUrl + phpEditorUrl + "?file=" + encodeURIComponent(inputValue); // Safely encode the URL
+// Configure Ace Editor asset base path
+if (typeof ace !== 'undefined') {
+    ace.config.set("basePath", "/media/editor/");
+    ace.config.set("modePath", "/media/editor/");
+    ace.config.set("themePath", "/media/editor/");
+    ace.config.set("workerPath", "/media/editor/");
 }
-	
-	
-        const editor = ace.edit("editor");
-        editor.setTheme("ace/theme/chrome"); // You can change the theme
-        editor.session.setMode("ace/mode/"+ext); // Set the mode to PHP
-        editor.setOptions({
-    fontSize: "13px",  // Default font size
-    wrap: true         // Enable word wrapping
+
+function getSafeEditorUrl() {
+    return (typeof phpEditorUrl !== 'undefined' && phpEditorUrl) ? phpEditorUrl : window.location.pathname;
+}
+
+function reloadPageWithUrl() {
+    const inputElement = document.getElementById('path');
+    if (!inputElement) return;
+    const inputValue = inputElement.value;
+    window.location.href = getSafeEditorUrl() + "?file=" + encodeURIComponent(inputValue);
+}
+
+// Initialize Ace Editor
+const editor = ace.edit("editor");
+editor.setTheme("ace/theme/chrome");
+
+// Resolve safe mode
+const availableModes = ['apache_conf', 'css', 'dart', 'html', 'ini', 'java', 'javascript', 'json', 'mysql', 'php', 'python', 'sql', 'svg', 'xml', 'text'];
+let currentMode = 'text';
+if (typeof ext !== 'undefined' && ext && availableModes.includes(ext.toLowerCase())) {
+    currentMode = ext.toLowerCase();
+} else if (typeof ext !== 'undefined' && ext === 'js') {
+    currentMode = 'javascript';
+} else if (typeof ext !== 'undefined' && ext === 'py') {
+    currentMode = 'python';
+} else if (typeof ext !== 'undefined' && (ext === 'env' || ext === 'conf' || ext === 'ini')) {
+    currentMode = 'ini';
+} else if (typeof ext !== 'undefined' && (ext === 'htaccess' || ext === 'apache_conf')) {
+    currentMode = 'apache_conf';
+}
+
+editor.session.setMode("ace/mode/" + currentMode);
+editor.setOptions({
+    fontSize: (typeof font_size !== 'undefined' && font_size) ? font_size + "px" : "13px",
+    wrap: true
 });
-//editor.setValue(contents, -1);
-editor.selection.moveCursorTo(0, 0); 
+editor.selection.moveCursorTo(0, 0);
 editor.focus();
-      let isSearchVisible = false; // State to track visibility
-let searchInitialized = false; // State to track if a search has been performed
 
+let isSearchVisible = false;
+let searchInitialized = false;
 
+// Search Functionality
+const searchInput = document.getElementById('search-input');
+const findNextBtn = document.getElementById('find-next');
+const findPrevBtn = document.getElementById('find-prev');
+const findAllBtn = document.getElementById('find-all');
 
-// Automatically perform search on input
-document.getElementById('search-input').addEventListener('input', function() {
-    const needle = this.value; // Get the current input value
-    
-    if (needle) {
-        editor.find(needle, {
-            backwards: false,
-            wrap: false,
-            caseSensitive: false,
-            wholeWord: false,
-            regExp: false
-        });
-        searchInitialized = true; // Mark search as initialized
-        document.getElementById('find-next').disabled = false; // Enable buttons
-        document.getElementById('find-prev').disabled = false; // Enable buttons
-    } else {
-        // If the input is empty, disable the buttons
-        searchInitialized = false;
-        document.getElementById('find-next').disabled = true;
-        document.getElementById('find-prev').disabled = true;
-    }
-});
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        const needle = this.value;
+        if (needle) {
+            editor.find(needle, {
+                backwards: false,
+                wrap: false,
+                caseSensitive: false,
+                wholeWord: false,
+                regExp: false
+            });
+            searchInitialized = true;
+            if (findNextBtn) findNextBtn.disabled = false;
+            if (findPrevBtn) findPrevBtn.disabled = false;
+        } else {
+            searchInitialized = false;
+            if (findNextBtn) findNextBtn.disabled = true;
+            if (findPrevBtn) findPrevBtn.disabled = true;
+        }
+    });
+}
 
-document.getElementById('find-next').onclick = function() {
-    if (searchInitialized) {
-        editor.findNext();
-    }
-};
+if (findNextBtn) {
+    findNextBtn.onclick = function() {
+        if (searchInitialized) editor.findNext();
+    };
+}
 
-document.getElementById('find-prev').onclick = function() {
-    if (searchInitialized) {
-        editor.findPrevious();
-    }
-};
+if (findPrevBtn) {
+    findPrevBtn.onclick = function() {
+        if (searchInitialized) editor.findPrevious();
+    };
+}
 
-// Highlight all occurrences when clicking the "All" button
-document.getElementById('find-all').onclick = function() {
-    const needle = document.getElementById('search-input').value; // Get the current input value
-    if (needle) {
-        editor.findAll(needle, {
-            backwards: false,
-            wrap: true,
-            caseSensitive: false,
-            wholeWord: false,
-            regExp: false
-        });
-        // Optionally, update the counter to show how many results were found
-        const foundCount = editor.getFoundCount(); // Assuming getFoundCount() method returns the number of matches
-        document.querySelector('.ace_search_counter').textContent = `${foundCount} found`;
-    }
-};
-		
+if (findAllBtn) {
+    findAllBtn.onclick = function() {
+        const needle = searchInput ? searchInput.value : '';
+        if (needle) {
+            editor.findAll(needle, {
+                backwards: false,
+                wrap: true,
+                caseSensitive: false,
+                wholeWord: false,
+                regExp: false
+            });
+            const foundCount = editor.getFoundCount ? editor.getFoundCount() : '';
+            const counter = document.querySelector('.ace_search_counter');
+            if (counter) counter.textContent = `${foundCount} found`;
+        }
+    };
+}
 
-		
-		
-		
-var wrapEnabled = false;		
+var wrapEnabled = false;
 function toolbarActions(action) {
     switch(action) {
         case 'goto':
@@ -91,23 +118,21 @@ function toolbarActions(action) {
             editor.redo();
             break;
         case 'linewrap':
-              wrapEnabled = !wrapEnabled; // flip state
+            wrapEnabled = !wrapEnabled;
             editor.session.setUseWrapMode(wrapEnabled);
             if (wrapEnabled) {
                 editor.session.setWrapLimitRange(80, 80);
             }
             break;
-  
         default:
             console.warn(`Unknown action: ${action}`);
     }
 }
- 	
+
 function goToLine() {
     const totalLines = editor.session.getLength();
     let line = prompt(`Enter line number (1-${totalLines}):`, "1");
-    
-    if (line !== null) { // If user didn't cancel
+    if (line !== null) {
         line = parseInt(line, 10);
         if (!isNaN(line) && line >= 1 && line <= totalLines) {
             editor.scrollToLine(line, true, true, function () {});
@@ -120,136 +145,160 @@ function goToLine() {
 }
 
 function setFontSize() {
-    const fontSize = document.getElementById('ddlFontSizes').value;  // Get the selected font size
-    editor.setFontSize(fontSize + "px");  // Apply the font size to the editor
-	saveSettings(fontSize);
+    const ddl = document.getElementById('ddlFontSizes');
+    if (!ddl) return;
+    const fontSize = ddl.value;
+    editor.setFontSize(fontSize + "px");
+    saveSettings(fontSize);
 }
 
-// Attach the change event to the dropdown
-document.getElementById('ddlFontSizes').addEventListener('change', setFontSize);
+const ddlFontSizes = document.getElementById('ddlFontSizes');
+if (ddlFontSizes) {
+    ddlFontSizes.addEventListener('change', setFontSize);
+}
 
-// Optionally, set a default font size when the page loads
-window.onload = function() {
-    const defaultFontSize = font_size;  // Default font size (can be customized)
-    document.getElementById('ddlFontSizes').value = defaultFontSize;  // Set the default value in the dropdown
-    editor.setFontSize(defaultFontSize + "px");  // Apply the default font size
-};   
+window.addEventListener('load', function() {
+    const defaultFontSize = (typeof font_size !== 'undefined' && font_size) ? font_size : "13";
+    if (ddlFontSizes) {
+        ddlFontSizes.value = defaultFontSize;
+    }
+    editor.setFontSize(defaultFontSize + "px");
+});
 
 function toggleSearch() {
-    var searchBoxVisible = false;
-    if (!searchBoxVisible) {
-        //searchContainer.style.display = "block";
-		editor.execCommand("find");
-    } else {
-		editor.searchBox.hide();
-        //searchContainer.style.display = "none";
-    }
-	searchBoxVisible = !searchBoxVisible; 
+    editor.execCommand("find");
 }
 
-  document.addEventListener("DOMContentLoaded", function() {
-        const saveButton = document.getElementById('sform_submit');
-		 const responseDisplay = document.getElementById('responseContainer');
-        const alertContainer = document.getElementById('alertContainer');
-        const messageDisplay = document.getElementById('message');
-		
-        saveButton.addEventListener('click', function() {
-            // Display saving message
-            responseDisplay.style.display = 'inline-block';
+document.addEventListener("DOMContentLoaded", function() {
+    const saveButton = document.getElementById('sform_submit');
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
 
-            const content = editor.getValue();
+    if (!saveButton) return;
 
-            const inputElement = document.getElementById('path');
-			const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Get the CSRF token
+    saveButton.addEventListener('click', function(e) {
+        e.preventDefault();
 
-    
-    // Get the value of the input field
-    const inputValue = inputElement.value;
-            // Use fetch to send a POST request to save the file content
-            fetch(joinUrl(baseUrl, phpEditorUrl) + "?file=" + inputValue, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken,
-					'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: new URLSearchParams({
-                    'content': content
-                })
+        if (responseDisplay) responseDisplay.style.display = 'inline-block';
+
+        const content = editor.getValue();
+        const inputElement = document.getElementById('path');
+        const csrfElem = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrfToken = csrfElem ? csrfElem.value : '';
+        const inputValue = inputElement ? inputElement.value : '';
+
+        const targetUrl = getSafeEditorUrl() + "?file=" + encodeURIComponent(inputValue);
+
+        fetch(targetUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: new URLSearchParams({
+                'content': content
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.text(); // Return response as text
-            })
-            .then(data => {
-                console.log('Response:', data);
-                responseDisplay.style.display = 'none'; // Hide the saving message
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || ('Server responded with ' + response.status));
+                });
+            }
+            return response.text();
+        })
+        .then(data => {
+            if (responseDisplay) responseDisplay.style.display = 'none';
 
-                if (data.includes('success')) {
-				 notify.addNotification({
-          type: "success",
-          title: "Success!",
-          message: "File saved!"
-      });
-                   
-                   //alertContainer.className = "alert alert-success alert-dismissible fade show";
-                  //  messageDisplay.innerText = data; // Displaying success message
+            let isSuccess = false;
+            let msg = "File saved successfully!";
+
+            try {
+                const parsed = JSON.parse(data);
+                if (parsed.status === 'success') {
+                    isSuccess = true;
+                    if (parsed.message) msg = parsed.message;
                 } else {
-                   notify.addNotification({
-          type: "error",
-          title: "Error!",
-          message: "Failed"+ error.message
-        }); 
+                    isSuccess = false;
+                    msg = parsed.message || "Failed to save file";
                 }
+            } catch (err) {
+                isSuccess = data.includes('success');
+                if (!isSuccess) msg = data || "Failed to save file";
+            }
 
-                alertContainer.style.display = "block"; // Show the alert
-
-               
-            })
-            .catch(error => {
-                console.error('Error:', error);
-				
-				
-               
-            });
+            if (isSuccess) {
+                if (typeof notify !== 'undefined' && notify && typeof notify.addNotification === 'function') {
+                    notify.addNotification({
+                        type: "success",
+                        title: "Success!",
+                        message: msg
+                    });
+                }
+                if (messageDisplay) messageDisplay.innerText = msg;
+                if (alertContainer) {
+                    alertContainer.className = "alert alert-success alert-dismissible fade show";
+                    alertContainer.style.display = "block";
+                }
+            } else {
+                if (typeof notify !== 'undefined' && notify && typeof notify.addNotification === 'function') {
+                    notify.addNotification({
+                        type: "error",
+                        title: "Error!",
+                        message: msg
+                    });
+                }
+                if (messageDisplay) messageDisplay.innerText = msg;
+                if (alertContainer) {
+                    alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                    alertContainer.style.display = "block";
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error saving file:', error);
+            if (responseDisplay) responseDisplay.style.display = 'none';
+            const errorMsg = error.message || error.toString();
+            if (typeof notify !== 'undefined' && notify && typeof notify.addNotification === 'function') {
+                notify.addNotification({
+                    type: "error",
+                    title: "Error!",
+                    message: "Save failed: " + errorMsg
+                });
+            }
+            if (messageDisplay) messageDisplay.innerText = "Error: " + errorMsg;
+            if (alertContainer) {
+                alertContainer.className = "alert alert-danger alert-dismissible fade show";
+                alertContainer.style.display = "block";
+            }
         });
     });
+});
 
- function closeTab() {
-            // This will close the current tab
-            window.close();
-        }
+function closeTab() {
+    window.close();
+}
 
+function saveSettings(fontSize) {
+    const csrfElem = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    const csrfToken = csrfElem ? csrfElem.value : '';
+    const saveTargetUrl = (typeof saveUrl !== 'undefined' && saveUrl) ? saveUrl : '/file_setting';
 
-
-function saveSettings(font_size) {
-	const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-    const requestData = {
-        font_size: font_size
-    };
-
-    fetch(saveUrl, {
+    fetch(saveTargetUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'X-CSRFToken': csrfToken,
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: new URLSearchParams(requestData)  // this serializes it correctly
+        body: new URLSearchParams({
+            font_size: fontSize
+        })
     })
     .then(response => response.json())
-    .then(data => {
-       // console.log('Settings saved:', data);
-        // Optionally show a success message
-    })
     .catch(error => {
-      //  console.error('Error saving settings:', error);
-        // Optionally show an error message
+        console.error('Error saving settings:', error);
     });
-}
-
-function joinUrl(base, path) {
-    return base.replace(/\/+$/, '') + '/' + path.replace(/^\/+/, '');
 }

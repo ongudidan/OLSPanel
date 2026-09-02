@@ -81,18 +81,22 @@ let notify = new Notification();
 
 /* ----- Specify type of notification, title and message ----- */
 
-successBtn.addEventListener("click", () => {
-  notify.addNotification({
-    type: "success",
-    title: "Success!",
-    message: "Your notification is working!"
+if (successBtn) {
+  successBtn.addEventListener("click", () => {
+    notify.addNotification({
+      type: "success",
+      title: "Success!",
+      message: "Your notification is working!"
+    });
   });
-});
+}
 
-errorBtn.addEventListener("click", () => {
-  notify.addNotification({
-    type: "error",
-    title: "Error!",
-    message: "Please try again!"
+if (errorBtn) {
+  errorBtn.addEventListener("click", () => {
+    notify.addNotification({
+      type: "error",
+      title: "Error!",
+      message: "Please try again!"
+    });
   });
-});
+}

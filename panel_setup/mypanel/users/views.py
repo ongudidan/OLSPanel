@@ -1357,10 +1357,75 @@ def statics(request):
     
  
       
+def get_ace_editor_mode(file_path):
+    if not file_path:
+        return 'text'
+    file_name = os.path.basename(file_path).lower()
+    
+    if file_name.startswith('.'):
+        name_part = file_name.lstrip('.')
+        if name_part in ('env', 'ini', 'conf', 'cnf', 'properties', 'env.example', 'env.local', 'env.production'):
+            return 'ini'
+        elif name_part == 'htaccess':
+            return 'apache_conf'
+        elif name_part in ('gitignore', 'npmignore', 'dockerignore'):
+            return 'ini'
+            
+    ext = os.path.splitext(file_name)[1].lower().lstrip('.')
+    if not ext and '.' in file_name:
+        ext = file_name.split('.')[-1].lower()
+
+    mode_map = {
+        'js': 'javascript',
+        'mjs': 'javascript',
+        'cjs': 'javascript',
+        'ts': 'javascript',
+        'jsx': 'javascript',
+        'tsx': 'javascript',
+        'json': 'json',
+        'py': 'python',
+        'php': 'php',
+        'phtml': 'php',
+        'php3': 'php',
+        'php4': 'php',
+        'php5': 'php',
+        'php7': 'php',
+        'php8': 'php',
+        'html': 'html',
+        'htm': 'html',
+        'css': 'css',
+        'scss': 'css',
+        'less': 'css',
+        'sql': 'sql',
+        'mysql': 'mysql',
+        'xml': 'xml',
+        'svg': 'svg',
+        'dart': 'dart',
+        'java': 'java',
+        'htaccess': 'apache_conf',
+        'apache_conf': 'apache_conf',
+        'conf': 'ini',
+        'cnf': 'ini',
+        'ini': 'ini',
+        'env': 'ini',
+        'properties': 'ini',
+        'sh': 'ini',
+        'bash': 'ini',
+        'txt': 'text',
+        'log': 'text',
+        'md': 'text',
+    }
+    return mode_map.get(ext, 'text')
+
+
 @login_required
 @admincheck
 def php_editor(request):
     file = request.GET.get('file')
+    if not file and request.method == 'POST':
+        file = request.POST.get('file') or request.GET.get('file')
+    if not file:
+        return redirect('/code_editor')
     username_string = request.user.username
     file = remove_home_anyname(file)
     base_dir = f'/home/{username_string}/'
@@ -1374,7 +1439,7 @@ def php_editor(request):
         return JsonResponse({'status': 'error', 'message': message}, status=403)
 
     # Handle POST request to save the file content
-    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    if request.method == 'POST':
         new_content = request.POST.get('content')
         
         # Check if content is provided
@@ -1390,9 +1455,7 @@ def php_editor(request):
             return JsonResponse({'status': 'error', 'message': f"Error saving file: {str(e)}"}, status=500)
 
     # Handle GET request to display the file content
-    ext = os.path.splitext(file_path)[1].lower().lstrip('.')
-    if ext == 'js':
-        ext = 'javascript'
+    ext = get_ace_editor_mode(file_path)
     
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
