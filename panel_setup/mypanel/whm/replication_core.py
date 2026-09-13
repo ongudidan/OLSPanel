@@ -81,14 +81,19 @@ def ensure_replication_config(server_id=None, is_primary=True):
     Creates/updates the OLSPanel MySQL replication configuration file.
     Enables binary logs, GTID, and unique server-id.
     """
+    conf_dir = get_mysql_config_dir()
+    os.makedirs(conf_dir, exist_ok=True)
+    conf_path = os.path.join(conf_dir, "99-olspanel-replication.cnf")
+
+    # If config already exists and valid, skip unnecessary restarts
+    if os.path.isfile(conf_path):
+        return True, f"Replication config already present at {conf_path}"
+
     if not server_id:
         curr_id = get_current_server_id()
         server_id = curr_id if curr_id > 1 else generate_server_id()
 
     engine, _ = detect_db_engine()
-    conf_dir = get_mysql_config_dir()
-    os.makedirs(conf_dir, exist_ok=True)
-    conf_path = os.path.join(conf_dir, "99-olspanel-replication.cnf")
 
     if engine == "mariadb":
         config_content = f"""# OLSPanel Auto-Generated Database Replication Configuration
@@ -127,10 +132,18 @@ bind-address            = 0.0.0.0
 
         # Reload or restart database service
         run_cmd("systemctl reload mariadb || systemctl reload mysql || systemctl restart mariadb || systemctl restart mysql")
+
+        # Close connection so Django reconnects cleanly on next query
+        try:
+            connection.close()
+        except Exception:
+            pass
+
         return True, f"Replication config saved to {conf_path} with server_id {server_id}"
     except Exception as e:
         logger.error(f"Failed to write replication config: {e}")
         return False, str(e)
+
 
 
 def allow_firewall_for_ip(remote_ip):

@@ -102,6 +102,7 @@ def db_replication_status_api(request):
     })
 
 
+@csrf_exempt
 @require_POST
 def db_replication_generate_token_view(request):
     """Generates a node pairing token for the primary server."""
@@ -127,6 +128,7 @@ def db_replication_generate_token_view(request):
     })
 
 
+@csrf_exempt
 @require_POST
 def db_replication_pair_node(request):
     """
@@ -202,6 +204,7 @@ def db_replication_pair_node(request):
     })
 
 
+@csrf_exempt
 @require_POST
 def db_replication_create_user_view(request):
     """Creates a replication user and configures firewall for a replica IP."""
@@ -251,8 +254,10 @@ def db_replication_create_user_view(request):
     })
 
 
+@csrf_exempt
 @require_POST
 def db_replication_action(request):
+
     """Handles operational cluster actions: pause, resume, promote, delete, enable_binlog."""
     action = request.POST.get('action', '').strip()
     node_id = request.POST.get('node_id')
