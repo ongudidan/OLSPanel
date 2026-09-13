@@ -7,11 +7,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 from django.contrib import messages
 from django.utils import timezone
-from users.models import DbClusterNode, DbReplicationLog
+from users.models import DbClusterNode, DbReplicationLog, DbSyncRule
 from whm.replication_core import (
     detect_db_engine,
     get_current_server_id,
     ensure_replication_config,
+    apply_database_replication_filters,
+    get_local_databases_overview,
     allow_firewall_for_ip,
     remove_firewall_for_ip,
     create_replication_user,
@@ -268,8 +270,15 @@ def db_replication_toggle_db(request):
     Toggles live replication on or off for an individual database.
     Dynamically reconfigures MySQL replication filters so other databases are untouched.
     """
-    db_name = request.POST.get('database_name', '').strip()
-    action = request.POST.get('action', 'toggle').strip()  # 'enable', 'disable', or 'toggle'
+    db_name = request.POST.get('database_name') or request.POST.get('db_name', '')
+    if not db_name and request.body:
+        try:
+            body_data = json.loads(request.body.decode('utf-8'))
+            db_name = body_data.get('database_name') or body_data.get('db_name', '')
+        except Exception:
+            pass
+    db_name = str(db_name).strip()
+    action = request.POST.get('action', 'toggle').strip()
 
     if not db_name:
         return JsonResponse({'status': 'error', 'message': 'Database name is required.'})
