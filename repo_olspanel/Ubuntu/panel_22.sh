@@ -1201,6 +1201,8 @@ mkdir -p /etc/opendkim
 sudo touch /etc/opendkim/key.table
 sudo touch /etc/opendkim/signing.table
 sudo touch /etc/opendkim/TrustedHosts.table
+echo -n "$OS_NAME" > /usr/local/olspanel/mypanel/etc/osName
+echo -n "$OS_VERSION" > /usr/local/olspanel/mypanel/etc/osVersion
 
 sleep 3
 sudo systemctl restart pdns

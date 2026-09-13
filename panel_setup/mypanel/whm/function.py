@@ -1030,46 +1030,161 @@ def create_index_file(directory_path):
         return f"An error occurred: {e}"
 
 
-def check_service_status(service_name):
+SERVICE_CANDIDATE_MAP = {
+    'pure-ftpd': ['pure-ftpd-mysql', 'pure-ftpd', 'proftpd', 'vsftpd'],
+    'pure-ftpd-mysql': ['pure-ftpd-mysql', 'pure-ftpd', 'proftpd', 'vsftpd'],
+    'ftp': ['pure-ftpd-mysql', 'pure-ftpd', 'proftpd', 'vsftpd'],
+    'ftpserver': ['pure-ftpd-mysql', 'pure-ftpd', 'proftpd', 'vsftpd'],
+    'openlitespeed': ['openlitespeed', 'lshttpd', 'lsws'],
+    'lshttpd': ['lshttpd', 'openlitespeed', 'lsws'],
+    'lsws': ['lsws', 'openlitespeed', 'lshttpd'],
+    'mariadb': ['mariadb', 'mysql', 'mysqld'],
+    'mysql': ['mariadb', 'mysql', 'mysqld'],
+    'mysqld': ['mariadb', 'mysql', 'mysqld'],
+    'pdns': ['pdns', 'named', 'bind9'],
+    'dovecot': ['dovecot'],
+    'postfix': ['postfix'],
+    'opendkim': ['opendkim'],
+    'csf': ['csf'],
+    'lfd': ['lfd'],
+    'ufw': ['ufw'],
+    'cp': ['cp', 'cp.service'],
+    'cron': ['cron', 'crond'],
+    'crond': ['crond', 'cron'],
+    'ssh': ['ssh', 'sshd'],
+    'sshd': ['sshd', 'ssh'],
+}
+
+def resolve_service_unit(candidates_or_name, default=None):
+    """
+    Dynamically resolves the actual systemd unit name for a service.
+    Accepts either a service name/alias (e.g., 'pure-ftpd', 'ftp', 'openlitespeed')
+    or an explicit list of candidate unit names.
+    """
+    if isinstance(candidates_or_name, str):
+        key = candidates_or_name.lower().strip()
+        candidates = SERVICE_CANDIDATE_MAP.get(key, [candidates_or_name])
+    elif isinstance(candidates_or_name, (list, tuple)):
+        candidates = list(candidates_or_name)
+    else:
+        return str(candidates_or_name)
+
+    if not candidates:
+        return default or candidates_or_name
+
+    # 1. Check if any candidate is currently active
+    for c in candidates:
+        try:
+            res = subprocess.run(
+                ['systemctl', 'is-active', c],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=3
+            )
+            if res.stdout.strip() in ['active', 'activating', 'running']:
+                return c
+        except Exception:
+            pass
+
+    # 2. Check if candidate is loaded / known in systemd
+    for c in candidates:
+        try:
+            res = subprocess.run(
+                ['systemctl', 'show', c, '-p', 'LoadState', '--value'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=3
+            )
+            state = res.stdout.strip()
+            if state and state not in ['not-found', 'masked']:
+                return c
+        except Exception:
+            pass
+
+    # 3. Check unit files directly on filesystem or init.d
+    for c in candidates:
+        clean_c = c.replace('.service', '')
+        unit_paths = [
+            f"/etc/systemd/system/{clean_c}.service",
+            f"/lib/systemd/system/{clean_c}.service",
+            f"/usr/lib/systemd/system/{clean_c}.service",
+            f"/etc/init.d/{clean_c}"
+        ]
+        if any(os.path.exists(p) for p in unit_paths):
+            return c
+
+    # 4. Fallback based on OS distro
+    os_name = getattr(settings, "MY_OS_NAME", "linux").lower()
+    is_deb = os_name in ["ubuntu", "debian", "raspbian", "pop", "linuxmint", "kali"] or getattr(settings, "IS_DEBIAN_LIKE", False)
     
+    if is_deb:
+        for c in candidates:
+            if 'mysql' in c or c == 'pure-ftpd-mysql':
+                return c
+    else:
+        for c in candidates:
+            if c == 'pure-ftpd':
+                return c
+
+    return default if default else candidates[0]
+
+def check_service_status(service_name):
+    resolved = resolve_service_unit(service_name)
     try:
         # Run the systemctl command to check the service status
         result = subprocess.run(
-            ['systemctl', 'is-active', service_name],
+            ['systemctl', 'is-active', resolved],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
+            timeout=5
         )
-        # Parse the output
         if result.returncode == 0:
             return 'active'
-        else:
-            return result.stdout.strip() or 'inactive'
+        output = result.stdout.strip()
+        return output or 'inactive'
     except Exception as e:
         return f"unknown (error: {e})"   
 
 def service_operation(service_name, action):
-    
-    if action not in ['start', 'stop', 'restart']:
+    if action not in ['start', 'stop', 'restart', 'reload']:
         return {'status': 'error', 'message': 'Invalid action'}
 
-    try:
-        # Run the command to control the service
-        command = f"systemctl {action} {service_name}"
-        result = subprocess.run(
-            command.split(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+    key = service_name.lower().strip()
+    candidates = SERVICE_CANDIDATE_MAP.get(key, [service_name])
+    resolved = resolve_service_unit(candidates)
+    ordered_targets = [resolved] + [c for c in candidates if c != resolved]
 
-        if result.returncode == 0:
-            return {'status': 'success', 'message': f'Service {service_name} {action}ed successfully.'}
-        else:
-            return {'status': 'error', 'message': result.stderr.strip()}
+    prefix = ["sudo"] if hasattr(os, 'geteuid') and os.geteuid() != 0 else []
+    last_error = ""
 
-    except Exception as e:
-        return {'status': 'error', 'message': str(e)}        
+    for target in ordered_targets:
+        try:
+            cmd = prefix + ['systemctl', action, target]
+            result = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=15
+            )
+
+            if result.returncode == 0:
+                return {'status': 'success', 'message': f'Service {target} {action}ed successfully.'}
+            
+            err = result.stderr.strip() or result.stdout.strip()
+            last_error = err
+            # If unit not found, continue loop to try fallback candidates
+            if "not found" in err.lower() or "could not be found" in err.lower():
+                continue
+            else:
+                return {'status': 'error', 'message': err}
+        except Exception as e:
+            last_error = str(e)
+
+    return {'status': 'error', 'message': last_error or f"Failed to {action} service {service_name}"}        
 
 
 
@@ -2304,15 +2419,16 @@ def get_system_metrics():
 
     # 6. Services Daemon Status (Non-blocking with --no-pager)
     services = {}
+    
     tracked_services = [
-        ('OpenLiteSpeed', 'lsws'),
-        ('MySQL Database', 'mysql'),
-        ('MariaDB Database', 'mariadb'),
-        ('Postfix Mail', 'postfix'),
-        ('Dovecot IMAP/POP3', 'dovecot'),
-        ('Pure-FTPd FTP', 'pure-ftpd'),
-        ('Cron Scheduler', 'cron'),
-        ('SSH Server', 'ssh'),
+        ('OpenLiteSpeed', resolve_service_unit(['openlitespeed', 'lshttpd', 'lsws'])),
+        ('MySQL Database', resolve_service_unit(['mariadb', 'mysql', 'mysqld'])),
+        ('Postfix Mail', resolve_service_unit(['postfix'])),
+        ('Dovecot IMAP/POP3', resolve_service_unit(['dovecot'])),
+        ('Pure-FTPd FTP', resolve_service_unit(['pure-ftpd-mysql', 'pure-ftpd', 'proftpd', 'vsftpd'])),
+        ('DNS Server', resolve_service_unit(['pdns', 'named', 'bind9'])),
+        ('Cron Scheduler', resolve_service_unit(['cron', 'crond'])),
+        ('SSH Server', resolve_service_unit(['ssh', 'sshd'])),
         ('OLSPanel CP Daemon', 'cp')
     ]
     for label, s_name in tracked_services:

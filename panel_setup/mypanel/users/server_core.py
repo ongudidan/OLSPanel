@@ -1006,12 +1006,7 @@ extprocessor lsphp82 {{
             print(f"Created vhost file: {vhost_file_path}")  # Debug message
             
             # Restart OpenLiteSpeed
-            try:
-                subprocess.run(["sudo", "systemctl", "restart", "openlitespeed"], check=True)
-                print("OpenLiteSpeed restarted successfully.")  # Debug message
-            except subprocess.CalledProcessError as e:
-                print(f"Failed to restart OpenLiteSpeed: {str(e)}")  # Debug message
-
+            restart_openlitespeed()
             return True  # Indicate success
         except Exception as e:
             print(f"Failed to create vhost file: {str(e)}")  # Debug message
@@ -1121,13 +1116,8 @@ def remove_virtual_host_from_httpd_config(domain_name):
         if len(new_lines) < len(lines):
             with open(LISTENER_CONFIG_FILE, 'w') as file:
                 file.writelines(new_lines)
-                # Restart OpenLiteSpeed
-        try:
-            subprocess.run(["sudo", "systemctl", "restart", "openlitespeed"], check=True)
-            print("OpenLiteSpeed restarted successfully.")  # Debug message
-        except subprocess.CalledProcessError as e:
-            print(f"Failed to restart OpenLiteSpeed: {str(e)}")  # Debug message
-        
+            # Restart OpenLiteSpeed
+            restart_openlitespeed()
             return f"Virtual host for '{domain_name}' and its configuration removed successfully."
         else:
             return f"No matching virtual host found for '{domain_name}'."
@@ -1324,17 +1314,26 @@ def set_permissions_and_ownership(path, username, groupname=None, permissions=No
     
 def restart_openlitespeed():
     try:
-        os_name = getattr(settings, "MY_OS_NAME", "linux")
-        if os_name == "debian":
-            subprocess.run(['sudo', 'systemctl', 'restart', 'lsws'], check=True)
+        from whm.function import service_operation
+        res = service_operation('openlitespeed', 'restart')
+        if res.get('status') == 'success':
+            print("OpenLiteSpeed has been restarted successfully.")
+            return True
         else:
-            subprocess.run(['sudo', 'systemctl', 'restart', 'openlitespeed'], check=True)
-            
-        
-        
-        print("OpenLiteSpeed has been restarted successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to restart OpenLiteSpeed: {e}")
+            print(f"Failed to restart OpenLiteSpeed: {res.get('message')}")
+    except Exception:
+        pass
+
+    # Fallback to direct systemctl across candidate names
+    for svc in ['lsws', 'openlitespeed', 'lshttpd']:
+        try:
+            subprocess.run(['sudo', 'systemctl', 'restart', svc], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            print("OpenLiteSpeed has been restarted successfully.")
+            return True
+        except Exception:
+            continue
+    print("Failed to restart OpenLiteSpeed across all candidates.")
+    return False
 
 
 def get_php_versions():

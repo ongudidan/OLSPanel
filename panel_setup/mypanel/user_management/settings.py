@@ -172,6 +172,81 @@ LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = get_db_password('etc/time.zone') or 'Asia/Dhaka'
 
+def get_os_info():
+    # 1. Try reading from known panel etc directories
+    candidate_dirs = [
+        os.path.join(BASE_DIR, 'etc'),
+        '/usr/local/olspanel/mypanel/etc',
+        '/usr/local/lsws/admin/mypanel/etc',
+        '/usr/local/lsws/Example/html/mypanel/etc',
+    ]
+    os_name = None
+    os_version = None
+    for d in candidate_dirs:
+        name_path = os.path.join(d, 'osName')
+        ver_path = os.path.join(d, 'osVersion')
+        if os.path.isfile(name_path) and not os_name:
+            try:
+                with open(name_path, 'r') as f:
+                    content = f.read().strip()
+                    if content:
+                        os_name = content.lower()
+            except Exception:
+                pass
+        if os.path.isfile(ver_path) and not os_version:
+            try:
+                with open(ver_path, 'r') as f:
+                    content = f.read().strip()
+                    if content:
+                        os_version = content
+            except Exception:
+                pass
+        if os_name and os_version:
+            break
+
+    if os_name:
+        return os_name, (os_version if os_version else '0')
+
+    # 2. Parse /etc/os-release
+    try:
+        if os.path.exists('/etc/os-release'):
+            info = {}
+            with open('/etc/os-release', 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#') and '=' in line:
+                        k, v = line.split('=', 1)
+                        info[k.strip()] = v.strip('"\' \t')
+            detected_id = info.get('ID', '').lower()
+            detected_like = info.get('ID_LIKE', '').lower()
+            ver_id = info.get('VERSION_ID', '0')
+
+            if detected_id in ['ubuntu', 'debian', 'pop', 'linuxmint', 'raspbian', 'kali', 'elementary']:
+                return detected_id, ver_id
+            elif any(d in detected_like for d in ['ubuntu', 'debian']):
+                return 'ubuntu' if 'ubuntu' in detected_like else 'debian', ver_id
+            elif detected_id in ['centos', 'almalinux', 'rocky', 'rhel', 'fedora', 'ol', 'oraclelinux', 'cloudlinux', 'amazonlinux']:
+                return detected_id, ver_id
+            elif any(d in detected_like for d in ['rhel', 'centos', 'fedora']):
+                return 'centos', ver_id
+            elif detected_id:
+                return detected_id, ver_id
+        elif os.path.exists('/etc/centos-release'):
+            return 'centos', '8'
+        elif os.path.exists('/etc/debian_version'):
+            try:
+                with open('/etc/debian_version', 'r') as f:
+                    return 'debian', f.read().strip()
+            except Exception:
+                return 'debian', '11'
+    except Exception:
+        pass
+    return 'linux', '0'
+
+MY_OS_NAME, MY_OS_VERSION = get_os_info()
+IS_DEBIAN_LIKE = MY_OS_NAME in ['ubuntu', 'debian', 'pop', 'linuxmint', 'raspbian', 'kali', 'elementary']
+IS_RHEL_LIKE = MY_OS_NAME in ['centos', 'almalinux', 'rocky', 'rhel', 'fedora', 'ol', 'oraclelinux', 'cloudlinux', 'amazonlinux']
+
 USE_I18N = True
 
 USE_L10N = True

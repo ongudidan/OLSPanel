@@ -1463,26 +1463,22 @@ def php_install_now(request):
     
 @alogin_required    
 def services(request):
-    
-    os_name = getattr(settings, "MY_OS_NAME", "linux")
-    if os_name == "ubuntu" or os_name == "debian":
-        ftpserver = "pure-ftpd-mysql"
-    else:
-        ftpserver = "pure-ftpd"
-        
-    if os_name == "debian":
-        openlitespeed = "lsws"
-    else:
-        openlitespeed = "openlitespeed"    
+    ftpserver = resolve_service_unit(['pure-ftpd-mysql', 'pure-ftpd', 'proftpd', 'vsftpd'])
+    openlitespeed = resolve_service_unit(['openlitespeed', 'lshttpd', 'lsws'])
+    dbserver = resolve_service_unit(['mariadb', 'mysql', 'mysqld'])
+    dnsserver = resolve_service_unit(['pdns', 'named', 'bind9'])
+    imapserver = resolve_service_unit(['dovecot', 'courier-imap'])
+    mailserver = resolve_service_unit(['postfix', 'exim4', 'sendmail'])
+    dkimserver = resolve_service_unit(['opendkim'])
     
     services_to_check = {
-        'mariadb': 'MariaDB',
+        dbserver: 'MariaDB' if 'mariadb' in dbserver else 'MySQL',
         openlitespeed: 'OpenLiteSpeed',
-        'pdns': 'DNS',
-        'dovecot': 'IMAP',
-        'postfix': 'Mail server',
+        dnsserver: 'DNS',
+        imapserver: 'IMAP',
+        mailserver: 'Mail server',
         ftpserver: 'FTP Server',
-        'opendkim': 'OpenDkim'
+        dkimserver: 'OpenDkim'
     }
 
     # Check the status of each service and create a dictionary with both custom names and statuses
