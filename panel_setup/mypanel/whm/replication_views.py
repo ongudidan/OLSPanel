@@ -136,25 +136,25 @@ def db_replication_pair_node(request):
     """
     mode = request.POST.get('mode', 'token') # 'token' or 'manual'
     node_name = request.POST.get('node_name', 'Replica Node').strip()
+    token_str = request.POST.get('token', '').strip()
 
-    if mode == 'token':
-        token_str = request.POST.get('token', '').strip()
+    if token_str or mode == 'token':
         payload, err = parse_pairing_token(token_str)
         if err:
             return JsonResponse({'status': 'error', 'message': f'Invalid token: {err}'})
         
         primary_host = payload.get('host')
         primary_port = payload.get('mysql_port', 3306)
-        repl_user = request.POST.get('repl_user', 'olspanel_repl').strip()
-        repl_pass = request.POST.get('repl_password', '').strip()
+        repl_user = request.POST.get('repl_user') or request.POST.get('user', 'olspanel_repl')
+        repl_pass = request.POST.get('repl_password') or request.POST.get('password', '')
     else:
-        primary_host = request.POST.get('host', '').strip()
+        primary_host = (request.POST.get('host') or request.POST.get('primary_host', '')).strip()
         primary_port = int(request.POST.get('port', 3306))
-        repl_user = request.POST.get('repl_user', 'olspanel_repl').strip()
-        repl_pass = request.POST.get('repl_password', '').strip()
+        repl_user = (request.POST.get('repl_user') or request.POST.get('user', 'olspanel_repl')).strip()
+        repl_pass = (request.POST.get('repl_password') or request.POST.get('password', '')).strip()
 
     if not primary_host or not repl_user or not repl_pass:
-        return JsonResponse({'status': 'error', 'message': 'Primary host, replication user, and password are required.'})
+        return JsonResponse({'status': 'error', 'message': 'Primary host, sync username, and password are required.'})
 
     # 1. Enable replication config locally
     ensure_replication_config(is_primary=False)
@@ -209,8 +209,8 @@ def db_replication_pair_node(request):
 def db_replication_create_user_view(request):
     """Creates a replication user and configures firewall for a replica IP."""
     replica_ip = request.POST.get('replica_ip', '').strip()
-    repl_user = request.POST.get('repl_user', 'olspanel_repl').strip()
-    repl_pass = request.POST.get('repl_password', '').strip()
+    repl_user = (request.POST.get('repl_user') or request.POST.get('user', 'olspanel_repl')).strip()
+    repl_pass = (request.POST.get('repl_password') or request.POST.get('password', '')).strip()
 
     if not replica_ip:
         return JsonResponse({'status': 'error', 'message': 'Replica IP address is required.'})
