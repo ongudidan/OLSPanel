@@ -125,6 +125,8 @@ urlpatterns = [
     path("api/db_replication/pair/", db_replication_pair_node, name="db_replication_pair"),
     path("api/db_replication/create_user/", db_replication_create_user_view, name="db_replication_create_user"),
     path("api/db_replication/action/", db_replication_action, name="db_replication_action"),
+    path("api/db_replication/toggle_db/", db_replication_toggle_db, name="db_replication_toggle_db"),
+    path("api/db_replication/update_db_rules/", db_replication_update_db_rules, name="db_replication_update_db_rules"),
 ]
 
 

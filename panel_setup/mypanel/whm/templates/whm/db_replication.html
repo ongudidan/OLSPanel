@@ -208,6 +208,115 @@
         </div>
     </div>
 
+    <!-- Database-Level Live Sync Rules (Selective Replication) -->
+    <div class="card border-0 shadow-sm rounded-lg mb-3 bg-white" style="border: 1px solid rgba(226, 232, 240, 0.9) !important;">
+        <div class="card-header bg-transparent border-bottom py-2 px-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <div class="p-1 rounded" style="background: rgba(158, 109, 224, 0.12); color: var(--button-primary, #9e6de0);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark text-xs">Database-Level Protection Rules</h6>
+                </div>
+                {% if replicate_all %}
+                <span class="badge bg-purple-subtle text-purple border border-purple-subtle px-1.5 py-0.5 text-2xs rounded">
+                    All Databases Synced
+                </span>
+                {% else %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5 text-2xs rounded">
+                    ● Selective Sync (Multi-Use Server Safe)
+                </span>
+                {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <input type="text" id="search-dbs" class="form-control form-control-sm text-2xs font-mono py-0.5 px-2" placeholder="Search databases..." style="width: 150px;" onkeyup="filterDbTable()">
+                <button class="btn btn-xs btn-outline-secondary px-2 py-0.5 text-2xs" onclick="openScopeModal()">
+                    ⚙ Sync Settings
+                </button>
+            </div>
+        </div>
+        
+        <div class="card-body p-0">
+            <!-- Multi-Use Server Safety Alert -->
+            <div class="px-3 py-1.5 bg-slate-50 border-bottom d-flex align-items-center justify-content-between text-2xs text-muted flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-1.5">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" class="flex-shrink-0">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span><strong>Per-Database Redundancy:</strong> Only enabled databases below are copied. Other local databases on this secondary server remain 100% independent, editable, and safe from overwrites.</span>
+                </div>
+                <span class="text-2xs text-muted font-mono flex-shrink-0" id="synced-db-counter">{{ selected_dbs|length }} of {{ databases_overview|length }} Synced</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-xs" id="db-rules-table">
+                    <thead class="bg-slate-50 text-slate-600 border-bottom">
+                        <tr>
+                            <th class="ps-3 py-2">Database Name</th>
+                            <th class="py-2">Tables</th>
+                            <th class="py-2">Size</th>
+                            <th class="py-2">Replication Status</th>
+                            <th class="text-end pe-3 py-2">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for db in databases_overview %}
+                        <tr id="dbt-row-{{ forloop.counter }}" data-dbname="{{ db.name }}">
+                            <td class="ps-3 py-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-secondary">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                                        </svg>
+                                    </span>
+                                    <span class="fw-bold font-mono text-dark text-xs">{{ db.name }}</span>
+                                </div>
+                            </td>
+                            <td class="py-2 text-muted text-2xs">{{ db.tables }} table{{ db.tables|pluralize }}</td>
+                            <td class="py-2 text-muted text-2xs font-mono">{{ db.size_mb }} MB</td>
+                            <td class="py-2" id="status-cell-{{ forloop.counter }}">
+                                {% if db.is_synced or replicate_all %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5 text-2xs">
+                                    ● Live Synced
+                                </span>
+                                {% else %}
+                                <span class="badge bg-slate-100 text-slate-600 border px-1.5 py-0.5 text-2xs">
+                                    ○ Local Only (Not Synced)
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-3 py-2" id="action-cell-{{ forloop.counter }}">
+                                {% if replicate_all %}
+                                <span class="text-2xs text-muted fst-italic">Server-wide active</span>
+                                {% else %}
+                                <button class="btn btn-xs {% if db.is_synced %}btn-outline-danger{% else %}btn-outline-secondary{% endif %} px-2 py-0.5 text-2xs" 
+                                        id="btn-toggle-{{ forloop.counter }}"
+                                        data-dbname="{{ db.name }}"
+                                        onclick="toggleSingleDb(this, {{ forloop.counter }})">
+                                    {% if db.is_synced %}Exclude DB{% else %}+ Enable Sync{% endif %}
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-3 text-muted text-xs">
+                                No databases found on this server. Created databases will automatically appear here.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Connected Servers Table -->
     <div class="card border-0 shadow-sm rounded-lg mb-3 bg-white" style="border: 1px solid rgba(226, 232, 240, 0.9) !important;">
         <div class="card-header bg-transparent border-bottom py-2.5 px-3 d-flex justify-content-between align-items-center">
@@ -395,6 +504,39 @@
                     </div>
                 </div>
 
+                <div class="mt-2.5 pt-2 border-top">
+                    <label class="form-label text-2xs fw-semibold text-slate-700 d-flex justify-content-between align-items-center mb-1">
+                        <span>Database Sync Scope</span>
+                        <span class="badge bg-success-subtle text-success text-2xs border border-success-subtle">Multi-Use Safe</span>
+                    </label>
+                    <div class="d-flex gap-3 mb-2">
+                        <div class="form-check text-xs">
+                            <input class="form-check-input" type="radio" name="pair_sync_scope" id="scope_selected" value="selected" checked onchange="togglePairDbList()">
+                            <label class="form-check-label text-2xs text-dark fw-medium" for="scope_selected">
+                                Selected Databases Only
+                            </label>
+                        </div>
+                        <div class="form-check text-xs">
+                            <input class="form-check-input" type="radio" name="pair_sync_scope" id="scope_all" value="all" onchange="togglePairDbList()">
+                            <label class="form-check-label text-2xs text-dark fw-medium" for="scope_all">
+                                All Databases (Entire Server)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="pair-db-selection" class="p-2 bg-slate-50 border rounded-md" style="max-height: 120px; overflow-y: auto;">
+                        <div class="text-2xs text-muted mb-1">Databases to replicate immediately:</div>
+                        {% for db in databases_overview %}
+                        <div class="form-check form-check-inline text-2xs mb-1">
+                            <input class="form-check-input pair-db-chk" type="checkbox" value="{{ db.name }}" id="chk_pair_{{ forloop.counter }}" checked>
+                            <label class="form-check-label text-2xs font-mono" for="chk_pair_{{ forloop.counter }}">{{ db.name }}</label>
+                        </div>
+                        {% empty %}
+                        <div class="text-2xs text-muted">No databases found on this server yet. All replicated databases will be created automatically.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <div id="pair-alert" class="alert alert-danger text-2xs d-none mt-2 mb-0"></div>
             </div>
             <div class="modal-footer border-top py-2 px-3 bg-slate-50">
@@ -509,6 +651,53 @@
     </div>
 </div>
 
+<!-- 5. Scope Settings Modal -->
+<div class="modal fade" id="scopeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-xl">
+            <div class="modal-header border-bottom py-2.5 px-3 d-flex justify-content-between align-items-center">
+                <h6 class="modal-title fw-bold text-dark mb-0 text-sm">Database Sync Scope Settings</h6>
+                <button type="button" class="close bg-transparent border-0 text-secondary fs-5 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('scopeModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3 text-xs">
+                <p class="text-muted mb-2.5">Configure whether this server syncs all databases or only specific databases.</p>
+                
+                <div class="mb-3">
+                    <div class="form-check p-2.5 bg-slate-50 border rounded-md mb-2">
+                        <input class="form-check-input" type="radio" name="scope_setting_radio" id="radio_scope_selected" value="selected" {% if not replicate_all %}checked{% endif %}>
+                        <label class="form-check-label text-xs fw-bold text-dark ms-1 cursor-pointer" for="radio_scope_selected">
+                            Selective Database Sync (Recommended)
+                            <div class="fw-normal text-2xs text-muted mt-0.5">
+                                Replicate only selected databases. Safe if this server runs other websites or independent databases.
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check p-2.5 bg-slate-50 border rounded-md">
+                        <input class="form-check-input" type="radio" name="scope_setting_radio" id="radio_scope_all" value="all" {% if replicate_all %}checked{% endif %}>
+                        <label class="form-check-label text-xs fw-bold text-dark ms-1 cursor-pointer" for="radio_scope_all">
+                            All Databases (Full Server Redundancy)
+                            <div class="fw-normal text-2xs text-muted mt-0.5">
+                                Automatically syncs every existing and future database across both servers. Best for dedicated failover pairs.
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="scope-alert" class="alert alert-danger text-2xs d-none mb-0"></div>
+            </div>
+            <div class="modal-footer border-top py-2 px-3 bg-slate-50">
+                <button type="button" class="btn btn-outline-secondary text-2xs py-1 px-2.5" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('scopeModal')">Cancel</button>
+                <button type="button" class="btn btn-secondary text-2xs fw-semibold py-1 px-3" onclick="submitScopeSettings()">
+                    <span>Save Scope</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .border-primary-node { border: 1.5px solid var(--button-primary, #9e6de0) !important; }
 .border-replica-node { border: 1.5px solid var(--button-secondary, #fd5190) !important; }
@@ -584,6 +773,105 @@ function closeModal(id) {
 
 function openPairModal() {
     openModal('pairModal');
+}
+
+function openScopeModal() {
+    openModal('scopeModal');
+}
+
+function togglePairDbList() {
+    const isSelected = document.getElementById('scope_selected').checked;
+    const box = document.getElementById('pair-db-selection');
+    if (box) {
+        box.style.display = isSelected ? 'block' : 'none';
+    }
+}
+
+function filterDbTable() {
+    const query = (document.getElementById('search-dbs').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#db-rules-table tbody tr[data-dbname]');
+    rows.forEach(r => {
+        const dbName = r.getAttribute('data-dbname').toLowerCase();
+        if (!query || dbName.includes(query)) {
+            r.style.display = '';
+        } else {
+            r.style.display = 'none';
+        }
+    });
+}
+
+function toggleSingleDb(elOrName, rowIdx) {
+    const btn = document.getElementById('btn-toggle-' + rowIdx);
+    const statusCell = document.getElementById('status-cell-' + rowIdx);
+    const dbName = typeof elOrName === 'string' ? elOrName : (elOrName.getAttribute('data-dbname') || '');
+    
+    if (btn) btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('database_name', dbName);
+    formData.append('action', 'toggle');
+
+    fetch("{% url 'db_replication_toggle_db' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) btn.disabled = false;
+        if (data.status === 'success') {
+            if (data.is_synced) {
+                statusCell.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-1.5 py-0.5 text-2xs">● Live Synced</span>';
+                btn.className = 'btn btn-xs btn-outline-danger px-2 py-0.5 text-2xs';
+                btn.innerText = 'Exclude DB';
+            } else {
+                statusCell.innerHTML = '<span class="badge bg-slate-100 text-slate-600 border px-1.5 py-0.5 text-2xs">○ Local Only (Not Synced)</span>';
+                btn.className = 'btn btn-xs btn-outline-secondary px-2 py-0.5 text-2xs';
+                btn.innerText = '+ Enable Sync';
+            }
+            const counter = document.getElementById('synced-db-counter');
+            if (counter) {
+                const total = document.querySelectorAll('#db-rules-table tbody tr[data-dbname]').length;
+                counter.innerText = `${data.selected_count} of ${total} Synced`;
+            }
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(err => {
+        if (btn) btn.disabled = false;
+        alert('Network error toggling database sync.');
+    });
+}
+
+function submitScopeSettings() {
+    const selectedRadio = document.querySelector('input[name="scope_setting_radio"]:checked');
+    const scopeVal = selectedRadio ? selectedRadio.value : 'selected';
+    const alertBox = document.getElementById('scope-alert');
+    alertBox.classList.add('d-none');
+
+    const formData = new FormData();
+    formData.append('sync_scope', scopeVal);
+
+    fetch("{% url 'db_replication_update_db_rules' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            closeModal('scopeModal');
+            window.location.reload();
+        } else {
+            alertBox.innerText = data.message;
+            alertBox.classList.remove('d-none');
+        }
+    })
+    .catch(err => {
+        alertBox.innerText = 'Network error updating scope.';
+        alertBox.classList.remove('d-none');
+    });
 }
 
 function openTokenModal() {
@@ -670,9 +958,18 @@ function submitPairNode() {
     const alertBox = document.getElementById('pair-alert');
     const btn = document.getElementById('btn-submit-pair');
 
+    const scopeRadio = document.querySelector('input[name="pair_sync_scope"]:checked');
+    const syncScope = scopeRadio ? scopeRadio.value : 'selected';
+
+    const chks = document.querySelectorAll('.pair-db-chk:checked');
+    const selectedDbs = Array.from(chks).map(c => c.value);
+
     alertBox.classList.add('d-none');
 
     const formData = new FormData();
+    formData.append('sync_scope', syncScope);
+    formData.append('selected_databases', JSON.stringify(selectedDbs));
+
     if (token) {
         formData.append('token', token);
         if (tokenPass) formData.append('password', tokenPass);
@@ -792,3 +1089,4 @@ function fetchLiveStatus() {
 setInterval(fetchLiveStatus, 6000);
 </script>
 {% endblock %}
+

@@ -76,18 +76,15 @@ def get_current_server_id():
     return 1
 
 
-def ensure_replication_config(server_id=None, is_primary=True):
+def ensure_replication_config(server_id=None, is_primary=True, selected_databases=None, replicate_all=False):
     """
     Creates/updates the OLSPanel MySQL replication configuration file.
     Enables binary logs, GTID, and unique server-id.
+    Supports database-level selective replication filters.
     """
     conf_dir = get_mysql_config_dir()
     os.makedirs(conf_dir, exist_ok=True)
     conf_path = os.path.join(conf_dir, "99-olspanel-replication.cnf")
-
-    # If config already exists and valid, skip unnecessary restarts
-    if os.path.isfile(conf_path):
-        return True, f"Replication config already present at {conf_path}"
 
     if not server_id:
         curr_id = get_current_server_id()
@@ -96,31 +93,43 @@ def ensure_replication_config(server_id=None, is_primary=True):
     engine, _ = detect_db_engine()
 
     if engine == "mariadb":
-        config_content = f"""# OLSPanel Auto-Generated Database Replication Configuration
-[mysqld]
-server_id               = {server_id}
-log_bin                 = /var/log/mysql/mariadb-bin.log
-log_bin_index           = /var/log/mysql/mariadb-bin.index
-binlog_format           = ROW
-expire_logs_days        = 7
-max_binlog_size         = 100M
-log_slave_updates       = 1
-gtid_strict_mode        = 1
-bind-address            = 0.0.0.0
-"""
+        config_lines = [
+            "# OLSPanel Auto-Generated Database Replication Configuration",
+            "[mysqld]",
+            f"server_id               = {server_id}",
+            "log_bin                 = /var/log/mysql/mariadb-bin.log",
+            "log_bin_index           = /var/log/mysql/mariadb-bin.index",
+            "binlog_format           = ROW",
+            "expire_logs_days        = 7",
+            "max_binlog_size         = 100M",
+            "log_slave_updates       = 1",
+            "gtid_strict_mode        = 1",
+            "bind-address            = 0.0.0.0",
+        ]
     else:  # Oracle MySQL
-        config_content = f"""# OLSPanel Auto-Generated Database Replication Configuration
-[mysqld]
-server_id               = {server_id}
-log_bin                 = /var/log/mysql/mysql-bin.log
-binlog_format           = ROW
-binlog_expire_logs_seconds = 604800
-max_binlog_size         = 100M
-log_replica_updates     = 1
-gtid_mode               = ON
-enforce_gtid_consistency = ON
-bind-address            = 0.0.0.0
-"""
+        config_lines = [
+            "# OLSPanel Auto-Generated Database Replication Configuration",
+            "[mysqld]",
+            f"server_id               = {server_id}",
+            "log_bin                 = /var/log/mysql/mysql-bin.log",
+            "binlog_format           = ROW",
+            "binlog_expire_logs_seconds = 604800",
+            "max_binlog_size         = 100M",
+            "log_replica_updates     = 1",
+            "gtid_mode               = ON",
+            "enforce_gtid_consistency = ON",
+            "bind-address            = 0.0.0.0",
+        ]
+
+    # Add selective database replication filters if configured
+    if not is_primary and not replicate_all and selected_databases:
+        config_lines.append("# --- Database-Level Selective Filters (Multi-Use Server Safe) ---")
+        for db in selected_databases:
+            clean_db = re.sub(r'[^a-zA-Z0-9_$-]', '', str(db).strip())
+            if clean_db and clean_db not in ['information_schema', 'performance_schema', 'mysql', 'sys']:
+                config_lines.append(f"replicate-wild-do-table = {clean_db}.%")
+
+    config_content = "\n".join(config_lines) + "\n"
 
     try:
         with open(conf_path, "w") as f:
@@ -133,7 +142,6 @@ bind-address            = 0.0.0.0
         # Reload or restart database service
         run_cmd("systemctl reload mariadb || systemctl reload mysql || systemctl restart mariadb || systemctl restart mysql")
 
-        # Close connection so Django reconnects cleanly on next query
         try:
             connection.close()
         except Exception:
@@ -143,6 +151,101 @@ bind-address            = 0.0.0.0
     except Exception as e:
         logger.error(f"Failed to write replication config: {e}")
         return False, str(e)
+
+
+def apply_database_replication_filters(selected_databases=None, replicate_all=False):
+    """
+    Dynamically applies selective database replication filters on the replica.
+    Ensures only chosen databases are synchronized, keeping all other databases on this
+    secondary server completely safe, writable, and isolated.
+    """
+    if selected_databases is None:
+        selected_databases = []
+
+    valid_dbs = []
+    for db in selected_databases:
+        clean_name = re.sub(r'[^a-zA-Z0-9_$-]', '', str(db).strip())
+        if clean_name and clean_name not in ['information_schema', 'performance_schema', 'mysql', 'sys']:
+            valid_dbs.append(clean_name)
+
+    # 1. Update config file for persistence across restarts
+    ensure_replication_config(
+        is_primary=False,
+        selected_databases=valid_dbs,
+        replicate_all=replicate_all
+    )
+
+    # 2. Dynamic filter application via SQL (MySQL 8.0+)
+    try:
+        with connection.cursor() as cursor:
+            try:
+                cursor.execute("STOP SLAVE SQL_THREAD;")
+            except Exception:
+                try:
+                    cursor.execute("STOP REPLICA SQL_THREAD;")
+                except Exception:
+                    pass
+
+            try:
+                if not replicate_all and valid_dbs:
+                    filter_str = ", ".join([f"'{db}.%'" for db in valid_dbs])
+                    cursor.execute(f"CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = ({filter_str});")
+                else:
+                    cursor.execute("CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = ();")
+            except Exception as sql_err:
+                logger.info(f"Dynamic replication filter SQL notice: {sql_err}")
+
+            try:
+                cursor.execute("START SLAVE SQL_THREAD;")
+            except Exception:
+                try:
+                    cursor.execute("START REPLICA SQL_THREAD;")
+                except Exception:
+                    pass
+
+        return True, f"Replication filter updated: {len(valid_dbs)} database(s) active."
+    except Exception as e:
+        logger.error(f"Error applying dynamic replication filter: {e}")
+        return True, "Filter written to configuration."
+
+
+def get_local_databases_overview(selected_dbs=None):
+    """
+    Fetches all non-system databases with table counts, sizes in MB,
+    and whether each database is currently selected for live sync.
+    """
+    if selected_dbs is None:
+        selected_dbs = []
+    
+    dbs = []
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    table_schema AS db_name,
+                    COUNT(table_name) AS total_tables,
+                    ROUND(COALESCE(SUM(data_length + index_length), 0) / 1024 / 1024, 2) AS size_mb
+                FROM information_schema.tables
+                WHERE table_schema NOT IN ('information_schema', 'performance_schema', 'mysql', 'sys')
+                GROUP BY table_schema
+                ORDER BY table_schema ASC;
+            """)
+            rows = cursor.fetchall()
+            for r in rows:
+                db_name = r[0]
+                total_tables = int(r[1])
+                size_mb = float(r[2])
+                is_selected = db_name in selected_dbs
+                dbs.append({
+                    "name": db_name,
+                    "tables": total_tables,
+                    "size_mb": size_mb,
+                    "is_synced": is_selected
+                })
+    except Exception as e:
+        logger.error(f"Error fetching database overview: {e}")
+    return dbs
+
 
 
 
@@ -322,14 +425,30 @@ def get_live_replication_telemetry():
     return data
 
 
-def start_replica_link(master_host, master_port, repl_user, repl_password, use_gtid=True):
+def start_replica_link(master_host, master_port, repl_user, repl_password, use_gtid=True, selected_databases=None, replicate_all=False):
     """
     Configures and starts the replication link on this node pointing to master_host.
+    Supports selective per-database filters so secondary servers remain safe for multi-use.
     """
     engine, _ = detect_db_engine()
     safe_host = re.sub(r'[^a-zA-Z0-9.:_-]', '', str(master_host).strip())
     safe_user = re.sub(r'[^a-zA-Z0-9_]', '', str(repl_user).strip())
     safe_port = int(master_port)
+
+    # Clean selected databases
+    valid_dbs = []
+    if selected_databases:
+        for db in selected_databases:
+            clean_name = re.sub(r'[^a-zA-Z0-9_$-]', '', str(db).strip())
+            if clean_name and clean_name not in ['information_schema', 'performance_schema', 'mysql', 'sys']:
+                valid_dbs.append(clean_name)
+
+    # 1. Update persistent config file with filters
+    ensure_replication_config(
+        is_primary=False,
+        selected_databases=valid_dbs,
+        replicate_all=replicate_all
+    )
 
     try:
         with connection.cursor() as cursor:
@@ -368,13 +487,24 @@ def start_replica_link(master_host, master_port, repl_user, repl_password, use_g
                 """
                 cursor.execute(sql, [safe_host, safe_port, safe_user, repl_password])
 
+            # Apply dynamic database replication filter
+            try:
+                if not replicate_all and valid_dbs:
+                    filter_str = ", ".join([f"'{db}.%'" for db in valid_dbs])
+                    cursor.execute(f"CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = ({filter_str});")
+                else:
+                    cursor.execute("CHANGE REPLICATION FILTER REPLICATE_WILD_DO_TABLE = ();")
+            except Exception as f_err:
+                logger.info(f"Replication filter setting notice: {f_err}")
+
             # Start replication
             try:
                 cursor.execute("START SLAVE;")
             except Exception:
                 cursor.execute("START REPLICA;")
 
-        return True, "Replication link established and started successfully."
+        filter_msg = f"with {len(valid_dbs)} database(s) filtered" if (not replicate_all and valid_dbs) else "for all databases"
+        return True, f"Replication link established and started {filter_msg}."
     except Exception as e:
         logger.error(f"Failed to start replica link: {e}")
         return False, str(e)

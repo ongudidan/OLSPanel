@@ -319,6 +319,8 @@ class DbClusterNode(models.Model):
     repl_password = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='active')
     is_local = models.BooleanField(default=False)
+    replicate_all = models.BooleanField(default=False, help_text="True = sync entire MySQL server, False = sync selected databases only")
+    selected_databases = models.TextField(blank=True, default='[]', help_text="JSON list of specific databases to replicate")
     ssl_enabled = models.BooleanField(default=False)
     seconds_behind_master = models.IntegerField(null=True, blank=True, default=0)
     last_error = models.TextField(blank=True, null=True)
@@ -333,9 +335,34 @@ class DbClusterNode(models.Model):
         return f"{self.name} ({self.host}) - {self.node_role}"
 
 
+class DbSyncRule(models.Model):
+    SYNC_STATUS_CHOICES = [
+        ('active', 'Active & Synced'),
+        ('syncing', 'Initial Syncing'),
+        ('paused', 'Paused'),
+        ('error', 'Sync Error'),
+    ]
+
+    node = models.ForeignKey(DbClusterNode, on_delete=models.CASCADE, related_name='database_rules', null=True, blank=True)
+    database_name = models.CharField(max_length=128)
+    is_active = models.BooleanField(default=True)
+    status = models.CharField(max_length=20, choices=SYNC_STATUS_CHOICES, default='active')
+    last_synced = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'db_sync_rules'
+        unique_together = ('node', 'database_name')
+
+    def __str__(self):
+        return f"{self.database_name} -> {self.node.host if self.node else 'Local'}"
+
+
 class DbReplicationLog(models.Model):
     node = models.ForeignKey(DbClusterNode, on_delete=models.CASCADE, related_name='logs', null=True, blank=True)
-    event_type = models.CharField(max_length=50)  # pair, sync, pause, resume, failover, error
+    database_name = models.CharField(max_length=128, blank=True, default='')
+    event_type = models.CharField(max_length=50)  # pair, sync, pause, resume, failover, filter_update, error
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

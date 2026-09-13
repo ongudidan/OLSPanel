@@ -58,12 +58,22 @@ def ensure_local_node():
 
 
 def db_replication_home(request):
-    """Main WHM view for Database Replication & Clustering dashboard."""
+    """Main WHM view for Database Redundancy & Live Sync dashboard."""
     local_node = ensure_local_node()
     nodes = DbClusterNode.objects.all().order_by('-is_local', 'created_at')
     logs = DbReplicationLog.objects.all()[:25]
     telemetry = get_live_replication_telemetry()
     server_ip = get_server_ip()
+
+    # Parse database-level selective replication settings
+    try:
+        selected_dbs = json.loads(local_node.selected_databases or '[]')
+        if not isinstance(selected_dbs, list):
+            selected_dbs = []
+    except Exception:
+        selected_dbs = [d.strip() for d in str(local_node.selected_databases).split(',') if d.strip()]
+
+    databases_overview = get_local_databases_overview(selected_dbs)
 
     context = {
         'local_node': local_node,
@@ -71,7 +81,10 @@ def db_replication_home(request):
         'logs': logs,
         'telemetry': telemetry,
         'server_ip': server_ip,
-        'self_title': 'Database Replication & Cluster',
+        'selected_dbs': selected_dbs,
+        'replicate_all': local_node.replicate_all,
+        'databases_overview': databases_overview,
+        'self_title': 'Database Redundancy & Live Sync',
     }
     return render(request, 'whm/db_replication.html', context)
 
@@ -89,15 +102,26 @@ def db_replication_status_api(request):
             'host': node.host,
             'status': node.status,
             'is_local': node.is_local,
+            'replicate_all': node.replicate_all,
+            'selected_databases': json.loads(node.selected_databases) if (node.selected_databases and node.selected_databases.startswith('[')) else [],
             'last_sync': node.last_sync.strftime('%Y-%m-%d %H:%M:%S') if node.last_sync else 'Never',
             'seconds_behind_master': node.seconds_behind_master,
             'last_error': node.last_error
         })
 
+    local_node = ensure_local_node()
+    try:
+        selected_dbs = json.loads(local_node.selected_databases or '[]')
+    except Exception:
+        selected_dbs = []
+    dbs_overview = get_local_databases_overview(selected_dbs)
+
     return JsonResponse({
         'status': 'success',
         'telemetry': telemetry,
         'nodes': nodes_data,
+        'databases': dbs_overview,
+        'replicate_all': local_node.replicate_all,
         'timestamp': timezone.now().strftime('%H:%M:%S')
     })
 
@@ -133,10 +157,24 @@ def db_replication_generate_token_view(request):
 def db_replication_pair_node(request):
     """
     Pairs this server as a replica to a primary, or adds a remote replica node record.
+    Supports selective database-level replication so secondary server remains safe for other apps.
     """
     mode = request.POST.get('mode', 'token') # 'token' or 'manual'
     node_name = request.POST.get('node_name', 'Replica Node').strip()
     token_str = request.POST.get('token', '').strip()
+    sync_scope = request.POST.get('sync_scope', 'selected').strip() # 'selected' or 'all'
+    replicate_all = (sync_scope == 'all')
+
+    # Parse selected databases
+    dbs_raw = request.POST.get('selected_databases', '')
+    selected_dbs = []
+    if dbs_raw:
+        try:
+            selected_dbs = json.loads(dbs_raw) if dbs_raw.startswith('[') else [d.strip() for d in dbs_raw.split(',') if d.strip()]
+        except Exception:
+            selected_dbs = [d.strip() for d in dbs_raw.split(',') if d.strip()]
+    else:
+        selected_dbs = request.POST.getlist('selected_databases[]') or request.POST.getlist('selected_databases')
 
     if token_str or mode == 'token':
         payload, err = parse_pairing_token(token_str)
@@ -156,16 +194,22 @@ def db_replication_pair_node(request):
     if not primary_host or not repl_user or not repl_pass:
         return JsonResponse({'status': 'error', 'message': 'Primary host, sync username, and password are required.'})
 
-    # 1. Enable replication config locally
-    ensure_replication_config(is_primary=False)
+    # 1. Enable replication config locally with filters
+    ensure_replication_config(
+        is_primary=False,
+        selected_databases=selected_dbs,
+        replicate_all=replicate_all
+    )
 
-    # 2. Start replication link
+    # 2. Start replication link with selective database filtering
     success, msg = start_replica_link(
         master_host=primary_host,
         master_port=primary_port,
         repl_user=repl_user,
         repl_password=repl_pass,
-        use_gtid=True
+        use_gtid=True,
+        selected_databases=selected_dbs,
+        replicate_all=replicate_all
     )
 
     if not success:
@@ -182,25 +226,153 @@ def db_replication_pair_node(request):
             'repl_password': repl_pass,
             'status': 'active',
             'is_local': False,
+            'replicate_all': replicate_all,
+            'selected_databases': json.dumps(selected_dbs),
             'last_sync': timezone.now()
         }
     )
 
-    # 4. Update local node role to replica
+    # 4. Update local node role to replica with database filters
     local_node = ensure_local_node()
     local_node.node_role = 'replica'
     local_node.status = 'active'
+    local_node.replicate_all = replicate_all
+    local_node.selected_databases = json.dumps(selected_dbs)
     local_node.save()
 
+    # 5. Create DbSyncRule entries
+    for db_name in selected_dbs:
+        DbSyncRule.objects.update_or_create(
+            node=primary_node,
+            database_name=db_name,
+            defaults={'is_active': True, 'status': 'active', 'last_synced': timezone.now()}
+        )
+
+    scope_desc = "all databases" if replicate_all else f"{len(selected_dbs)} selected database(s)"
     DbReplicationLog.objects.create(
         node=primary_node,
         event_type='pair',
-        message=f'Replication established with Primary {primary_host}:{primary_port}'
+        message=f'Replication established with Primary {primary_host}:{primary_port} ({scope_desc}). Other local databases remain isolated and writable.'
     )
 
     return JsonResponse({
         'status': 'success',
-        'message': 'Replica paired and synchronized successfully with Primary!'
+        'message': f'Replica paired and synchronized successfully with Primary ({scope_desc})!'
+    })
+
+
+@csrf_exempt
+@require_POST
+def db_replication_toggle_db(request):
+    """
+    Toggles live replication on or off for an individual database.
+    Dynamically reconfigures MySQL replication filters so other databases are untouched.
+    """
+    db_name = request.POST.get('database_name', '').strip()
+    action = request.POST.get('action', 'toggle').strip()  # 'enable', 'disable', or 'toggle'
+
+    if not db_name:
+        return JsonResponse({'status': 'error', 'message': 'Database name is required.'})
+
+    local_node = ensure_local_node()
+    try:
+        selected_dbs = json.loads(local_node.selected_databases or '[]')
+        if not isinstance(selected_dbs, list):
+            selected_dbs = []
+    except Exception:
+        selected_dbs = []
+
+    if action == 'enable':
+        if db_name not in selected_dbs:
+            selected_dbs.append(db_name)
+        is_synced = True
+    elif action == 'disable':
+        if db_name in selected_dbs:
+            selected_dbs.remove(db_name)
+        is_synced = False
+    else:  # toggle
+        if db_name in selected_dbs:
+            selected_dbs.remove(db_name)
+            is_synced = False
+        else:
+            selected_dbs.append(db_name)
+            is_synced = True
+
+    # Save to node
+    local_node.selected_databases = json.dumps(selected_dbs)
+    local_node.replicate_all = False  # Explicitly selective
+    local_node.save()
+
+    # Update DbSyncRule
+    DbSyncRule.objects.update_or_create(
+        node=local_node,
+        database_name=db_name,
+        defaults={'is_active': is_synced, 'status': 'active' if is_synced else 'paused'}
+    )
+
+    # Apply replication filter dynamically
+    success, msg = apply_database_replication_filters(
+        selected_databases=selected_dbs,
+        replicate_all=False
+    )
+
+    DbReplicationLog.objects.create(
+        node=local_node,
+        database_name=db_name,
+        event_type='filter_update',
+        message=f'Database `{db_name}` replication {"enabled" if is_synced else "disabled"}. Total synced databases: {len(selected_dbs)}'
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'database_name': db_name,
+        'is_synced': is_synced,
+        'selected_count': len(selected_dbs),
+        'message': f'Database `{db_name}` is now {"replicated in real time" if is_synced else "local only (not replicated)"}.'
+    })
+
+
+@csrf_exempt
+@require_POST
+def db_replication_update_db_rules(request):
+    """
+    Bulk updates the replication filter scope (selected databases vs all).
+    """
+    sync_scope = request.POST.get('sync_scope', 'selected').strip()
+    replicate_all = (sync_scope == 'all')
+
+    dbs_raw = request.POST.get('selected_databases', '')
+    selected_dbs = []
+    if dbs_raw:
+        try:
+            selected_dbs = json.loads(dbs_raw) if dbs_raw.startswith('[') else [d.strip() for d in dbs_raw.split(',') if d.strip()]
+        except Exception:
+            selected_dbs = [d.strip() for d in dbs_raw.split(',') if d.strip()]
+    else:
+        selected_dbs = request.POST.getlist('selected_databases[]') or request.POST.getlist('selected_databases')
+
+    local_node = ensure_local_node()
+    local_node.replicate_all = replicate_all
+    local_node.selected_databases = json.dumps(selected_dbs)
+    local_node.save()
+
+    # Apply filters dynamically
+    success, msg = apply_database_replication_filters(
+        selected_databases=selected_dbs,
+        replicate_all=replicate_all
+    )
+
+    DbReplicationLog.objects.create(
+        node=local_node,
+        event_type='filter_update',
+        message=f'Replication scope updated: {"All databases" if replicate_all else f"{len(selected_dbs)} selected databases"}'
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'replicate_all': replicate_all,
+        'selected_count': len(selected_dbs),
+        'message': 'Database replication settings saved and applied.'
     })
 
 
