@@ -76,7 +76,7 @@ def get_current_server_id():
     return 1
 
 
-def ensure_replication_config(server_id=None, is_primary=True, selected_databases=None, replicate_all=False):
+def ensure_replication_config(server_id=None, is_primary=True, selected_databases=None, replicate_all=False, restart_service=False):
     """
     Creates/updates the OLSPanel MySQL replication configuration file.
     Enables binary logs, GTID, and unique server-id.
@@ -139,13 +139,13 @@ def ensure_replication_config(server_id=None, is_primary=True, selected_database
         os.makedirs("/var/log/mysql", exist_ok=True)
         run_cmd("chown -R mysql:mysql /var/log/mysql")
 
-        # Reload or restart database service
-        run_cmd("systemctl reload mariadb || systemctl reload mysql || systemctl restart mariadb || systemctl restart mysql")
-
-        try:
-            connection.close()
-        except Exception:
-            pass
+        if restart_service:
+            # Reload or restart database service only when explicitly requested (e.g., initial setup)
+            run_cmd("systemctl reload mariadb || systemctl reload mysql || systemctl restart mariadb || systemctl restart mysql")
+            try:
+                connection.close()
+            except Exception:
+                pass
 
         return True, f"Replication config saved to {conf_path} with server_id {server_id}"
     except Exception as e:

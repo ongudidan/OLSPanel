@@ -298,7 +298,8 @@
                                 <button class="btn btn-xs {% if db.is_synced %}btn-outline-danger{% else %}btn-outline-secondary{% endif %} px-2 py-0.5 text-2xs" 
                                         id="btn-toggle-{{ forloop.counter }}"
                                         data-dbname="{{ db.name }}"
-                                        onclick="toggleSingleDb(this, {{ forloop.counter }})">
+                                        data-row-idx="{{ forloop.counter }}"
+                                        onclick="toggleSingleDb(this)">
                                     {% if db.is_synced %}Exclude DB{% else %}+ Enable Sync{% endif %}
                                 </button>
                                 {% endif %}
@@ -801,8 +802,9 @@ function filterDbTable() {
 }
 
 function toggleSingleDb(elOrName, rowIdx) {
-    const btn = document.getElementById('btn-toggle-' + rowIdx);
-    const statusCell = document.getElementById('status-cell-' + rowIdx);
+    const row = (typeof elOrName === 'object' && elOrName !== null) ? (elOrName.getAttribute('data-row-idx') || rowIdx) : rowIdx;
+    const btn = document.getElementById('btn-toggle-' + row);
+    const statusCell = document.getElementById('status-cell-' + row);
     const dbName = typeof elOrName === 'string' ? elOrName : (elOrName.getAttribute('data-dbname') || '');
     
     if (btn) btn.disabled = true;
@@ -848,29 +850,39 @@ function submitScopeSettings() {
     const selectedRadio = document.querySelector('input[name="scope_setting_radio"]:checked');
     const scopeVal = selectedRadio ? selectedRadio.value : 'selected';
     const alertBox = document.getElementById('scope-alert');
-    alertBox.classList.add('d-none');
+    if (alertBox) alertBox.classList.add('d-none');
 
     const formData = new FormData();
     formData.append('sync_scope', scopeVal);
+    if (csrftoken) formData.append('csrfmiddlewaretoken', csrftoken);
 
     fetch("{% url 'db_replication_update_db_rules' %}", {
         method: "POST",
-        headers: { "X-CSRFToken": csrftoken },
+        headers: { "X-CSRFToken": csrftoken || '' },
         body: formData
     })
-    .then(res => res.json())
+    .then(res => {
+        return res.json().then(data => {
+            if (!res.ok) throw new Error(data.message || 'Server error (' + res.status + ')');
+            return data;
+        });
+    })
     .then(data => {
         if (data.status === 'success') {
             closeModal('scopeModal');
             window.location.reload();
         } else {
-            alertBox.innerText = data.message;
-            alertBox.classList.remove('d-none');
+            if (alertBox) {
+                alertBox.innerText = data.message || 'Failed to update scope.';
+                alertBox.classList.remove('d-none');
+            }
         }
     })
     .catch(err => {
-        alertBox.innerText = 'Network error updating scope.';
-        alertBox.classList.remove('d-none');
+        if (alertBox) {
+            alertBox.innerText = err.message || 'Network error updating scope.';
+            alertBox.classList.remove('d-none');
+        }
     });
 }
 

@@ -347,42 +347,62 @@ def db_replication_update_db_rules(request):
     """
     Bulk updates the replication filter scope (selected databases vs all).
     """
-    sync_scope = request.POST.get('sync_scope', 'selected').strip()
-    replicate_all = (sync_scope == 'all')
+    try:
+        sync_scope = request.POST.get('sync_scope', 'selected').strip()
+        replicate_all = (sync_scope == 'all')
 
-    dbs_raw = request.POST.get('selected_databases', '')
-    selected_dbs = []
-    if dbs_raw:
-        try:
-            selected_dbs = json.loads(dbs_raw) if dbs_raw.startswith('[') else [d.strip() for d in dbs_raw.split(',') if d.strip()]
-        except Exception:
-            selected_dbs = [d.strip() for d in dbs_raw.split(',') if d.strip()]
-    else:
-        selected_dbs = request.POST.getlist('selected_databases[]') or request.POST.getlist('selected_databases')
+        local_node = ensure_local_node()
+        local_node.replicate_all = replicate_all
 
-    local_node = ensure_local_node()
-    local_node.replicate_all = replicate_all
-    local_node.selected_databases = json.dumps(selected_dbs)
-    local_node.save()
+        dbs_raw = request.POST.get('selected_databases', '')
+        selected_dbs = []
+        if dbs_raw:
+            try:
+                selected_dbs = json.loads(dbs_raw) if dbs_raw.startswith('[') else [d.strip() for d in dbs_raw.split(',') if d.strip()]
+            except Exception:
+                selected_dbs = [d.strip() for d in dbs_raw.split(',') if d.strip()]
+        else:
+            post_list = request.POST.getlist('selected_databases[]') or request.POST.getlist('selected_databases')
+            if post_list:
+                selected_dbs = post_list
+            else:
+                # If not passed in request, preserve currently saved databases
+                selected_dbs = local_node.get_selected_databases()
+                if not selected_dbs:
+                    selected_dbs = list(DbSyncRule.objects.filter(is_synced=True).values_list('database_name', flat=True))
 
-    # Apply filters dynamically
-    success, msg = apply_database_replication_filters(
-        selected_databases=selected_dbs,
-        replicate_all=replicate_all
-    )
+        local_node.selected_databases = json.dumps(selected_dbs)
+        local_node.save()
 
-    DbReplicationLog.objects.create(
-        node=local_node,
-        event_type='filter_update',
-        message=f'Replication scope updated: {"All databases" if replicate_all else f"{len(selected_dbs)} selected databases"}'
-    )
+        # Update DbSyncRule table
+        if replicate_all:
+            DbSyncRule.objects.all().update(is_synced=True)
+        else:
+            DbSyncRule.objects.all().update(is_synced=False)
+            for s_db in selected_dbs:
+                DbSyncRule.objects.update_or_create(database_name=s_db, defaults={'is_synced': True})
 
-    return JsonResponse({
-        'status': 'success',
-        'replicate_all': replicate_all,
-        'selected_count': len(selected_dbs),
-        'message': 'Database replication settings saved and applied.'
-    })
+        # Apply filters dynamically
+        success, msg = apply_database_replication_filters(
+            selected_databases=selected_dbs,
+            replicate_all=replicate_all
+        )
+
+        DbReplicationLog.objects.create(
+            node=local_node,
+            event_type='filter_update',
+            message=f'Replication scope updated: {"All databases" if replicate_all else f"{len(selected_dbs)} selected databases"}'
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'replicate_all': replicate_all,
+            'selected_count': len(selected_dbs),
+            'message': 'Database replication settings saved and applied.'
+        })
+    except Exception as e:
+        logger.error(f"Error in db_replication_update_db_rules: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @csrf_exempt
