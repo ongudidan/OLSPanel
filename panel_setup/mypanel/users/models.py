@@ -294,3 +294,54 @@ class UserPasskey(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.name}"
+
+
+class DbClusterNode(models.Model):
+    NODE_ROLE_CHOICES = [
+        ('primary', 'Primary (Master)'),
+        ('replica', 'Replica (Standby)'),
+    ]
+    STATUS_CHOICES = [
+        ('active', 'Active & Replicating'),
+        ('syncing', 'Syncing Baseline'),
+        ('paused', 'Replication Paused'),
+        ('error', 'Replication Error'),
+        ('disconnected', 'Disconnected'),
+    ]
+
+    name = models.CharField(max_length=255, default="Database Node")
+    node_role = models.CharField(max_length=20, choices=NODE_ROLE_CHOICES, default='primary')
+    host = models.CharField(max_length=255)  # Remote or local IP/hostname
+    mysql_port = models.IntegerField(default=3306)
+    api_port = models.IntegerField(default=30)
+    auth_token = models.CharField(max_length=500, blank=True, null=True)
+    repl_user = models.CharField(max_length=100, default='olspanel_repl')
+    repl_password = models.CharField(max_length=255, blank=True, null=True)
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='active')
+    is_local = models.BooleanField(default=False)
+    ssl_enabled = models.BooleanField(default=False)
+    seconds_behind_master = models.IntegerField(null=True, blank=True, default=0)
+    last_error = models.TextField(blank=True, null=True)
+    last_sync = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'db_cluster_nodes'
+
+    def __str__(self):
+        return f"{self.name} ({self.host}) - {self.node_role}"
+
+
+class DbReplicationLog(models.Model):
+    node = models.ForeignKey(DbClusterNode, on_delete=models.CASCADE, related_name='logs', null=True, blank=True)
+    event_type = models.CharField(max_length=50)  # pair, sync, pause, resume, failover, error
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'db_replication_logs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.event_type}] {self.message[:50]}"

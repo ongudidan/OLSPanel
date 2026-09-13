@@ -1,7 +1,9 @@
 from django.urls import path
 from .views import *
 from . import views
+from .replication_views import *
 from users.views import CustomLoginView
+
 
 urlpatterns = [
     path('', home, name='whm_home'),
@@ -117,7 +119,14 @@ urlpatterns = [
     path("api/passkey/register/options/", whm_passkey_register_options, name="whm_passkey_register_options"),
     path("api/passkey/register/verify/", whm_passkey_register_verify, name="whm_passkey_register_verify"),
     path("api/passkey/delete/<int:passkey_id>/", whm_passkey_delete, name="whm_passkey_delete"),
+    path("db_replication/", db_replication_home, name="db_replication_home"),
+    path("api/db_replication/status/", db_replication_status_api, name="db_replication_status_api"),
+    path("api/db_replication/token/", db_replication_generate_token_view, name="db_replication_token"),
+    path("api/db_replication/pair/", db_replication_pair_node, name="db_replication_pair"),
+    path("api/db_replication/create_user/", db_replication_create_user_view, name="db_replication_create_user"),
+    path("api/db_replication/action/", db_replication_action, name="db_replication_action"),
 ]
+
 
 
 

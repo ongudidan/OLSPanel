@@ -184,15 +184,21 @@ def get_database_plugins_list():
         
     # Add static plugins
     plugin_list.extend([
-    
-    {
-        'name': 'PhpMyAdmin',
-        'icon': '/media/icon/user.svg',
-        'url': reverse('phpmyadmins'),
-        'sorder': 1,
-        'target': '_blank',
-    }
+        {
+            'name': 'PhpMyAdmin',
+            'icon': '/media/icon/user.svg',
+            'url': reverse('phpmyadmins'),
+            'sorder': 1,
+            'target': '_blank',
+        },
+        {
+            'name': 'DB Replication',
+            'icon': '/media/icon/database.svg',
+            'url': reverse('db_replication_home'),
+            'sorder': 2,
+        }
     ])
+
     
    
 

@@ -1,0 +1,796 @@
+{% extends 'whm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 py-3" style="max-width: 1400px;">
+    <!-- Top Header & Breadcrumb -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <div class="p-2 rounded-lg" style="background: rgba(158, 109, 224, 0.12); color: var(--button-primary, #9e6de0);">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                </div>
+                <h4 class="mb-0 fw-bold text-dark" style="letter-spacing: -0.02em;">Database Replication & High Availability</h4>
+            </div>
+            <p class="text-muted small mb-0">Automated GTID database clustering, real-time replica synchronization, and 1-click disaster recovery failover.</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-secondary d-flex align-items-center gap-1 text-xs fw-semibold px-3 py-2 rounded-lg" onclick="openTokenModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>Generate Join Token</span>
+            </button>
+            <button class="btn btn-outline-primary d-flex align-items-center gap-1 text-xs fw-semibold px-3 py-2 rounded-lg" onclick="openProvisionModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+                <span>Authorize Replica IP</span>
+            </button>
+            <button class="btn btn-secondary d-flex align-items-center gap-1 text-xs fw-semibold px-3 py-2 rounded-lg" onclick="openPairModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <span>+ Pair Replica Node</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Live Telemetry KPI Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Node Role -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-xl p-3 h-100" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-xs fw-semibold text-muted text-uppercase tracking-wider">Node Role</span>
+                    <span id="kpi-role-badge" class="badge rounded-pill px-2 py-1 text-xs {% if local_node.node_role == 'primary' %}bg-primary text-white{% else %}bg-info text-white{% endif %}">
+                        {{ local_node.get_node_role_display }}
+                    </span>
+                </div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h4 class="fw-bold mb-0 text-dark" id="kpi-role-title">{% if local_node.node_role == 'primary' %}Primary (Master){% else %}Replica Node{% endif %}</h4>
+                </div>
+                <div class="mt-2 text-xs text-muted d-flex align-items-center gap-1">
+                    <span>IP: <strong class="font-mono text-dark">{{ server_ip }}</strong></span>
+                    <span class="mx-1">•</span>
+                    <span>ID: <strong class="font-mono text-dark">{{ telemetry.server_id }}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sync Health -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-xl p-3 h-100" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-xs fw-semibold text-muted text-uppercase tracking-wider">Cluster State</span>
+                    <span id="kpi-health-dot" class="d-inline-flex align-items-center gap-1 text-xs fw-semibold px-2 py-0.5 rounded-full {% if telemetry.status_state == 'healthy' or telemetry.status_state == 'primary_active' %}text-emerald-700 bg-emerald-50 border border-emerald-200{% elif telemetry.status_state == 'syncing' %}text-amber-700 bg-amber-50 border border-amber-200{% else %}text-rose-700 bg-rose-50 border border-rose-200{% endif %}">
+                        <span class="pulse-dot"></span>
+                        <span id="kpi-health-text">{{ telemetry.status_state|title }}</span>
+                    </span>
+                </div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <h4 class="fw-bold mb-0 text-dark" id="kpi-threads-status">
+                        {% if telemetry.is_replica %}
+                            IO: {{ telemetry.slave_io_running }} | SQL: {{ telemetry.slave_sql_running }}
+                        {% else %}
+                            Binlog Active
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="mt-2 text-xs text-muted">
+                    Engine: <strong class="text-dark">{{ telemetry.engine|title }}</strong> | Read-Only: <strong class="text-dark">{% if telemetry.read_only %}ON{% else %}OFF{% endif %}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Replication Lag -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-xl p-3 h-100" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-xs fw-semibold text-muted text-uppercase tracking-wider">Replication Lag</span>
+                    <span class="badge bg-light text-secondary border px-2 py-0.5 text-xs font-mono">Real-time</span>
+                </div>
+                <div class="d-flex align-items-baseline gap-1">
+                    <h4 class="fw-bold mb-0 text-dark font-mono" id="kpi-lag-val">
+                        {% if telemetry.seconds_behind_master is not None %}
+                            {{ telemetry.seconds_behind_master }} <span class="fs-6 fw-normal text-muted">sec</span>
+                        {% else %}
+                            0 <span class="fs-6 fw-normal text-muted">sec</span>
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="mt-2 text-xs text-muted">
+                    {% if telemetry.seconds_behind_master == 0 %}
+                        <span class="text-success fw-semibold">✓ In Perfect Sync with Master</span>
+                    {% elif telemetry.seconds_behind_master > 0 %}
+                        <span class="text-warning fw-semibold">⚠ Replaying Transaction Queue</span>
+                    {% else %}
+                        <span>Master Transaction Leader</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Databases Synchronized -->
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-xl p-3 h-100" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="text-xs fw-semibold text-muted text-uppercase tracking-wider">Databases Replicated</span>
+                    <span class="badge bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 text-xs">GTID Mode</span>
+                </div>
+                <div class="d-flex align-items-baseline gap-1">
+                    <h4 class="fw-bold mb-0 text-dark font-mono" id="kpi-db-count">{{ telemetry.total_databases }}</h4>
+                    <span class="text-muted text-xs ms-1">databases</span>
+                </div>
+                <div class="mt-2 text-xs text-muted text-truncate font-mono">
+                    Binlog: {{ telemetry.binlog_file|default:"mariadb-bin.000001" }} ({{ telemetry.binlog_pos }})
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cluster Topology Card -->
+    <div class="card border-0 shadow-sm rounded-xl mb-4" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+        <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                <h6 class="mb-0 fw-bold text-dark">Live Cluster Topology</h6>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-xs text-muted" id="last-poll-time">Updated: Just now</span>
+                <button class="btn btn-sm btn-outline-secondary p-1 rounded" onclick="fetchLiveStatus()" title="Refresh Status">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-lg-row align-items-center justify-content-center gap-4 py-3">
+                <!-- Primary Node Visual -->
+                <div class="node-box p-3 rounded-xl shadow-sm text-center position-relative" style="min-width: 260px; background: linear-gradient(145deg, #ffffff, #f8fafc); border: 2px solid {% if local_node.node_role == 'primary' %}var(--button-primary, #9e6de0){% else %}#cbd5e1{% endif %};">
+                    <span class="badge bg-primary text-white position-absolute top-0 start-50 translate-middle text-xs px-2.5 py-1 rounded-pill">
+                        Primary (Master)
+                    </span>
+                    <div class="my-2">
+                        <div class="mx-auto d-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 48px; height: 48px; background: rgba(158, 109, 224, 0.1); color: var(--button-primary, #9e6de0);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                                <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                                <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                            </svg>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark">
+                            {% if local_node.node_role == 'primary' %}{{ local_node.name }}{% else %}{{ telemetry.master_host|default:"Remote Master" }}{% endif %}
+                        </h6>
+                        <p class="font-mono text-xs text-muted mb-2">{% if local_node.node_role == 'primary' %}{{ server_ip }}{% else %}{{ telemetry.master_host }}{% endif %}:3306</p>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5 text-xs">
+                            ● Read & Write Active
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Replication Data Stream Indicator -->
+                <div class="d-flex flex-column align-items-center text-center px-2">
+                    <span class="text-xs fw-semibold text-muted mb-1">Encrypted GTID Stream</span>
+                    <div class="d-flex align-items-center gap-1 stream-arrow">
+                        <div class="stream-line"></div>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--button-secondary, #fd5190)" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-mono text-muted mt-1">Port 3306 (TLS)</span>
+                </div>
+
+                <!-- Replica Node Visual -->
+                <div class="node-box p-3 rounded-xl shadow-sm text-center position-relative" style="min-width: 260px; background: linear-gradient(145deg, #ffffff, #f8fafc); border: 2px solid {% if local_node.node_role == 'replica' %}var(--button-secondary, #fd5190){% else %}#cbd5e1{% endif %};">
+                    <span class="badge bg-secondary text-white position-absolute top-0 start-50 translate-middle text-xs px-2.5 py-1 rounded-pill">
+                        Replica (Standby)
+                    </span>
+                    <div class="my-2">
+                        <div class="mx-auto d-flex align-items-center justify-content-center rounded-circle mb-2" style="width: 48px; height: 48px; background: rgba(253, 81, 144, 0.1); color: var(--button-secondary, #fd5190);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                            </svg>
+                        </div>
+                        <h6 class="fw-bold mb-1 text-dark">
+                            {% if local_node.node_role == 'replica' %}{{ local_node.name }}{% else %}Standby Replicas ({{ nodes.count|add:"-1" }}){% endif %}
+                        </h6>
+                        <p class="font-mono text-xs text-muted mb-2">{% if local_node.node_role == 'replica' %}{{ server_ip }}{% else %}Remote Replicas{% endif %}:3306</p>
+                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-0.5 text-xs">
+                            ● Hot Standby (Read-Only)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paired Nodes List & Actions -->
+    <div class="card border-0 shadow-sm rounded-xl mb-4" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+        <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-dark">Paired Cluster Nodes</h6>
+            <span class="badge bg-light text-muted border text-xs">{{ nodes.count }} Configured</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-bottom">
+                        <tr>
+                            <th class="ps-4 py-3">Node Name & Host</th>
+                            <th class="py-3">Role</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3">Port</th>
+                            <th class="py-3">Replication User</th>
+                            <th class="py-3">Last Sync</th>
+                            <th class="text-end pe-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="nodes-tbody">
+                        {% for node in nodes %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="p-1.5 rounded bg-slate-100 text-slate-700">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                                            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ node.name }}</div>
+                                        <div class="font-mono text-muted text-xs">{{ node.host }} {% if node.is_local %}<span class="badge bg-slate-200 text-slate-700 px-1 py-0 text-2xs">Local Node</span>{% endif %}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge {% if node.node_role == 'primary' %}bg-primary text-white{% else %}bg-secondary text-white{% endif %} text-xs px-2 py-0.5 rounded">
+                                    {{ node.get_node_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="d-inline-flex align-items-center gap-1 text-xs fw-semibold text-success">
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-0.5">Active</span>
+                                </span>
+                            </td>
+                            <td class="font-mono text-dark">{{ node.mysql_port }}</td>
+                            <td class="font-mono text-muted">{{ node.repl_user }}</td>
+                            <td class="text-muted">{{ node.last_sync|date:"Y-m-d H:i:s"|default:"Active" }}</td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group btn-group-sm">
+                                    {% if node.is_local and node.node_role == 'replica' %}
+                                    <button class="btn btn-sm btn-outline-danger px-2 py-1 text-xs" onclick="openFailoverModal()" title="Promote this replica to Primary master">
+                                        ⚡ Promote (Failover)
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary px-2 py-1 text-xs" onclick="triggerNodeAction('pause')">
+                                        Pause
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary px-2 py-1 text-xs" onclick="triggerNodeAction('resume')">
+                                        Resume
+                                    </button>
+                                    {% endif %}
+                                    
+                                    {% if not node.is_local %}
+                                    <button class="btn btn-sm btn-outline-danger px-2 py-1 text-xs" onclick="deleteNode('{{ node.id }}', '{{ node.host }}')" title="Remove node">
+                                        Remove
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                No remote nodes paired yet. Click <strong>+ Pair Replica Node</strong> to link a secondary server.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cluster Audit & Sync Logs -->
+    <div class="card border-0 shadow-sm rounded-xl mb-4" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8) !important;">
+        <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-dark">Recent Replication Events</h6>
+            <span class="text-xs text-muted">Audit Log</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 text-xs">
+                    <thead class="bg-slate-50 text-slate-600 border-bottom">
+                        <tr>
+                            <th class="ps-4 py-2">Timestamp</th>
+                            <th class="py-2">Event</th>
+                            <th class="py-2">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td class="ps-4 py-2 text-muted font-mono">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                            <td class="py-2">
+                                <span class="badge bg-slate-100 text-slate-700 border text-2xs uppercase">{{ log.event_type }}</span>
+                            </td>
+                            <td class="py-2 text-dark">{{ log.message }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-3 text-muted">No cluster events recorded yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =======================================================
+     MODALS
+======================================================== -->
+
+<!-- 1. Pair Node Modal -->
+<div class="modal fade" id="pairModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-2xl">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Pair Replica Node to Primary
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <ul class="nav nav-pills nav-fill mb-3 gap-2 p-1 bg-slate-100 rounded-lg text-xs" id="pairTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active py-1.5 fw-semibold" id="token-tab" data-bs-toggle="tab" data-bs-target="#tab-token" type="button">Join via Token</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-1.5 fw-semibold" id="manual-tab" data-bs-toggle="tab" data-bs-target="#tab-manual" type="button">Manual Credentials</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="pairTabContent">
+                    <!-- Tab Token -->
+                    <div class="tab-pane fade show active" id="tab-token">
+                        <div class="mb-3">
+                            <label class="form-label text-xs fw-semibold text-slate-700">Cluster Join Token (from Primary)</label>
+                            <textarea class="form-control font-mono text-xs" id="pair_token_input" rows="3" placeholder="Paste OLSREP-... token here"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-xs fw-semibold text-slate-700">Replication Password</label>
+                            <input type="password" class="form-control text-xs font-mono" id="pair_token_pass" placeholder="Replication user password created on Primary">
+                        </div>
+                    </div>
+
+                    <!-- Tab Manual -->
+                    <div class="tab-pane fade" id="tab-manual">
+                        <div class="mb-3">
+                            <label class="form-label text-xs fw-semibold text-slate-700">Primary Server IP / Hostname</label>
+                            <input type="text" class="form-control text-xs font-mono" id="pair_manual_host" placeholder="e.g. 192.168.1.100">
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-8">
+                                <label class="form-label text-xs fw-semibold text-slate-700">Replication User</label>
+                                <input type="text" class="form-control text-xs font-mono" id="pair_manual_user" value="olspanel_repl">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label text-xs fw-semibold text-slate-700">MySQL Port</label>
+                                <input type="number" class="form-control text-xs font-mono" id="pair_manual_port" value="3306">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-xs fw-semibold text-slate-700">Replication Password</label>
+                            <input type="password" class="form-control text-xs font-mono" id="pair_manual_pass" placeholder="Password configured on Primary">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pair-alert" class="alert alert-danger text-xs d-none mt-3 mb-0"></div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-outline-secondary text-xs" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary text-xs fw-semibold" id="btn-submit-pair" onclick="submitPairNode()">
+                    <span>Connect & Start Sync</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Generate Token Modal -->
+<div class="modal fade" id="tokenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-2xl">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold text-dark">Primary Join Token</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-xs text-muted mb-3">Copy this token and paste it into the <strong>Pair Replica Node</strong> modal on your secondary OLSPanel server.</p>
+                <div class="p-3 bg-slate-100 rounded-lg border mb-3">
+                    <pre class="mb-0 text-xs font-mono text-dark text-break" id="display-token" style="white-space: pre-wrap;">Generating token...</pre>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-sm btn-outline-secondary text-xs" onclick="copyToken()">
+                        📋 Copy Token to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Authorize Replica User & Firewall Modal -->
+<div class="modal fade" id="provisionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-2xl">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold text-dark">Authorize Replica IP & Credentials</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-xs text-muted mb-3">This creates a restricted MySQL replication user and opens UFW port 3306 strictly for your replica server's IP address.</p>
+                <div class="mb-3">
+                    <label class="form-label text-xs fw-semibold text-slate-700">Replica Server IP Address</label>
+                    <input type="text" class="form-control text-xs font-mono" id="prov_replica_ip" placeholder="e.g. 198.51.100.25">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-xs fw-semibold text-slate-700">Replication Password (Optional)</label>
+                    <input type="password" class="form-control text-xs font-mono" id="prov_replica_pass" placeholder="Leave blank to auto-generate a secure key">
+                </div>
+
+                <div id="prov-result" class="d-none mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">
+                    <div class="fw-bold text-emerald-800 mb-1">✓ Credentials Generated & Firewall Opened!</div>
+                    <div class="text-emerald-900 font-mono" id="prov-details"></div>
+                </div>
+                <div id="prov-alert" class="alert alert-danger text-xs d-none mt-3 mb-0"></div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-outline-secondary text-xs" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary text-xs fw-semibold" onclick="submitProvisionUser()">
+                    <span>Authorize & Create User</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Failover Confirmation Modal -->
+<div class="modal fade" id="failoverModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-2xl">
+            <div class="modal-header border-bottom py-3 px-4 bg-rose-50">
+                <h6 class="modal-title fw-bold text-rose-800 d-flex align-items-center gap-2">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                    Confirm Disaster Recovery Promotion
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-xs">
+                <p class="text-slate-700">Are you sure you want to promote this replica server to become the <strong>Primary (Master) Database</strong>?</p>
+                <ul class="text-slate-600 mb-3 ps-3">
+                    <li>Replication threads will be stopped and cleared.</li>
+                    <li>Global <code class="font-mono">read_only</code> mode will be disabled.</li>
+                    <li>This server will now accept direct write queries from local applications.</li>
+                </ul>
+                <div class="alert alert-warning py-2 px-3 text-2xs mb-0">
+                    <strong>Note:</strong> Ensure the previous primary server is stopped or retired to prevent split-brain write conflicts.
+                </div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-outline-secondary text-xs" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger text-xs fw-semibold" onclick="submitPromotion()">
+                    <span>Confirm Promotion</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rounded-xl { border-radius: 0.875rem; }
+.rounded-2xl { border-radius: 1.125rem; }
+.text-2xs { font-size: 0.7rem; }
+.tracking-wider { letter-spacing: 0.05em; }
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    animation: pulseGlow 1.5s infinite;
+}
+@keyframes pulseGlow {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+.stream-line {
+    width: 60px;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--button-secondary, #fd5190) 0, var(--button-secondary, #fd5190) 4px, transparent 4px, transparent 8px);
+    animation: streamFlow 1s linear infinite;
+}
+@keyframes streamFlow {
+    0% { background-position: 0 0; }
+    100% { background-position: 16px 0; }
+}
+</style>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+function openPairModal() {
+    const modal = new bootstrap.Modal(document.getElementById('pairModal'));
+    modal.show();
+}
+
+function openTokenModal() {
+    const modal = new bootstrap.Modal(document.getElementById('tokenModal'));
+    modal.show();
+    document.getElementById('display-token').innerText = 'Generating pairing token...';
+    
+    fetch("{% url 'db_replication_token' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById('display-token').innerText = data.token;
+        } else {
+            document.getElementById('display-token').innerText = 'Error: ' + data.message;
+        }
+    })
+    .catch(err => {
+        document.getElementById('display-token').innerText = 'Error generating token.';
+    });
+}
+
+function copyToken() {
+    const token = document.getElementById('display-token').innerText;
+    navigator.clipboard.writeText(token);
+    alert('Pairing token copied to clipboard!');
+}
+
+function openProvisionModal() {
+    const modal = new bootstrap.Modal(document.getElementById('provisionModal'));
+    modal.show();
+}
+
+function openFailoverModal() {
+    const modal = new bootstrap.Modal(document.getElementById('failoverModal'));
+    modal.show();
+}
+
+function submitProvisionUser() {
+    const ip = document.getElementById('prov_replica_ip').value.trim();
+    const pass = document.getElementById('prov_replica_pass').value.trim();
+    const alertBox = document.getElementById('prov-alert');
+    const resultBox = document.getElementById('prov-result');
+    const detailsBox = document.getElementById('prov-details');
+    
+    alertBox.classList.add('d-none');
+    resultBox.classList.add('d-none');
+
+    if (!ip) {
+        alertBox.innerText = 'Please enter the Replica IP address.';
+        alertBox.classList.remove('d-none');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('replica_ip', ip);
+    formData.append('repl_password', pass);
+
+    fetch("{% url 'db_replication_create_user' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            resultBox.classList.remove('d-none');
+            detailsBox.innerHTML = `User: <strong>${data.credentials.user}</strong><br>Password: <strong>${data.credentials.password}</strong><br>Host Allowed: <strong>${data.credentials.host}</strong>`;
+            fetchLiveStatus();
+        } else {
+            alertBox.innerText = data.message;
+            alertBox.classList.remove('d-none');
+        }
+    })
+    .catch(err => {
+        alertBox.innerText = 'Network error while authorizing replica.';
+        alertBox.classList.remove('d-none');
+    });
+}
+
+function submitPairNode() {
+    const activeTab = document.querySelector('#pairTab .nav-link.active').id;
+    const alertBox = document.getElementById('pair-alert');
+    alertBox.classList.add('d-none');
+
+    const formData = new FormData();
+
+    if (activeTab === 'token-tab') {
+        const token = document.getElementById('pair_token_input').value.trim();
+        const pass = document.getElementById('pair_token_pass').value.trim();
+        if (!token || !pass) {
+            alertBox.innerText = 'Both token and replication password are required.';
+            alertBox.classList.remove('d-none');
+            return;
+        }
+        formData.append('mode', 'token');
+        formData.append('token', token);
+        formData.append('repl_password', pass);
+    } else {
+        const host = document.getElementById('pair_manual_host').value.trim();
+        const user = document.getElementById('pair_manual_user').value.trim();
+        const port = document.getElementById('pair_manual_port').value.trim();
+        const pass = document.getElementById('pair_manual_pass').value.trim();
+        if (!host || !pass) {
+            alertBox.innerText = 'Primary host and password are required.';
+            alertBox.classList.remove('d-none');
+            return;
+        }
+        formData.append('mode', 'manual');
+        formData.append('host', host);
+        formData.append('repl_user', user);
+        formData.append('port', port);
+        formData.append('repl_password', pass);
+    }
+
+    const btn = document.getElementById('btn-submit-pair');
+    btn.disabled = true;
+    btn.innerText = 'Connecting...';
+
+    fetch("{% url 'db_replication_pair' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerText = 'Connect & Start Sync';
+        if (data.status === 'success') {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alertBox.innerText = data.message;
+            alertBox.classList.remove('d-none');
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerText = 'Connect & Start Sync';
+        alertBox.innerText = 'Network error while pairing node.';
+        alertBox.classList.remove('d-none');
+    });
+}
+
+function triggerNodeAction(action) {
+    const formData = new FormData();
+    formData.append('action', action);
+
+    fetch("{% url 'db_replication_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+function submitPromotion() {
+    const formData = new FormData();
+    formData.append('action', 'promote');
+
+    fetch("{% url 'db_replication_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+function deleteNode(nodeId, host) {
+    if (!confirm(`Are you sure you want to disconnect node ${host}?`)) return;
+
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('node_id', nodeId);
+
+    fetch("{% url 'db_replication_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+function fetchLiveStatus() {
+    fetch("{% url 'db_replication_status_api' %}")
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const tel = data.telemetry;
+            document.getElementById('last-poll-time').innerText = 'Updated: ' + data.timestamp;
+            
+            // Update Lag
+            const lagVal = tel.seconds_behind_master !== null ? tel.seconds_behind_master : 0;
+            document.getElementById('kpi-lag-val').innerHTML = `${lagVal} <span class="fs-6 fw-normal text-muted">sec</span>`;
+            
+            // Update Threads
+            if (tel.is_replica) {
+                document.getElementById('kpi-threads-status').innerText = `IO: ${tel.slave_io_running} | SQL: ${tel.slave_sql_running}`;
+            }
+            
+            // Update DB count
+            document.getElementById('kpi-db-count').innerText = tel.total_databases;
+        }
+    })
+    .catch(err => {});
+}
+
+// Auto-poll telemetry every 6 seconds
+setInterval(fetchLiveStatus, 6000);
+</script>
+{% endblock %}
