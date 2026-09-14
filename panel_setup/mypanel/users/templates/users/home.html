@@ -13,7 +13,7 @@
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
             </span>
-            <input type="search" id="appSearchInput" placeholder="Search applications, tools..." autocomplete="off" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-sm transition-all">
+            <input type="search" id="appSearchInput" placeholder="Search applications, tools..." autocomplete="off" class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 rounded-[4px] text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand shadow-xs transition-all">
             <button type="button" id="clearAppSearchBtn" onclick="clearAppSearch();" style="display: none;" class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400 hover:text-slate-600 cursor-pointer font-bold text-sm bg-transparent border-0">&times;</button>
         </div>
     </div>
@@ -26,14 +26,14 @@
 
             <!-- DOMAINS -->
             {% if domain_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Domains</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in domain_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -45,14 +45,14 @@
 
             <!-- FILES -->
             {% if file_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Files</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in file_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -64,14 +64,14 @@
 
             <!-- SECURITY -->
             {% if security_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Security</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in security_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -83,14 +83,14 @@
 
             <!-- DATABASE -->
             {% if database_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Databases</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in database_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -102,14 +102,14 @@
 
             <!-- EMAIL -->
             {% if email_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Email</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in email_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -121,14 +121,14 @@
 
             <!-- ADVANCE -->
             {% if advance_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Advance</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in advance_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -139,37 +139,37 @@
             {% endif %}
 
             <!-- OLSAPP 1-CLICK SCRIPTS -->
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">1-Click App Installer</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                        <a href="{% url 'olsapp_more_view' 'wordpress_manager' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="WordPress Manager">
+                        <a href="{% url 'olsapp_more_view' 'wordpress_manager' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="WordPress Manager">
                             <img src="/media/icon/wordpress.png" class="w-5 h-5 object-contain flex-shrink-0" alt="WordPress Manager" />
                             <span class="truncate">WordPress Mgr</span>
                         </a>
-                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'wordpress' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="WordPress Install">
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'wordpress' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="WordPress Install">
                             <img src="/media/icon/wordpress.png" class="w-5 h-5 object-contain flex-shrink-0" alt="WordPress" />
                             <span class="truncate">WordPress</span>
                         </a>
-                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'joomla' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="Joomla">
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'joomla' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="Joomla">
                             <img src="/media/icon/joomla.png" class="w-5 h-5 object-contain flex-shrink-0" alt="Joomla" />
                             <span class="truncate">Joomla</span>
                         </a>
-                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'prestashop' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="PrestaShop">
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'prestashop' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="PrestaShop">
                             <img src="/media/icon/presta.png" class="w-5 h-5 object-contain flex-shrink-0" alt="PrestaShop" />
                             <span class="truncate">PrestaShop</span>
                         </a>
-                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'opencart' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="OpenCart">
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'opencart' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="OpenCart">
                             <img src="/media/icon/opencart.png" class="w-5 h-5 object-contain flex-shrink-0" alt="OpenCart" />
                             <span class="truncate">OpenCart</span>
                         </a>
-                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'phpbb' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="phpBB">
+                        <a href="{% url 'olsapp_more_view_with_id' 'install' 'phpbb' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="phpBB">
                             <img src="/media/icon/phpbb.png" class="w-5 h-5 object-contain flex-shrink-0" alt="phpBB" />
                             <span class="truncate">phpBB</span>
                         </a>
-                        <a href="{% url 'olsapp_view' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" target="_blank" title="More Apps">
+                        <a href="{% url 'olsapp_view' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" target="_blank" title="More Apps">
                             <img src="/media/icon/softaculous.png" class="w-5 h-5 object-contain flex-shrink-0" alt="More Apps" />
                             <span class="truncate">More Apps...</span>
                         </a>
@@ -179,14 +179,14 @@
 
             <!-- SOFTWARE -->
             {% if software_plugin %}
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Software</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                         {% for app in software_plugin %}
-                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
+                        <a href="{{ app.url }}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col"{% if app.target %} target="{{ app.target }}"{% endif %} title="{{ app.name }}">
                             <img src="{{ app.icon }}" class="w-5 h-5 object-contain flex-shrink-0" alt="{{ app.name }}" />
                             <span class="truncate">{{ app.name }}</span>
                         </a>
@@ -197,17 +197,17 @@
             {% endif %}
 
             <!-- ACCOUNT -->
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden dashboard-app-card">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between select-none">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden dashboard-app-card">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100 flex items-center justify-between select-none">
                     <h5 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Account</h5>
                 </div>
-                <div class="p-3">
+                <div class="p-3 bg-white">
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                        <a href="{% url 'users-profile' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" title="Profile">
+                        <a href="{% url 'users-profile' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" title="Profile">
                             <img src="/media/icon/user.svg" class="w-5 h-5 object-contain flex-shrink-0" alt="Profile" />
                             <span class="truncate">Profile</span>
                         </a>
-                        <a href="{% url 'logout' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] bg-white border border-slate-200/80 rounded-lg hover:bg-slate-50 hover:border-slate-300 hover:shadow-xs hover:-translate-y-0.5 transition-all text-xs font-semibold text-slate-700 hover:text-brand app-grid-col" title="Logout">
+                        <a href="{% url 'logout' %}" class="flex items-center gap-2.5 px-3 py-2.5 min-h-[52px] bg-white border border-slate-200/90 rounded-[4px] hover:border-slate-300 hover:shadow-sm hover:-translate-y-0.5 transition-all text-xs font-medium text-slate-700 hover:text-brand app-grid-col" title="Logout">
                             <img src="/media/icon/logout.svg" class="w-5 h-5 object-contain flex-shrink-0" alt="Logout" />
                             <span class="truncate">Logout</span>
                         </a>
@@ -221,8 +221,8 @@
         <div class="flex flex-col gap-2.5">
 
             <!-- GENERAL INFORMATION -->
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100">
                     <h6 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">General Information</h6>
                 </div>
                 <div class="p-3 flex flex-col">
@@ -252,8 +252,8 @@
             </div>
 
             <!-- STATISTICS -->
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-                <div class="px-3 py-2 bg-slate-50 border-b border-slate-100">
+            <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden">
+                <div class="px-3.5 py-2.5 bg-white border-b border-slate-100">
                     <h6 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">Account Statistics</h6>
                 </div>
                 <div class="p-3 flex flex-col">

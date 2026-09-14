@@ -17854,7 +17854,7 @@ a .caret:before {
 
 .sidebar .sidebar-inner > li.active > a {
   background: rgba(158, 109, 224, 0.25);
-  color: #fff;
+  color: #a1a1aa;
 }
 
 .sidebar .sidebar-inner > li.active > a i {
@@ -17894,7 +17894,7 @@ a .caret:before {
 }
 
 .sidebar .sub-menu > .active .sidenav-item-link {
-  color: #fff;
+  color: #a1a1aa;
 }
 
 /* Caret */
@@ -18221,4 +18221,62 @@ a .caret:before {
 
 .ols-alert .btn-close:hover {
     opacity: 1;
+}
+
+/* Dashboard App Feature Tiles & Sharp Minimal Aesthetic */
+.cp-card, .dashboard-app-card {
+    border-radius: 4px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04) !important;
+    background-color: #ffffff !important;
+    overflow: hidden !important;
+}
+.cp-card > div:first-child, .dashboard-app-card > div:first-child {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    padding: 0.625rem 0.875rem !important;
+}
+.cp-card > div:last-child, .dashboard-app-card > div:last-child {
+    background-color: #ffffff !important;
+    padding: 0.75rem !important;
+}
+.cp-app-tile, .app-grid-col {
+    min-height: 52px !important;
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.625rem !important;
+    border-radius: 4px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03) !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+}
+.cp-app-tile:hover, .app-grid-col:hover {
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 4px 8px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.03) !important;
+    border-color: #cbd5e1 !important;
+    background-color: #ffffff !important;
+}
+.cp-app-tile img, .app-grid-col img {
+    width: 22px !important;
+    height: 22px !important;
+    max-width: 22px !important;
+    max-height: 22px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.18s ease !important;
+}
+.cp-app-tile:hover img, .app-grid-col:hover img {
+    transform: scale(1.06) !important;
+}
+.cp-app-tile span, .app-grid-col span {
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
+    color: #334155 !important;
+    letter-spacing: -0.01em !important;
+    transition: color 0.18s ease !important;
+}
+.cp-app-tile:hover span, .app-grid-col:hover span {
+    color: var(--brand-color, #ef6d19) !important;
 }
