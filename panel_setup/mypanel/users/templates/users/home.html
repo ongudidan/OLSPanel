@@ -319,76 +319,109 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    fetch("/home_data/")
-        .then(response => response.json())
-        .then(data => {
-            const p = data.pkg_data;
-            if (!p) return;
+(function() {
+    function renderStats(p) {
+        if (!p) return;
+        const setTxt = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && val !== undefined && val !== null) el.innerText = val;
+        };
 
-            document.getElementById("home_package").innerText = p.name || "—";
-            document.getElementById("home_disk_usage").innerText = `${p.disk_use} / ${p.disk_space}`;
-            document.getElementById("home_db_usage").innerText = `${p.disk_use_db} / ${p.disk_space}`;
-            document.getElementById("home_email_disk").innerText = `${p.disk_use_email} / ${p.disk_space}`;
-            document.getElementById("home_memory").innerText = `${p.memory} MB / ${p.memory_limit} MB`;
-            document.getElementById("home_cpu").innerText = `${p.cpu}% (Core ${p.cpu_limit})`;
-            document.getElementById("home_bandwidth").innerText = `${p.bandwidth_use} / ${p.bandwidth}`;
-            document.getElementById("home_domains").innerText = `${p.domain_use} / ${p.allowed_domains}`;
-            document.getElementById("home_subdomains").innerText = `${p.subdomain_use} / ${p.allowed_subdomains}`;
-            document.getElementById("home_ftp").innerText = `${p.ftp_accounts_use} / ${p.ftp_accounts}`;
-            document.getElementById("home_database").innerText = `${p.databases_use} / ${p.databases}`;
-            document.getElementById("home_email_accounts").innerText = `${p.total_email_count} / ${p.email_accounts}`;
+        setTxt("home_package", p.name || "—");
+        setTxt("home_disk_usage", `${p.disk_use} / ${p.disk_space}`);
+        setTxt("home_db_usage", `${p.disk_use_db} / ${p.disk_space}`);
+        setTxt("home_email_disk", `${p.disk_use_email} / ${p.disk_space}`);
+        setTxt("home_memory", `${p.memory} MB / ${p.memory_limit} MB`);
+        setTxt("home_cpu", `${p.cpu}% (Core ${p.cpu_limit})`);
+        setTxt("home_bandwidth", `${p.bandwidth_use} / ${p.bandwidth}`);
+        setTxt("home_domains", `${p.domain_use} / ${p.allowed_domains}`);
+        setTxt("home_subdomains", `${p.subdomain_use} / ${p.allowed_subdomains}`);
+        setTxt("home_ftp", `${p.ftp_accounts_use} / ${p.ftp_accounts}`);
+        setTxt("home_database", `${p.databases_use} / ${p.databases}`);
+        setTxt("home_email_accounts", `${p.total_email_count} / ${p.email_accounts}`);
 
-            const sslEl = document.getElementById("home_ssl");
-            if (sslEl) {
-                if (p.ssl && (p.ssl.toLowerCase().includes("invalid") || p.ssl.toLowerCase().includes("self"))) {
-                    sslEl.innerHTML = '<span class="inline-flex items-center gap-1 font-semibold text-rose-600 text-xs"><i class="mdi mdi-alert-circle"></i> Inactive</span> <a href="/domain_list_ssl/" class="text-blue-600 hover:underline block text-[11px]">Issue Certificate</a>';
-                } else {
-                    sslEl.innerHTML = '<span class="inline-flex items-center gap-1 font-semibold text-emerald-600 text-xs"><i class="mdi mdi-check-circle"></i> Active</span> <a href="/domain_list_ssl/" class="text-blue-600 hover:underline block text-[11px]">View Certificate</a>';
-                }
+        const sslEl = document.getElementById("home_ssl");
+        if (sslEl) {
+            if (p.ssl && (p.ssl.toLowerCase().includes("invalid") || p.ssl.toLowerCase().includes("self"))) {
+                sslEl.innerHTML = '<span class="inline-flex items-center gap-1 font-semibold text-rose-600 text-xs"><i class="mdi mdi-alert-circle"></i> Inactive</span> <a href="/domain_list_ssl/" class="text-blue-600 hover:underline block text-[11px]">Issue Certificate</a>';
+            } else {
+                sslEl.innerHTML = '<span class="inline-flex items-center gap-1 font-semibold text-emerald-600 text-xs"><i class="mdi mdi-check-circle"></i> Active</span> <a href="/domain_list_ssl/" class="text-blue-600 hover:underline block text-[11px]">View Certificate</a>';
             }
-        })
-        .catch(err => {
-            [
-                "home_package", "home_disk_usage", "home_db_usage", "home_email_disk",
-                "home_memory", "home_cpu", "home_bandwidth", "home_domains",
-                "home_subdomains", "home_ftp", "home_database", "home_email_accounts"
-            ].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerHTML = "<span class='text-rose-600 text-xs font-medium'>Unavailable</span>";
-            });
-            console.error(err);
-        });
-
-    // App Search Functionality
-    const appSearch = document.getElementById("appSearchInput");
-    const clearBtn = document.getElementById("clearAppSearchBtn");
-
-    if (appSearch) {
-        appSearch.addEventListener("input", function() {
-            const filter = this.value.trim().toLowerCase();
-            if (clearBtn) clearBtn.style.display = filter ? "block" : "none";
-
-            const cards = document.querySelectorAll(".dashboard-app-card");
-            cards.forEach(card => {
-                const appCols = card.querySelectorAll(".app-grid-col");
-                let visibleInCard = 0;
-
-                appCols.forEach(col => {
-                    const text = col.textContent.trim().toLowerCase();
-                    if (!filter || text.includes(filter)) {
-                        col.style.display = "flex";
-                        visibleInCard++;
-                    } else {
-                        col.style.display = "none";
-                    }
-                });
-
-                card.style.display = visibleInCard > 0 ? "" : "none";
-            });
-        });
+        }
     }
-});
+
+    function loadHomeData() {
+        // Instant fill from session cache to avoid layout shift / flicker
+        try {
+            const cached = sessionStorage.getItem('olspanel_user_stats');
+            if (cached) {
+                renderStats(JSON.parse(cached));
+            }
+        } catch(e) {}
+
+        // Live Real-Time Fetch
+        fetch("/home_data/")
+            .then(response => response.json())
+            .then(data => {
+                const p = data.pkg_data;
+                if (!p) return;
+                try {
+                    sessionStorage.setItem('olspanel_user_stats', JSON.stringify(p));
+                } catch(e) {}
+                renderStats(p);
+            })
+            .catch(err => {
+                const pkgEl = document.getElementById("home_package");
+                if (pkgEl && pkgEl.innerText.includes("Loading...")) {
+                    [
+                        "home_package", "home_disk_usage", "home_db_usage", "home_email_disk",
+                        "home_memory", "home_cpu", "home_bandwidth", "home_domains",
+                        "home_subdomains", "home_ftp", "home_database", "home_email_accounts"
+                    ].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = "<span class='text-rose-600 text-xs font-medium'>Unavailable</span>";
+                    });
+                }
+                console.error(err);
+            });
+
+        // App Search Functionality
+        const appSearch = document.getElementById("appSearchInput");
+        const clearBtn = document.getElementById("clearAppSearchBtn");
+
+        if (appSearch && !appSearch.dataset.spaBound) {
+            appSearch.dataset.spaBound = "true";
+            appSearch.addEventListener("input", function() {
+                const filter = this.value.trim().toLowerCase();
+                if (clearBtn) clearBtn.style.display = filter ? "block" : "none";
+
+                const cards = document.querySelectorAll(".dashboard-app-card");
+                cards.forEach(card => {
+                    const appCols = card.querySelectorAll(".app-grid-col");
+                    let visibleInCard = 0;
+
+                    appCols.forEach(col => {
+                        const text = col.textContent.trim().toLowerCase();
+                        if (!filter || text.includes(filter)) {
+                            col.style.display = "flex";
+                            visibleInCard++;
+                        } else {
+                            col.style.display = "none";
+                        }
+                    });
+
+                    card.style.display = visibleInCard > 0 ? "" : "none";
+                });
+            });
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener("DOMContentLoaded", loadHomeData);
+    } else {
+        loadHomeData();
+    }
+})();
 
 function clearAppSearch() {
     const appSearch = document.getElementById("appSearchInput");

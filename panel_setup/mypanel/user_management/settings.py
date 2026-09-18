@@ -40,8 +40,10 @@ CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_TRUSTED_ORIGINS = []
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 1064 * 1024 * 1024  # 1064 MB request body parser limit
-FILE_UPLOAD_MAX_MEMORY_SIZE = 1064 * 1024 * 1024 
+# Disable request body upload size limits completely
+DATA_UPLOAD_MAX_MEMORY_SIZE = None
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+FILE_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024  # 25 MB memory chunk, streams larger to disk 
 
 # Application definition
 

@@ -32,7 +32,7 @@
             <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
                 <i class="mdi mdi-file-upload-outline text-brand text-sm"></i> SQL File Upload
             </h5>
-            <span class="text-[10px] text-slate-400 font-medium">Supports .sql, .sql.gz, .zip (Max 500MB)</span>
+            <span class="text-[10px] text-slate-400 font-medium">Supports .sql, .sql.gz, .zip (No file size limit)</span>
         </div>
 
         <div class="p-4 space-y-3">
@@ -41,6 +41,14 @@
                 <div class="relative flex items-center">
                     <input type="file" id="file-input" accept=".sql,.gz,.zip" class="w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-brand file:text-white hover:file:bg-brand/90 cursor-pointer bg-slate-50 border border-slate-200 rounded p-1 focus:outline-none focus:border-brand transition-all">
                 </div>
+            </div>
+
+            <!-- Import Options -->
+            <div class="flex items-center gap-2 pt-0.5">
+                <input type="checkbox" id="overwrite-tables" checked class="rounded border-slate-300 text-brand focus:ring-brand cursor-pointer">
+                <label for="overwrite-tables" class="text-[11px] text-slate-700 font-medium cursor-pointer select-none">
+                    Clean / overwrite existing tables in target database <span class="text-slate-400 font-normal">(Prevents "Table already exists" conflict)</span>
+                </label>
             </div>
 
             <!-- Upload Progress Preview Container -->
@@ -65,49 +73,171 @@
 const csrfToken = "{{ csrf_token }}";
 const actionUrl = "{% url 'upload_db' db %}";
 const fileInput = document.getElementById('file-input');
+const CHUNK_SIZE = 8 * 1024 * 1024; // 8 MB per slice (bypasses Cloudflare 100MB POST limit)
 
 if (fileInput) {
     fileInput.addEventListener('change', handleFiles);
 }
 
-function uploadFile(file, index) {
-    const formData = new FormData();
-    formData.append('file', file);
-   
+function formatFileSize(bytes) {
+    if (bytes >= 1024 * 1024 * 1024) {
+        return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+    } else if (bytes >= 1024 * 1024) {
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    } else {
+        return Math.round(bytes / 1024) + ' KB';
+    }
+}
+
+async function uploadFileInChunks(file) {
     const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const progressBar = $(`#${fileId} .progress-bar`);
     const progressPercentage = $(`#${fileId} .progress-percentage`);
     const statusText = $(`#${fileId} .status-text`);
+    const uploadBtn = $('#upload-button');
+    const overwrite = $('#overwrite-tables').is(':checked') ? 'true' : 'false';
 
-    $.ajax({
-        url: actionUrl,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: { "X-CSRFToken": csrfToken },
-        xhr: function () {
-            const xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', function (e) {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    progressBar.css('width', `${percentComplete}%`);
-                    progressPercentage.text(`${percentComplete}%`);
-                }
-            }, false);
-            return xhr;
-        },
-        success: function (response) {
-            progressBar.removeClass('bg-brand').addClass('bg-emerald-500');
-            progressPercentage.text('100%');
-            statusText.text('Import completed successfully!').removeClass('text-slate-500').addClass('text-emerald-700 font-bold');
-        },
-        error: function (xhr, status, error) {
-            progressBar.removeClass('bg-brand').addClass('bg-rose-500');
-            progressPercentage.text('Failed');
-            statusText.text('Import failed: ' + (xhr.responseText || 'Server error')).removeClass('text-slate-500').addClass('text-rose-600 font-bold');
+    uploadBtn.prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
+
+    const totalSize = file.size;
+    const totalChunks = Math.max(1, Math.ceil(totalSize / CHUNK_SIZE));
+    const uploadId = 'dbup_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    let importInterval = null;
+    let importSeconds = 0;
+
+    function startImportTimer() {
+        if (importInterval) return;
+        importSeconds = 0;
+        progressBar.css('width', '100%').addClass('animate-pulse');
+        progressPercentage.html('<span class="text-brand font-semibold animate-pulse">Importing...</span>');
+        
+        function updateImportMsg() {
+            statusText.html(`
+                <span class="inline-flex items-center gap-1.5 text-brand font-semibold">
+                    <svg class="animate-spin h-3 w-3 text-brand shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    Upload complete! Executing SQL dump into MySQL (${importSeconds}s)...
+                </span>
+            `);
         }
-    });
+        updateImportMsg();
+        importInterval = setInterval(() => {
+            importSeconds++;
+            updateImportMsg();
+        }, 1000);
+    }
+
+    function stopImportTimer() {
+        if (importInterval) {
+            clearInterval(importInterval);
+            importInterval = null;
+        }
+        progressBar.removeClass('animate-pulse');
+    }
+
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, totalSize);
+        const chunkBlob = file.slice(start, end);
+        const isFinalChunk = (chunkIndex === totalChunks - 1);
+
+        const formData = new FormData();
+        formData.append('file', chunkBlob, file.name);
+        formData.append('chunk_index', chunkIndex);
+        formData.append('total_chunks', totalChunks);
+        formData.append('file_name', file.name);
+        formData.append('upload_id', uploadId);
+        formData.append('overwrite', overwrite);
+
+        let success = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (!success && retryCount < maxRetries) {
+            try {
+                if (isFinalChunk && totalChunks > 1) {
+                    statusText.html(`<span class="text-slate-500 font-medium">Uploading final chunk (${chunkIndex + 1}/${totalChunks})...</span>`);
+                } else if (totalChunks > 1) {
+                    statusText.html(`<span class="text-slate-500 font-medium">Uploading chunk ${chunkIndex + 1} of ${totalChunks}...</span>`);
+                } else {
+                    statusText.html(`<span class="text-slate-500 font-medium">Uploading SQL backup file...</span>`);
+                }
+
+                const response = await new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: actionUrl,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        timeout: 0,
+                        headers: { "X-CSRFToken": csrfToken },
+                        xhr: function () {
+                            const xhr = new window.XMLHttpRequest();
+                            xhr.upload.addEventListener('progress', function (e) {
+                                if (e.lengthComputable) {
+                                    const overallLoaded = start + e.loaded;
+                                    const percent = Math.min(99, Math.round((overallLoaded / totalSize) * 100));
+                                    progressBar.css('width', `${percent}%`);
+                                    progressPercentage.text(`${percent}%`);
+                                }
+                            }, false);
+
+                            xhr.upload.addEventListener('load', function () {
+                                if (isFinalChunk) {
+                                    startImportTimer();
+                                }
+                            }, false);
+
+                            return xhr;
+                        },
+                        success: function (res) {
+                            resolve(res);
+                        },
+                        error: function (xhr, status, err) {
+                            reject(xhr);
+                        }
+                    });
+                });
+
+                if (response.status === 'chunk_uploaded') {
+                    success = true;
+                    const chunkLoaded = end;
+                    const percent = Math.min(99, Math.round((chunkLoaded / totalSize) * 100));
+                    progressBar.css('width', `${percent}%`);
+                    progressPercentage.text(`${percent}%`);
+                } else if (response.status === 'success') {
+                    stopImportTimer();
+                    progressBar.removeClass('bg-brand bg-rose-500').addClass('bg-emerald-500').css('width', '100%');
+                    progressPercentage.text('100%');
+                    statusText.html('<span class="text-emerald-700 font-bold"><i class="mdi mdi-check-circle mr-1"></i> Database imported successfully!</span>');
+                    uploadBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    return;
+                } else {
+                    throw new Error(response.message || 'Unknown server response');
+                }
+            } catch (err) {
+                retryCount++;
+                if (retryCount >= maxRetries) {
+                    stopImportTimer();
+                    let errMsg = 'Upload failed due to connection error';
+                    if (err && err.responseJSON && err.responseJSON.message) {
+                        errMsg = err.responseJSON.message;
+                    } else if (err && err.responseText) {
+                        errMsg = err.responseText.substring(0, 150);
+                    }
+                    progressBar.removeClass('bg-brand bg-emerald-500').addClass('bg-rose-500');
+                    progressPercentage.text('Failed');
+                    statusText.html('<span class="text-rose-600 font-bold"><i class="mdi mdi-alert-circle mr-1"></i> Import failed: ' + errMsg + '</span>');
+                    uploadBtn.prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+                    return;
+                }
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+    }
 }
 
 $('#upload-button').on('click', function () {
@@ -117,8 +247,8 @@ $('#upload-button').on('click', function () {
         return;
     }
 
-    Array.from(files).forEach((file, index) => {
-        uploadFile(file, index);
+    Array.from(files).forEach((file) => {
+        uploadFileInChunks(file);
     });
 });
 
@@ -134,7 +264,7 @@ function handleFiles(event) {
                 <div class="p-2.5 bg-slate-50 border border-slate-200 rounded text-xs" id="${fileId}">
                     <div class="flex items-center justify-between font-bold text-slate-800 mb-1">
                         <span class="truncate font-mono text-[11px]">${file.name}</span>
-                        <span class="text-slate-500 text-[10px]">(${Math.round(file.size / 1024)} KB)</span>
+                        <span class="text-slate-500 text-[10px]">(${formatFileSize(file.size)})</span>
                     </div>
                     <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mb-1">
                         <div class="progress-bar bg-brand h-full rounded-full transition-all duration-300" style="width: 0%;"></div>

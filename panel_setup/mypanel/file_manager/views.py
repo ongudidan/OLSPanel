@@ -1,4 +1,5 @@
 import os
+import re
 import zipfile
 import tarfile
 import gzip
@@ -650,14 +651,11 @@ def download(request):
         
 @login_required
 def upload(request):
-    if request.method == 'POST' and 'file' in request.FILES:
-        # Get the uploaded file and other request data
-        uploaded_file = request.FILES['file']  # For single file uploads
-        target_name = request.POST.get('target_name', '').strip()  # For renaming, copying, moving
+    if request.method == 'POST' and ('file' in request.FILES or 'chunk' in request.FILES):
+        uploaded_file = request.FILES.get('file') or request.FILES.get('chunk')
+        target_name = request.POST.get('target_name', '').strip()
         user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
-        disk_space_in_bytes = user_package.disk_space * 1024 * 1024
-            
-            
+        disk_space_in_bytes = user_package.disk_space * 1024 * 1024 if user_package else 0
 
         # Ensure target_name does not start with a slash
         if target_name.startswith('/'):
@@ -671,12 +669,21 @@ def upload(request):
         email_disk = get_disk_usage(f'/home/vmail/{username_string}')
         disk_in_bytes = human_readable_to_bytes(disk)
         email_disk_in_bytes = human_readable_to_bytes(email_disk)
-        total_size_in_bytes = disk_in_bytes + total_size + email_disk_in_bytes + uploaded_file.size
-        if user_package.disk_space != 0 and total_size_in_bytes > disk_space_in_bytes:
-            return JsonResponse({'status': 'error','message': 'Disk quota exceeded. Please upgrade your package or free up space.'}, status=403)
         
-        
-       
+        try:
+            chunk_index = int(request.POST.get('chunk_index', 0))
+            total_chunks = int(request.POST.get('total_chunks', 1))
+            total_file_size = int(request.POST.get('total_file_size', uploaded_file.size))
+        except (ValueError, TypeError):
+            chunk_index = 0
+            total_chunks = 1
+            total_file_size = uploaded_file.size
+
+        if user_package and user_package.disk_space != 0:
+            total_size_in_bytes = disk_in_bytes + total_size + email_disk_in_bytes + total_file_size
+            if total_size_in_bytes > disk_space_in_bytes:
+                return JsonResponse({'status': 'error', 'message': 'Disk quota exceeded. Please upgrade your package or free up space.'}, status=403)
+
         base_dir = f'/home/{username_string}/'
         target_path = os.path.join(base_dir, target_name) if target_name else base_dir
         target_path = ensure_user_home_prefix(target_path, username_string)
@@ -688,90 +695,160 @@ def upload(request):
 
         # Ensure target path exists
         if not os.path.exists(target_path):
-            os.makedirs(target_path)
+            os.makedirs(target_path, exist_ok=True)
 
-        # Save the file to the target directory
-        fs = FileSystemStorage(location=target_path)
-        file_path = os.path.join(target_path, uploaded_file.name)
-        if os.path.isfile(file_path):
-            os.remove(file_path)
-    
-        
-        
-        filename = fs.save(uploaded_file.name, uploaded_file)
-        file_path = os.path.join(target_path, filename)
-        file_url = fs.url(filename)
-        set_permissions_and_ownership(file_path, username_string)
+        upload_id = request.POST.get('upload_id', '')
+        original_name = request.POST.get('file_name', uploaded_file.name)
 
-        # Respond with success and file details
-        response_data = {
-            'status': 'success',
-            'file_name': uploaded_file.name,
-            'file_size': uploaded_file.size,
-            'file_url': file_url
-        }
-        return JsonResponse(response_data, status=200)
+        if total_chunks <= 1:
+            fs = FileSystemStorage(location=target_path)
+            file_path = os.path.join(target_path, original_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            filename = fs.save(original_name, uploaded_file)
+            file_path = os.path.join(target_path, filename)
+            file_url = fs.url(filename)
+            set_permissions_and_ownership(file_path, username_string)
+            return JsonResponse({
+                'status': 'success',
+                'file_name': original_name,
+                'file_size': uploaded_file.size,
+                'file_url': file_url
+            }, status=200)
+
+        # Multi-chunk handling
+        safe_id = re.sub(r'[^a-zA-Z0-9_-]', '_', upload_id) if upload_id else re.sub(r'[^a-zA-Z0-9_-]', '_', original_name)
+        part_file_path = os.path.join(target_path, f".upload_{safe_id}.part")
+
+        mode = 'wb' if chunk_index == 0 else 'ab'
+        try:
+            with open(part_file_path, mode) as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f"Failed writing chunk: {str(e)}"}, status=500)
+
+        if chunk_index < total_chunks - 1:
+            return JsonResponse({
+                'status': 'chunk_uploaded',
+                'chunk_index': chunk_index,
+                'total_chunks': total_chunks
+            }, status=200)
+
+        # Final chunk: assemble file
+        final_file_path = os.path.join(target_path, original_name)
+        try:
+            if os.path.exists(final_file_path):
+                os.remove(final_file_path)
+            os.rename(part_file_path, final_file_path)
+            set_permissions_and_ownership(final_file_path, username_string)
+            fs = FileSystemStorage(location=target_path)
+            return JsonResponse({
+                'status': 'success',
+                'file_name': original_name,
+                'file_size': os.path.getsize(final_file_path),
+                'file_url': fs.url(original_name)
+            }, status=200)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f"Failed assembling file: {str(e)}"}, status=500)
 
     # Handle error if no file is uploaded
     return JsonResponse({'status': 'error', 'message': 'No file uploaded.'}, status=400)
-   
-    
-    
+
+
 @login_required
 def upload_db(request, db_name):
-    if request.method == 'POST' and 'file' in request.FILES:
-        # Get the uploaded file and other request data
-        uploaded_file = request.FILES['file']  # For single file uploads
-        target_name = 'tmp'  # Temporary name for the upload folder
-
-        # Ensure target_name does not start with a slash
-        if target_name.startswith('/'):
-            target_name = target_name[1:]
+    if request.method == 'POST' and ('file' in request.FILES or 'chunk' in request.FILES):
+        uploaded_file = request.FILES.get('file') or request.FILES.get('chunk')
+        username_string = request.user.username
 
         # Define base directory and construct the target path
-        username_string = request.user.username
-        base_dir = f'/home/{username_string}/'  # Default base directory
-        target_path = os.path.join(base_dir, target_name) if target_name else base_dir
-        target_path = ensure_user_home_prefix(target_path, username_string)
-        
-        # Create the target path if it doesn't exist
-        if not os.path.exists(target_path):
-            os.makedirs(target_path)
-            set_permissions_and_ownership(target_path, username_string)
-
-        # Check permissions for the folder
+        base_dir = f'/home/{username_string}/'
         has_permission, message = check_file_folder_permission(base_dir, username_string)
         if not has_permission:
             return JsonResponse({'status': 'error', 'message': message}, status=403)
 
-        # Save the file to the target directory
-        filenamex, file_extension = os.path.splitext(uploaded_file.name)
-        timestamp = now().strftime('%Y%m%d_%H%M%S')+''+file_extension
-        fs = FileSystemStorage(location=target_path)
-        filename = fs.save(timestamp, uploaded_file)
-        file_path = os.path.join(target_path, filename)
-        file_url = fs.url(filename)
-        set_permissions_and_ownership(file_path, username_string)
+        target_path = os.path.join(base_dir, 'tmp')
+        target_path = ensure_user_home_prefix(target_path, username_string)
+        if not os.path.exists(target_path):
+            os.makedirs(target_path, exist_ok=True)
+            set_permissions_and_ownership(target_path, username_string)
 
-        # Now that the file is uploaded, proceed with importing the database
         try:
-            # You can implement the database import logic here
-            import_database(username_string, file_path, db_name)
+            chunk_index = int(request.POST.get('chunk_index', 0))
+            total_chunks = int(request.POST.get('total_chunks', 1))
+        except (ValueError, TypeError):
+            chunk_index = 0
+            total_chunks = 1
 
-            # Respond with success and file details
-            response_data = {
-                'status': 'success',
-                'file_name': uploaded_file.name,
-                'file_size': uploaded_file.size,
-                'file_url': file_url
-            }
-            return JsonResponse(response_data, status=200)
+        upload_id = request.POST.get('upload_id', '')
+        original_name = request.POST.get('file_name', uploaded_file.name)
+        overwrite = request.POST.get('overwrite', 'true').lower() in ('true', '1', 'yes')
 
+        # Single file upload fallback
+        if total_chunks <= 1:
+            _, file_extension = os.path.splitext(uploaded_file.name)
+            timestamp = now().strftime('%Y%m%d_%H%M%S') + file_extension
+            fs = FileSystemStorage(location=target_path)
+            filename = fs.save(timestamp, uploaded_file)
+            file_path = os.path.join(target_path, filename)
+            file_url = fs.url(filename)
+            set_permissions_and_ownership(file_path, username_string)
+
+            try:
+                import_database(username_string, file_path, db_name, overwrite=overwrite)
+                return JsonResponse({
+                    'status': 'success',
+                    'file_name': uploaded_file.name,
+                    'file_size': uploaded_file.size,
+                    'file_url': file_url
+                }, status=200)
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': f"Error importing database: {str(e)}"}, status=500)
+
+        # Multi-chunk upload handling
+        safe_id = re.sub(r'[^a-zA-Z0-9_-]', '_', upload_id) if upload_id else re.sub(r'[^a-zA-Z0-9_-]', '_', original_name)
+        part_file_path = os.path.join(target_path, f".upload_{safe_id}.part")
+
+        mode = 'wb' if chunk_index == 0 else 'ab'
+        try:
+            with open(part_file_path, mode) as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
         except Exception as e:
-            # Handle database import error
+            return JsonResponse({'status': 'error', 'message': f"Failed writing chunk: {str(e)}"}, status=500)
+
+        if chunk_index < total_chunks - 1:
+            return JsonResponse({
+                'status': 'chunk_uploaded',
+                'chunk_index': chunk_index,
+                'total_chunks': total_chunks
+            }, status=200)
+
+        # Final chunk received: assemble and import
+        _, file_extension = os.path.splitext(original_name)
+        timestamp = now().strftime('%Y%m%d_%H%M%S') + file_extension
+        final_file_path = os.path.join(target_path, timestamp)
+
+        try:
+            if os.path.exists(final_file_path):
+                os.remove(final_file_path)
+            os.rename(part_file_path, final_file_path)
+            set_permissions_and_ownership(final_file_path, username_string)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f"Failed assembling uploaded file: {str(e)}"}, status=500)
+
+        try:
+            import_database(username_string, final_file_path, db_name, overwrite=overwrite)
+            return JsonResponse({
+                'status': 'success',
+                'file_name': original_name,
+                'file_size': os.path.getsize(final_file_path) if os.path.exists(final_file_path) else 0,
+                'message': 'Database imported successfully.'
+            }, status=200)
+        except Exception as e:
             return JsonResponse({'status': 'error', 'message': f"Error importing database: {str(e)}"}, status=500)
 
-    # Handle error if no file is uploaded
     return JsonResponse({'status': 'error', 'message': 'No file uploaded.'}, status=400) 
 
 

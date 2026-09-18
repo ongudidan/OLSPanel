@@ -268,41 +268,86 @@
         if (!container) return;
         registerLoadedScripts();
         const scripts = container.querySelectorAll('script');
-        scripts.forEach(oldScript => {
-            const type = oldScript.getAttribute('type');
-            if (type && type !== 'text/javascript' && type !== 'application/javascript') {
-                return;
-            }
+        const deferredCallbacks = [];
 
-            const rawSrc = oldScript.getAttribute('src') || oldScript.src || '';
-            if (rawSrc) {
-                const filename = rawSrc.split('?')[0].split('/').pop().toLowerCase();
-                if (filename && loadedExternalScripts.has(filename)) {
-                    // Already loaded in DOM
+        const origDocAdd = document.addEventListener;
+        const origWinAdd = window.addEventListener;
+
+        const isDomReady = (document.readyState === 'complete' || document.readyState === 'interactive');
+
+        if (isDomReady) {
+            document.addEventListener = function(type, listener, options) {
+                if (type === 'DOMContentLoaded' || type === 'load') {
+                    if (typeof listener === 'function') {
+                        deferredCallbacks.push(listener);
+                        return;
+                    }
+                }
+                return origDocAdd.call(document, type, listener, options);
+            };
+
+            window.addEventListener = function(type, listener, options) {
+                if (type === 'DOMContentLoaded' || type === 'load') {
+                    if (typeof listener === 'function') {
+                        deferredCallbacks.push(listener);
+                        return;
+                    }
+                }
+                return origWinAdd.call(window, type, listener, options);
+            };
+        }
+
+        try {
+            scripts.forEach(oldScript => {
+                const type = oldScript.getAttribute('type');
+                if (type && type !== 'text/javascript' && type !== 'application/javascript') {
                     return;
                 }
-                if (filename) loadedExternalScripts.add(filename);
 
-                const newScript = document.createElement('script');
-                Array.from(oldScript.attributes).forEach(attr => {
-                    newScript.setAttribute(attr.name, attr.value);
-                });
-                document.head.appendChild(newScript);
-            } else {
-                // Inline script: evaluate in global scope so functions/handlers bind to window
-                const code = oldScript.textContent;
-                if (code && code.trim()) {
-                    try {
-                        (0, eval)(code);
-                    } catch (err) {
+                const rawSrc = oldScript.getAttribute('src') || oldScript.src || '';
+                if (rawSrc) {
+                    const filename = rawSrc.split('?')[0].split('/').pop().toLowerCase();
+                    if (filename && loadedExternalScripts.has(filename)) {
+                        // Already loaded in DOM
+                        return;
+                    }
+                    if (filename) loadedExternalScripts.add(filename);
+
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    document.head.appendChild(newScript);
+                } else {
+                    // Inline script: evaluate in global scope so functions/handlers bind to window
+                    const code = oldScript.textContent;
+                    if (code && code.trim()) {
                         try {
-                            const fn = new Function(code);
-                            fn.call(window);
-                        } catch (fnErr) {
-                            console.warn('[SPA Inline Script Warning]:', err);
+                            (0, eval)(code);
+                        } catch (err) {
+                            try {
+                                const fn = new Function(code);
+                                fn.call(window);
+                            } catch (fnErr) {
+                                console.warn('[SPA Inline Script Warning]:', err);
+                            }
                         }
                     }
                 }
+            });
+        } finally {
+            if (isDomReady) {
+                document.addEventListener = origDocAdd;
+                window.addEventListener = origWinAdd;
+            }
+        }
+
+        // Execute all deferred callbacks immediately since DOM is ready
+        deferredCallbacks.forEach(cb => {
+            try {
+                cb.call(document, new Event('DOMContentLoaded'));
+            } catch (err) {
+                console.warn('[SPA Deferred Callback Error]:', err);
             }
         });
     }

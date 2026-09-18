@@ -1321,7 +1321,28 @@ def total_users():
         return 0  # Return 0 if no users are found
 
       
-def import_database(username, file_path, db_name):
+def drop_existing_database_tables(db_name, env):
+    """Drops existing tables in database before import to prevent collision errors."""
+    try:
+        get_tables_cmd = [
+            "mysql", "-u", "root", "-Nse",
+            f"SELECT table_name FROM information_schema.tables WHERE table_schema='{db_name}' AND table_type='BASE TABLE';"
+        ]
+        res = subprocess.run(get_tables_cmd, env=env, capture_output=True, text=True)
+        if res.returncode == 0 and res.stdout.strip():
+            tables = res.stdout.strip().split()
+            if tables:
+                drop_statements = ["SET FOREIGN_KEY_CHECKS = 0;"]
+                for table in tables:
+                    drop_statements.append(f"DROP TABLE IF EXISTS `{table}`;")
+                drop_statements.append("SET FOREIGN_KEY_CHECKS = 1;")
+                sql_drop = "\n".join(drop_statements)
+                subprocess.run(["mysql", "-u", "root", db_name], input=sql_drop.encode(), env=env, check=True)
+    except Exception as e:
+        logger.warning(f"Error dropping existing tables in {db_name}: {e}")
+
+
+def import_database(username, file_path, db_name, overwrite=True):
     db_name = replace_first_with_underscore(db_name)
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
@@ -1335,12 +1356,15 @@ def import_database(username, file_path, db_name):
     env = os.environ.copy()
     env["MYSQL_PWD"] = db_password
 
+    if overwrite:
+        drop_existing_database_tables(db_name, env)
+
     try:
         if file_path.endswith('.gz'):
-            # Decompress and import the .gz file without shell=True
+            # Decompress and import the .gz file with large packet support
             gunzip_proc = subprocess.Popen(["gunzip", "-c", file_path], stdout=subprocess.PIPE)
             mysql_proc = subprocess.Popen(
-                ["mysql", "-u", "root", db_name],
+                ["mysql", "-u", "root", "--max_allowed_packet=1024M", db_name],
                 env=env,
                 stdin=gunzip_proc.stdout,
                 stdout=subprocess.PIPE,
@@ -1350,18 +1374,47 @@ def import_database(username, file_path, db_name):
             gunzip_proc.stdout.close()
             stdout, stderr = mysql_proc.communicate()
             if mysql_proc.returncode != 0:
-                raise subprocess.CalledProcessError(mysql_proc.returncode, "mysql", stderr)
+                err_msg = stderr.decode('utf-8', errors='replace').strip() if stderr else f"Exit code {mysql_proc.returncode}"
+                raise Exception(f"MySQL Error: {err_msg}")
+        elif file_path.endswith('.zip'):
+            import zipfile
+            extract_dir = os.path.dirname(file_path)
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                sql_files = [f for f in zip_ref.namelist() if f.endswith('.sql') and not f.startswith('__MACOSX')]
+                if not sql_files:
+                    raise Exception("No .sql file found inside the zip archive.")
+                extracted_sql = zip_ref.extract(sql_files[0], path=extract_dir)
+                try:
+                    with open(extracted_sql, "rb") as f:
+                        res = subprocess.run(
+                            ["mysql", "-u", "root", "--max_allowed_packet=1024M", db_name],
+                            env=env,
+                            stdin=f,
+                            capture_output=True
+                        )
+                        if res.returncode != 0:
+                            err_msg = res.stderr.decode('utf-8', errors='replace').strip() if res.stderr else f"Exit code {res.returncode}"
+                            raise Exception(f"MySQL Error: {err_msg}")
+                finally:
+                    if os.path.exists(extracted_sql):
+                        try:
+                            os.remove(extracted_sql)
+                        except Exception:
+                            pass
         else:
             # Direct import if not compressed
-            with open(file_path, "r") as f:
-                subprocess.run(
-                    ["mysql", "-u", "root", db_name],
+            with open(file_path, "rb") as f:
+                res = subprocess.run(
+                    ["mysql", "-u", "root", "--max_allowed_packet=1024M", db_name],
                     env=env,
                     stdin=f,
-                    check=True
+                    capture_output=True
                 )
-    except subprocess.CalledProcessError as e:
-        raise Exception(f"Error importing database: {e}")
+                if res.returncode != 0:
+                    err_msg = res.stderr.decode('utf-8', errors='replace').strip() if res.stderr else f"Exit code {res.returncode}"
+                    raise Exception(f"MySQL Error: {err_msg}")
+    except Exception as e:
+        raise Exception(f"{e}")
         
         
 def export_database(username, file_path, db_name):

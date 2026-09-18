@@ -1,50 +1,94 @@
-function uploadFile(file, index) {
-    let parentPath = $("#location").val();
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('target_name', parentPath);
+const FM_CHUNK_SIZE = 8 * 1024 * 1024; // 8 MB per slice
 
+async function uploadFile(file, index) {
+    let parentPath = $("#location").val();
     const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const progressBar = $(`#${fileId} .progress-bar`);
     const progressPercentage = $(`#${fileId} .progress-percentage`);
 
-    $.ajax({
-        url: upload_url, // Django URL name for the upload view
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: { "X-CSRFToken": csrfToken },
-        xhr: function () {
-            const xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', function (e) {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    progressBar.css('width', `${percentComplete}%`);
-                    progressPercentage.text(`${percentComplete}%`);
+    const totalSize = file.size;
+    const totalChunks = Math.max(1, Math.ceil(totalSize / FM_CHUNK_SIZE));
+    const uploadId = 'fmup_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        const start = chunkIndex * FM_CHUNK_SIZE;
+        const end = Math.min(start + FM_CHUNK_SIZE, totalSize);
+        const chunkBlob = file.slice(start, end);
+
+        const formData = new FormData();
+        formData.append('file', chunkBlob, file.name);
+        formData.append('target_name', parentPath);
+        formData.append('chunk_index', chunkIndex);
+        formData.append('total_chunks', totalChunks);
+        formData.append('total_file_size', totalSize);
+        formData.append('file_name', file.name);
+        formData.append('upload_id', uploadId);
+
+        let success = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (!success && retryCount < maxRetries) {
+            try {
+                const response = await new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: upload_url,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        timeout: 0,
+                        headers: { "X-CSRFToken": csrfToken },
+                        xhr: function () {
+                            const xhr = new window.XMLHttpRequest();
+                            xhr.upload.addEventListener('progress', function (e) {
+                                if (e.lengthComputable) {
+                                    const overallLoaded = start + e.loaded;
+                                    const percent = Math.min(99, Math.round((overallLoaded / totalSize) * 100));
+                                    progressBar.css('width', `${percent}%`);
+                                    progressPercentage.text(`${percent}%`);
+                                }
+                            }, false);
+                            return xhr;
+                        },
+                        success: function (res) {
+                            resolve(res);
+                        },
+                        error: function (xhr, status, err) {
+                            reject(xhr);
+                        }
+                    });
+                });
+
+                if (response.status === 'chunk_uploaded') {
+                    success = true;
+                    const chunkLoaded = end;
+                    const percent = Math.min(99, Math.round((chunkLoaded / totalSize) * 100));
+                    progressBar.css('width', `${percent}%`);
+                    progressPercentage.text(`${percent}%`);
+                } else if (response.status === 'success') {
+                    progressBar.css('background', 'green').css('width', '100%');
+                    progressPercentage.text('Complete');
+                    if (parentPath === "") {
+                        parentPath = "/";
+                    }
+                    fetchFolderContents(parentPath);
+                    return;
+                } else {
+                    throw new Error(response.message || 'Unknown response');
                 }
-            }, false);
-            return xhr;
-        },
-        success: function (response) {
-            progressBar.css('background', 'green'); // Set to green on success
-            progressPercentage.text('Complete'); // Optionally update text
-			if (parentPath === "") {
-                    parentPath = "/";
+            } catch (err) {
+                retryCount++;
+                if (retryCount >= maxRetries) {
+                    progressBar.addClass('failed');
+                    progressPercentage.text('Failed');
+                    console.log('Upload error:', err);
+                    return;
                 }
-                fetchFolderContents(parentPath);
-        },
-        error: function (xhr, status, error) {
-            progressBar.addClass('failed'); // Set to red on failure
-            progressPercentage.text('Failed'); // Optionally update text
-            
-            // Log full response
-            console.log('Error:', error);
-            console.log('Status:', status);
-            console.log('Full Response:', xhr);
-            console.log('Response Text:', xhr.responseText); // Server's response text
+                await new Promise(r => setTimeout(r, 1000));
+            }
         }
-    });
+    }
 }
 
 
@@ -356,22 +400,47 @@ function downloadFileDirectly(selectedItemname, selectedItem) {
 }
 		
 document.addEventListener('click', function(event) {
-    var nav = document.querySelector('nav'); // Select the <nav> element
-    var menuButton = document.querySelector('.menu-button'); // The button that toggles the sidebar
+    var nav = document.querySelector('nav');
+    var menuButton = document.querySelector('.menu-button');
 
-    // Check if the click was outside of the <nav> and the toggle button
-    if (!nav.contains(event.target) && !menuButton.contains(event.target)) {
-        // Remove 'active' class if it is present
-        if (nav.classList.contains('active')) {
-            nav.classList.remove('active');
+    if (!nav || !menuButton) return;
+
+    // Only auto-close on outside click if on mobile (screen width <= 768)
+    if (window.innerWidth <= 768) {
+        if (!nav.contains(event.target) && !menuButton.contains(event.target)) {
+            if (nav.classList.contains('active')) {
+                nav.classList.remove('active');
+            }
         }
     }
 });
-function toggleSidebar() {
-    var nav = document.querySelector('nav'); // Select the first <nav> element on the page
 
-    // Toggle the 'active' class on the <nav> element
-    nav.classList.toggle('active');
+function toggleSidebar() {
+    var nav = document.querySelector('nav');
+    var body = document.body;
+
+    if (window.innerWidth <= 768) {
+        if (nav) {
+            nav.classList.toggle('active');
+        }
+    } else {
+        body.classList.toggle('sidebar-collapsed');
+        if (nav && nav.classList.contains('active')) {
+            nav.classList.remove('active');
+        }
+        try {
+            localStorage.setItem('fm_sidebar_collapsed', body.classList.contains('sidebar-collapsed') ? 'true' : 'false');
+        } catch (e) {}
+    }
+}
+
+// Restore sidebar state from localStorage on load
+if (window.innerWidth > 768) {
+    try {
+        if (localStorage.getItem('fm_sidebar_collapsed') === 'true') {
+            document.body.classList.add('sidebar-collapsed');
+        }
+    } catch (e) {}
 }
 
 function getSelectedItems() {
@@ -1363,18 +1432,22 @@ function sortBy(field, element) {
         currentSortDirection = "asc";
     }
 
-    // Update UI: remove active class from all
-    document.querySelectorAll(".sort-btn").forEach(btn => {
+    // Update UI: remove active class and clear icons from all sort buttons
+    document.querySelectorAll(".sort-btn, .file-header p").forEach(btn => {
         btn.classList.remove("active");
-        btn.querySelector("i").textContent = "";
+        const icon = btn.querySelector(".sort-icon, i");
+        if (icon) icon.textContent = "";
     });
 
     // Set active state and icon
     element.classList.add("active");
     const icon = currentSortDirection === "asc" ? "arrow_upward" : "arrow_downward";
-    element.querySelector("i").textContent = icon;
+    const iconEl = element.querySelector(".sort-icon, i");
+    if (iconEl) {
+        iconEl.textContent = icon;
+    }
 
-    // Call your sorting function
+    // Call sorting function
     sortAndRenderEntries();
 }
 
@@ -1428,11 +1501,15 @@ function sortAndRenderEntries() {
     // Only sort if a sort field is set
     if (currentSortField && currentSortDirection) {
         sorted.sort((a, b) => {
+            // Keep directories on top
+            if (a.is_dir !== b.is_dir) {
+                return a.is_dir ? -1 : 1;
+            }
             let valA, valB;
 
             if (currentSortField === "name") {
-                valA = a.name.toLowerCase();
-                valB = b.name.toLowerCase();
+                valA = (a.name || "").toLowerCase();
+                valB = (b.name || "").toLowerCase();
             } else if (currentSortField === "size") {
                 valA = parseSizeToBytes(a.size || "0 Bytes");
                 valB = parseSizeToBytes(b.size || "0 Bytes");

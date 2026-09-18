@@ -252,11 +252,11 @@
         .left-sidebar, .sidebar-dark { background-color: #000000 !important; border-right: 1px solid #18181b !important; box-shadow: none !important; overflow: hidden !important; }
         .left-sidebar::before { display: none !important; }
         #sidebar, .sidebar { background-color: #000000 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; max-height: 100vh !important; overflow: hidden !important; position: relative !important; }
-        .app-brand { height: 60px !important; min-height: 60px !important; max-height: 60px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 6px 12px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
+        .app-brand { height: 56px !important; min-height: 56px !important; max-height: 56px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 6px 12px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
         .app-brand a { height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 !important; overflow: hidden !important; text-decoration: none !important; }
-        .app-brand .brand-name { font-size: 0.95rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-        .brand-full-logo { max-height: 42px !important; max-width: 185px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
-        .brand-minified-icon { max-height: 32px !important; max-width: 32px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: none !important; margin: 0 auto !important; }
+        .app-brand .brand-name { font-size: 0.9rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+        .brand-full-logo { max-height: 28px !important; max-width: 145px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
+        .brand-minified-icon { max-height: 26px !important; max-width: 26px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: none !important; margin: 0 auto !important; }
         .sidebar-left { flex: 1 1 auto !important; height: calc(100% - 60px) !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; }
 
         /* App Brand Logo & Icon in Collapsed vs Expanded-on-hover */
@@ -537,13 +537,13 @@
             <div class="app-brand">
               {% if branding.brand_image %}
               <a href="/whm/" class="flex items-center justify-center w-full h-full p-0">
-                <img class="brand-full-logo" src="{{ branding.brand_image }}" alt="{{ branding.brand_title|default:'Brand Logo' }}" style="max-height: 42px; max-width: 185px; object-fit: contain;">
-                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 32px; max-width: 32px; object-fit: contain;">
+                <img class="brand-full-logo" src="{{ branding.brand_image }}" alt="{{ branding.brand_title|default:'Brand Logo' }}" style="max-height: 28px; max-width: 145px; object-fit: contain;">
+                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 26px; max-width: 26px; object-fit: contain;">
               </a>
               {% else %}
               <a href="/whm/" class="flex items-center justify-center w-full h-full gap-2 p-0">
-                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 32px; max-width: 32px; object-fit: contain;">
-                <span class="brand-name font-bold text-sm" style="color: {{ branding.brand_color|default:'#ef6d19' }};">{{ branding.brand_title|default:'OLSPanel' }}</span>
+                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 26px; max-width: 26px; object-fit: contain;">
+                <span class="brand-name font-bold text-xs" style="color: {{ branding.brand_color|default:'#ef6d19' }};">{{ branding.brand_title|default:'OLSPanel' }}</span>
               </a>
               {% endif %}
             </div>
