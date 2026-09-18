@@ -28,12 +28,12 @@
     </div>
 
     <!-- Main Extension Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2 rounded-t-lg relative z-30">
             <div class="flex items-center gap-2">
                 <label for="php_version" class="text-xs font-bold text-slate-900 m-0">PHP Version:</label>
-                <div class="relative">
-                    <select name="php_version" id="php_version" class="px-2.5 py-1 bg-white border border-slate-200 rounded text-xs font-mono font-bold text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                <div class="relative min-w-[220px]">
+                    <select name="php_version" id="php_version" class="searchable-select w-full" data-placeholder="-- Choose PHP Version --" data-search-placeholder="Search PHP versions..." data-icon="mdi-language-php">
                         <option value="">-- Choose PHP Version --</option>
                         {% for version in php_versions %}
                             <option value="{{ version }}">PHP {{ version }}</option>
@@ -52,7 +52,7 @@
         {% csrf_token %}
 
         <!-- Extensions Table -->
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-b-lg">
             <table class="w-full text-xs text-left text-slate-700">
                 <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
                     <tr>

@@ -41,8 +41,8 @@
     </div>
 
     <!-- SECTION 1: Create Database Card -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between rounded-t-lg">
             <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
                 <i class="mdi mdi-database-plus text-brand text-sm"></i> Create New Database
             </h5>
@@ -67,8 +67,8 @@
     </div>
 
     <!-- SECTION 2: List of Databases -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2 rounded-t-lg">
             <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
                 <i class="mdi mdi-database-outline text-brand text-sm"></i> Existing Databases
             </h5>
@@ -78,7 +78,7 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-b-lg">
             <table class="w-full text-xs text-left text-slate-700">
                 <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                     <tr>
@@ -155,8 +155,8 @@
     <!-- SECTION 3: Create User & Assign User (2 Column Grid) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <!-- Card Left: Create User -->
-        <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-xs">
+            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between rounded-t-lg">
                 <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
                     <i class="mdi mdi-account-plus-outline text-brand text-sm"></i> Add Database User
                 </h5>
@@ -200,8 +200,8 @@
         </div>
 
         <!-- Card Right: Add User To Database -->
-        <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-lg shadow-xs relative">
+            <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between rounded-t-lg">
                 <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
                     <i class="mdi mdi-link-variant text-brand text-sm"></i> Assign User to Database
                 </h5>
@@ -212,8 +212,7 @@
                 <div class="space-y-1">
                     <label for="assign_user" class="block text-[11px] font-semibold text-slate-700">Select User</label>
                     <div class="relative">
-                        <i class="mdi mdi-account-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select name="dbuser" id="assign_user" required class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                        <select name="dbuser" id="assign_user" required class="searchable-select w-full" data-placeholder="-- Choose User --" data-search-placeholder="Search users..." data-icon="mdi-account-outline">
                             <option value="">-- Choose User --</option>
                             {% for u in userlists %}
                                 <option value="{{ u }}">{{ u }}</option>
@@ -225,8 +224,7 @@
                 <div class="space-y-1">
                     <label for="assign_db" class="block text-[11px] font-semibold text-slate-700">Select Database</label>
                     <div class="relative">
-                        <i class="mdi mdi-database-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select name="dbname" id="assign_db" required class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all cursor-pointer">
+                        <select name="dbname" id="assign_db" required class="searchable-select w-full" data-placeholder="-- Choose Target Database --" data-search-placeholder="Search databases..." data-icon="mdi-database-outline">
                             <option value="">-- Choose Target Database --</option>
                             {% for database in databases %}
                                 <option value="{{ database.db_name }}">{{ database.db_name }}</option>
@@ -246,15 +244,15 @@
     </div>
 
     <!-- SECTION 4: Current Users List -->
-    <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
-        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-xs">
+        <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between rounded-t-lg">
             <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
                 <i class="mdi mdi-account-multiple-outline text-brand text-sm"></i> Current Database Users
             </h5>
             <span class="text-[10px] text-slate-400 font-mono">{{ userlists|length }} Total</span>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto rounded-b-lg">
             <table class="w-full text-xs text-left text-slate-700">
                 <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
                     <tr>

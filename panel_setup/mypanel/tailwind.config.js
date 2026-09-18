@@ -5,6 +5,8 @@ module.exports = {
     './users/templates/**/*.html',
     './media/js/**/*.js',
     './templates/**/*.html',
+    './modules/**/*.html',
+    './modules/**/*.js',
     '../extra/**/*.pl',
     '../../olspanel-plugin-*/**/*.html',
     '../../olspanel-plugin-*/**/*.pl',

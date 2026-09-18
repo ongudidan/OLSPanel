@@ -185,6 +185,24 @@
                 menu.classList.remove('hidden');
                 wrapper.classList.add('open');
                 wrapper.style.zIndex = '999999';
+                
+                // Elevate all parent card/container/grid ancestors so dropdown is on top of everything
+                const ancestorsToElevate = [];
+                let curr = wrapper.parentElement;
+                while (curr && curr !== document.body && curr !== document.documentElement) {
+                    const style = window.getComputedStyle(curr);
+                    if (curr.classList.contains('bg-white') || curr.classList.contains('card') || curr.tagName === 'FORM' || curr.parentElement?.classList?.contains('grid') || curr.classList.contains('space-y-3') || curr.classList.contains('space-y-4') || curr.classList.contains('border-b')) {
+                        ancestorsToElevate.push(curr);
+                        curr.style.zIndex = '50';
+                        if (style.position === 'static') {
+                            curr.style.position = 'relative';
+                            curr.dataset.olsTempRelative = 'true';
+                        }
+                    }
+                    curr = curr.parentElement;
+                }
+                wrapper._elevatedAncestors = ancestorsToElevate;
+
                 trigger.classList.add('border-brand', 'ring-1', 'ring-brand');
                 const arrow = trigger.querySelector('.ols-select-arrow');
                 if (arrow) arrow.style.transform = 'rotate(180deg)';
@@ -200,6 +218,18 @@
                 menu.classList.add('hidden');
                 wrapper.classList.remove('open');
                 wrapper.style.zIndex = '';
+                
+                if (wrapper._elevatedAncestors) {
+                    wrapper._elevatedAncestors.forEach(anc => {
+                        anc.style.zIndex = '';
+                        if (anc.dataset.olsTempRelative === 'true') {
+                            anc.style.position = '';
+                            delete anc.dataset.olsTempRelative;
+                        }
+                    });
+                    wrapper._elevatedAncestors = null;
+                }
+
                 trigger.classList.remove('border-brand', 'ring-1', 'ring-brand');
                 const arrow = trigger.querySelector('.ols-select-arrow');
                 if (arrow) arrow.style.transform = 'rotate(0deg)';

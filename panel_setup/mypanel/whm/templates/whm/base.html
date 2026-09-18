@@ -249,13 +249,13 @@
         .collapsing { position: relative !important; height: 0; overflow: hidden !important; transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; display: block !important; }
 
         /* Layout Framework */
-        .left-sidebar, .sidebar-dark { background-color: #000000 !important; border-right: 1px solid #18181b !important; box-shadow: none !important; overflow: hidden !important; }
+        .left-sidebar, .sidebar-dark { background-color: #000000 !important; border-right: 1px solid #18181b !important; box-shadow: none !important; overflow: hidden !important; width: 195px !important; }
         .left-sidebar::before { display: none !important; }
-        #sidebar, .sidebar { background-color: #000000 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; max-height: 100vh !important; overflow: hidden !important; position: relative !important; }
-        .app-brand { height: 56px !important; min-height: 56px !important; max-height: 56px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 6px 12px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
+        #sidebar, .sidebar { background-color: #000000 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; max-height: 100vh !important; overflow: hidden !important; position: relative !important; width: 195px !important; }
+        .app-brand { height: 56px !important; min-height: 56px !important; max-height: 56px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 6px 10px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
         .app-brand a { height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 !important; overflow: hidden !important; text-decoration: none !important; }
-        .app-brand .brand-name { font-size: 0.9rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-        .brand-full-logo { max-height: 28px !important; max-width: 145px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
+        .app-brand .brand-name { font-size: 0.88rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
+        .brand-full-logo { max-height: 28px !important; max-width: 135px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
         .brand-minified-icon { max-height: 26px !important; max-width: 26px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: none !important; margin: 0 auto !important; }
         .sidebar-left { flex: 1 1 auto !important; height: calc(100% - 60px) !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; }
 
@@ -268,20 +268,20 @@
         body.sidebar-minified .left-sidebar:hover .brand-minified-icon { display: none !important; }
 
         /* Sidebar Search Box (Default Expanded) */
-        #custom-search { padding: 8px 12px 4px !important; margin-bottom: 0 !important; }
+        #custom-search { padding: 6px 8px 3px !important; margin-bottom: 0 !important; }
         .search-full-container { display: flex !important; width: 100% !important; }
         .search-minified-btn { display: none !important; }
-        #menuSearchInput { background: #121214 !important; border: 1px solid #27272a !important; color: #f4f4f5 !important; font-size: 0.78rem !important; border-radius: 6px !important; padding: 6px 10px 6px 28px !important; height: 32px !important; width: 100% !important; }
+        #menuSearchInput { background: #121214 !important; border: 1px solid #27272a !important; color: #f4f4f5 !important; font-size: 0.75rem !important; border-radius: 5px !important; padding: 5px 8px 5px 24px !important; height: 30px !important; width: 100% !important; }
         #menuSearchInput:focus { background: #000000 !important; border-color: var(--brand-color, #ef6d19) !important; box-shadow: 0 0 0 2px rgba(239, 109, 25, 0.2) !important; }
 
         /* Sidebar Navigation Items */
         .sidebar .sidebar-inner { margin-top: 4px !important; padding-bottom: 24px !important; }
-        .sidebar .sidebar-inner .section-title { padding: 12px 14px 4px !important; font-size: 0.66rem !important; font-weight: 700 !important; color: #52525b !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
-        .sidebar .sidebar-inner > li { margin: 1px 8px !important; }
-        .sidebar .sidebar-inner > li > a { padding: 7px 12px !important; min-height: 34px !important; border-radius: 6px !important; color: #ffffff !important; font-size: 0.81rem !important; font-weight: 500 !important; display: flex !important; align-items: center !important; gap: 8px !important; transition: all 0.15s ease !important; }
+        .sidebar .sidebar-inner .section-title { padding: 10px 10px 3px !important; font-size: 0.65rem !important; font-weight: 700 !important; color: #52525b !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; }
+        .sidebar .sidebar-inner > li { margin: 1px 5px !important; }
+        .sidebar .sidebar-inner > li > a { padding: 6px 9px !important; min-height: 33px !important; border-radius: 5px !important; color: #ffffff !important; font-size: 0.8rem !important; font-weight: 500 !important; display: flex !important; align-items: center !important; gap: 7px !important; transition: all 0.15s ease !important; }
         .sidebar .sidebar-inner > li > a span { color: #ffffff !important; }
         .sidebar .sidebar-inner > li > a:hover { color: #ffffff !important; background-color: #18181b !important; transform: translateX(2px); }
-        .sidebar .sidebar-inner > li > a img, .sidebar .sidebar-inner > li > a i { width: 18px !important; height: 18px !important; font-size: 18px !important; opacity: 1 !important; flex-shrink: 0 !important; }
+        .sidebar .sidebar-inner > li > a img, .sidebar .sidebar-inner > li > a i { width: 17px !important; height: 17px !important; font-size: 17px !important; opacity: 1 !important; flex-shrink: 0 !important; }
         .sidebar .sidebar-inner > li > a:hover img, .sidebar .sidebar-inner > li > a:hover i { opacity: 1 !important; }
         
         .sidebar .sidebar-inner > li.active:not(.has-sub) > a { background-color: #18181b !important; color: #a1a1aa !important; font-weight: 600 !important; border-left: 3px solid var(--brand-color, #ef6d19) !important; }
@@ -293,15 +293,15 @@
         .sidebar .sidebar-inner > li.has-sub.active > a img, .sidebar .sidebar-inner > li.has-sub.active > a i { opacity: 0.8 !important; }
 
         /* Carets */
-        .sidebar li > a .caret { margin-left: auto !important; width: 16px !important; height: 16px !important; font-size: 0.95rem !important; }
-        .sidebar li > a .caret:before { content: "\f142" !important; color: #ffffff !important; font-size: 16px !important; transition: transform 0.2s ease !important; }
+        .sidebar li > a .caret { margin-left: auto !important; width: 14px !important; height: 14px !important; font-size: 0.88rem !important; }
+        .sidebar li > a .caret:before { content: "\f142" !important; color: #ffffff !important; font-size: 14px !important; transition: transform 0.2s ease !important; }
         .sidebar li.expand > a .caret:before, .sidebar li.active.expand > a .caret:before, .sidebar li.has-sub.active > a .caret:before { transform: rotate(90deg) !important; color: #a1a1aa !important; }
 
         /* SUBMENU HIERARCHICAL INDENTATION & TREE LINE GUIDE */
         .sidebar .sub-menu {
             background-color: transparent !important;
-            margin: 2px 8px 4px 22px !important;
-            padding: 3px 0 3px 8px !important;
+            margin: 2px 5px 4px 16px !important;
+            padding: 2px 0 2px 5px !important;
             border-left: 1.5px solid #27272a !important;
             visibility: visible !important;
             display: flex !important;
@@ -314,13 +314,13 @@
             display: block !important;
         }
         .sidebar .sub-menu > li > a {
-            padding: 5.5px 10px !important;
-            font-size: 0.77rem !important;
+            padding: 4.5px 7px !important;
+            font-size: 0.75rem !important;
             color: #ffffff !important;
-            border-radius: 5px !important;
+            border-radius: 4px !important;
             display: flex !important;
             align-items: center !important;
-            gap: 8px !important;
+            gap: 6px !important;
             transition: all 0.12s ease !important;
         }
         .sidebar .sub-menu > li > a span {
@@ -332,9 +332,9 @@
             transform: translateX(2px);
         }
         .sidebar .sub-menu > li > a img, .sidebar .sub-menu > li > a i {
-            width: 15px !important;
-            height: 15px !important;
-            font-size: 15px !important;
+            width: 14px !important;
+            height: 14px !important;
+            font-size: 14px !important;
             opacity: 1 !important;
             flex-shrink: 0 !important;
         }
@@ -346,7 +346,7 @@
             font-weight: 600 !important;
             background-color: #18181b !important;
             border-left: 2px solid var(--brand-color, #ef6d19) !important;
-            padding-left: 8px !important;
+            padding-left: 6px !important;
         }
         .sidebar .sub-menu > li.active > a img, .sidebar .sub-menu > li.active > a i { opacity: 0.8 !important; }
         .sidebar .sub-menu > li.active > a span { color: #a1a1aa !important; }
@@ -368,16 +368,38 @@
             transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
         @media (min-width: 768px) {
+            .left-sidebar, .sidebar-dark, #sidebar, .sidebar {
+                width: 195px !important;
+            }
             .main-header, #header, .sidebar-fixed .main-header, .navbar-fixed .page-wrapper .main-header {
-                left: 250px !important;
+                left: 195px !important;
+            }
+            .sidebar-fixed .page-wrapper, .navbar-fixed .page-wrapper, .page-wrapper {
+                padding-left: 195px !important;
+            }
+            body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar,
+            body.sidebar-minified:not(.sidebar-minified-out) .sidebar {
+                width: 75px !important;
             }
             body.sidebar-minified:not(.sidebar-minified-out) .main-header,
             body.sidebar-minified:not(.sidebar-minified-out) #header {
                 left: 75px !important;
             }
+            body.sidebar-minified:not(.sidebar-minified-out) .sidebar-fixed .page-wrapper,
+            body.sidebar-minified:not(.sidebar-minified-out) .page-wrapper {
+                padding-left: 75px !important;
+            }
+            body.sidebar-minified-out .left-sidebar,
+            body.sidebar-minified-out .sidebar {
+                width: 195px !important;
+            }
             body.sidebar-minified-out .main-header,
             body.sidebar-minified-out #header {
-                left: 250px !important;
+                left: 195px !important;
+            }
+            body.sidebar-minified-out .sidebar-fixed .page-wrapper,
+            body.sidebar-minified-out .page-wrapper {
+                padding-left: 195px !important;
             }
         }
         .page-wrapper, .navbar-fixed .page-wrapper {
