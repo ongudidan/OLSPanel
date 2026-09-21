@@ -2,16 +2,35 @@
 {% block title %}Webmail Service - {{ email }}{% endblock title %}
 
 {% block content %}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-    <!-- Left 2 Cols: Webmail Client Launchers & Security -->
-    <div class="lg:col-span-2 space-y-5">
-        <!-- Webmail Client Applications -->
-        <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
-            <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
-                <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
-                    <i class="mdi mdi-email-open-outline text-brand text-base"></i> Open Webmail Client
-                </h4>
+<div class="space-y-4 w-full">
+
+    <!-- Top Compact Header -->
+    <div class="bg-white border border-slate-200 rounded-lg px-4 py-2.5 shadow-xs flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-md bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
+                <i class="mdi mdi-email-open-outline text-lg"></i>
             </div>
+            <div>
+                <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">Webmail Service: <span class="font-mono text-brand">{{ email }}</span></h4>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Access webmail clients, auto-login to inboxes, and view manual IMAP/POP3 configuration</p>
+            </div>
+        </div>
+        <a href="{% url 'email_accounts' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <i class="mdi mdi-arrow-left text-xs"></i>
+            <span>Email Accounts</span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Left 2 Cols: Webmail Client Launchers & Security -->
+        <div class="lg:col-span-2 space-y-4">
+            <!-- Webmail Client Applications -->
+            <div class="bg-white border border-slate-200 rounded-lg shadow-xs overflow-hidden">
+                <div class="px-4 py-2.5 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
+                    <h5 class="text-xs font-bold text-slate-900 m-0 flex items-center gap-1.5">
+                        <i class="mdi mdi-email-open-outline text-brand text-sm"></i> Available Webmail Clients
+                    </h5>
+                </div>
 
             <div class="p-5">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
