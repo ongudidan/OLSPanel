@@ -1,0 +1,120 @@
+{% extends 'whm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-3 py-2" style="max-width: 1440px;">
+
+    {% include 'whm/db_replication/nav.html' %}
+
+    <!-- =======================================================
+         TAB 3: INBOUND MULTI-SOURCE CHANNELS (Replica Streams)
+    ======================================================== -->
+    <div id="pane-inbound" class="tab-pane-content">
+        <div class="card border border-slate-200/80 shadow-xs rounded-xl mb-3 bg-white overflow-hidden">
+            <div class="card-header bg-slate-50/80 border-bottom border-slate-200/80 py-2.5 px-3.5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="mb-0 fw-bold text-slate-800 text-xs">Inbound Replication Channels</h6>
+                <div class="d-flex gap-1.5">
+                    <button type="button" class="btn btn-sm btn-outline-success px-2.5 py-1 text-2xs rounded-lg bg-white" onclick="channelBatchAction('start', 'all')">
+                        <i class="mdi mdi-play"></i> Start All
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning px-2.5 py-1 text-2xs rounded-lg bg-white" onclick="channelBatchAction('stop', 'all')">
+                        <i class="mdi mdi-pause"></i> Pause All
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary px-3 py-1 text-2xs rounded-lg" onclick="openPairModal()">
+                        <i class="mdi mdi-plus"></i> + Attach Inbound Stream
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-xs">
+                        <thead class="bg-slate-50 text-slate-600 border-bottom border-slate-200">
+                            <tr>
+                                <th class="ps-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Channel & Master Host</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Databases Ingested</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Stream Health</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Log Coordinates</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Delay</th>
+                                <th class="text-end pe-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for ch in channels %}
+                            <tr>
+                                <td class="ps-3.5 py-2.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge {% if ch.health == 'streaming' %}bg-emerald-600 text-white{% elif ch.health == 'connecting' %}bg-amber-500 text-white{% else %}bg-rose-600 text-white{% endif %} text-2xs px-2 py-0.5 rounded font-mono">
+                                            {{ ch.name }}
+                                        </span>
+                                        <div>
+                                            <div class="fw-bold text-slate-800 font-mono text-xs">{{ ch.master_host }}:{{ ch.master_port }}</div>
+                                            <div class="text-2xs text-slate-500">User: {{ ch.master_user }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-2.5 font-mono text-2xs text-slate-800 fw-semibold">
+                                    {{ ch.replicate_wild_do_table|default:ch.replicate_do_db|default:"All Databases" }}
+                                </td>
+                                <td class="py-2.5">
+                                    <div class="d-flex align-items-center gap-1.5">
+                                        <span class="badge {% if ch.slave_io_running == 'Yes' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %} px-1.5 py-0.5 text-2xs rounded">
+                                            IO: {{ ch.slave_io_running }}
+                                        </span>
+                                        <span class="badge {% if ch.slave_sql_running == 'Yes' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-rose-50 text-rose-700 border border-rose-200{% endif %} px-1.5 py-0.5 text-2xs rounded">
+                                            SQL: {{ ch.slave_sql_running }}
+                                        </span>
+                                    </div>
+                                    {% if ch.last_sql_error or ch.last_io_error %}
+                                    <div class="text-2xs text-rose-600 font-mono text-truncate mt-1" style="max-width: 240px;" title="{{ ch.last_sql_error|default:ch.last_io_error }}">
+                                        ⚠ {{ ch.last_sql_error|default:ch.last_io_error }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2.5 font-mono text-2xs text-slate-500">
+                                    {{ ch.master_log_file|default:"N/A" }}:{{ ch.read_master_log_pos|default:"0" }}
+                                </td>
+                                <td class="py-2.5">
+                                    <span class="font-mono text-xs fw-bold {% if ch.seconds_behind_master == 0 %}text-emerald-600{% else %}text-amber-600{% endif %}">
+                                        {{ ch.seconds_behind_master }}s
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3.5 py-2.5">
+                                    <div class="d-inline-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-0.5 text-2xs rounded-md bg-white" onclick="editInboundChannel('{{ ch.name }}', '{{ ch.master_host }}', '{{ ch.master_port }}', '{{ ch.master_user }}')">
+                                            <i class="mdi mdi-pencil-outline"></i> Edit
+                                        </button>
+                                        {% if ch.slave_io_running == 'Yes' %}
+                                        <button type="button" class="btn btn-sm btn-outline-secondary px-2 py-0.5 text-2xs rounded-md bg-white" onclick="channelAction('stop', '{{ ch.name }}')">⏸ Pause</button>
+                                        {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-success px-2 py-0.5 text-2xs rounded-md bg-white" onclick="channelAction('start', '{{ ch.name }}')">▶ Start</button>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-sm btn-outline-info px-2 py-0.5 text-2xs rounded-md bg-white" onclick="openResyncModal('{{ ch.name }}')">📥 Re-Sync</button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning px-2 py-0.5 text-2xs rounded-md bg-white" onclick="skipSqlError('{{ ch.name }}')">⏭ Skip Err</button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-0.5 text-2xs rounded-md bg-white" onclick="channelAction('reset', '{{ ch.name }}')" title="Delete channel">🗑</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-slate-500 text-xs">
+                                    <div class="p-3">
+                                        <i class="mdi mdi-arrow-down-bold-box-outline fs-3 text-slate-300 d-block mb-1"></i>
+                                        No inbound replication channels active.<br>
+                                        <button type="button" class="btn btn-sm btn-primary text-2xs mt-2" onclick="openPairModal()">+ Attach Inbound Stream</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% include 'whm/db_replication/modals.html' %}
+{% include 'whm/db_replication/scripts.html' %}
+{% endblock %}

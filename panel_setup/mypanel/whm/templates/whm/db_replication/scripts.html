@@ -1,0 +1,1228 @@
+<style>
+/* Table Clean Modern Styles & Subtle Professional Row Hover */
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table.table-hover tbody tr {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.table.table-hover tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+.table tbody tr:focus-within td,
+.table tbody tr:focus td {
+    background-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.table.table-hover tbody tr:hover td .text-slate-800 {
+    color: #1e293b !important;
+}
+
+.table.table-hover tbody tr:hover td .text-slate-500 {
+    color: #64748b !important;
+}
+
+.table.table-hover tbody tr:hover td .text-slate-400 {
+    color: #94a3b8 !important;
+}
+
+.table.table-hover tbody tr:hover .icon-burger-mini::before,
+.table.table-hover tbody tr:hover .card .dropdown .dropdown-toggle {
+    color: inherit !important;
+}
+
+/* Enterprise Sharp & Modern Modals */
+.modal-dialog {
+    max-width: 680px;
+}
+.modal-content {
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06) !important;
+}
+.modal-header {
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+.modal-footer {
+    border-top: 1px solid #e2e8f0 !important;
+}
+.rounded-md {
+    border-radius: 6px !important;
+}
+.rounded-lg {
+    border-radius: 8px !important;
+}
+.rounded-xl {
+    border-radius: 8px !important;
+}
+.rounded-2xl {
+    border-radius: 8px !important;
+}
+.form-control, .form-select {
+    border-radius: 6px !important;
+    border-color: #cbd5e1 !important;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #9e6de0 !important;
+    box-shadow: 0 0 0 3px rgba(158, 109, 224, 0.15) !important;
+}
+.input-group > .form-control {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 6px !important;
+    border-bottom-left-radius: 6px !important;
+}
+.input-group > .btn {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: 6px !important;
+    border-bottom-right-radius: 6px !important;
+}
+
+.active-tab {
+    background-color: #ffffff !important;
+    color: var(--button-primary, #9e6de0) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    font-weight: 700 !important;
+}
+.repl-tab-btn {
+    transition: all 0.15s ease-in-out;
+}
+.shadow-2xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03); }
+.shadow-xs { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+.text-2xs { font-size: 0.72rem; }
+.text-xs { font-size: 0.8125rem; }
+.tracking-wider { letter-spacing: 0.04em; }
+.cursor-pointer { cursor: pointer; }
+</style>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+// Universal Modal Opening Helper (Instant 0ms latency)
+function openModal(id) {
+    const modalEl = document.getElementById(id);
+    if (!modalEl) return;
+
+    modalEl.classList.add('show');
+    modalEl.style.display = 'block';
+    modalEl.removeAttribute('aria-hidden');
+    modalEl.setAttribute('aria-modal', 'true');
+    document.body.classList.add('modal-open');
+
+    let backdrop = document.getElementById('custom-modal-backdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'custom-modal-backdrop';
+        backdrop.className = 'modal-backdrop fade show';
+        document.body.appendChild(backdrop);
+    } else {
+        backdrop.style.display = 'block';
+        backdrop.classList.add('show');
+    }
+
+    try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            let instance = bootstrap.Modal.getInstance(modalEl);
+            if (!instance) instance = new bootstrap.Modal(modalEl);
+        } else if (typeof $ !== 'undefined' && typeof $(modalEl).modal === 'function') {
+            $(modalEl).modal('show');
+        }
+    } catch (e) {}
+}
+
+function closeModal(id) {
+    const modalEl = document.getElementById(id);
+    if (!modalEl) return;
+
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    modalEl.setAttribute('aria-hidden', 'true');
+    modalEl.removeAttribute('aria-modal');
+
+    const otherModals = document.querySelectorAll('.modal.show');
+    if (otherModals.length === 0) {
+        document.body.classList.remove('modal-open');
+        const backdrop = document.getElementById('custom-modal-backdrop');
+        if (backdrop) backdrop.remove();
+        const bsBackdrops = document.querySelectorAll('.modal-backdrop');
+        bsBackdrops.forEach(b => b.remove());
+    }
+
+    try {
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            const instance = bootstrap.Modal.getInstance(modalEl);
+            if (instance) instance.hide();
+        } else if (typeof $ !== 'undefined' && typeof $(modalEl).modal === 'function') {
+            $(modalEl).modal('hide');
+        }
+    } catch (e) {}
+}
+
+// Password Generator
+function generateRandomPass(elementId) {
+    const length = 20;
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+    let pass = "";
+    for (let i = 0; i < length; i++) {
+        pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.value = pass;
+    }
+    return pass;
+}
+
+// 1. Client Modal Functions
+function openClientModal() {
+    document.getElementById('client_node_id').value = '';
+    document.getElementById('client-modal-title').innerText = 'Authorize Replica Server IP & Assign Databases';
+    document.getElementById('client_replica_ip').value = '';
+    document.getElementById('client_replica_ip').readOnly = false;
+    document.getElementById('client_name').value = '';
+    document.getElementById('client_repl_user').value = 'olspanel_repl';
+    document.getElementById('client_repl_pass').value = generateRandomPass('client_repl_pass');
+    document.getElementById('client_scope_selected').checked = true;
+    toggleClientDbBox();
+    toggleAllClientDbs(true);
+
+    const alertBox = document.getElementById('client-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    openModal('clientModal');
+}
+
+function editClientNode(nodeId) {
+    const alertBox = document.getElementById('client-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    fetch(`{% url 'db_replication_get_node_details' 0 %}`.replace('/0/', `/${nodeId}/`))
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const n = data.node;
+            document.getElementById('client_node_id').value = n.id;
+            document.getElementById('client-modal-title').innerText = `Edit Replica IP & Databases (${n.host})`;
+            document.getElementById('client_replica_ip').value = n.host;
+            document.getElementById('client_replica_ip').readOnly = true;
+            document.getElementById('client_name').value = n.name || '';
+            document.getElementById('client_repl_user').value = n.repl_user || 'olspanel_repl';
+            document.getElementById('client_repl_pass').value = '';
+            document.getElementById('client_repl_pass').placeholder = '(Unchanged - leave blank)';
+
+            if (n.replicate_all) {
+                document.getElementById('client_scope_all').checked = true;
+            } else {
+                document.getElementById('client_scope_selected').checked = true;
+            }
+            toggleClientDbBox();
+
+            const selectedList = n.selected_databases || [];
+            const checkboxes = document.querySelectorAll('.client-db-chk');
+            checkboxes.forEach(chk => {
+                chk.checked = selectedList.includes(chk.value);
+            });
+
+            openModal('clientModal');
+        } else {
+            alert(data.message || 'Error fetching replica details');
+        }
+    })
+    .catch(err => {
+        alert('Network error fetching node details.');
+    });
+}
+
+function toggleClientDbBox() {
+    const isAll = document.getElementById('client_scope_all').checked;
+    const box = document.getElementById('client-db-selection-box');
+    if (box) {
+        box.style.display = isAll ? 'none' : 'block';
+    }
+}
+
+function toggleAllClientDbs(checked) {
+    const checkboxes = document.querySelectorAll('.client-db-chk');
+    checkboxes.forEach(chk => { chk.checked = checked; });
+}
+
+function testClientConnectivity() {
+    const host = (document.getElementById('client_replica_ip').value || '').trim();
+    if (!host) {
+        alert('Please enter a replica IP address first.');
+        return;
+    }
+    const btn = event.target.closest('button');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Testing...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('host', host);
+    formData.append('port', '3306');
+
+    fetch("{% url 'db_replication_test_connection' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert(data.message);
+    })
+    .catch(err => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert('Network error during test.');
+    });
+}
+
+function submitClientNode() {
+    const nodeId = document.getElementById('client_node_id').value;
+    const replicaIp = (document.getElementById('client_replica_ip').value || '').trim();
+    const name = (document.getElementById('client_name').value || '').trim();
+    const replUser = (document.getElementById('client_repl_user').value || '').trim();
+    const replPass = (document.getElementById('client_repl_pass').value || '').trim();
+    const isAll = document.getElementById('client_scope_all').checked;
+    
+    const alertBox = document.getElementById('client-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    if (!replicaIp) {
+        if (alertBox) {
+            alertBox.innerText = 'Please specify the replica server IP address.';
+            alertBox.classList.remove('d-none');
+        }
+        return;
+    }
+
+    const selectedDbs = [];
+    if (!isAll) {
+        const checkboxes = document.querySelectorAll('.client-db-chk:checked');
+        checkboxes.forEach(chk => {
+            selectedDbs.push(chk.value);
+        });
+        if (selectedDbs.length === 0) {
+            if (alertBox) {
+                alertBox.innerText = 'Please select at least one database or choose "All Databases".';
+                alertBox.classList.remove('d-none');
+            }
+            return;
+        }
+    }
+
+    const btn = document.getElementById('btn-submit-client');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Authorizing...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    if (nodeId) formData.append('node_id', nodeId);
+    formData.append('replica_ip', replicaIp);
+    formData.append('name', name);
+    formData.append('repl_user', replUser);
+    formData.append('repl_pass', replPass);
+    formData.append('replicate_all', isAll ? '1' : '0');
+    formData.append('selected_databases', JSON.stringify(selectedDbs));
+
+    fetch("{% url 'db_replication_save_replica_client' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        if (data.status === 'success') {
+            closeModal('clientModal');
+            window.location.reload();
+        } else {
+            if (alertBox) {
+                alertBox.innerText = data.message || 'Error saving replica client.';
+                alertBox.classList.remove('d-none');
+            }
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        if (alertBox) {
+            alertBox.innerText = 'Network error saving replica client.';
+            alertBox.classList.remove('d-none');
+        }
+    });
+}
+
+function deleteClientNode(nodeId, host) {
+    if (!confirm(`Revoke replication authorization for IP ${host}?\nThis will close port 3306 in UFW and remove MySQL privileges for this client.`)) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('node_id', nodeId);
+
+    fetch("{% url 'db_replication_delete_replica_client' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    })
+    .catch(err => {
+        alert('Network error deleting replica client.');
+    });
+}
+
+// 2. Inbound Pairing Modal Functions
+function openPairModal() {
+    document.getElementById('inbound_edit_mode').value = 'create';
+    document.getElementById('inbound_old_channel').value = '';
+    document.getElementById('inbound_node_id').value = '';
+    document.getElementById('inbound-modal-title').innerText = 'Attach Inbound Primary Stream (Multi-Source Channel)';
+    document.getElementById('btn-submit-pair').innerHTML = '<i class="mdi mdi-download me-1"></i> Start Inbound Stream';
+    document.getElementById('pair_token_input').value = '';
+    document.getElementById('pair_token_pass').value = '';
+    document.getElementById('pair_manual_host').value = '';
+    document.getElementById('pair_manual_port').value = '3306';
+    document.getElementById('pair_manual_user').value = 'olspanel_repl';
+    document.getElementById('pair_manual_pass').value = '';
+    document.getElementById('pair_channel_name').value = 'default';
+    document.getElementById('pair_custom_db_map').value = '';
+    document.getElementById('scope_selected').checked = true;
+    document.getElementById('pair-strategy-wrapper').style.display = 'block';
+    togglePairDbList();
+    switchPairTab('token');
+
+    const alertBox = document.getElementById('pair-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    openModal('pairModal');
+}
+
+function editInboundChannel(channelName, host, port, user) {
+    document.getElementById('inbound_edit_mode').value = 'edit';
+    document.getElementById('inbound_old_channel').value = channelName;
+    document.getElementById('inbound-modal-title').innerText = `Edit Inbound Stream (Channel: ${channelName})`;
+    document.getElementById('btn-submit-pair').innerHTML = '<i class="mdi mdi-check me-1"></i> Save Channel Settings';
+    
+    switchPairTab('manual');
+    document.getElementById('pair_manual_host').value = host;
+    document.getElementById('pair_manual_port').value = port || 3306;
+    document.getElementById('pair_manual_user').value = user || 'olspanel_repl';
+    document.getElementById('pair_manual_pass').value = '';
+    document.getElementById('pair_manual_pass').placeholder = '(Unchanged - leave blank)';
+    document.getElementById('pair_channel_name').value = channelName;
+    document.getElementById('pair-strategy-wrapper').style.display = 'none';
+
+    const alertBox = document.getElementById('pair-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    openModal('pairModal');
+}
+
+function switchPairTab(mode) {
+    const tokenTab = document.getElementById('token-tab');
+    const manualTab = document.getElementById('manual-tab');
+    const tokenContent = document.getElementById('pair-tab-token-content');
+    const manualContent = document.getElementById('pair-tab-manual-content');
+
+    if (mode === 'token') {
+        tokenTab.classList.add('active', 'shadow-2xs');
+        tokenTab.classList.remove('text-slate-600', 'bg-transparent');
+        manualTab.classList.remove('active', 'shadow-2xs');
+        manualTab.classList.add('text-slate-600', 'bg-transparent');
+        tokenContent.style.display = 'block';
+        manualContent.style.display = 'none';
+    } else {
+        manualTab.classList.add('active', 'shadow-2xs');
+        manualTab.classList.remove('text-slate-600', 'bg-transparent');
+        tokenTab.classList.remove('active', 'shadow-2xs');
+        tokenTab.classList.add('text-slate-600', 'bg-transparent');
+        manualContent.style.display = 'block';
+        tokenContent.style.display = 'none';
+    }
+}
+
+function togglePairDbList() {
+    const isAll = document.getElementById('scope_all').checked;
+    const box = document.getElementById('pair-db-selection');
+    if (box) {
+        box.style.display = isAll ? 'none' : 'block';
+    }
+}
+
+function testPairConnectivity() {
+    const isToken = document.getElementById('token-tab').classList.contains('active');
+    let host = '';
+    let port = '3306';
+
+    if (isToken) {
+        const token = (document.getElementById('pair_token_input').value || '').trim();
+        if (!token) {
+            alert('Please paste a Pairing Key first.');
+            return;
+        }
+        try {
+            const cleanToken = token.replace(/^OLSREP-/, '');
+            const decoded = atob(cleanToken);
+            const parsed = JSON.parse(decoded);
+            host = parsed.ip;
+            port = parsed.port || 3306;
+        } catch (e) {
+            alert('Invalid Pairing Key format.');
+            return;
+        }
+    } else {
+        host = (document.getElementById('pair_manual_host').value || '').trim();
+        port = (document.getElementById('pair_manual_port').value || '3306').trim();
+        if (!host) {
+            alert('Please specify the Primary Server IP Address.');
+            return;
+        }
+    }
+
+    const btn = event.target.closest('button');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Testing...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('host', host);
+    formData.append('port', port);
+
+    fetch("{% url 'db_replication_test_connection' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert(data.message);
+    })
+    .catch(err => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert('Network error during test.');
+    });
+}
+
+function submitPairNode() {
+    const editMode = document.getElementById('inbound_edit_mode').value;
+    const alertBox = document.getElementById('pair-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    const btn = document.getElementById('btn-submit-pair');
+    const origText = btn.innerHTML;
+
+    if (editMode === 'edit') {
+        const oldChannel = document.getElementById('inbound_old_channel').value;
+        const channelName = (document.getElementById('pair_channel_name').value || '').trim();
+        const host = (document.getElementById('pair_manual_host').value || '').trim();
+        const port = (document.getElementById('pair_manual_port').value || '3306').trim();
+        const user = (document.getElementById('pair_manual_user').value || '').trim();
+        const pass = (document.getElementById('pair_manual_pass').value || '').trim();
+        const isAll = document.getElementById('scope_all').checked;
+        const customDbs = (document.getElementById('pair_custom_db_map').value || '').trim();
+
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Updating...';
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('old_channel', oldChannel);
+        formData.append('channel_name', channelName);
+        formData.append('host', host);
+        formData.append('port', port);
+        formData.append('user', user);
+        formData.append('password', pass);
+        formData.append('replicate_all', isAll ? '1' : '0');
+        formData.append('selected_databases', customDbs);
+
+        fetch("{% url 'db_replication_edit_inbound_channel' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": csrftoken || '' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            if (data.status === 'success') {
+                closeModal('pairModal');
+                window.location.reload();
+            } else {
+                if (alertBox) {
+                    alertBox.innerText = data.message || 'Error updating channel.';
+                    alertBox.classList.remove('d-none');
+                }
+            }
+        })
+        .catch(err => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            if (alertBox) {
+                alertBox.innerText = 'Network error updating channel.';
+                alertBox.classList.remove('d-none');
+            }
+        });
+        return;
+    }
+
+    // CREATE MODE
+    const isToken = document.getElementById('token-tab').classList.contains('active');
+    const channelName = (document.getElementById('pair_channel_name').value || '').trim() || 'default';
+    const cloneStrategy = document.getElementById('pair_clone_strategy').value;
+    const isAll = document.getElementById('scope_all').checked;
+    const customDbs = (document.getElementById('pair_custom_db_map').value || '').trim();
+
+    const formData = new FormData();
+    formData.append('channel_name', channelName);
+    formData.append('clone_strategy', cloneStrategy);
+    formData.append('replicate_all', isAll ? '1' : '0');
+    formData.append('custom_databases', customDbs);
+
+    if (isToken) {
+        const token = (document.getElementById('pair_token_input').value || '').trim();
+        const pass = (document.getElementById('pair_token_pass').value || '').trim();
+        if (!token) {
+            if (alertBox) {
+                alertBox.innerText = 'Please paste the Pairing Key from your Primary server.';
+                alertBox.classList.remove('d-none');
+            }
+            return;
+        }
+        formData.append('mode', 'token');
+        formData.append('token', token);
+        formData.append('password', pass);
+    } else {
+        const host = (document.getElementById('pair_manual_host').value || '').trim();
+        const port = (document.getElementById('pair_manual_port').value || '3306').trim();
+        const user = (document.getElementById('pair_manual_user').value || '').trim();
+        const pass = (document.getElementById('pair_manual_pass').value || '').trim();
+        if (!host || !pass) {
+            if (alertBox) {
+                alertBox.innerText = 'Please enter Primary Server IP and Replication Password.';
+                alertBox.classList.remove('d-none');
+            }
+            return;
+        }
+        formData.append('mode', 'manual');
+        formData.append('host', host);
+        formData.append('port', port);
+        formData.append('user', user);
+        formData.append('password', pass);
+    }
+
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Ingesting & Syncing...';
+    btn.disabled = true;
+
+    fetch("{% url 'db_replication_pair' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        if (data.status === 'success') {
+            closeModal('pairModal');
+            window.location.reload();
+        } else {
+            if (alertBox) {
+                alertBox.innerText = data.message || 'Failed to attach inbound stream.';
+                alertBox.classList.remove('d-none');
+            }
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        if (alertBox) {
+            alertBox.innerText = 'Network error attaching inbound stream.';
+            alertBox.classList.remove('d-none');
+        }
+    });
+}
+
+// 3. Database Replica Assignment Modal Functions
+function openAssignModal(dbName) {
+    document.getElementById('assign_target_dbname').value = dbName;
+    document.getElementById('assign_db_name_title').innerText = dbName;
+    document.getElementById('quick_replica_ip').value = '';
+    document.getElementById('quick_replica_name').value = '';
+    document.getElementById('quick_repl_user').value = 'olspanel_repl';
+    document.getElementById('quick_repl_pass').value = generateRandomPass('quick_repl_pass');
+    
+    switchAssignModalMode('outbound');
+
+    const checkboxes = document.querySelectorAll('.db-assign-chk');
+    checkboxes.forEach(chk => { chk.checked = false; });
+
+    const alertBox = document.getElementById('assign-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    fetch(`{% url 'db_replication_assign_db_replicas' %}?db_name=${encodeURIComponent(dbName)}`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const assignedIds = (data.assigned_replica_ids || []).map(String);
+            checkboxes.forEach(chk => {
+                if (assignedIds.includes(String(chk.value))) {
+                    chk.checked = true;
+                }
+            });
+        }
+    })
+    .catch(e => {});
+
+    openModal('dbAssignModal');
+}
+
+function switchAssignModalMode(mode) {
+    const btnOut = document.getElementById('btn-tab-assign-outbound');
+    const btnIn = document.getElementById('btn-tab-assign-inbound');
+    const secOut = document.getElementById('section-assign-outbound');
+    const secIn = document.getElementById('section-assign-inbound');
+    const submitBtn = document.getElementById('btn-submit-db-assign');
+
+    if (mode === 'outbound') {
+        btnOut.classList.add('bg-white', 'text-slate-900', 'shadow-2xs', 'border', 'border-slate-200/80');
+        btnOut.classList.remove('text-slate-600', 'bg-transparent', 'border-0');
+        btnIn.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs', 'border', 'border-slate-200/80');
+        btnIn.classList.add('text-slate-600', 'bg-transparent', 'border-0');
+        secOut.style.display = 'block';
+        secIn.style.display = 'none';
+        submitBtn.innerHTML = '<i class="mdi mdi-shield-check me-1"></i> Save & Authorize Replica IP';
+    } else {
+        btnIn.classList.add('bg-white', 'text-slate-900', 'shadow-2xs', 'border', 'border-slate-200/80');
+        btnIn.classList.remove('text-slate-600', 'bg-transparent', 'border-0');
+        btnOut.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs', 'border', 'border-slate-200/80');
+        btnOut.classList.add('text-slate-600', 'bg-transparent', 'border-0');
+        secOut.style.display = 'none';
+        secIn.style.display = 'block';
+        submitBtn.innerHTML = '<i class="mdi mdi-download me-1"></i> Configure Inbound Standby DB';
+    }
+}
+
+function toggleAllAssignCheckboxes(checked) {
+    const checkboxes = document.querySelectorAll('.db-assign-chk');
+    checkboxes.forEach(chk => { chk.checked = checked; });
+}
+
+function testAssignConnectivity() {
+    const isOutbound = document.getElementById('section-assign-outbound').style.display !== 'none';
+    let host = '';
+    let port = '3306';
+
+    if (isOutbound) {
+        host = (document.getElementById('quick_replica_ip').value || '').trim();
+        if (!host) {
+            alert('Please enter a Replica IP Address to test ping.');
+            return;
+        }
+    } else {
+        host = (document.getElementById('inbound_db_host').value || '').trim();
+        port = (document.getElementById('inbound_db_port').value || '3306').trim();
+        if (!host) {
+            alert('Please enter Primary Master IP to test connectivity.');
+            return;
+        }
+    }
+
+    const btn = event.target.closest('button');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Testing...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('host', host);
+    formData.append('port', port);
+
+    fetch("{% url 'db_replication_test_connection' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert(data.message);
+    })
+    .catch(err => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert('Network error during test.');
+    });
+}
+
+function submitDbReplicationModal() {
+    const dbName = document.getElementById('assign_target_dbname').value;
+    const isOutbound = document.getElementById('section-assign-outbound').style.display !== 'none';
+    const alertBox = document.getElementById('assign-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    const btn = document.getElementById('btn-submit-db-assign');
+    const origText = btn.innerHTML;
+
+    if (isOutbound) {
+        const quickIp = (document.getElementById('quick_replica_ip').value || '').trim();
+        const quickName = (document.getElementById('quick_replica_name').value || '').trim();
+        const quickUser = (document.getElementById('quick_repl_user').value || '').trim();
+        const quickPass = (document.getElementById('quick_repl_pass').value || '').trim();
+
+        const selectedClientIds = [];
+        const chks = document.querySelectorAll('.db-assign-chk:checked');
+        chks.forEach(c => { selectedClientIds.push(c.value); });
+
+        if (!quickIp && selectedClientIds.length === 0) {
+            if (alertBox) {
+                alertBox.innerText = 'Please specify a Replica IP address to authorize, or select an existing replica server.';
+                alertBox.classList.remove('d-none');
+            }
+            return;
+        }
+
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Saving...';
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('db_name', dbName);
+        formData.append('replica_client_ids', JSON.stringify(selectedClientIds));
+        formData.append('quick_replica_ip', quickIp);
+        formData.append('quick_replica_name', quickName);
+        formData.append('quick_repl_user', quickUser);
+        formData.append('quick_repl_pass', quickPass);
+
+        fetch("{% url 'db_replication_assign_db_replicas' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": csrftoken || '' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            if (data.status === 'success') {
+                closeModal('dbAssignModal');
+                window.location.reload();
+            } else {
+                if (alertBox) {
+                    alertBox.innerText = data.message || 'Error assigning replica IPs.';
+                    alertBox.classList.remove('d-none');
+                }
+            }
+        })
+        .catch(err => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            if (alertBox) {
+                alertBox.innerText = 'Network error assigning replica IPs.';
+                alertBox.classList.remove('d-none');
+            }
+        });
+    } else {
+        const host = (document.getElementById('inbound_db_host').value || '').trim();
+        const port = (document.getElementById('inbound_db_port').value || '3306').trim();
+        const user = (document.getElementById('inbound_db_user').value || '').trim();
+        const pass = (document.getElementById('inbound_db_pass').value || '').trim();
+        const channel = (document.getElementById('inbound_db_channel').value || '').trim() || 'default';
+        const clone = document.getElementById('inbound_db_clone').checked;
+
+        if (!host || !pass) {
+            if (alertBox) {
+                alertBox.innerText = 'Please enter Primary Master IP and Replication Password.';
+                alertBox.classList.remove('d-none');
+            }
+            return;
+        }
+
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Connecting & Ingesting...';
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('mode', 'manual');
+        formData.append('host', host);
+        formData.append('port', port);
+        formData.append('user', user);
+        formData.append('password', pass);
+        formData.append('channel_name', channel);
+        formData.append('clone_strategy', clone ? 'clone' : 'gtid');
+        formData.append('replicate_all', '0');
+        formData.append('custom_databases', dbName);
+
+        fetch("{% url 'db_replication_pair' %}", {
+            method: "POST",
+            headers: { "X-CSRFToken": csrftoken || '' },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            if (data.status === 'success') {
+                closeModal('dbAssignModal');
+                window.location.reload();
+            } else {
+                if (alertBox) {
+                    alertBox.innerText = data.message || 'Error configuring inbound standby database.';
+                    alertBox.classList.remove('d-none');
+                }
+            }
+        })
+        .catch(err => {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            if (alertBox) {
+                alertBox.innerText = 'Network error configuring inbound standby database.';
+                alertBox.classList.remove('d-none');
+            }
+        });
+    }
+}
+
+// 4. Resync Snapshot Functions
+function openResyncModal(channelName) {
+    document.getElementById('resync_channel_name').value = channelName || 'default';
+    const alertBox = document.getElementById('resync-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+    openModal('resyncModal');
+}
+
+function submitResync() {
+    const channelName = document.getElementById('resync_channel_name').value;
+    const btn = document.getElementById('btn-submit-resync');
+    const origText = btn.innerHTML;
+    btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Running Snapshot...';
+    btn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('channel_name', channelName);
+
+    fetch("{% url 'db_replication_resync' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert(data.message);
+        if (data.status === 'success') {
+            closeModal('resyncModal');
+            window.location.reload();
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        alert('Network error executing resync.');
+    });
+}
+
+// 5. Skip SQL Error & Channel Control Functions
+function skipSqlError(channelName) {
+    if (!confirm(`Skip current blocked SQL error on channel "${channelName || 'default'}" and resume replication stream?`)) return;
+
+    const formData = new FormData();
+    formData.append('channel_name', channelName || 'default');
+
+    fetch("{% url 'db_replication_skip_error' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    });
+}
+
+function channelAction(action, channelName) {
+    const formData = new FormData();
+    formData.append('action', action);
+    formData.append('channel_name', channelName);
+
+    fetch("{% url 'db_replication_channel_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+function channelBatchAction(action, target) {
+    const formData = new FormData();
+    formData.append('action', action);
+    formData.append('target', target);
+
+    fetch("{% url 'db_replication_channel_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+// 6. Pairing Key Generator Functions
+function openTokenModal() {
+    openModal('tokenModal');
+    const displayEl = document.getElementById('display-token');
+    displayEl.innerText = 'Generating pairing code...';
+
+    fetch("{% url 'db_replication_token' %}")
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            displayEl.innerText = data.token;
+        } else {
+            displayEl.innerText = 'Error: ' + data.message;
+        }
+    })
+    .catch(err => {
+        displayEl.innerText = 'Network error generating token.';
+    });
+}
+
+function copyToken() {
+    const token = document.getElementById('display-token').innerText;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(token).then(() => {
+            alert('Pairing Key copied to clipboard!');
+        });
+    } else {
+        const temp = document.createElement('textarea');
+        temp.value = token;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        document.body.removeChild(temp);
+        alert('Pairing Key copied to clipboard!');
+    }
+}
+
+// 7. Parity Test & Read-Only Toggle
+function triggerParityTest() {
+    const btn = event.target.closest('button');
+    const origText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin me-1"></i> Testing...';
+        btn.disabled = true;
+    }
+
+    fetch("{% url 'db_replication_parity_test' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+        }
+        alert(data.message);
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.innerHTML = origText;
+            btn.disabled = false;
+        }
+        alert('Network error during parity test.');
+    });
+}
+
+function toggleReadOnlyMode(enable) {
+    const actionText = enable ? 'ENABLE Read-Only mode' : 'DISABLE Read-Only mode';
+    if (!confirm(`Are you sure you want to ${actionText} on this server?`)) return;
+
+    const formData = new FormData();
+    formData.append('read_only', enable ? '1' : '0');
+
+    fetch("{% url 'db_replication_toggle_readonly' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if (data.status === 'success') {
+            window.location.reload();
+        }
+    });
+}
+
+// 8. Global Scope Settings Modal
+function openScopeModal() {
+    const alertBox = document.getElementById('scope-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+    openModal('scopeModal');
+}
+
+function submitScopeSettings() {
+    const scopeVal = document.querySelector('input[name="scope_setting_radio"]:checked').value;
+    const alertBox = document.getElementById('scope-alert');
+    if (alertBox) alertBox.classList.add('d-none');
+
+    const formData = new FormData();
+    formData.append('sync_scope', scopeVal);
+
+    fetch("{% url 'db_replication_update_db_rules' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            closeModal('scopeModal');
+            window.location.reload();
+        } else {
+            if (alertBox) {
+                alertBox.innerText = data.message || 'Failed to update scope.';
+                alertBox.classList.remove('d-none');
+            }
+        }
+    })
+    .catch(err => {
+        if (alertBox) {
+            alertBox.innerText = 'Network error updating scope.';
+            alertBox.classList.remove('d-none');
+        }
+    });
+}
+
+// 9. Promotion & Delete Node
+function openFailoverModal() {
+    openModal('failoverModal');
+}
+
+function submitPromotion() {
+    const formData = new FormData();
+    formData.append('action', 'promote');
+
+    fetch("{% url 'db_replication_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+function deleteNode(nodeId, host) {
+    if (!confirm(`Are you sure you want to disconnect server ${host}?`)) return;
+
+    const formData = new FormData();
+    formData.append('action', 'delete');
+    formData.append('node_id', nodeId);
+
+    fetch("{% url 'db_replication_action' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken || '' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        window.location.reload();
+    });
+}
+
+function filterDbTable() {
+    const searchInput = document.getElementById('search-dbs');
+    if (!searchInput) return;
+    const query = (searchInput.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#db-rules-table tbody tr[data-dbname]');
+    rows.forEach(r => {
+        const dbName = r.getAttribute('data-dbname').toLowerCase();
+        if (!query || dbName.includes(query)) r.style.display = '';
+        else r.style.display = 'none';
+    });
+}
+
+function fetchLiveStatus() {
+    if (!document.getElementById('top-server-mode-badge')) {
+        if (window.dbReplInterval) {
+            clearInterval(window.dbReplInterval);
+            window.dbReplInterval = null;
+        }
+        return;
+    }
+
+    fetch("{% url 'db_replication_status_api' %}")
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            if (data.parity_feed && data.parity_feed.length > 0) {
+                const tbody = document.getElementById('parity-feed-tbody');
+                if (tbody) {
+                    tbody.innerHTML = data.parity_feed.map(item => `
+                        <tr>
+                            <td class="ps-3.5 py-2 font-mono text-2xs text-slate-800 fw-semibold">${item.database}</td>
+                            <td class="py-2 font-mono text-2xs text-slate-500">#${item.id}</td>
+                            <td class="py-2 text-2xs text-slate-700"><span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 me-1.5 px-1.5 py-0.5 rounded">Verified</span> ${item.title}</td>
+                            <td class="text-end pe-3.5 py-2 text-2xs font-mono text-slate-500">${item.synced_at}</td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        }
+    })
+    .catch(err => {});
+}
+
+if (window.dbReplInterval) {
+    clearInterval(window.dbReplInterval);
+}
+window.dbReplInterval = setInterval(fetchLiveStatus, 10000);
+</script>

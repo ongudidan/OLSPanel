@@ -1,0 +1,129 @@
+    <!-- =======================================================
+         TOP HEADER & ACTION BAR
+    ======================================================== -->
+    <div class="card border border-slate-200/80 shadow-xs rounded-xl p-3 mb-3 bg-white">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+            <div class="d-flex align-items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl d-flex align-items-center justify-content-center shrink-0" style="background: rgba(158, 109, 224, 0.12); color: #9e6de0;">
+                    <i class="mdi mdi-database-sync fs-5"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h4 class="mb-0 fw-bold text-dark text-sm">Database Replication</h4>
+                        <span id="top-server-mode-badge" class="badge rounded-pill px-2 py-0.5 text-2xs fw-bold {% if telemetry.server_mode == 'hybrid' %}bg-purple-600 text-white{% elif telemetry.server_mode == 'primary' %}bg-primary text-white{% elif telemetry.server_mode == 'replica' %}bg-sky-600 text-white{% else %}bg-slate-500 text-white{% endif %}">
+                            {% if telemetry.server_mode == 'hybrid' %}Dual Hybrid{% elif telemetry.server_mode == 'primary' %}Primary Master{% elif telemetry.server_mode == 'replica' %}Standby Replica{% else %}Standalone{% endif %}
+                        </span>
+                        <span class="text-2xs text-slate-500 font-mono ms-1">{{ server_ip }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar Actions -->
+            <div class="d-flex flex-wrap gap-1.5 align-items-center">
+                <button type="button" class="btn btn-sm btn-primary text-2xs font-semibold px-3 py-1.5 rounded-lg shadow-xs" onclick="openClientModal()" title="Authorize a replica client IP and assign databases to it">
+                    <i class="mdi mdi-shield-plus-outline"></i>
+                    <span>+ Authorize Replica IP</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-primary text-2xs font-semibold px-3 py-1.5 rounded-lg shadow-xs bg-white" onclick="openPairModal()" title="Attach a remote primary server stream">
+                    <i class="mdi mdi-arrow-down-bold-box-outline text-purple-600"></i>
+                    <span>+ Inbound Stream</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xs bg-white" onclick="openTokenModal()" title="Copy Pairing Key to connect a replica to this node">
+                    <i class="mdi mdi-key-outline text-amber-500"></i>
+                    <span>Pairing Key</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xs bg-white" onclick="triggerParityTest()" title="Send verification heartbeat record across cluster">
+                    <i class="mdi mdi-heart-pulse text-rose-500"></i>
+                    <span>Parity Test</span>
+                </button>
+
+                <button type="button" class="btn btn-sm {% if telemetry.read_only %}btn-outline-success border-success text-success{% else %}btn-outline-secondary text-slate-600{% endif %} text-2xs font-semibold px-2.5 py-1.5 rounded-lg shadow-xs bg-white" id="btn-toggle-readonly" data-current-ro="{% if telemetry.read_only %}1{% else %}0{% endif %}" onclick="toggleReadOnlyMode(this.getAttribute('data-current-ro') !== '1')" title="Toggle Standby Read-Only protection">
+                    <i class="mdi mdi-lock-outline"></i>
+                    <span>Standby Lock: <strong>{% if telemetry.read_only %}ON{% else %}OFF{% endif %}</strong></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =======================================================
+         ERROR RECOVERY BANNER (Strictly hidden unless real error)
+    ======================================================== -->
+    {% if telemetry.last_sql_error and telemetry.last_sql_error != 'None' and telemetry.last_sql_error|length > 0 or telemetry.last_io_error and telemetry.last_io_error != 'None' and telemetry.last_io_error|length > 0 %}
+    <div id="error-recovery-banner" class="alert alert-danger shadow-xs rounded-xl p-3 mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-danger-subtle">
+        <div class="d-flex align-items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-rose-600 text-white d-flex align-items-center justify-content-center shrink-0">
+                <i class="mdi mdi-alert-circle text-sm"></i>
+            </div>
+            <div>
+                <strong class="text-xs text-rose-900">Replication Desync / Error Detected:</strong>
+                <div class="text-2xs font-mono text-rose-700 text-break" id="error-banner-text">
+                    {{ telemetry.last_sql_error|default:telemetry.last_io_error }}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-danger text-2xs px-3 py-1 font-semibold bg-white" onclick="skipSqlError('')">
+                ⏭ Skip SQL Error & Resume
+            </button>
+            <button type="button" class="btn btn-sm btn-danger text-2xs px-3 py-1 font-semibold" onclick="openResyncModal('')">
+                📥 Fresh Snapshot Re-Sync
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div id="error-recovery-banner" class="alert alert-danger shadow-xs rounded-xl p-3 mb-3 d-none justify-content-between align-items-center flex-wrap gap-2 border-danger-subtle" style="display: none !important;">
+        <div class="d-flex align-items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-rose-600 text-white d-flex align-items-center justify-content-center shrink-0">
+                <i class="mdi mdi-alert-circle text-sm"></i>
+            </div>
+            <div>
+                <strong class="text-xs text-rose-900">Replication Desync / Error Detected:</strong>
+                <div class="text-2xs font-mono text-rose-700 text-break" id="error-banner-text"></div>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-danger text-2xs px-3 py-1 font-semibold bg-white" onclick="skipSqlError('')">
+                ⏭ Skip SQL Error & Resume
+            </button>
+            <button type="button" class="btn btn-sm btn-danger text-2xs px-3 py-1 font-semibold" onclick="openResyncModal('')">
+                📥 Fresh Snapshot Re-Sync
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- =======================================================
+         MODERN SEGMENTED PILL TAB BAR (5 Dedicated Pages)
+    ======================================================== -->
+    <div class="bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/80 mb-3 d-flex flex-wrap gap-1 align-items-center shadow-2xs">
+        <a href="{% url 'db_replication_databases' %}" class="repl-tab-btn {% if active_tab == 'databases' %}active-tab{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-200/60{% endif %} px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border-0 d-flex align-items-center gap-2 text-decoration-none cursor-pointer" id="tab-btn-databases">
+            <i class="mdi mdi-database-outline"></i>
+            <span>All Databases Matrix</span>
+            <span class="badge {% if active_tab == 'databases' %}bg-slate-200 text-slate-800{% else %}bg-slate-200 text-slate-700{% endif %} text-2xs font-mono px-1.5 py-0.5 rounded-md">{{ databases_overview|length }}</span>
+        </a>
+
+        <a href="{% url 'db_replication_clients' %}" class="repl-tab-btn {% if active_tab == 'clients' %}active-tab{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-200/60{% endif %} px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border-0 text-decoration-none d-flex align-items-center gap-2 cursor-pointer" id="tab-btn-clients">
+            <i class="mdi mdi-shield-account-outline text-emerald-600"></i>
+            <span>Allowed Replica Clients (IPs)</span>
+            <span class="badge {% if replica_clients %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-700{% endif %} text-2xs font-mono px-1.5 py-0.5 rounded-md">{{ replica_clients|length }}</span>
+        </a>
+
+        <a href="{% url 'db_replication_channels' %}" class="repl-tab-btn {% if active_tab == 'channels' %}active-tab{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-200/60{% endif %} px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border-0 text-decoration-none d-flex align-items-center gap-2 cursor-pointer" id="tab-btn-inbound">
+            <i class="mdi mdi-arrow-down-bold-box-outline text-purple-600"></i>
+            <span>Inbound Ingest Channels</span>
+            <span class="badge {% if channels %}bg-purple-600 text-white{% else %}bg-slate-200 text-slate-700{% endif %} text-2xs font-mono px-1.5 py-0.5 rounded-md">{{ channels|length }}</span>
+        </a>
+
+        <a href="{% url 'db_replication_parity' %}" class="repl-tab-btn {% if active_tab == 'parity' %}active-tab{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-200/60{% endif %} px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border-0 text-decoration-none d-flex align-items-center gap-2 cursor-pointer" id="tab-btn-parity">
+            <i class="mdi mdi-heart-pulse text-rose-500"></i>
+            <span>Live Parity Feed</span>
+        </a>
+
+        <a href="{% url 'db_replication_topology' %}" class="repl-tab-btn {% if active_tab == 'topology' %}active-tab{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-200/60{% endif %} px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all border-0 text-decoration-none d-flex align-items-center gap-2 cursor-pointer" id="tab-btn-nodes">
+            <i class="mdi mdi-server-network text-slate-600"></i>
+            <span>Topology & Logs</span>
+        </a>
+    </div>

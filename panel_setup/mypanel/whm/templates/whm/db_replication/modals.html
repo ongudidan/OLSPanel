@@ -1,0 +1,560 @@
+<!-- =======================================================
+     MODALS
+======================================================== -->
+
+<!-- 1. Authorize & Edit Allowed Replica Client IP Modal -->
+<div class="modal fade" id="clientModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 d-flex justify-content-between align-items-center bg-slate-50">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-emerald-50 text-emerald-700 d-flex align-items-center justify-content-center text-xs border border-emerald-200">
+                        <i class="mdi mdi-shield-account"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-slate-900 mb-0 text-xs" id="client-modal-title">
+                        Authorize Replica Server IP & Assign Databases
+                    </h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-slate-400 hover:text-slate-600 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('clientModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3.5 text-xs">
+                <input type="hidden" id="client_node_id" value="">
+                <p class="text-2xs text-slate-500 mb-3">Configure an authorized secondary/replica server IP. MariaDB will grant replication permissions and UFW will open port 3306 specifically for this IP.</p>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-7">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replica Server IP Address <span class="text-rose-500">*</span></label>
+                        <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="client_replica_ip" placeholder="e.g. 198.51.100.25">
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Server Label / Location</label>
+                        <input type="text" class="form-control form-control-sm text-xs rounded-md border-slate-300" id="client_name" placeholder="e.g. Frankfurt Backup Node">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2.5">
+                    <div class="col-6">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replication Username</label>
+                        <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="client_repl_user" value="olspanel_repl">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replication Password</label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control form-control-sm text-xs font-mono rounded-start-md border-slate-300" id="client_repl_pass" placeholder="Leave blank to auto-generate">
+                            <button class="btn btn-outline-secondary text-2xs bg-white border-slate-300 px-2.5" type="button" onclick="generateRandomPass('client_repl_pass')"><i class="mdi mdi-refresh"></i> Generate</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Granular Database Assignment -->
+                <div class="mt-2.5 pt-2.5 border-top border-slate-200/80">
+                    <label class="form-label text-2xs fw-semibold text-slate-700 d-flex justify-content-between align-items-center mb-1.5">
+                        <span>Authorized Databases for this Replica IP</span>
+                        <div class="d-flex gap-2">
+                            <a href="javascript:void(0)" class="text-2xs text-purple-600 fw-semibold text-decoration-none" onclick="toggleAllClientDbs(true)">Select All</a>
+                            <span class="text-slate-300 text-2xs">|</span>
+                            <a href="javascript:void(0)" class="text-2xs text-slate-500 text-decoration-none" onclick="toggleAllClientDbs(false)">Clear</a>
+                        </div>
+                    </label>
+
+                    <div class="d-flex gap-3 mb-2">
+                        <div class="form-check text-xs">
+                            <input class="form-check-input" type="radio" name="client_sync_scope" id="client_scope_selected" value="selected" checked onchange="toggleClientDbBox()">
+                            <label class="form-check-label text-2xs text-slate-800 fw-medium cursor-pointer" for="client_scope_selected">
+                                Selected Databases Only
+                            </label>
+                        </div>
+                        <div class="form-check text-xs">
+                            <input class="form-check-input" type="radio" name="client_sync_scope" id="client_scope_all" value="all" onchange="toggleClientDbBox()">
+                            <label class="form-check-label text-2xs text-slate-800 fw-medium cursor-pointer" for="client_scope_all">
+                                All Databases (Full Server Replication)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="client-db-selection-box" class="p-2.5 bg-slate-50 border border-slate-200 rounded-md">
+                        <div class="text-2xs text-slate-500 mb-1.5">Select local primary databases this replica IP is allowed to replicate:</div>
+                        <div class="d-flex flex-wrap gap-2" id="client-db-checkboxes">
+                            {% for db in databases_overview %}
+                            <div class="form-check form-check-inline text-2xs mb-0 bg-white px-2 py-1 border border-slate-200 rounded-md">
+                                <input class="form-check-input client-db-chk" type="checkbox" value="{{ db.name }}" id="chk_client_{{ forloop.counter }}" checked>
+                                <label class="form-check-label text-2xs font-mono cursor-pointer" for="chk_client_{{ forloop.counter }}">
+                                    {{ db.name }} <span class="text-slate-400 font-sans">({{ db.tables }} tbls)</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="client-alert" class="alert alert-danger text-2xs d-none mt-2.5 mb-0 rounded-md py-2 px-3"></div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-700" onclick="testClientConnectivity()">
+                    <i class="mdi mdi-lan-connect text-cyan-600 me-1"></i> Test Ping IP
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('clientModal')">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary text-2xs fw-semibold py-1.5 px-3.5 rounded-md shadow-xs" id="btn-submit-client" onclick="submitClientNode()">
+                        <i class="mdi mdi-shield-check me-1"></i> Authorize IP & Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Connect & Edit Inbound Primary Stream Modal -->
+<div class="modal fade" id="pairModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 d-flex justify-content-between align-items-center bg-slate-50">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-purple-50 text-purple-600 d-flex align-items-center justify-content-center text-xs border border-purple-200">
+                        <i class="mdi mdi-arrow-down-bold-box"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-slate-900 mb-0 text-xs" id="inbound-modal-title">
+                        Attach Inbound Primary Stream (Multi-Source Channel)
+                    </h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-slate-400 hover:text-slate-600 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('pairModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3.5 text-xs">
+                <input type="hidden" id="inbound_edit_mode" value="create">
+                <input type="hidden" id="inbound_old_channel" value="">
+                <input type="hidden" id="inbound_node_id" value="">
+
+                <p class="text-2xs text-slate-500 mb-3">Assign a remote Primary Server IP and credentials to ingest databases into this replica node with real-time stream sync.</p>
+
+                <ul class="nav nav-pills nav-fill mb-3 gap-1 p-1 bg-slate-100 rounded-md text-xs border border-slate-200/60" id="pairTab" role="tablist">
+                    <li class="nav-item flex-1">
+                        <button class="nav-link active py-1.5 px-2.5 fw-semibold text-2xs rounded-md w-100 border-0 shadow-2xs" id="token-tab" type="button" onclick="switchPairTab('token')">Quick Key (Recommended)</button>
+                    </li>
+                    <li class="nav-item flex-1">
+                        <button class="nav-link py-1.5 px-2.5 fw-semibold text-2xs rounded-md text-slate-600 w-100 border-0 bg-transparent" id="manual-tab" type="button" onclick="switchPairTab('manual')">Manual IP & Credentials</button>
+                    </li>
+                </ul>
+
+                <div id="pair-tab-token-content">
+                    <div class="mb-2.5">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Pairing Key (from Primary Server) <span class="text-rose-500">*</span></label>
+                        <textarea class="form-control font-mono text-xs rounded-md border-slate-300" id="pair_token_input" rows="2" placeholder="Paste your OLSREP-... key here"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Sync Password</label>
+                        <input type="password" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="pair_token_pass" placeholder="Password from the main server">
+                    </div>
+                </div>
+
+                <div id="pair-tab-manual-content" style="display: none;">
+                    <div class="row g-2 mb-2">
+                        <div class="col-8">
+                            <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Primary Server IP Address <span class="text-rose-500">*</span></label>
+                            <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="pair_manual_host" placeholder="e.g. 192.168.1.50">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Port</label>
+                            <input type="number" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="pair_manual_port" value="3306">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Sync Username</label>
+                            <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="pair_manual_user" value="olspanel_repl">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Sync Password <span class="text-rose-500">*</span></label>
+                            <input type="password" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="pair_manual_pass" placeholder="Password configured on primary server">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-1">
+                    <div class="col-6">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Channel Name (Multi-Source Stream ID)</label>
+                        <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="pair_channel_name" placeholder="e.g. default or source_2">
+                    </div>
+                    <div class="col-6" id="pair-strategy-wrapper">
+                        <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Initial Baseline Strategy</label>
+                        <select class="form-select form-select-sm text-xs rounded-md border-slate-300" id="pair_clone_strategy">
+                            <option value="clone" selected>Live Online Snapshot Cloner (Recommended)</option>
+                            <option value="gtid">Connect via GTID Auto-Positioning</option>
+                            <option value="coordinates">Read Primary Coordinates (SHOW MASTER STATUS)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-2.5 pt-2.5 border-top border-slate-200/80">
+                    <label class="form-label text-2xs fw-semibold text-slate-700 d-flex justify-content-between align-items-center mb-1.5">
+                        <span>Database Selection & Optional Rewriting (source_db -> target_db)</span>
+                        <span class="badge bg-emerald-50 text-emerald-700 text-2xs border border-emerald-200 rounded px-2 py-0.5">Multi-Use Safe</span>
+                    </label>
+                    <div class="d-flex gap-3 mb-2">
+                        <div class="form-check text-xs">
+                            <input class="form-check-input" type="radio" name="pair_sync_scope" id="scope_selected" value="selected" checked onchange="togglePairDbList()">
+                            <label class="form-check-label text-2xs text-slate-800 fw-medium cursor-pointer" for="scope_selected">
+                                Selected Databases Only
+                            </label>
+                        </div>
+                        <div class="form-check text-xs">
+                            <input class="form-check-input" type="radio" name="pair_sync_scope" id="scope_all" value="all" onchange="togglePairDbList()">
+                            <label class="form-check-label text-2xs text-slate-800 fw-medium cursor-pointer" for="scope_all">
+                                All Databases from Primary
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="pair-db-selection" class="p-2.5 bg-slate-50 border border-slate-200 rounded-md">
+                        <div class="text-2xs text-slate-500 mb-1.5">Enter database name(s) to ingest, or rewrite pairs (e.g. <code>remote_db->local_db</code>):</div>
+                        <div>
+                            <input type="text" class="form-control form-control-sm text-2xs font-mono rounded-md border-slate-300" id="pair_custom_db_map" placeholder="e.g. app_db, crm_prod->crm_standby">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pair-alert" class="alert alert-danger text-2xs d-none mt-2.5 mb-0 rounded-md py-2 px-3"></div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-700" onclick="testPairConnectivity()">
+                    <i class="mdi mdi-lan-connect text-cyan-600 me-1"></i> Test Reachability
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('pairModal')">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary text-2xs fw-semibold py-1.5 px-3.5 rounded-md shadow-xs" id="btn-submit-pair" onclick="submitPairNode()">
+                        <i class="mdi mdi-download me-1"></i> Start Inbound Stream
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Assign & Authorize Replicas for Database Modal -->
+<div class="modal fade" id="dbAssignModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 d-flex justify-content-between align-items-center bg-slate-50/80">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-purple-50 text-purple-600 d-flex align-items-center justify-content-center text-xs border border-purple-200">
+                        <i class="mdi mdi-database-cog"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-slate-800 mb-0 text-xs d-flex align-items-center gap-1.5">
+                        <span>Replication & IP Settings for</span>
+                        <span id="assign_db_name_title" class="badge bg-purple-50 text-purple-700 border border-purple-200 font-mono text-2xs px-2 py-0.5 rounded-md"></span>
+                    </h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-slate-400 hover:text-slate-600 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('dbAssignModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <div class="modal-body p-3.5 text-xs">
+                <input type="hidden" id="assign_target_dbname" value="">
+
+                <!-- Modal Sub-Tabs (Pills) -->
+                <div class="d-flex gap-1 p-1 bg-slate-100 rounded-md mb-3 border border-slate-200/60">
+                    <button type="button" id="btn-tab-assign-outbound" class="btn btn-sm flex-1 py-1.5 px-3 rounded-md fw-semibold text-2xs bg-white text-slate-900 shadow-2xs border border-slate-200/80" onclick="switchAssignModalMode('outbound')">
+                        <i class="mdi mdi-shield-account text-emerald-600 me-1"></i> Outbound Master (Assign Allowed Replica IPs)
+                    </button>
+                    <button type="button" id="btn-tab-assign-inbound" class="btn btn-sm flex-1 py-1.5 px-3 rounded-md fw-semibold text-2xs text-slate-600 bg-transparent border-0" onclick="switchAssignModalMode('inbound')">
+                        <i class="mdi mdi-arrow-down-bold-box text-purple-600 me-1"></i> Inbound Standby (Pull from Remote Master IP)
+                    </button>
+                </div>
+
+                <!-- MODE 1: OUTBOUND PRIMARY (ASSIGN REPLICA CLIENT IPS) -->
+                <div id="section-assign-outbound">
+                    <!-- Direct IP Input & Instant Authorize Card -->
+                    <div class="p-3 bg-slate-50/70 border border-slate-200 rounded-md mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-slate-200/60">
+                            <div class="fw-semibold text-slate-800 text-2xs d-flex align-items-center gap-1.5">
+                                <i class="mdi mdi-shield-plus text-emerald-600"></i>
+                                <span>Directly Authorize & Assign New Replica Server IP:</span>
+                            </div>
+                            <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-2xs font-normal rounded px-2 py-0.5">Opens UFW 3306 & MariaDB User</span>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-7">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replica Server IP Address(es) <span class="text-rose-500">*</span></label>
+                                <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="quick_replica_ip" placeholder="e.g. 198.51.100.25 (or comma separated)">
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Server Label / Location</label>
+                                <input type="text" class="form-control form-control-sm text-xs rounded-md border-slate-300" id="quick_replica_name" placeholder="e.g. Secondary Backup Node">
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-0">
+                            <div class="col-5">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replication User</label>
+                                <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="quick_repl_user" value="olspanel_repl">
+                            </div>
+                            <div class="col-7">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replication Password</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" class="form-control form-control-sm text-xs font-mono rounded-start-md border-slate-300" id="quick_repl_pass" placeholder="Auto-generated secure token">
+                                    <button class="btn btn-outline-secondary text-2xs bg-white border-slate-300 px-2.5" type="button" onclick="generateRandomPass('quick_repl_pass')" title="Generate new secure password">
+                                        <i class="mdi mdi-refresh"></i> Generate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Previously Registered Replica Servers Checklist -->
+                    <div class="mb-1" id="assign-existing-clients-section">
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <label class="form-label text-2xs fw-semibold text-slate-700 mb-0">
+                                <span>Or Select From Previously Authorized Replica Servers:</span>
+                            </label>
+                            <div class="d-flex gap-1.5 align-items-center">
+                                <button type="button" class="btn btn-link p-0 text-2xs text-purple-600 fw-semibold text-decoration-none" onclick="toggleAllAssignCheckboxes(true)">Select All</button>
+                                <span class="text-slate-300 text-2xs">|</span>
+                                <button type="button" class="btn btn-link p-0 text-2xs text-slate-500 text-decoration-none" onclick="toggleAllAssignCheckboxes(false)">Clear All</button>
+                            </div>
+                        </div>
+                        <div class="p-2.5 bg-white border border-slate-200 rounded-md max-h-36 overflow-y-auto" id="assign-existing-clients-list">
+                            {% for client in replica_clients %}
+                            <div class="form-check text-xs mb-1.5 last:mb-0">
+                                <input class="form-check-input db-assign-chk" type="checkbox" value="{{ client.id }}" id="chk_assign_{{ client.id }}">
+                                <label class="form-check-label text-2xs font-mono text-slate-800 cursor-pointer" for="chk_assign_{{ client.id }}">
+                                    <strong>{{ client.host }}</strong> <span class="text-slate-500 font-sans">({{ client.name }})</span>
+                                </label>
+                            </div>
+                            {% empty %}
+                            <div class="text-slate-400 text-2xs py-1.5 px-2 bg-slate-50 rounded-md border border-dashed border-slate-200 text-center" id="no-clients-msg">
+                                <i class="mdi mdi-information-outline text-slate-400 me-1"></i> No other replica servers registered yet. Enter the replica IP above to authorize it and assign this database immediately.
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODE 2: INBOUND REPLICA (PULL FROM REMOTE PRIMARY MASTER) -->
+                <div id="section-assign-inbound" style="display: none;">
+                    <div class="p-3 bg-purple-50/20 border border-purple-200/70 rounded-md mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-1.5 border-bottom border-purple-200/50">
+                            <div class="fw-semibold text-purple-900 text-2xs d-flex align-items-center gap-1.5">
+                                <i class="mdi mdi-download-network text-purple-600"></i>
+                                <span>Stream updates for this database from a remote Primary Master:</span>
+                            </div>
+                            <span class="badge bg-purple-50 text-purple-700 border border-purple-200 text-2xs font-normal rounded px-2 py-0.5">Multi-Source Channel</span>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-8">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Primary Master IP / Host <span class="text-rose-500">*</span></label>
+                                <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="inbound_db_host" placeholder="e.g. 198.51.100.10">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">MySQL Port</label>
+                                <input type="number" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="inbound_db_port" value="3306">
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replication User <span class="text-rose-500">*</span></label>
+                                <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="inbound_db_user" value="olspanel_repl">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Replication Password <span class="text-rose-500">*</span></label>
+                                <input type="password" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="inbound_db_pass" placeholder="Password on remote master">
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-1">
+                            <div class="col-7">
+                                <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Channel Name (Optional)</label>
+                                <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="inbound_db_channel" placeholder="e.g. default or ch_main">
+                            </div>
+                            <div class="col-5 d-flex align-items-end">
+                                <div class="form-check text-2xs pb-1">
+                                    <input class="form-check-input" type="checkbox" id="inbound_db_clone" checked>
+                                    <label class="form-check-label text-2xs text-slate-700 cursor-pointer" for="inbound_db_clone">
+                                        Clone initial snapshot
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="assign-alert" class="alert alert-danger text-2xs d-none mb-0 rounded-md py-2 px-3"></div>
+            </div>
+
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50/80 d-flex justify-content-between align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-700" onclick="testAssignConnectivity()">
+                    <i class="mdi mdi-lan-connect text-cyan-600 me-1"></i> Test Reachability
+                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('dbAssignModal')">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-primary text-2xs fw-semibold py-1.5 px-3.5 rounded-md shadow-xs" id="btn-submit-db-assign" onclick="submitDbReplicationModal()">
+                        <i class="mdi mdi-shield-check me-1"></i> Save & Authorize Replica IP
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4. Re-Sync Snapshot Modal -->
+<div class="modal fade" id="resyncModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 bg-sky-50 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-sky-100 text-sky-700 d-flex align-items-center justify-content-center text-xs">
+                        <i class="mdi mdi-download-network"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-sky-900 mb-0 text-xs">Fresh Baseline Snapshot Re-Sync</h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-slate-400 hover:text-slate-600 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('resyncModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3.5 text-xs">
+                <p class="text-slate-700 mb-2.5">This tool pulls a fresh online snapshot directly from the Primary server and synchronizes local tables.</p>
+                <div class="mb-2.5">
+                    <label class="form-label text-2xs fw-semibold text-slate-700 mb-1 d-block">Target Channel Name</label>
+                    <input type="text" class="form-control form-control-sm text-xs font-mono rounded-md border-slate-300" id="resync_channel_name" value="default">
+                </div>
+                <div class="alert alert-warning py-2 px-3 text-2xs mb-0 rounded-md border-amber-200">
+                    <strong>Notice:</strong> This will stream current records from the Primary and resume real-time replication from the exact snapshot coordinates.
+                </div>
+                <div id="resync-alert" class="alert alert-danger text-2xs d-none mt-2.5 mb-0 rounded-md py-2 px-3"></div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('resyncModal')">Cancel</button>
+                <button type="button" class="btn btn-sm btn-info text-2xs fw-semibold py-1.5 px-3.5 text-white rounded-md shadow-xs" id="btn-submit-resync" onclick="submitResync()">
+                    <i class="mdi mdi-play-circle-outline me-1"></i> Execute Fresh Snapshot
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 5. Pairing Key Modal -->
+<div class="modal fade" id="tokenModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 d-flex justify-content-between align-items-center bg-slate-50">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-amber-50 text-amber-700 d-flex align-items-center justify-content-center text-xs border border-amber-200">
+                        <i class="mdi mdi-key-variant"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-slate-900 mb-0 text-xs">Primary Server Pairing Key</h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-slate-400 hover:text-slate-600 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('tokenModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3.5 text-xs">
+                <p class="text-2xs text-slate-500 mb-2.5">Copy this key and paste it into the <strong>+ Inbound Stream</strong> window on your secondary replica server.</p>
+                <div class="p-3 bg-slate-100 rounded-md border border-slate-200 mb-2.5">
+                    <pre class="mb-0 text-2xs font-mono text-slate-800 text-break" id="display-token" style="white-space: pre-wrap;">Generating pairing code...</pre>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300" onclick="copyToken()">
+                        📋 Copy Pairing Key
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('tokenModal')">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 6. Scope Settings Modal -->
+<div class="modal fade" id="scopeModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 d-flex justify-content-between align-items-center bg-slate-50">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-purple-50 text-purple-700 d-flex align-items-center justify-content-center text-xs border border-purple-200">
+                        <i class="mdi mdi-cog-outline"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-slate-900 mb-0 text-xs">Outbound Broadcast Scope Settings</h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-slate-400 hover:text-slate-600 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('scopeModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3.5 text-xs">
+                <p class="text-slate-500 mb-3">Configure whether this server broadcasts all databases or only explicitly assigned databases to replica nodes.</p>
+                
+                <div class="mb-3">
+                    <div class="form-check p-3 bg-slate-50 border border-slate-200 rounded-md mb-2">
+                        <input class="form-check-input ms-0 me-2" type="radio" name="scope_setting_radio" id="radio_scope_selected" value="selected" {% if not replicate_all %}checked{% endif %}>
+                        <label class="form-check-label text-xs fw-bold text-slate-800 ms-1 cursor-pointer" for="radio_scope_selected">
+                            Selective Database Broadcast (Recommended)
+                            <div class="fw-normal text-2xs text-slate-500 mt-0.5">
+                                Broadcast only explicitly assigned databases. Safe if this server runs independent local databases.
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check p-3 bg-slate-50 border border-slate-200 rounded-md">
+                        <input class="form-check-input ms-0 me-2" type="radio" name="scope_setting_radio" id="radio_scope_all" value="all" {% if replicate_all %}checked{% endif %}>
+                        <label class="form-check-label text-xs fw-bold text-slate-800 ms-1 cursor-pointer" for="radio_scope_all">
+                            All Databases (Full Broadcast)
+                            <div class="fw-normal text-2xs text-slate-500 mt-0.5">
+                                Automatically streams every database to connected replica nodes.
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="scope-alert" class="alert alert-danger text-2xs d-none mb-0 rounded-md py-2 px-3"></div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('scopeModal')">Cancel</button>
+                <button type="button" class="btn btn-sm btn-primary text-2xs fw-semibold py-1.5 px-3.5 rounded-md shadow-xs" onclick="submitScopeSettings()">
+                    <i class="mdi mdi-check me-1"></i> Save Scope
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 7. Emergency Failover Modal -->
+<div class="modal fade" id="failoverModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg rounded-lg overflow-hidden">
+            <div class="modal-header border-bottom py-2.5 px-4 bg-rose-50 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="w-6 h-6 rounded bg-rose-100 text-rose-700 d-flex align-items-center justify-content-center text-xs">
+                        <i class="mdi mdi-alert-octagon"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold text-rose-900 mb-0 text-xs">Emergency Switch to Main Master</h6>
+                </div>
+                <button type="button" class="btn-close bg-transparent border-0 text-rose-700 fs-6 leading-none cursor-pointer" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('failoverModal')" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-3.5 text-xs">
+                <p class="text-slate-700 mb-2.5">Are you sure you want to promote this server to become the <strong>Main Primary Master</strong>?</p>
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-md text-slate-600 mb-2.5 text-2xs">
+                    <div>• Inbound replication streams will be detached.</div>
+                    <div>• Standby Read-Only safeguard will be turned OFF.</div>
+                    <div>• Applications can immediately write data directly to this server.</div>
+                </div>
+                <div class="alert alert-warning py-2 px-3 text-2xs mb-0 rounded-md border-amber-200">
+                    <strong>Tip:</strong> Only use this if your previous main server is permanently down or being decommissioned.
+                </div>
+            </div>
+            <div class="modal-footer border-top py-2.5 px-4 bg-slate-50">
+                <button type="button" class="btn btn-sm btn-outline-secondary text-2xs py-1.5 px-3 rounded-md bg-white border-slate-300 text-slate-600" data-dismiss="modal" data-bs-dismiss="modal" onclick="closeModal('failoverModal')">Cancel</button>
+                <button type="button" class="btn btn-sm btn-danger text-2xs fw-semibold py-1.5 px-3.5 rounded-md shadow-xs" onclick="submitPromotion()">
+                    <i class="mdi mdi-arrow-up-bold-circle-outline me-1"></i> Promote to Master
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

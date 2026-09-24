@@ -1,0 +1,139 @@
+{% extends 'whm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-3 py-2" style="max-width: 1440px;">
+
+    {% include 'whm/db_replication/nav.html' %}
+
+    <!-- =======================================================
+         TAB 1: ALL DATABASES MATRIX (Role & IP Assignment)
+    ======================================================== -->
+    <div id="pane-databases" class="tab-pane-content">
+        <div class="card border border-slate-200/80 shadow-xs rounded-xl mb-3 bg-white overflow-hidden">
+            <div class="card-header bg-slate-50/80 border-bottom border-slate-200/80 py-2.5 px-3.5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="mb-0 fw-bold text-slate-800 text-xs">Database Roles & Replication Matrix</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" id="search-dbs" class="form-control form-control-sm text-2xs font-mono py-1 px-2.5 rounded-lg border-slate-200" placeholder="Search databases..." style="width: 180px;" onkeyup="filterDbTable()">
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1 text-2xs rounded-lg bg-white" onclick="openScopeModal()">
+                        <i class="mdi mdi-cog-outline"></i>
+                        <span>Global Scope</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-xs" id="db-rules-table">
+                        <thead class="bg-slate-50 text-slate-600 border-bottom border-slate-200">
+                            <tr>
+                                <th class="ps-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Database Name</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Tables & Size</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Role on This Node</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Assigned Replica IPs / Primary Source</th>
+                                <th class="text-end pe-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for db in databases_overview %}
+                            <tr id="dbt-row-{{ forloop.counter }}" data-dbname="{{ db.name }}" data-role="{{ db.db_role }}">
+                                <td class="ps-3.5 py-2.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 border border-purple-100">
+                                            <i class="mdi mdi-database text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold font-mono text-slate-800 text-xs">{{ db.name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-2.5 font-mono text-2xs text-slate-500">
+                                    {{ db.tables }} tables <span class="text-slate-300">|</span> {{ db.size_mb }} MB
+                                </td>
+                                <td class="py-2.5">
+                                    {% if db.db_role == 'inbound_replica' %}
+                                    <span class="badge bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 text-2xs font-semibold rounded-md">
+                                        📥 Inbound Replica
+                                    </span>
+                                    {% elif db.db_role == 'primary_source' %}
+                                    <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-2xs font-semibold rounded-md">
+                                        🟢 Primary Master
+                                    </span>
+                                    {% elif db.db_role == 'hybrid' %}
+                                    <span class="badge bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 text-2xs font-semibold rounded-md">
+                                        ⚡ Hybrid
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 text-2xs rounded-md">
+                                        ⚪ Standalone
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2.5 text-2xs">
+                                    {% if db.db_role == 'inbound_replica' or db.db_role == 'hybrid' %}
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <span class="badge bg-purple-50 text-purple-800 border border-purple-200 font-mono text-2xs px-2 py-0.5 rounded">
+                                            Primary: <strong>{{ db.source_host|default:"Remote Master" }}</strong>
+                                        </span>
+                                        <span class="text-slate-400 font-mono text-2xs">(ch: {{ db.channel_name }})</span>
+                                    </div>
+                                    {% endif %}
+
+                                    {% if db.assigned_replicas %}
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap {% if db.db_role == 'hybrid' %}mt-1{% endif %}">
+                                        {% for rep in db.assigned_replicas %}
+                                        <span class="badge bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono text-2xs px-2 py-0.5 rounded cursor-pointer" onclick="openAssignModal('{{ db.name }}')" title="Click to manage: {{ rep.name }}">
+                                            🛡️ {{ rep.host }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% elif db.db_role == 'primary_source' and not db.assigned_replicas %}
+                                    <span class="text-2xs text-slate-400 font-mono">Global Broadcast</span>
+                                    {% elif db.db_role == 'standalone' %}
+                                    <span class="text-2xs text-slate-400 font-mono">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-3.5 py-2.5">
+                                    <div class="d-inline-flex gap-1.5">
+                                        {% if db.db_role != 'inbound_replica' %}
+                                        <button type="button" class="btn btn-sm btn-primary px-3 py-1 text-2xs rounded-lg shadow-xs fw-semibold" 
+                                                onclick="openAssignModal('{{ db.name }}')" 
+                                                title="Assign or authorize replica server IPs for this database">
+                                            <i class="mdi mdi-shield-account-outline"></i>
+                                            <span>Assign Replica IP</span>
+                                        </button>
+                                        {% endif %}
+
+                                        {% if db.db_role == 'inbound_replica' or db.db_role == 'hybrid' %}
+                                        <button type="button" class="btn btn-sm btn-outline-info px-2.5 py-1 text-2xs rounded-lg bg-white shadow-xs" onclick="openResyncModal('{{ db.channel_name }}')" title="Re-sync fresh snapshot from primary">
+                                            📥 Re-Sync
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning px-2.5 py-1 text-2xs rounded-lg bg-white shadow-xs" onclick="skipSqlError('{{ db.channel_name }}')">
+                                            ⏭ Skip Err
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-slate-500 text-xs">
+                                    <div class="p-3">
+                                        <i class="mdi mdi-database-off-outline fs-3 text-slate-300 d-block mb-1"></i>
+                                        No databases found on this server.
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% include 'whm/db_replication/modals.html' %}
+{% include 'whm/db_replication/scripts.html' %}
+{% endblock %}

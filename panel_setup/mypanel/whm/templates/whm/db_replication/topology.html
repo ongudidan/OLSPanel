@@ -1,0 +1,121 @@
+{% extends 'whm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-3 py-2" style="max-width: 1440px;">
+
+    {% include 'whm/db_replication/nav.html' %}
+
+    <!-- =======================================================
+         TAB 5: TOPOLOGY & LOGS
+    ======================================================== -->
+    <div id="pane-nodes" class="tab-pane-content">
+        <div class="card border border-slate-200/80 shadow-xs rounded-xl mb-3 bg-white overflow-hidden">
+            <div class="card-header bg-slate-50/80 border-bottom border-slate-200/80 py-2.5 px-3.5 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-slate-800 text-xs">Cluster Topology & Server Nodes</h6>
+                <span class="badge bg-slate-100 text-slate-700 border text-2xs">{{ nodes|length }} Node{{ nodes|length|pluralize }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-xs">
+                        <thead class="bg-slate-50 text-slate-600 border-bottom border-slate-200">
+                            <tr>
+                                <th class="ps-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Server Name & Address</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Role</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Channel</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Status</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Last Sync</th>
+                                <th class="text-end pe-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="nodes-tbody" class="divide-y divide-slate-100">
+                            {% for node in nodes %}
+                            <tr>
+                                <td class="ps-3.5 py-2.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="p-1.5 rounded-lg bg-slate-100 text-slate-700">
+                                            <i class="mdi mdi-server text-xs"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-slate-800 text-xs">{{ node.name }}</div>
+                                            <div class="font-mono text-slate-500 text-2xs">{{ node.host }} {% if node.is_local %}<span class="badge bg-slate-200 text-slate-700 px-1 py-0 text-2xs rounded">This Server</span>{% endif %}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {% if node.node_role == 'primary' %}bg-purple-600 text-white{% else %}bg-emerald-600 text-white{% endif %} text-2xs px-2 py-0.5 rounded-md">
+                                        {% if node.node_role == 'primary' %}Primary Master{% else %}Replica Client{% endif %}
+                                    </span>
+                                </td>
+                                <td class="font-mono text-2xs text-slate-500">{{ node.channel_name }}</td>
+                                <td>
+                                    <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-2xs rounded-md">
+                                        ● Active
+                                    </span>
+                                </td>
+                                <td class="text-slate-500 text-2xs">{{ node.last_sync|date:"Y-m-d H:i"|default:"Active" }}</td>
+                                <td class="text-end pe-3.5">
+                                    <div class="d-inline-flex gap-1">
+                                        {% if node.is_local and node.node_role == 'replica' %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-2.5 py-0.5 text-2xs rounded-md bg-white" onclick="openFailoverModal()">
+                                            ⚡ Promote to Master
+                                        </button>
+                                        {% endif %}
+                                        
+                                        {% if not node.is_local %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-2.5 py-0.5 text-2xs rounded-md bg-white" onclick="deleteNode('{{ node.id }}', '{{ node.host }}')">
+                                            Disconnect
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity & Audit Log -->
+        <div class="card border border-slate-200/80 shadow-xs rounded-xl mb-2 bg-white overflow-hidden">
+            <div class="card-header bg-slate-50/80 border-bottom border-slate-200/80 py-2 px-3.5 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-slate-800 text-xs">Replication Activity & Audit Stream</h6>
+                <span class="text-2xs text-slate-500">Cluster Events</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 text-xs">
+                        <thead class="bg-slate-50 text-slate-600 border-bottom border-slate-200">
+                            <tr>
+                                <th class="ps-3.5 py-2 font-semibold text-2xs text-uppercase tracking-wider">Time</th>
+                                <th class="py-2 font-semibold text-2xs text-uppercase tracking-wider">Event</th>
+                                <th class="py-2 font-semibold text-2xs text-uppercase tracking-wider">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for log in logs %}
+                            <tr>
+                                <td class="ps-3.5 py-1.5 text-slate-500 font-mono text-2xs">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                                <td class="py-1.5">
+                                    <span class="badge bg-slate-100 text-slate-700 border text-2xs uppercase font-mono rounded">{{ log.event_type }}</span>
+                                </td>
+                                <td class="py-1.5 text-slate-800 text-2xs">{{ log.message }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-3 text-slate-500 text-xs">No activity recorded yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% include 'whm/db_replication/modals.html' %}
+{% include 'whm/db_replication/scripts.html' %}
+{% endblock %}

@@ -311,6 +311,7 @@ class DbClusterNode(models.Model):
 
     name = models.CharField(max_length=255, default="Database Node")
     node_role = models.CharField(max_length=20, choices=NODE_ROLE_CHOICES, default='primary')
+    channel_name = models.CharField(max_length=100, default='default', help_text="MariaDB multi-source channel identifier")
     host = models.CharField(max_length=255)  # Remote or local IP/hostname
     mysql_port = models.IntegerField(default=3306)
     api_port = models.IntegerField(default=30)
@@ -321,6 +322,9 @@ class DbClusterNode(models.Model):
     is_local = models.BooleanField(default=False)
     replicate_all = models.BooleanField(default=False, help_text="True = sync entire MySQL server, False = sync selected databases only")
     selected_databases = models.TextField(blank=True, default='[]', help_text="JSON list of specific databases to replicate")
+    rewrite_rules = models.TextField(blank=True, default='{}', help_text="JSON map of source_db -> target_db name rewrites")
+    ignore_tables = models.TextField(blank=True, default='[]', help_text="JSON list of table wildcard ignore patterns")
+    auto_cloned = models.BooleanField(default=False, help_text="Whether initial data baseline has been cloned")
     ssl_enabled = models.BooleanField(default=False)
     seconds_behind_master = models.IntegerField(null=True, blank=True, default=0)
     last_error = models.TextField(blank=True, null=True)
@@ -332,7 +336,7 @@ class DbClusterNode(models.Model):
         db_table = 'db_cluster_nodes'
 
     def __str__(self):
-        return f"{self.name} ({self.host}) - {self.node_role}"
+        return f"{self.name} ({self.host}) - {self.node_role} [{self.channel_name}]"
 
 
 class DbSyncRule(models.Model):
@@ -344,7 +348,10 @@ class DbSyncRule(models.Model):
     ]
 
     node = models.ForeignKey(DbClusterNode, on_delete=models.CASCADE, related_name='database_rules', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='synced_databases')
+    channel_name = models.CharField(max_length=100, default='default')
     database_name = models.CharField(max_length=128)
+    target_database_name = models.CharField(max_length=128, blank=True, default='', help_text="Target DB name on replica if rewritten")
     is_active = models.BooleanField(default=True)
     status = models.CharField(max_length=20, choices=SYNC_STATUS_CHOICES, default='active')
     last_synced = models.DateTimeField(null=True, blank=True)
@@ -356,13 +363,14 @@ class DbSyncRule(models.Model):
         unique_together = ('node', 'database_name')
 
     def __str__(self):
-        return f"{self.database_name} -> {self.node.host if self.node else 'Local'}"
+        tgt = f" -> {self.target_database_name}" if self.target_database_name and self.target_database_name != self.database_name else ""
+        return f"{self.database_name}{tgt} ({self.node.host if self.node else 'Local'}) [{self.channel_name}]"
 
 
 class DbReplicationLog(models.Model):
     node = models.ForeignKey(DbClusterNode, on_delete=models.CASCADE, related_name='logs', null=True, blank=True)
     database_name = models.CharField(max_length=128, blank=True, default='')
-    event_type = models.CharField(max_length=50)  # pair, sync, pause, resume, failover, filter_update, error
+    event_type = models.CharField(max_length=50)  # pair, sync, pause, resume, failover, filter_update, error, clone, parity_test
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

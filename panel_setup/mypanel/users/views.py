@@ -989,14 +989,28 @@ def database_list(request, db=None):
     databases = get_user_database_info(db_username)  # Get the list of user databases
     user_list = list_users_by_prefix(db_username)  # Get the list of user database users
 
+    # Check cluster replication state
+    local_node = DbClusterNode.objects.filter(is_local=True).first()
+    has_cluster = DbClusterNode.objects.filter(is_local=False).exists()
+    replicate_all = local_node.replicate_all if local_node else False
+    selected_dbs = []
+    if local_node and local_node.selected_databases:
+        try:
+            selected_dbs = json.loads(local_node.selected_databases)
+        except Exception:
+            selected_dbs = []
+
     # Parse privileged users into a list for easy template loop
     for database in databases:
         p_users = database.get('privileged_users', '')
         database['privileged_users_list'] = [u.strip() for u in p_users.split(',')] if p_users else []
+        db_name = database.get('db_name', '')
+        database['is_replicated'] = has_cluster and (replicate_all or db_name in selected_dbs or DbSyncRule.objects.filter(database_name=db_name, is_active=True).exists())
 
     return render(request, 'users/database_list.html', {
         'databases': databases,
         'userlists': user_list,
+        'has_cluster': has_cluster,
         'db': db
     })
     

@@ -1,0 +1,116 @@
+{% extends 'whm/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-3 py-2" style="max-width: 1440px;">
+
+    {% include 'whm/db_replication/nav.html' %}
+
+    <!-- =======================================================
+         TAB 2: ALLOWED REPLICA CLIENTS (Outbound Primary IPs)
+    ======================================================== -->
+    <div id="pane-clients" class="tab-pane-content">
+        <div class="card border border-slate-200/80 shadow-xs rounded-xl mb-3 bg-white overflow-hidden">
+            <div class="card-header bg-slate-50/80 border-bottom border-slate-200/80 py-2.5 px-3.5 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h6 class="mb-0 fw-bold text-slate-800 text-xs">Allowed Replica Clients (IP Authorizations)</h6>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1 text-2xs rounded-lg bg-white" onclick="openTokenModal()">
+                        <i class="mdi mdi-key-outline text-amber-500"></i> Copy Pairing Key
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary px-3 py-1 text-2xs rounded-lg" onclick="openClientModal()">
+                        <i class="mdi mdi-shield-plus-outline"></i> + Authorize Replica IP
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-xs">
+                        <thead class="bg-slate-50 text-slate-600 border-bottom border-slate-200">
+                            <tr>
+                                <th class="ps-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Replica IP & Label</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Associated Databases Authorized</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Sync User & Firewall</th>
+                                <th class="py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Connection Status</th>
+                                <th class="text-end pe-3.5 py-2.5 font-semibold text-2xs text-uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for client in replica_clients %}
+                            <tr>
+                                <td class="ps-3.5 py-2.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+                                            <i class="mdi mdi-shield-account text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-slate-900 font-mono text-xs">{{ client.host }}</div>
+                                            <div class="text-2xs text-slate-500">{{ client.name }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-2.5">
+                                    {% if client.replicate_all %}
+                                    <span class="badge bg-emerald-50 text-emerald-800 border border-emerald-200 text-2xs px-2 py-0.5 rounded font-semibold">
+                                        ✓ All Databases (Full Broadcast)
+                                    </span>
+                                    {% elif client.databases_list %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for d in client.databases_list %}
+                                        <span class="badge bg-slate-100 text-slate-800 border border-slate-200 text-2xs px-1.5 py-0.5 rounded font-mono">
+                                            {{ d }}
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-slate-400 text-2xs italic">No databases assigned yet</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2.5">
+                                    <div class="text-2xs font-mono text-slate-700">User: <strong>{{ client.repl_user }}</strong></div>
+                                    <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-2xs px-1.5 py-0.5 rounded mt-0.5">
+                                        ✓ Port 3306 Allowed in UFW
+                                    </span>
+                                </td>
+                                <td class="py-2.5">
+                                    <span class="badge {% if client.status == 'active' %}bg-emerald-50 text-emerald-700 border border-emerald-200{% else %}bg-slate-100 text-slate-600 border{% endif %} px-2 py-0.5 text-2xs rounded-md">
+                                        ● Authorized & Active
+                                    </span>
+                                </td>
+                                <td class="text-end pe-3.5 py-2.5">
+                                    <div class="d-inline-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary px-2.5 py-1 text-2xs rounded-md bg-white" onclick="editClientNode('{{ client.id }}')">
+                                            <i class="mdi mdi-pencil-outline"></i> Edit IP & DBs
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 text-2xs rounded-md bg-white" onclick="deleteClientNode('{{ client.id }}', '{{ client.host }}')" title="Revoke access and close firewall">
+                                            <i class="mdi mdi-trash-can-outline"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-slate-500 text-xs">
+                                    <div class="p-3">
+                                        <i class="mdi mdi-shield-account-outline fs-3 text-slate-300 d-block mb-1"></i>
+                                        No replica server IPs authorized yet.<br>
+                                        <span class="text-2xs text-slate-400">Authorize a secondary server IP to allow it to securely replicate specific databases from this machine.</span><br>
+                                        <button type="button" class="btn btn-sm btn-primary text-2xs mt-2.5" onclick="openClientModal()">
+                                            <i class="mdi mdi-shield-plus-outline"></i> Authorize Replica Server IP
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% include 'whm/db_replication/modals.html' %}
+{% include 'whm/db_replication/scripts.html' %}
+{% endblock %}

@@ -233,6 +233,7 @@ SQL_CLUSTER_NODES="CREATE TABLE IF NOT EXISTS \`db_cluster_nodes\` (
   \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
   \`name\` varchar(255) NOT NULL DEFAULT 'Database Node',
   \`node_role\` varchar(20) NOT NULL DEFAULT 'primary',
+  \`channel_name\` varchar(100) NOT NULL DEFAULT 'default',
   \`host\` varchar(255) NOT NULL,
   \`mysql_port\` int(11) NOT NULL DEFAULT 3306,
   \`api_port\` int(11) NOT NULL DEFAULT 30,
@@ -243,6 +244,9 @@ SQL_CLUSTER_NODES="CREATE TABLE IF NOT EXISTS \`db_cluster_nodes\` (
   \`is_local\` tinyint(1) NOT NULL DEFAULT 0,
   \`replicate_all\` tinyint(1) NOT NULL DEFAULT 0,
   \`selected_databases\` longtext NOT NULL,
+  \`rewrite_rules\` longtext NOT NULL,
+  \`ignore_tables\` longtext NOT NULL,
+  \`auto_cloned\` tinyint(1) NOT NULL DEFAULT 0,
   \`ssl_enabled\` tinyint(1) NOT NULL DEFAULT 0,
   \`seconds_behind_master\` int(11) DEFAULT 0,
   \`last_error\` longtext DEFAULT NULL,
@@ -253,21 +257,33 @@ SQL_CLUSTER_NODES="CREATE TABLE IF NOT EXISTS \`db_cluster_nodes\` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
 mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_CLUSTER_NODES" > /dev/null 2>&1
 
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_cluster_nodes ADD COLUMN channel_name varchar(100) NOT NULL DEFAULT 'default';" > /dev/null 2>&1
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_cluster_nodes ADD COLUMN rewrite_rules longtext NOT NULL;" > /dev/null 2>&1
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_cluster_nodes ADD COLUMN ignore_tables longtext NOT NULL;" > /dev/null 2>&1
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_cluster_nodes ADD COLUMN auto_cloned tinyint(1) NOT NULL DEFAULT 0;" > /dev/null 2>&1
+
 SQL_SYNC_RULES="CREATE TABLE IF NOT EXISTS \`db_sync_rules\` (
   \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`channel_name\` varchar(100) NOT NULL DEFAULT 'default',
   \`database_name\` varchar(128) NOT NULL,
+  \`target_database_name\` varchar(128) NOT NULL DEFAULT '',
   \`is_active\` tinyint(1) NOT NULL DEFAULT 1,
   \`status\` varchar(20) NOT NULL DEFAULT 'active',
   \`last_synced\` datetime(6) DEFAULT NULL,
   \`created_at\` datetime(6) NOT NULL,
   \`updated_at\` datetime(6) NOT NULL,
   \`node_id\` bigint(20) DEFAULT NULL,
+  \`user_id\` int(11) DEFAULT NULL,
   PRIMARY KEY (\`id\`),
   UNIQUE KEY \`db_sync_rules_node_id_database_name_uniq\` (\`node_id\`,\`database_name\`),
   KEY \`db_sync_rules_node_id_fk_db_cluster_nodes_id\` (\`node_id\`),
   CONSTRAINT \`db_sync_rules_node_id_fk_db_cluster_nodes_id\` FOREIGN KEY (\`node_id\`) REFERENCES \`db_cluster_nodes\` (\`id\`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
 mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_SYNC_RULES" > /dev/null 2>&1
+
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_sync_rules ADD COLUMN user_id int(11) DEFAULT NULL;" > /dev/null 2>&1
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_sync_rules ADD COLUMN channel_name varchar(100) NOT NULL DEFAULT 'default';" > /dev/null 2>&1
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "ALTER TABLE db_sync_rules ADD COLUMN target_database_name varchar(128) NOT NULL DEFAULT '';" > /dev/null 2>&1
 
 SQL_REPL_LOGS="CREATE TABLE IF NOT EXISTS \`db_replication_logs\` (
   \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
