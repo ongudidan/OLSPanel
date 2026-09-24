@@ -209,3 +209,75 @@ ADD \`day_maximum_backup\` INT(11) NULL DEFAULT 100,
 ADD \`week_maximum_backup\` INT(11) NULL DEFAULT 50,
 ADD \`month_maximum_backup\` INT(11) NULL DEFAULT 12;"
 mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL66" > /dev/null 2>&1
+
+# Passkey and database clustering tables
+SQL_PASSKEYS="CREATE TABLE IF NOT EXISTS \`user_passkeys\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`name\` varchar(100) NOT NULL DEFAULT 'Security Key / Passkey',
+  \`credential_id\` varchar(255) NOT NULL,
+  \`public_key\` longtext NOT NULL,
+  \`sign_count\` int(11) NOT NULL DEFAULT 0,
+  \`aaguid\` varchar(64) DEFAULT NULL,
+  \`transports\` varchar(255) DEFAULT NULL,
+  \`created_at\` datetime(6) NOT NULL,
+  \`last_used_at\` datetime(6) DEFAULT NULL,
+  \`user_id\` int(11) NOT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`credential_id\` (\`credential_id\`),
+  KEY \`user_passkeys_user_id_fk_auth_user_id\` (\`user_id\`),
+  CONSTRAINT \`user_passkeys_user_id_fk_auth_user_id\` FOREIGN KEY (\`user_id\`) REFERENCES \`auth_user\` (\`id\`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_PASSKEYS" > /dev/null 2>&1
+
+SQL_CLUSTER_NODES="CREATE TABLE IF NOT EXISTS \`db_cluster_nodes\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`name\` varchar(255) NOT NULL DEFAULT 'Database Node',
+  \`node_role\` varchar(20) NOT NULL DEFAULT 'primary',
+  \`host\` varchar(255) NOT NULL,
+  \`mysql_port\` int(11) NOT NULL DEFAULT 3306,
+  \`api_port\` int(11) NOT NULL DEFAULT 30,
+  \`auth_token\` varchar(500) DEFAULT NULL,
+  \`repl_user\` varchar(100) NOT NULL DEFAULT 'olspanel_repl',
+  \`repl_password\` varchar(255) DEFAULT NULL,
+  \`status\` varchar(30) NOT NULL DEFAULT 'active',
+  \`is_local\` tinyint(1) NOT NULL DEFAULT 0,
+  \`replicate_all\` tinyint(1) NOT NULL DEFAULT 0,
+  \`selected_databases\` longtext NOT NULL,
+  \`ssl_enabled\` tinyint(1) NOT NULL DEFAULT 0,
+  \`seconds_behind_master\` int(11) DEFAULT 0,
+  \`last_error\` longtext DEFAULT NULL,
+  \`last_sync\` datetime(6) DEFAULT NULL,
+  \`created_at\` datetime(6) NOT NULL,
+  \`updated_at\` datetime(6) NOT NULL,
+  PRIMARY KEY (\`id\`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_CLUSTER_NODES" > /dev/null 2>&1
+
+SQL_SYNC_RULES="CREATE TABLE IF NOT EXISTS \`db_sync_rules\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`database_name\` varchar(128) NOT NULL,
+  \`is_active\` tinyint(1) NOT NULL DEFAULT 1,
+  \`status\` varchar(20) NOT NULL DEFAULT 'active',
+  \`last_synced\` datetime(6) DEFAULT NULL,
+  \`created_at\` datetime(6) NOT NULL,
+  \`updated_at\` datetime(6) NOT NULL,
+  \`node_id\` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (\`id\`),
+  UNIQUE KEY \`db_sync_rules_node_id_database_name_uniq\` (\`node_id\`,\`database_name\`),
+  KEY \`db_sync_rules_node_id_fk_db_cluster_nodes_id\` (\`node_id\`),
+  CONSTRAINT \`db_sync_rules_node_id_fk_db_cluster_nodes_id\` FOREIGN KEY (\`node_id\`) REFERENCES \`db_cluster_nodes\` (\`id\`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_SYNC_RULES" > /dev/null 2>&1
+
+SQL_REPL_LOGS="CREATE TABLE IF NOT EXISTS \`db_replication_logs\` (
+  \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
+  \`database_name\` varchar(128) NOT NULL DEFAULT '',
+  \`event_type\` varchar(50) NOT NULL,
+  \`message\` longtext NOT NULL,
+  \`created_at\` datetime(6) NOT NULL,
+  \`node_id\` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (\`id\`),
+  KEY \`db_replication_logs_node_id_fk_db_cluster_nodes_id\` (\`node_id\`),
+  CONSTRAINT \`db_replication_logs_node_id_fk_db_cluster_nodes_id\` FOREIGN KEY (\`node_id\`) REFERENCES \`db_cluster_nodes\` (\`id\`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_REPL_LOGS" > /dev/null 2>&1
