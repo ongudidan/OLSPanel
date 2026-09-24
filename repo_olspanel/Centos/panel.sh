@@ -11,7 +11,7 @@ ARCH=$(uname -m)
 
 SYSTEMD_SERVICE="lsws"
 
-if [ "$OS_NAME" == "centos" ] || [ "$OS_NAME" == "almalinux" ] || [ "$OS_NAME" == "rhel" ] || [ "$OS_NAME" == "fedora" ] || [ "$OS_NAME" == "rocky" ] || [ "$OS_NAME" == "oraclelinux" ]; then
+if [ "$OS_NAME" == "centos" ] || [ "$OS_NAME" == "almalinux" ] || [ "$OS_NAME" == "rhel" ] || [ "$OS_NAME" == "fedora" ] || [ "$OS_NAME" == "rocky" ] || [ "$OS_NAME" == "oraclelinux" ] || [ "$OS_NAME" == "ol" ] || [ "$OS_NAME" == "cloudlinux" ] || [ "$OS_NAME" == "amzn" ]; then
     # For CentOS, AlmaLinux, RHEL, Fedora, Rocky, Oracle Linux, use dnf or yum
     if command -v dnf &> /dev/null; then
         PACKAGE_MANAGER="dnf"

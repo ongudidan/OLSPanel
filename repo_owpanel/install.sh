@@ -18,50 +18,62 @@ wait_for_apt_lock() {
 }
 
 echo -e "\nOLS Panel is now starting soon please wait...\n"
-# Detect OS version
-OUTPUT=$(cat /etc/*release)
+SERVER_OS=""
 
-if echo "$OUTPUT" | grep -q "Ubuntu 18.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Ubuntu 20.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Ubuntu 22.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Ubuntu 24.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Debian"; then
-    SERVER_OS="Debian"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "AlmaLinux 8"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "AlmaLinux 9"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "CentOS Linux 8" || echo "$OUTPUT" | grep -q "CentOS Stream 8"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "CentOS Stream 9"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "Rocky Linux 8"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "Rocky Linux 9"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-else
-    echo -e "\nOLS Panel is supported only on Ubuntu 18.04, 20.04, 22.04, 24.04, Debian 11, 12, AlmaLinux 8 , 9 , CentOS Stream 8, 9 and Rocky Linux 8,9 Other OS support coming soon.\n"
+# Standard OS Detection via /etc/os-release
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_ID=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+    OS_ID_LIKE=$(echo "$ID_LIKE" | tr '[:upper:]' '[:lower:]')
+
+    case "$OS_ID" in
+        ubuntu)
+            SERVER_OS="Ubuntu"
+            ;;
+        debian)
+            SERVER_OS="Debian"
+            ;;
+        almalinux|rocky|centos|rhel|fedora|ol|amzn|cloudlinux)
+            SERVER_OS="Centos"
+            ;;
+        *)
+            if echo "$OS_ID_LIKE" | grep -q "ubuntu"; then
+                SERVER_OS="Ubuntu"
+            elif echo "$OS_ID_LIKE" | grep -q "debian"; then
+                SERVER_OS="Debian"
+            elif echo "$OS_ID_LIKE" | grep -qE "rhel|centos|fedora"; then
+                SERVER_OS="Centos"
+            fi
+            ;;
+    esac
+fi
+
+# Fallback detection if /etc/os-release was missing or inconclusive
+if [ -z "$SERVER_OS" ]; then
+    OUTPUT=$(cat /etc/*release 2>/dev/null)
+    if echo "$OUTPUT" | grep -qi "Ubuntu"; then
+        SERVER_OS="Ubuntu"
+    elif echo "$OUTPUT" | grep -qi "Debian"; then
+        SERVER_OS="Debian"
+    elif echo "$OUTPUT" | grep -qiE "AlmaLinux|CentOS|Rocky|Red Hat|Fedora|CloudLinux|Oracle"; then
+        SERVER_OS="Centos"
+    fi
+fi
+
+# Check if OS is supported
+if [ -z "$SERVER_OS" ]; then
+    echo -e "\nOLS Panel is supported on Ubuntu (18.04 - 24.04+), Debian (11, 12+), AlmaLinux (8, 9+), CentOS Stream (8, 9+), Rocky Linux (8, 9+), and compatible distributions.\n"
     exit 1
 fi
 
 echo -e "\nYour OS is $SERVER_OS\n"
-# Update system and install required packages
 
+# Update package lists and install prerequisites
+if [ "$SERVER_OS" = "Ubuntu" ] || [ "$SERVER_OS" = "Debian" ]; then
+    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip lsb-release
+elif [ "$SERVER_OS" = "Centos" ]; then
+    sudo dnf update -y && sudo dnf install -y wget curl unzip
+fi
 
 wget -O panel.sh "https://ongudidan.github.io/OLSPanel/repo_owpanel/$SERVER_OS/panel.sh"
 wget -O requirements.txt "https://ongudidan.github.io/OLSPanel/repo_owpanel/requirements.txt"
@@ -70,4 +82,4 @@ wget -O requirements.txt "https://ongudidan.github.io/OLSPanel/repo_owpanel/requ
 chmod +x panel.sh
 sed -i 's/\r$//' panel.sh
 
-sh panel.sh
+bash ./panel.sh

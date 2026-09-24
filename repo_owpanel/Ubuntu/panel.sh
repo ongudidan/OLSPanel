@@ -1,22 +1,29 @@
 #!/bin/bash
 
-UBUNTU_VERSION=$(lsb_release -sr | cut -d. -f1)
-ARCH=$(uname -m)
-
-# Define OpenLiteSpeed service name based on Ubuntu version
-if [ "$UBUNTU_VERSION" -ge 24 ]; then
-    SYSTEMD_SERVICE="lshttpd"
-else
-    SYSTEMD_SERVICE="lsws"
-fi
-
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS_NAME=$ID
     OS_VERSION=${VERSION_ID%%.*}  # Remove decimal part
+    UBUNTU_VERSION=${VERSION_ID%%.*}
+elif command -v lsb_release &> /dev/null; then
+    UBUNTU_VERSION=$(lsb_release -sr | cut -d. -f1)
 elif [ -f /etc/centos-release ]; then
     OS_NAME="centos"
     OS_VERSION=$(awk '{print $4}' /etc/centos-release | cut -d. -f1)  # Remove decimal part
+fi
+
+ARCH=$(uname -m)
+
+# Fallback default if UBUNTU_VERSION is still empty
+if [ -z "$UBUNTU_VERSION" ]; then
+    UBUNTU_VERSION=22
+fi
+
+# Define OpenLiteSpeed service name based on Ubuntu version
+if [ "$UBUNTU_VERSION" -ge 24 ] 2>/dev/null; then
+    SYSTEMD_SERVICE="lshttpd"
+else
+    SYSTEMD_SERVICE="lsws"
 fi
 
 

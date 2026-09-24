@@ -19,46 +19,62 @@ wait_for_apt_lock() {
 
 printf "\nOLS Panel is now starting soon please wait...\n\n"
 
-OUTPUT=$(cat /etc/*release)
-ARCH=$(uname -m)
+SERVER_OS=""
 
-if echo "$OUTPUT" | grep -q "Ubuntu 18.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Ubuntu 20.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Ubuntu 22.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Ubuntu 24.04"; then
-    SERVER_OS="Ubuntu"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "Debian"; then
-    SERVER_OS="Debian"
-    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip
-elif echo "$OUTPUT" | grep -q "AlmaLinux 8"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "AlmaLinux 9"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "CentOS Linux 8" || echo "$OUTPUT" | grep -q "CentOS Stream 8"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "CentOS Stream 9"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "Rocky Linux 8"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-elif echo "$OUTPUT" | grep -q "Rocky Linux 9"; then
-    SERVER_OS="Centos"
-    sudo dnf update -y && sudo dnf install -y wget curl
-else
+# Standard OS Detection via /etc/os-release
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS_ID=$(echo "$ID" | tr '[:upper:]' '[:lower:]')
+    OS_ID_LIKE=$(echo "$ID_LIKE" | tr '[:upper:]' '[:lower:]')
+
+    case "$OS_ID" in
+        ubuntu)
+            SERVER_OS="Ubuntu"
+            ;;
+        debian)
+            SERVER_OS="Debian"
+            ;;
+        almalinux|rocky|centos|rhel|fedora|ol|amzn|cloudlinux)
+            SERVER_OS="Centos"
+            ;;
+        *)
+            if echo "$OS_ID_LIKE" | grep -q "ubuntu"; then
+                SERVER_OS="Ubuntu"
+            elif echo "$OS_ID_LIKE" | grep -q "debian"; then
+                SERVER_OS="Debian"
+            elif echo "$OS_ID_LIKE" | grep -qE "rhel|centos|fedora"; then
+                SERVER_OS="Centos"
+            fi
+            ;;
+    esac
+fi
+
+# Fallback detection if /etc/os-release was missing or inconclusive
+if [ -z "$SERVER_OS" ]; then
+    OUTPUT=$(cat /etc/*release 2>/dev/null)
+    if echo "$OUTPUT" | grep -qi "Ubuntu"; then
+        SERVER_OS="Ubuntu"
+    elif echo "$OUTPUT" | grep -qi "Debian"; then
+        SERVER_OS="Debian"
+    elif echo "$OUTPUT" | grep -qiE "AlmaLinux|CentOS|Rocky|Red Hat|Fedora|CloudLinux|Oracle"; then
+        SERVER_OS="Centos"
+    fi
+fi
+
+# Check if OS is supported
+if [ -z "$SERVER_OS" ]; then
     printf "\nUnsupported OS.\n\n"
     exit 1
 fi
+
+# Update package lists and install prerequisites
+if [ "$SERVER_OS" = "Ubuntu" ] || [ "$SERVER_OS" = "Debian" ]; then
+    wait_for_apt_lock && sudo apt update -qq && sudo apt install -y -qq wget curl unzip lsb-release
+elif [ "$SERVER_OS" = "Centos" ]; then
+    sudo dnf update -y && sudo dnf install -y wget curl unzip
+fi
+
+ARCH=$(uname -m)
 
 if [[ "$ARCH" == "aarch64" || "$ARCH" == "armv7l" ]]; then
     PANEL_ARCH="arm"
