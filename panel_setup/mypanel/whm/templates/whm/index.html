@@ -296,8 +296,8 @@
                             <span class="text-slate-500 uppercase tracking-wide">CPU Usage</span>
                             <span id="cpup" class="font-mono text-slate-800">0%</span>
                         </div>
-                        <div class="w-full h-1.5 bg-slate-100 border border-slate-200 rounded-full overflow-hidden">
-                            <div id="cpu" class="h-full rounded-full transition-all duration-500 bg-emerald-500" style="width: 0%;"></div>
+                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px;">
+                            <div id="cpu" class="h-full transition-all duration-500 bg-emerald-500" style="width: 0%; height: 100%; border-radius: 3px;"></div>
                         </div>
                     </div>
 
@@ -307,8 +307,8 @@
                             <span class="text-slate-500 uppercase tracking-wide">Memory (RAM)</span>
                             <span id="ramp" class="font-mono text-slate-800">0%</span>
                         </div>
-                        <div class="w-full h-1.5 bg-slate-100 border border-slate-200 rounded-full overflow-hidden">
-                            <div id="ram" class="h-full rounded-full transition-all duration-500 bg-emerald-500" style="width: 0%;"></div>
+                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px;">
+                            <div id="ram" class="h-full transition-all duration-500 bg-emerald-500" style="width: 0%; height: 100%; border-radius: 3px;"></div>
                         </div>
                     </div>
 
@@ -318,8 +318,8 @@
                             <span class="text-slate-500 uppercase tracking-wide">Disk Usage</span>
                             <span id="diskp" class="font-mono text-slate-800">0%</span>
                         </div>
-                        <div class="w-full h-1.5 bg-slate-100 border border-slate-200 rounded-full overflow-hidden">
-                            <div id="disk" class="h-full rounded-full transition-all duration-500 bg-emerald-500" style="width: 0%;"></div>
+                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px;">
+                            <div id="disk" class="h-full transition-all duration-500 bg-emerald-500" style="width: 0%; height: 100%; border-radius: 3px;"></div>
                         </div>
                     </div>
 
@@ -428,14 +428,16 @@ function updateBar(elementId, percentage, spanId) {
     barElement.style.width = pct + "%";
     spanElement.textContent = pct + "%";
     
+    barElement.style.height = "100%";
+    barElement.style.borderRadius = "3px";
     if (pct > 85) {
-        barElement.className = "h-full rounded-full transition-all duration-500 bg-rose-500";
+        barElement.className = "h-full transition-all duration-500 bg-rose-500";
         spanElement.className = "font-mono text-rose-600";
     } else if (pct > 65) {
-        barElement.className = "h-full rounded-full transition-all duration-500 bg-amber-500";
+        barElement.className = "h-full transition-all duration-500 bg-amber-500";
         spanElement.className = "font-mono text-amber-600";
     } else {
-        barElement.className = "h-full rounded-full transition-all duration-500 bg-emerald-500";
+        barElement.className = "h-full transition-all duration-500 bg-emerald-500";
         spanElement.className = "font-mono text-slate-800";
     }
 }
