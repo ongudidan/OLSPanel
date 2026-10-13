@@ -4366,12 +4366,12 @@ html[dir=rtl] .card.floating .card-content .file-list {
 .progress-container {
     width: 100%;
     background: #e2e8f0;
-    border-radius: 9999px;
-    height: 8px;
+    border-radius: 4px;
+    height: 18px;
     overflow: hidden;
     position: relative;
-    margin-top: 6px;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+    margin-top: 8px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .progress-bar {
@@ -4390,7 +4390,7 @@ html[dir=rtl] .card.floating .card-content .file-list {
     background-size: 1rem 1rem;
     animation: progress-bar-stripes 1s linear infinite;
     transition: width 0.25s ease;
-    border-radius: 9999px;
+    border-radius: 4px;
     min-width: 0;
 }
 
@@ -4419,27 +4419,39 @@ html[dir=rtl] .card.floating .card-content .file-list {
 
 /* Styling for the remove "X" button */
 .remove-file {
-    background: none;
-    border: 1px solid #e2e8f0;
+    background: transparent;
+    border: 1px solid #cbd5e1;
     border-radius: 4px;
-    color: #94a3b8;
+    color: #64748b;
     width: 22px;
     height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    line-height: 1;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     padding: 0;
+    margin: 0;
+    line-height: 0;
+    outline: none;
+}
+
+.remove-file svg {
+    display: block;
+    width: 10px;
+    height: 10px;
+    margin: auto;
+    pointer-events: none;
 }
 
 /* Hover effect for the remove button */
 .remove-file:hover {
     background: #fee2e2;
     color: #ef4444;
-    border-color: #fecaca;
+    border-color: #fca5a5;
 }
 
 .btn-modal-cancel {

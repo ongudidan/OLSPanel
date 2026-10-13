@@ -929,7 +929,7 @@ function handleFiles(event) {
                         <div class="file-item-status">
                             <i class="fa fa-circle-o-notch fa-spin upload-spinner" style="display: none;"></i>
                             <span class="progress-percentage">0%</span>
-                            <button type="button" class="remove-file" title="Remove" onclick="removeFile(this, '${fileId}')">&times;</button>
+                            <button type="button" class="remove-file" title="Remove" onclick="removeFile(this, '${fileId}')" aria-label="Remove"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
                         </div>
                     </div>
                     <div class="progress-container">
