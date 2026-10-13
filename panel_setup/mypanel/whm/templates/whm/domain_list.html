@@ -172,6 +172,73 @@ function clearDomainSearch() {
     }
 }
 
+let whmSslAutoIssueTriggered = false;
+function checkAutoIssueWhmSsl() {
+    if (whmSslAutoIssueTriggered) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const domainId = urlParams.get('id');
+    if (!domainId) return;
+
+    whmSslAutoIssueTriggered = true;
+    const responseDisplay = document.getElementById('responseContainer');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+
+    if (responseDisplay) {
+        responseDisplay.style.display = 'flex';
+    }
+    if (alertContainer) {
+        alertContainer.style.display = 'none';
+    }
+
+    fetch('/whm/domain_list_ssl_first_all/' + encodeURIComponent(domainId), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response error: ' + response.statusText);
+        }
+        return response.text();
+    })
+    .then(data => {
+        if (responseDisplay) {
+            responseDisplay.style.display = 'none';
+        }
+        if (alertContainer && messageDisplay) {
+            const isSuccess = data.toLowerCase().includes('success') || data.toLowerCase().includes('successfully');
+            alertContainer.className = isSuccess 
+                ? "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between mb-4 shadow-xs" 
+                : "p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-xs flex items-center justify-between mb-4 shadow-xs";
+            const icon = isSuccess ? '<i class="mdi mdi-check-circle-outline text-emerald-600 text-sm mr-1.5 inline"></i>' : '<i class="mdi mdi-alert-circle-outline text-amber-600 text-sm mr-1.5 inline"></i>';
+            messageDisplay.innerHTML = '<div class="flex items-center">' + icon + '<span>' + data + '</span></div>';
+            alertContainer.style.display = "flex";
+        }
+        try {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('id');
+            window.history.replaceState({}, document.title, cleanUrl.toString());
+        } catch (e) {}
+    })
+    .catch(error => {
+        if (responseDisplay) {
+            responseDisplay.style.display = 'none';
+        }
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between mb-4 shadow-xs";
+            messageDisplay.innerHTML = '<div class="flex items-center"><i class="mdi mdi-alert-circle-outline text-rose-600 text-sm mr-1.5 inline"></i><span>' + error.toString() + '</span></div>';
+            alertContainer.style.display = "flex";
+        }
+        try {
+            const cleanUrl = new URL(window.location.href);
+            cleanUrl.searchParams.delete('id');
+            window.history.replaceState({}, document.title, cleanUrl.toString());
+        } catch (e) {}
+    });
+}
+
 // Immediate execution for SPA page navigation
 (function initWhmDomainListPage() {
     const input = document.getElementById("domainSearchInput");
@@ -186,7 +253,12 @@ function clearDomainSearch() {
         input.value = savedQuery;
     }
     performDomainFilter();
+    checkAutoIssueWhmSsl();
 })();
+
+document.addEventListener("DOMContentLoaded", function() {
+    checkAutoIssueWhmSsl();
+});
 </script>
 
 {% endblock content %}

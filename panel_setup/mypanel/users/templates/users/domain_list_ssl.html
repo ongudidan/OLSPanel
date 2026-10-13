@@ -186,6 +186,11 @@ function clearSslSearch() {
         input.value = savedQuery;
     }
     performSslFilter(savedQuery);
+    const urlParams = new URLSearchParams(window.location.search);
+    const domainId = urlParams.get('id');
+    if (domainId) {
+        issueSSL(domainId);
+    }
 })();
 
 function issueSSL(id, btn) {
@@ -219,7 +224,13 @@ function issueSSL(id, btn) {
             alertContainer.style.display = "flex";
         }
         setTimeout(function() {
-            window.location.reload();
+            try {
+                const cleanUrl = new URL(window.location.href);
+                cleanUrl.searchParams.delete('id');
+                window.location.href = cleanUrl.toString();
+            } catch (e) {
+                window.location.reload();
+            }
         }, 2000);
     })
     .catch(error => {
