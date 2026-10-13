@@ -13,12 +13,40 @@
         <div class="p-8 flex flex-col items-center">
             <img src="/media/icon/imunifyfav.png" alt="ImunifyAV Logo" class="h-24 w-auto object-contain mb-4">
 
-            {% if install_available %}
-                <div class="w-full max-w-sm">
+            {% if not is_arch_supported %}
+                <div class="w-full max-w-sm mb-4">
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-800 text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="mdi mdi-alert-circle-outline text-base text-amber-600"></i>
+                            <span class="font-bold">Architecture Not Supported</span>
+                        </div>
+                        ImunifyAV requires an x86_64 (Intel/AMD) server architecture. Your current server architecture is <strong>{{ arch }}</strong>.
+                    </div>
+                </div>
+            {% elif install_available %}
+                <div class="w-full max-w-sm flex flex-col gap-2">
                     <a href="/3rdparty/imunifyfav/auto_index.php" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
                         <img src="/media/icon/imunifyfav.png" class="w-5 h-5 object-contain" alt="ImunifyAV">
                         <span>Access ImunifyAV Dashboard</span>
                     </a>
+                    <button id="save" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-md border border-slate-200 transition-colors">
+                        <i class="mdi mdi-refresh"></i> Reinstall / Repair ImunifyAV
+                    </button>
+                </div>
+            {% elif is_installed and not is_operational %}
+                <div class="w-full max-w-sm mb-4">
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-800 text-left">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="mdi mdi-alert text-base text-amber-600"></i>
+                            <span class="font-bold">Incomplete Installation</span>
+                        </div>
+                        Imunify components (such as defence360agent or UI) are missing or incomplete. Click below to perform a clean repair.
+                    </div>
+                </div>
+                <div>
+                    <button id="save" class="btn btn-secondary inline-flex items-center gap-2 px-6 py-2.5 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                        <i class="mdi mdi-wrench"></i> Repair / Reinstall ImunifyAV
+                    </button>
                 </div>
             {% else %}
                 <div class="w-full max-w-sm mb-4">

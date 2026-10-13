@@ -470,6 +470,14 @@ def get_security_plugins_list():
         },
     ])
 
+    if not any('imunify' in str(p.get('name', '')).lower() or 'imunify' in str(p.get('url', '')).lower() for p in plugin_list):
+        plugin_list.append({
+            'name': 'ImunifyAV',
+            'icon': '/media/icon/imunifyfav.png',
+            'url': reverse('imunifyfav_whm'),
+            'sorder': 8,
+        })
+
 
     
 

@@ -2753,14 +2753,30 @@ def node_module_load(request):
     
 @alogin_required
 def imunifyfav_whm(request):
-    alt_path = "/usr/bin/imunify-antivirus"
-    if os.path.exists(alt_path):
-        install_available=True
-    else:
-        install_available=False
-        
+    arch = platform.machine()
+    is_arch_supported = arch in ("x86_64", "AMD64")
 
-    return render(request, 'whm/imunifyfav.html', {"install_available": install_available})
+    alt_path = "/usr/bin/imunify-antivirus"
+    ui_path = os.path.join(settings.BASE_DIR, "3rdparty", "imunifyfav", "auto_index.php")
+    venv_python = "/opt/imunify360/venv/bin/python3"
+
+    is_installed = os.path.exists(alt_path) and os.path.exists(ui_path)
+    is_operational = False
+    if is_installed and os.path.exists(venv_python):
+        try:
+            check = subprocess.run([venv_python, "-c", "import defence360agent"], capture_output=True, timeout=5)
+            if check.returncode == 0:
+                is_operational = True
+        except Exception:
+            is_operational = False
+
+    return render(request, 'whm/imunifyfav.html', {
+        "install_available": is_installed and is_operational,
+        "is_installed": is_installed,
+        "is_operational": is_operational,
+        "is_arch_supported": is_arch_supported,
+        "arch": arch,
+    })
 
 @alogin_required  # or use your custom @alogin_required
 def install_imunifyfav(request):

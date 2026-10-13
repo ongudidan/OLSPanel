@@ -195,41 +195,58 @@ def install_olsapp_now():
 
 
 def install_imunifyfav_now():
-    
-    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/extra/imunifyfav.sh"
-    extract_path = settings.BASE_DIR.parent
+    arch = platform.machine()
+    if arch not in ("x86_64", "AMD64"):
+        return f"Architecture not supported: ImunifyAV only supports x86_64 architecture (current server architecture is {arch})."
+
     upgrade_script_path = f"{settings.BASE_DIR.parent}/imunifyfav.sh"
-   
-    
+    local_extra_script = os.path.join(settings.BASE_DIR.parent, "extra", "imunifyfav.sh")
+
     try:
-        # Step 1: Download and run the upgrade.sh script
-        print("Step 1: Downloading imunifyfav.sh...")
-        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
+        if os.path.isfile(local_extra_script):
+            shutil.copy2(local_extra_script, upgrade_script_path)
+        else:
+            urls = [
+                "https://ongudidan.github.io/OLSPanel/extra/imunifyfav.sh",
+                "https://olspanel.com/extra/imunifyfav.sh",
+            ]
+            downloaded = False
+            for url in urls:
+                try:
+                    subprocess.run(["wget", "-q", "-O", upgrade_script_path, url], check=True, timeout=30)
+                    downloaded = True
+                    break
+                except Exception:
+                    continue
+            if not downloaded:
+                return "Failed to download imunifyfav.sh installer script."
 
-        # Step 2: Remove Windows-style line endings (if any) from the upgrade.sh file
-        print("Step 2: Removing Windows-style line endings from imunifyfav.sh...")
+        # Remove Windows-style line endings
         subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
-        
-        # Step 3: Running imunifyfav.sh
-        print("Step 3: Running imunifyfav.sh...")
         subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
-        subprocess.run([upgrade_script_path], check=True)
 
-        
+        # Run script and capture output
+        res = subprocess.run([upgrade_script_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=600)
 
-        # Step 6: Clean up by removing the downloaded zip file and the upgrade script
-        print("Step 6: Cleaning up...")
-       
-        os.remove(upgrade_script_path)
-       
-        print("Installation complete!")
+        # Clean up script
+        if os.path.exists(upgrade_script_path):
+            os.remove(upgrade_script_path)
+
+        if res.returncode != 0:
+            logger.error(f"imunifyfav.sh failed (code {res.returncode}): {res.stdout}")
+            last_lines = "\n".join(res.stdout.strip().splitlines()[-10:]) if res.stdout else "Unknown error"
+            return f"Installation failed: {last_lines}"
+
         return "imunifyfav has been successfully installed."
 
-    except subprocess.CalledProcessError as e:
-        logger.error(f"An error occurred during the update installation: {e}")
-        return f"An error occurred during the update installation: {e}"
+    except subprocess.TimeoutExpired:
+        if os.path.exists(upgrade_script_path):
+            os.remove(upgrade_script_path)
+        return "Installation timed out after 10 minutes."
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        if os.path.exists(upgrade_script_path):
+            os.remove(upgrade_script_path)
+        logger.error(f"Unexpected error installing imunifyfav: {e}")
         return f"Unexpected error: {e}"   
 
 
