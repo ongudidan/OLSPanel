@@ -4014,8 +4014,36 @@ html[dir=rtl] .card.floating .card-content .file-list {
     padding: 6px;
 }
 
+#selected-items-list {
+    display: none;
+    max-height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+#selected-items-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#selected-items-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#selected-items-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
 #del {
-    display: flex;
+    display: none;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px; /* Space between elements */
@@ -4286,35 +4314,152 @@ html[dir=rtl] .card.floating .card-content .file-list {
 }
 .file-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5em;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    flex-direction: column;
+    padding: 10px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
     background-color: #fff;
+    gap: 4px;
+    text-align: left;
 }
 
-/* Styling for the file text */
-.file-item p {
-    margin: 0;
-    font-size: 14px;
-    color: #333;
+.file-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+}
+
+.file-item-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.file-item-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-item-size {
+    font-size: 12px;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.file-item-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.progress-container {
+    width: 100%;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 6px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--brand-color, #ef6d19);
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.25) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0.25) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+    transition: width 0.25s ease;
+    border-radius: 9999px;
+    min-width: 0;
+}
+
+.progress-bar.failed {
+    background-color: #ef4444;
+    background-image: none;
+    animation: none;
+}
+
+.progress-bar.complete {
+    background-color: #10b981;
+    background-image: none;
+    animation: none;
+}
+
+.progress-percentage {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand-color, #ef6d19);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    white-space: nowrap;
+    min-width: 44px;
+    text-align: right;
+    display: inline-block;
 }
 
 /* Styling for the remove "X" button */
 .remove-file {
     background: none;
-    border: none;
-    color: #ff0000;
-    font-size: 18px;
-    font-weight: bold;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    color: #94a3b8;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: all 0.2s;
+    padding: 0;
 }
 
 /* Hover effect for the remove button */
 .remove-file:hover {
-    color: #cc0000;
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.btn-modal-cancel {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    padding: 8px 24px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    line-height: 1.5 !important;
+}
+
+.btn-modal-cancel:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
 }
 
 /* Optional: Add hover effect for file items */

@@ -1,16 +1,27 @@
 const FM_CHUNK_SIZE = 8 * 1024 * 1024; // 8 MB per slice
+let currentUploadXhr = null;
+let isUploadCancelled = false;
 
 async function uploadFile(file, index) {
+    if (isUploadCancelled) return;
     let parentPath = $("#location").val();
     const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
     const progressBar = $(`#${fileId} .progress-bar`);
     const progressPercentage = $(`#${fileId} .progress-percentage`);
+    const spinner = $(`#${fileId} .upload-spinner`);
+    const removeBtn = $(`#${fileId} .remove-file`);
+
+    spinner.show();
+    removeBtn.hide();
+    progressBar.removeClass('complete failed').css('width', '0%');
+    progressPercentage.text('0%');
 
     const totalSize = file.size;
     const totalChunks = Math.max(1, Math.ceil(totalSize / FM_CHUNK_SIZE));
     const uploadId = 'fmup_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 
     for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+        if (isUploadCancelled) return;
         const start = chunkIndex * FM_CHUNK_SIZE;
         const end = Math.min(start + FM_CHUNK_SIZE, totalSize);
         const chunkBlob = file.slice(start, end);
@@ -28,7 +39,7 @@ async function uploadFile(file, index) {
         let retryCount = 0;
         const maxRetries = 3;
 
-        while (!success && retryCount < maxRetries) {
+        while (!success && retryCount < maxRetries && !isUploadCancelled) {
             try {
                 const response = await new Promise((resolve, reject) => {
                     $.ajax({
@@ -41,8 +52,9 @@ async function uploadFile(file, index) {
                         headers: { "X-CSRFToken": csrfToken },
                         xhr: function () {
                             const xhr = new window.XMLHttpRequest();
+                            currentUploadXhr = xhr;
                             xhr.upload.addEventListener('progress', function (e) {
-                                if (e.lengthComputable) {
+                                if (e.lengthComputable && !isUploadCancelled) {
                                     const overallLoaded = start + e.loaded;
                                     const percent = Math.min(99, Math.round((overallLoaded / totalSize) * 100));
                                     progressBar.css('width', `${percent}%`);
@@ -60,6 +72,8 @@ async function uploadFile(file, index) {
                     });
                 });
 
+                if (isUploadCancelled) return;
+
                 if (response.status === 'chunk_uploaded') {
                     success = true;
                     const chunkLoaded = end;
@@ -67,8 +81,9 @@ async function uploadFile(file, index) {
                     progressBar.css('width', `${percent}%`);
                     progressPercentage.text(`${percent}%`);
                 } else if (response.status === 'success') {
-                    progressBar.css('background', 'green').css('width', '100%');
-                    progressPercentage.text('Complete');
+                    spinner.hide();
+                    progressBar.removeClass('failed').addClass('complete').css('width', '100%');
+                    progressPercentage.html('<span style="color: #10b981; font-weight: 700;"><i class="fa fa-check-circle"></i> 100%</span>');
                     if (parentPath === "") {
                         parentPath = "/";
                     }
@@ -78,10 +93,46 @@ async function uploadFile(file, index) {
                     throw new Error(response.message || 'Unknown response');
                 }
             } catch (err) {
+                if (isUploadCancelled) return;
+                let errorMsg = 'Upload failed';
+                if (err && err.responseJSON && err.responseJSON.message) {
+                    errorMsg = err.responseJSON.message;
+                } else if (err && err.responseText) {
+                    try {
+                        const parsed = JSON.parse(err.responseText);
+                        if (parsed.message) errorMsg = parsed.message;
+                    } catch(e) {
+                        errorMsg = err.responseText.substring(0, 80);
+                    }
+                } else if (err && err.message) {
+                    errorMsg = err.message;
+                }
+
+                // If non-recoverable error (e.g. quota, permissions, invalid), fail immediately
+                if (err && (err.status === 403 || err.status === 400 || (errorMsg && errorMsg.toLowerCase().includes('quota')))) {
+                    spinner.hide();
+                    removeBtn.show();
+                    progressBar.removeClass('complete').addClass('failed').css('width', '100%');
+                    progressPercentage.html(`<span style="color: #ef4444; font-weight: 700;" title="${errorMsg}"><i class="fa fa-times-circle"></i> Failed</span>`);
+                    notify.addNotification({
+                        type: "error",
+                        title: "Upload Failed",
+                        message: errorMsg
+                    });
+                    return;
+                }
+
                 retryCount++;
                 if (retryCount >= maxRetries) {
-                    progressBar.addClass('failed');
-                    progressPercentage.text('Failed');
+                    spinner.hide();
+                    removeBtn.show();
+                    progressBar.removeClass('complete').addClass('failed').css('width', '100%');
+                    progressPercentage.html(`<span style="color: #ef4444; font-weight: 700;" title="${errorMsg}"><i class="fa fa-times-circle"></i> Failed</span>`);
+                    notify.addNotification({
+                        type: "error",
+                        title: "Upload Failed",
+                        message: errorMsg
+                    });
                     console.log('Upload error:', err);
                     return;
                 }
@@ -92,16 +143,25 @@ async function uploadFile(file, index) {
 }
 
 
-$('#upload-button').on('click', function () {
+$('#upload-button').on('click', async function () {
     const files = $('#file-input')[0].files;
-    if (files.length === 0) {
+    if (!files || files.length === 0) {
         alert('Please select files to upload.');
         return;
     }
 
-    Array.from(files).forEach((file, index) => {
-        uploadFile(file, index);
-    });
+    isUploadCancelled = false;
+    const btn = $(this);
+    btn.prop('disabled', true).html('<i class="fa fa-circle-o-notch fa-spin" style="margin-right: 6px;"></i> Uploading...');
+
+    try {
+        const uploadPromises = Array.from(files).map((file, index) => uploadFile(file, index));
+        await Promise.all(uploadPromises);
+    } finally {
+        if (!isUploadCancelled) {
+            btn.prop('disabled', false).html('Upload');
+        }
+    }
 });
 
 function fetchFolderList(path = "") {
@@ -458,37 +518,51 @@ function getSelectedItems() {
 
 function showSelectedItems() {
     const selectedItems = getSelectedItems();
-	
     const listContainer = document.getElementById('selected-items-list');
     const cfName = document.getElementById('cf-name');
- listContainer.style.display = 'none';
+    listContainer.style.display = 'none';
     listContainer.innerHTML = '';
     cfName.style.display = 'block';
-	
+
     // Hide all if nothing selected
     if (selectedItems.length === 0) {
-		cfName.style.display ='block';
+        cfName.style.display = 'block';
         listContainer.style.display = 'none';
-        //cfName.style.display = 'none';  // hide span
         return;
     }
 
-    // Show both if items selected
+    // Show list container and hide single item span
     listContainer.style.display = 'block';
-	if (selectedItems.length > 0) {
-   cfName.style.display ='none';
-	}
+    cfName.style.display = 'none';
+
     // Clear and rebuild list
     listContainer.innerHTML = '';
+
+    const header = document.createElement('div');
+    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;';
+    header.innerHTML = `<span>Selected Items (${selectedItems.length})</span><span style="font-size: 11px; color: #94a3b8; font-weight: normal;">scroll to view</span>`;
+    listContainer.appendChild(header);
+
     const ul = document.createElement('ul');
     ul.style.listStyle = 'none';
-    ul.style.padding = 0;
-    ul.style.margin = 0;
+    ul.style.padding = '0';
+    ul.style.margin = '0';
 
     selectedItems.forEach(path => {
         const li = document.createElement('li');
-        li.textContent = path.replace(/^-/, ''); // remove leading -
-        li.style.padding = '4px 0';
+        const cleanPath = path.replace(/^-/, '');
+        
+        const icon = document.createElement('i');
+        icon.className = 'fa fa-file-o';
+        icon.style.cssText = 'color: #94a3b8; font-size: 11px; margin-right: 6px; flex-shrink: 0;';
+        
+        const textSpan = document.createElement('span');
+        textSpan.style.cssText = 'word-break: break-all; flex: 1;';
+        textSpan.textContent = cleanPath;
+        textSpan.title = cleanPath;
+        
+        li.appendChild(icon);
+        li.appendChild(textSpan);
         ul.appendChild(li);
     });
 
@@ -530,12 +604,8 @@ function unselectAll() {
     checkIfAnyItemSelected();
 }
 
-// Function to toggle selection of a specific item
 function toggleItemSelection(event) {
     const item = event.currentTarget;
-
-
-
 
     if (event.ctrlKey || event.metaKey) {
         // If Ctrl/Cmd is held, toggle selection (multi-select behavior)
@@ -549,7 +619,18 @@ function toggleItemSelection(event) {
         });
     }
 
-
+    if (item.getAttribute('aria-selected') === 'true') {
+        selectedItemPath = $(item).data("path"); 
+        selectedtype = $(item).data("type");
+        selectedfname = $(item).data("name");
+        selectedfext = $(item).data("ext");
+        selectedpermission = $(item).data("permission");
+        $("#select_path").val(selectedItemPath);
+        $("#select_file_name").val(selectedfname);
+        $("#select_type").val(selectedtype);
+        $("#select_ext").val(selectedfext);
+        $("#select_permission").val(selectedpermission);
+    }
 
     checkIfAnyItemSelected();
 }
@@ -593,67 +674,80 @@ const cfname = document.getElementById('cf-name');
 
 
 
-function openactionPopup(type, selectedItemname,selectedItem) {
-	   const listContainer = document.getElementById('selected-items-list');
+function openactionPopup(type, selectedItemname, selectedItem) {
+    const listContainer = document.getElementById('selected-items-list');
     const cfName = document.getElementById('cf-name');
-      // Reset display states and clear content
+    // Reset display states and clear content
     listContainer.style.display = 'none';
     listContainer.innerHTML = '';
     cfName.style.display = 'block';
-	anames.style.display = 'block';
-	if (type !== "Rename") {
-	showSelectedItems();
-	}
-if(type=="Delete"){
-del.style.display = 'flex';
-all.style.display = 'none';
-per.style.display = 'none';
-}else if(type=="Permission"){
-per.style.display = 'flex';
-all.style.display = 'none';
-del.style.display = 'none';
-}
-else if(type=="Fix-Permission"){
-all.style.display = 'flex';
-del.style.display = 'none';
-per.style.display = 'none';
-anames.style.display = 'none';
+    anames.style.display = 'block';
+    if (type !== "Rename") {
+        showSelectedItems();
+    }
+    if (type === "Delete") {
+        del.style.setProperty('display', 'flex', 'important');
+        all.style.setProperty('display', 'none', 'important');
+        per.style.setProperty('display', 'none', 'important');
+    } else if (type === "Permission") {
+        per.style.setProperty('display', 'flex', 'important');
+        all.style.setProperty('display', 'none', 'important');
+        del.style.setProperty('display', 'none', 'important');
+    } else if (type === "Fix-Permission") {
+        all.style.setProperty('display', 'flex', 'important');
+        del.style.setProperty('display', 'none', 'important');
+        per.style.setProperty('display', 'none', 'important');
+        anames.style.setProperty('display', 'none', 'important');
+    } else {
+        all.style.setProperty('display', 'flex', 'important');
+        del.style.setProperty('display', 'none', 'important');
+        per.style.setProperty('display', 'none', 'important');
+    }
+    cfname.innerHTML = type + ": " + selectedItemname;
+    actionpopup.style.display = 'flex';
 
-}
-else{
- all.style.display = 'flex';
-del.style.display = 'none';
-per.style.display = 'none';
-	}
-	cfname.innerHTML = type+": "+selectedItemname;
-	 actionpopup.style.display = 'flex';
-	if(type=="Copy" || type=="Move" || type=="Unzip"){
-	ahome.style.display = 'block';
-	anames.value =$("#location").val();
-	}else if(type=="Compress"){
-	ahome.style.display = 'block';
-	anames.value =$("#location").val()+'/'+selectedItemname+'.zip';
-	}else{
-	 anames.value = selectedItemname; 
-	}
-   
-	apath.value = selectedItem;
-	//type = type.replace(/-/g, " ");
+    if (type === "Copy" || type === "Move" || type === "Unzip") {
+        ahome.style.display = 'block';
+        anames.value = $("#location").val();
+        anames.placeholder = "Destination path (relative to home)";
+    } else if (type === "Compress") {
+        ahome.style.display = 'block';
+        anames.value = $("#location").val() + '/' + selectedItemname + '.zip';
+        anames.placeholder = "Archive path";
+    } else if (type === "Rename") {
+        ahome.style.display = 'none';
+        anames.value = selectedItemname;
+        anames.placeholder = "New name";
+    } else if (type === "New File") {
+        ahome.style.display = 'none';
+        anames.value = '';
+        anames.placeholder = "Enter file name";
+    } else if (type === "New Folder") {
+        ahome.style.display = 'none';
+        anames.value = '';
+        anames.placeholder = "Enter folder name";
+    } else {
+        ahome.style.display = 'none';
+        anames.value = selectedItemname;
+    }
+
+    apath.value = selectedItem;
     atitle.innerHTML = type; // Update the title
     aaction.innerHTML = type; // Update the action
-	
 }
+
 function aclosePopup() {
-del.style.display = 'none';
-all.style.display = 'none';
-per.style.display = 'none';
+    del.style.setProperty('display', 'none', 'important');
+    all.style.setProperty('display', 'none', 'important');
+    per.style.setProperty('display', 'none', 'important');
     actionpopup.style.display = 'none';
-	 ahome.style.display = 'none';
-	 anames.value = ''; // Clear input field
+    ahome.style.display = 'none';
+    anames.value = ''; // Clear input field
     atitle.innerHTML = '';
-	aaction.innerHTML = '';
-	apath.value = '';
-	cfname.innerHTML = '';
+    aaction.innerHTML = '';
+    apath.value = '';
+    cfname.innerHTML = '';
+    $("#loading-containera").hide();
 }
 
 
@@ -774,21 +868,37 @@ const fileSelectButton = document.getElementById('file-select-button');
 
 // Open and close modal functions
 function openUploadModal() {
+    isUploadCancelled = false;
     uploadModal.style.display = 'flex';
     filePreview.innerHTML = ''; // Clear previous file preview
 }
 
 function closeUploadModal() {
+    isUploadCancelled = true;
+    if (currentUploadXhr) {
+        try {
+            currentUploadXhr.abort();
+        } catch (e) {
+            console.error('Error aborting upload:', e);
+        }
+        currentUploadXhr = null;
+    }
     uploadModal.style.display = 'none';
     fileInput.value = ''; // Clear selected files
     filePreview.innerHTML = ''; // Clear file preview
+    $('#upload-button').prop('disabled', false).html('Upload');
+    $('#upload-button-url').prop('disabled', false).html('Upload');
+    $('#prog').hide();
+    $('#url-input').val('');
 }
 
 // Trigger open modal ONLY on button click
 openUploadModalButton.addEventListener('click', openUploadModal);
 
-// Close modal on cancel button click
+// Close modal on cancel button clicks (top-right X, bottom Cancel buttons)
 cancelUploadButton.addEventListener('click', closeUploadModal);
+$('#cancel-upload-btn').on('click', closeUploadModal);
+$('#cancel-upload-url-btn').on('click', closeUploadModal);
 
 // Trigger file input when select button is clicked
 fileSelectButton.addEventListener('click', () => fileInput.click());
@@ -796,9 +906,10 @@ fileSelectButton.addEventListener('click', () => fileInput.click());
 // Handle file selection from file input
 fileInput.addEventListener('change', handleFiles);
 
-// Function to handle files selected or dropped
 function handleFiles(event) {
+    isUploadCancelled = false;
     const files = event.target.files || event.dataTransfer.files;
+    if (!files || files.length === 0) return;
 
     // Update the file input with the selected or dropped files
     fileInput.files = files;
@@ -809,10 +920,20 @@ function handleFiles(event) {
             const fileId = `file-${file.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
             return `
                 <div class="file-item" id="${fileId}">
-                    <p>${file.name} (${formatFileSize(file.size)})</p>
+                    <div class="file-item-header">
+                        <div class="file-item-info">
+                            <i class="fa fa-file-text-o"></i>
+                            <span class="file-item-name" title="${file.name}">${file.name}</span>
+                            <span class="file-item-size">(${formatFileSize(file.size)})</span>
+                        </div>
+                        <div class="file-item-status">
+                            <i class="fa fa-circle-o-notch fa-spin upload-spinner" style="display: none;"></i>
+                            <span class="progress-percentage">0%</span>
+                            <button type="button" class="remove-file" title="Remove" onclick="removeFile(this, '${fileId}')">&times;</button>
+                        </div>
+                    </div>
                     <div class="progress-container">
                         <div class="progress-bar" style="width: 0%;"></div>
-                        <span class="progress-percentage">0%</span>
                     </div>
                 </div>
             `;
@@ -827,15 +948,16 @@ function formatFileSize(bytes) {
     else return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 }
 
-
-
-// Upload Logic with Progress Bar Updates
-
-
 // Function to handle the removal of a file preview
-function removeFile(button) {
-    const fileItem = button.parentElement; // Get the parent div of the button (the file item)
-    fileItem.remove(); // Remove the file item from the DOM
+function removeFile(button, fileId) {
+    if (fileId) {
+        $(`#${fileId}`).remove();
+    } else {
+        $(button).closest('.file-item').remove();
+    }
+    if ($('#file-preview .file-item').length === 0) {
+        fileInput.value = '';
+    }
 }
 
 
@@ -1327,14 +1449,27 @@ $("#top-delete").click(function() {
 });
 
 $("#top-unzip").click(function() {
-let selectedItemext = $("#select_ext").val();
-   let selectedItem = $("#select_path").val();
-   let selectedtype = $("#select_type").val();
-   let selectedItemname = $("#select_file_name").val();
-    if (selectedItemext=='.zip' || selectedItemext=='.gz') {
-      openactionPopup("Unzip",selectedItemname,selectedItem);
+    let selectedItemext = ($("#select_ext").val() || '').toLowerCase();
+    let selectedItem = $("#select_path").val();
+    let selectedItemname = $("#select_file_name").val();
+
+    if (!selectedItem) {
+        const sel = document.querySelector('#file-list .item[aria-selected="true"]');
+        if (sel) {
+            selectedItem = sel.dataset.path;
+            selectedItemname = sel.dataset.name;
+            selectedItemext = (sel.dataset.ext || '').toLowerCase();
+        }
+    }
+
+    const isArchive = selectedItemext === '.zip' || selectedItemext === '.gz' || 
+                      selectedItemext === '.tgz' || selectedItemext === '.tar' ||
+                      (selectedItemname && /\.(zip|tar\.gz|tgz|gz|tar)$/i.test(selectedItemname));
+
+    if (isArchive && selectedItem) {
+        openactionPopup("Unzip", selectedItemname, selectedItem);
     } else {
-        alert("No Zip file selected.");
+        alert("Please select a compressed archive (.zip, .tar.gz, .tgz, .gz) to extract.");
     }
 });
 $("#top-compress").click(function() {
@@ -1562,10 +1697,10 @@ document.querySelectorAll('.upload-tab').forEach(tab => {
 
         // Toggle sections
         const selectedTab = tab.getAttribute('data-tab');
-        document.getElementById('drop-zone').style.display = (selectedTab === 'file') ? 'block' : 'none';
+        document.getElementById('drop-zone').style.display = (selectedTab === 'file') ? 'flex' : 'none';
         document.getElementById('upload-url-section').style.display = (selectedTab === 'url') ? 'block' : 'none';
-		document.getElementById('fup').style.display = (selectedTab === 'file') ? 'block' : 'none';
-        document.getElementById('furl').style.display = (selectedTab === 'url') ? 'block' : 'none';
+        document.getElementById('fup').style.display = (selectedTab === 'file') ? 'flex' : 'none';
+        document.getElementById('furl').style.display = (selectedTab === 'url') ? 'flex' : 'none';
     });
 });
  
@@ -1575,12 +1710,24 @@ function uploadFileFromUrl(fileUrl, targetPath) {
     formData.append('file_url', fileUrl);
     formData.append('target_name', targetPath);
 
-    const progressBar = document.querySelector('#prog .progress-bar');
-    const progressPercentage = document.querySelector('#prog .progress-percentage');
- progressBar.style.width = '0%';
-    progressBar.style.background = ''; // Reset to default or empty
-    progressBar.classList.remove('failed');
-    progressPercentage.textContent = '0%';
+    const progressBar = $('#prog .progress-bar');
+    const progressPercentage = $('#prog .progress-percentage');
+    const btn = $('#upload-button-url');
+
+    progressBar.removeClass('complete failed').css('width', '0%');
+    progressPercentage.text('0%');
+    $('#prog').show();
+    btn.prop('disabled', true).html('<i class="fa fa-circle-o-notch fa-spin" style="margin-right: 6px;"></i> Downloading...');
+
+    let progress = 0;
+    const interval = setInterval(() => {
+        if (progress < 85) {
+            progress += 5;
+            progressBar.css('width', `${progress}%`);
+            progressPercentage.text(`${progress}%`);
+        }
+    }, 250);
+
     $.ajax({
         url: upload_url_from_url,
         type: 'POST',
@@ -1588,38 +1735,20 @@ function uploadFileFromUrl(fileUrl, targetPath) {
         processData: false,
         contentType: false,
         headers: { "X-CSRFToken": csrfToken },
-        xhr: function () {
-            const xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', () => {
-                // No actual upload progress from client to server here because we send URL only
-            }, false);
-            return xhr;
-        },
-        beforeSend: function () {
-            // Simulate progress to 80%
-            let progress = 0;
-            this.interval = setInterval(() => {
-                if (progress < 80) {
-                    progress += 5;
-                    progressBar.style.width = `${progress}%`;
-                    progressPercentage.textContent = `${progress}%`;
-                }
-            }, 200);
-        },
         success: function (response) {
-            clearInterval(this.interval);
-            progressBar.style.width = '100%';
-            progressBar.style.background = 'green';
-            progressPercentage.textContent = 'Complete';
+            clearInterval(interval);
+            btn.prop('disabled', false).html('Upload');
+            progressBar.removeClass('failed').addClass('complete').css('width', '100%');
+            progressPercentage.html('<span style="color: #10b981; font-weight: 600;"><i class="fa fa-check-circle"></i> Complete</span>');
 
             const path = targetPath || '/';
             fetchFolderContents(path);
         },
         error: function (xhr, status, error) {
-            clearInterval(this.interval);
-            progressBar.classList.add('failed');
-            progressBar.style.width = '100%';
-            progressPercentage.textContent = 'Failed';
+            clearInterval(interval);
+            btn.prop('disabled', false).html('Upload');
+            progressBar.removeClass('complete').addClass('failed').css('width', '100%');
+            progressPercentage.html('<span style="color: #ef4444; font-weight: 600;"><i class="fa fa-times-circle"></i> Failed</span>');
             console.error('Upload from URL failed:', error, status, xhr.responseText);
         }
     });

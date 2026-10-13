@@ -24,9 +24,27 @@ from django.contrib.auth.hashers import make_password
 from .function_file import *
 from django.http import JsonResponse, FileResponse
 from django.core.files.storage import FileSystemStorage
-from django.core.files.base import ContentFile
+import subprocess
 from urllib.parse import urlparse, unquote
 from whm.decorators import * 
+
+def clean_user_relpath(path_str, username):
+    if not path_str:
+        return ''
+    path_str = str(path_str).strip()
+    prefix1 = f'/home/{username}/'
+    prefix2 = f'home/{username}/'
+    prefix3 = f'/home/{username}'
+    prefix4 = f'home/{username}'
+    if path_str.startswith(prefix1):
+        path_str = path_str[len(prefix1):]
+    elif path_str.startswith(prefix2):
+        path_str = path_str[len(prefix2):]
+    elif path_str == prefix3 or path_str == prefix4:
+        path_str = ''
+    elif path_str.startswith('/'):
+        path_str = path_str.lstrip('/')
+    return path_str
 
 @login_required
 def home(request):
@@ -362,24 +380,14 @@ def file_action(request):
     permissions = request.POST.get('permission', '000')
     selected_items = request.POST.getlist('selected_items[]')
     parent = request.POST.get('base', '').strip()  # For rename, copy, move
-    if target_name == '/' or target_name == '':
-        target_name = ''
-    elif target_name.startswith('/'):
-        target_name = target_name[1:]
-        
-    if file_name.startswith('/'):
-        file_name = file_name[1:]    
-        
-        
     username_string = request.user.username
     base_dir = f'/home/{username_string}/'  # Default base directory
-    file_path = os.path.join(base_dir, file_name)
-    target_path = os.path.join(base_dir, target_name) if target_name else None
-    if not target_path:
-        target_path = base_dir
-        
-    #return JsonResponse({'status': 'error', 'message': f"File {target_path}"}, status=404)
-    target_path = ensure_user_home_prefix(target_path,username_string)
+    clean_file = clean_user_relpath(file_name, username_string)
+    clean_target = clean_user_relpath(target_name, username_string)
+    file_path = os.path.join(base_dir, clean_file) if clean_file else base_dir
+    target_path = os.path.join(base_dir, clean_target) if clean_target else base_dir
+    file_path = os.path.abspath(file_path)
+    target_path = os.path.abspath(target_path)
      
     # Check permissions
     has_permission, message = check_file_folder_permission(base_dir, username_string)
@@ -545,43 +553,84 @@ def file_action(request):
 
         elif action == 'unzip':
             try:
-                extracted_items = []
+                if not os.path.exists(file_path):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': f'Archive file not found: {file_name}'
+                    }, status=404)
 
-                if file_name.endswith('.zip'):
-                    with zipfile.ZipFile(file_path, 'r') as archive:
-                        archive.extractall(target_path)
-                        extracted_items = archive.namelist()
+                os.makedirs(target_path, exist_ok=True)
+                extracted_top_items = set()
+                lower_file = file_name.lower()
 
-                elif file_name.endswith('.tar.gz') or file_name.endswith('.tgz'):
-                    with tarfile.open(file_path, 'r:gz') as archive:
-                        archive.extractall(target_path)
-                        extracted_items = archive.getnames()
-                
-                elif file_name.endswith('.gz') and not file_name.endswith('.tar.gz'):
-                    import gzip
-                    output_file = os.path.join(
-                        target_path,
-                        os.path.basename(file_name[:-3])
-                    )
+                if lower_file.endswith('.zip'):
+                    try:
+                        with zipfile.ZipFile(file_path, 'r') as archive:
+                            for name in archive.namelist():
+                                part = name.strip('/').split('/')[0]
+                                if part:
+                                    extracted_top_items.add(part)
+                    except Exception:
+                        pass
 
+                    extracted_ok = False
+                    if shutil.which('unzip'):
+                        # -o overwrites without prompt, -q is quiet
+                        res = subprocess.run(['unzip', '-o', '-q', file_path, '-d', target_path], capture_output=True, text=True)
+                        if res.returncode == 0:
+                            extracted_ok = True
+
+                    if not extracted_ok:
+                        with zipfile.ZipFile(file_path, 'r') as archive:
+                            archive.extractall(target_path)
+
+                elif lower_file.endswith(('.tar.gz', '.tgz', '.tar')):
+                    try:
+                        mode = 'r:gz' if lower_file.endswith(('.tar.gz', '.tgz')) else 'r:'
+                        with tarfile.open(file_path, mode) as archive:
+                            for name in archive.getnames():
+                                part = name.strip('/').split('/')[0]
+                                if part:
+                                    extracted_top_items.add(part)
+                    except Exception:
+                        pass
+
+                    extracted_ok = False
+                    if shutil.which('tar'):
+                        flags = '-xzf' if lower_file.endswith(('.tar.gz', '.tgz')) else '-xf'
+                        res = subprocess.run(['tar', flags, file_path, '-C', target_path], capture_output=True, text=True)
+                        if res.returncode == 0:
+                            extracted_ok = True
+
+                    if not extracted_ok:
+                        mode = 'r:gz' if lower_file.endswith(('.tar.gz', '.tgz')) else 'r:'
+                        with tarfile.open(file_path, mode) as archive:
+                            archive.extractall(target_path)
+
+                elif lower_file.endswith('.gz') and not lower_file.endswith('.tar.gz'):
+                    output_file_name = os.path.basename(file_name[:-3])
+                    output_file = os.path.join(target_path, output_file_name)
                     with gzip.open(file_path, 'rb') as f_in:
                         with open(output_file, 'wb') as f_out:
                             shutil.copyfileobj(f_in, f_out)
+                    extracted_top_items.add(output_file_name)
 
-                    extracted_items = [os.path.basename(output_file)]
-                
-                
                 else:
                     return JsonResponse({
                         'status': 'error',
-                        'message': 'Only .zip, .tar.gz and .tgz files can be extracted.'
+                        'message': 'Only .zip, .tar.gz, .tgz, and .gz files can be extracted.'
                     }, status=400)
 
-                # Set ownership and permissions for extracted files and directories
-                for item in extracted_items:
-                    extracted_path = os.path.join(target_path, item)
-                    if os.path.exists(extracted_path):
-                        set_permissions_and_ownership(extracted_path, username_string)
+                # Set ownership and permissions efficiently for extracted contents
+                if extracted_top_items:
+                    for top_item in extracted_top_items:
+                        item_path = os.path.join(target_path, top_item)
+                        if os.path.exists(item_path):
+                            res = subprocess.run(['chown', '-R', f'{username_string}:{username_string}', item_path], check=False)
+                            if res.returncode != 0:
+                                set_permissions_and_ownership(item_path, username_string)
+                else:
+                    subprocess.run(['chown', '-R', f'{username_string}:{username_string}', target_path], check=False)
 
                 return JsonResponse({
                     'status': 'success',
@@ -654,22 +703,18 @@ def upload(request):
     if request.method == 'POST' and ('file' in request.FILES or 'chunk' in request.FILES):
         uploaded_file = request.FILES.get('file') or request.FILES.get('chunk')
         target_name = request.POST.get('target_name', '').strip()
-        user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
-        disk_space_in_bytes = user_package.disk_space * 1024 * 1024 if user_package else 0
-
-        # Ensure target_name does not start with a slash
-        if target_name.startswith('/'):
-            target_name = target_name[1:]
-
-        # Define base directory and construct the target path
         username_string = request.user.username
-        database_names = get_user_database_info(username_string)
-        total_size = calculate_total_database_size(database_names)
-        disk = get_disk_usage(f'/home/{username_string}')
-        email_disk = get_disk_usage(f'/home/vmail/{username_string}')
-        disk_in_bytes = human_readable_to_bytes(disk)
-        email_disk_in_bytes = human_readable_to_bytes(email_disk)
-        
+        base_dir = f'/home/{username_string}/'
+
+        clean_target = clean_user_relpath(target_name, username_string)
+        target_path = os.path.join(base_dir, clean_target) if clean_target else base_dir
+        target_path = os.path.abspath(target_path)
+
+        # Check permissions
+        has_permission, message = check_file_folder_permission(base_dir, username_string)
+        if not has_permission:
+            return JsonResponse({'status': 'error', 'message': message}, status=403)
+
         try:
             chunk_index = int(request.POST.get('chunk_index', 0))
             total_chunks = int(request.POST.get('total_chunks', 1))
@@ -679,41 +724,50 @@ def upload(request):
             total_chunks = 1
             total_file_size = uploaded_file.size
 
-        if user_package and user_package.disk_space != 0:
-            total_size_in_bytes = disk_in_bytes + total_size + email_disk_in_bytes + total_file_size
-            if total_size_in_bytes > disk_space_in_bytes:
-                return JsonResponse({'status': 'error', 'message': 'Disk quota exceeded. Please upgrade your package or free up space.'}, status=403)
-
-        base_dir = f'/home/{username_string}/'
-        target_path = os.path.join(base_dir, target_name) if target_name else base_dir
-        target_path = ensure_user_home_prefix(target_path, username_string)
-
-        # Check permissions
-        has_permission, message = check_file_folder_permission(base_dir, username_string)
-        if not has_permission:
-            return JsonResponse({'status': 'error', 'message': message}, status=403)
+        # Only check disk quota on the initial chunk to keep subsequent chunk uploads fast
+        if chunk_index == 0:
+            user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
+            disk_space_in_bytes = user_package.disk_space * 1024 * 1024 if user_package else 0
+            if user_package and user_package.disk_space != 0:
+                database_names = get_user_database_info(username_string)
+                total_size = calculate_total_database_size(database_names)
+                disk = get_disk_usage(f'/home/{username_string}')
+                email_disk = get_disk_usage(f'/home/vmail/{username_string}')
+                disk_in_bytes = human_readable_to_bytes(disk)
+                email_disk_in_bytes = human_readable_to_bytes(email_disk)
+                total_size_in_bytes = disk_in_bytes + total_size + email_disk_in_bytes + total_file_size
+                if total_size_in_bytes > disk_space_in_bytes:
+                    return JsonResponse({'status': 'error', 'message': 'Disk quota exceeded. Please upgrade your package or free up space.'}, status=403)
 
         # Ensure target path exists
         if not os.path.exists(target_path):
             os.makedirs(target_path, exist_ok=True)
+            res = subprocess.run(['chown', f'{username_string}:{username_string}', target_path], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(target_path, username_string)
 
         upload_id = request.POST.get('upload_id', '')
         original_name = request.POST.get('file_name', uploaded_file.name)
 
         if total_chunks <= 1:
-            fs = FileSystemStorage(location=target_path)
             file_path = os.path.join(target_path, original_name)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-            filename = fs.save(original_name, uploaded_file)
-            file_path = os.path.join(target_path, filename)
-            file_url = fs.url(filename)
-            set_permissions_and_ownership(file_path, username_string)
+            if os.path.exists(file_path):
+                if os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+                else:
+                    os.remove(file_path)
+            with open(file_path, 'wb') as f:
+                for chunk in uploaded_file.chunks():
+                    f.write(chunk)
+            res = subprocess.run(['chown', f'{username_string}:{username_string}', file_path], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(file_path, username_string)
+            fs = FileSystemStorage(location=target_path)
             return JsonResponse({
                 'status': 'success',
                 'file_name': original_name,
                 'file_size': uploaded_file.size,
-                'file_url': file_url
+                'file_url': fs.url(original_name)
             }, status=200)
 
         # Multi-chunk handling
@@ -739,9 +793,14 @@ def upload(request):
         final_file_path = os.path.join(target_path, original_name)
         try:
             if os.path.exists(final_file_path):
-                os.remove(final_file_path)
+                if os.path.isdir(final_file_path):
+                    shutil.rmtree(final_file_path)
+                else:
+                    os.remove(final_file_path)
             os.rename(part_file_path, final_file_path)
-            set_permissions_and_ownership(final_file_path, username_string)
+            res = subprocess.run(['chown', f'{username_string}:{username_string}', final_file_path], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(final_file_path, username_string)
             fs = FileSystemStorage(location=target_path)
             return JsonResponse({
                 'status': 'success',
@@ -906,10 +965,12 @@ def upload_from_url(request):
         if not file_url:
             return JsonResponse({'status': 'error', 'message': 'No URL provided.'}, status=400)
 
-        if target_name.startswith('/'):
-            target_name = target_name[1:]
-        
         username_string = request.user.username
+        base_dir = f'/home/{username_string}/'
+        clean_target = clean_user_relpath(target_name, username_string)
+        target_path = os.path.join(base_dir, clean_target) if clean_target else base_dir
+        target_path = os.path.abspath(target_path)
+
         user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
         disk_space_in_bytes = user_package.disk_space * 1024 * 1024 if user_package else 0
 
@@ -919,20 +980,16 @@ def upload_from_url(request):
         if not filename:
             filename = 'downloaded_file'
 
-       
-        base_dir = f'/home/{username_string}/'
-    
-    
-        target_path = os.path.join(base_dir, target_name) if target_name else base_dir
-        target_path = ensure_user_home_prefix(target_path, username_string)
-
         # Permissions and directory checks
         has_permission, message = check_file_folder_permission(base_dir, username_string)
         if not has_permission:
             return JsonResponse({'status': 'error', 'message': message}, status=403)
 
         if not os.path.exists(target_path):
-            os.makedirs(target_path)
+            os.makedirs(target_path, exist_ok=True)
+            res = subprocess.run(['chown', f'{username_string}:{username_string}', target_path], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(target_path, username_string)
 
         # Disk quota calculation
         temp_file_path = os.path.join(target_path, filename)

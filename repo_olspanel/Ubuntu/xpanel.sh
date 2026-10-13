@@ -613,7 +613,7 @@ path = '$HTTPD_CONFIG_TARGET'
 try:
     with open(path, 'r') as f:
         content = f.read()
-    pattern = r'(virtualhost\\s+(?:panel_[^{]+|mypanel)\\s*\\{[\\s\\S]*?restrained\\s+)1'
+    pattern = r'(virtualhost\\s+(?:Example|mypanel|panel_[^{]+)\\s*\\{[\\s\\S]*?restrained\\s+)1'
     new_content, count = re.subn(pattern, r'\\g<1>0', content)
     if count > 0:
         with open(path, 'w') as f:
@@ -1017,6 +1017,26 @@ install_all_lsphp_versions() {
         fi
     done
 pkill lsphp
+
+    # Update default extprocessor lsphp in httpd_config.conf to point to an installed version
+    for v in 85 84 83 82 81 80 74; do
+        if [ -x "/usr/local/lsws/lsphp$v/bin/lsphp" ]; then
+            python3 -c "
+path = '/usr/local/lsws/conf/httpd_config.conf'
+try:
+    with open(path, 'r') as f:
+        cfg = f.read()
+    import re
+    cfg = re.sub(r'(extprocessor\s+lsphp\s*\{[\s\S]*?path\s+)lsphp\d+/bin/lsphp', r'\g<1>lsphp$v/bin/lsphp', cfg)
+    with open(path, 'w') as f:
+        f.write(cfg)
+except Exception as e:
+    pass
+"
+            break
+        fi
+    done
+
     echo "All requested PHP versions installed."
 }
 

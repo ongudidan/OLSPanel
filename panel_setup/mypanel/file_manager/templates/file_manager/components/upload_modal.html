@@ -1,6 +1,11 @@
 <div id="upload-modal" class="modal-overlay">
     <div class="modal-content">
-        <button id="cancel-upload-button" class="bclose-btn" title="Close">&times;</button>
+        <button id="cancel-upload-button" class="bclose-btn" title="Close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
         <h3>Upload File</h3>
         
         <div class="upload-tabs">
@@ -21,19 +26,28 @@
                 </span>
                 <input type="text" id="url-input" placeholder="Enter file URL">
             </div>
-            <div id="prog" class="progress-container">
-                <div class="progress-bar" style="width: 0%;"></div>
-                <span class="progress-percentage">0%</span>
+            <div id="prog" style="display: none; margin-top: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 12px; color: #64748b; font-weight: 500;">
+                        <i class="fa fa-circle-o-notch fa-spin" style="color: var(--brand-color, #ef6d19); margin-right: 4px;"></i> Downloading from URL...
+                    </span>
+                    <span class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 0%;"></div>
+                </div>
             </div>
         </div>
         
         <div id="file-preview" class="file-preview"></div>
         
         <div id="fup" class="modal-buttons">
+            <button id="cancel-upload-btn" type="button" class="btn-modal-cancel">Cancel</button>
             <button id="upload-button" type="button">Upload</button>
         </div>
         
         <div id="furl" class="modal-buttons" style="display: none;">
+            <button id="cancel-upload-url-btn" type="button" class="btn-modal-cancel">Cancel</button>
             <button id="upload-button-url" type="button">Upload</button>
         </div>
     </div>

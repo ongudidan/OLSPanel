@@ -21,22 +21,32 @@ from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse, FileResponse
 import subprocess
 
+def clean_user_relpath(path_str, username):
+    if not path_str:
+        return ''
+    path_str = str(path_str).strip()
+    prefix1 = f'/home/{username}/'
+    prefix2 = f'home/{username}/'
+    prefix3 = f'/home/{username}'
+    prefix4 = f'home/{username}'
+    if path_str.startswith(prefix1):
+        path_str = path_str[len(prefix1):]
+    elif path_str.startswith(prefix2):
+        path_str = path_str[len(prefix2):]
+    elif path_str == prefix3 or path_str == prefix4:
+        path_str = ''
+    elif path_str.startswith('/'):
+        path_str = path_str.lstrip('/')
+    return path_str
+
 
 def f_copy(username_string, file_name, target_name):
-    
     try:
-        if target_name.startswith('/'):
-            target_name = target_name[1:]
-
-        if file_name.startswith('/'):
-            file_name = file_name[1:]
-
-        base_dir = f'/home/{username_string}/'  # Default base directory
-        file_path = os.path.join(base_dir, file_name)
-        target_path = os.path.join(base_dir, target_name) if target_name else None
-        if not target_path:
-            target_path = base_dir
-        target_path = ensure_user_home_prefix(target_path, username_string)
+        base_dir = f'/home/{username_string}/'
+        clean_file = clean_user_relpath(file_name, username_string)
+        clean_target = clean_user_relpath(target_name, username_string)
+        file_path = os.path.join(base_dir, clean_file) if clean_file else base_dir
+        target_path = os.path.join(base_dir, clean_target) if clean_target else base_dir
 
         if not os.path.exists(file_path):
             return f"Error: Source path '{file_path}' does not exist."
@@ -44,80 +54,69 @@ def f_copy(username_string, file_name, target_name):
         if os.path.isdir(file_path):
             target_path_with_folder = os.path.join(target_path, os.path.basename(file_path))
             shutil.copytree(file_path, target_path_with_folder, dirs_exist_ok=True)
-            set_permissions_and_ownership(target_path_with_folder, username_string)
+            res = subprocess.run(['chown', '-R', f'{username_string}:{username_string}', target_path_with_folder], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(target_path_with_folder, username_string)
             return f"Directory copied successfully to '{target_path_with_folder}'."
         else:
             shutil.copy(file_path, target_path)
-            if not target_path.endswith('/'):
-                target_path += '/'
-
             file_name_only = os.path.basename(file_path)
-            set_permissions_and_ownership(target_path + file_name_only, username_string)
+            dest_file = os.path.join(target_path, file_name_only) if os.path.isdir(target_path) else target_path
+            res = subprocess.run(['chown', f'{username_string}:{username_string}', dest_file], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(dest_file, username_string)
             return f"File copied successfully to '{target_path}'."
     except Exception as e:
         return f"Error: {str(e)}"
         
         
-        
-        
 def f_move(username_string, file_name, target_name):
-   
     try:
-        # Normalize paths
-        if target_name.startswith('/'):
-            target_name = target_name[1:]
-
-        if file_name.startswith('/'):
-            file_name = file_name[1:]
-
         base_dir = f'/home/{username_string}/'
-        file_path = os.path.join(base_dir, file_name)
-        target_path = os.path.join(base_dir, target_name) if target_name else None
-        if not target_path:
-            target_path = base_dir
-        
-        target_path = ensure_user_home_prefix(target_path, username_string)
+        clean_file = clean_user_relpath(file_name, username_string)
+        clean_target = clean_user_relpath(target_name, username_string)
+        file_path = os.path.join(base_dir, clean_file) if clean_file else base_dir
+        target_path = os.path.join(base_dir, clean_target) if clean_target else base_dir
+
+        if not os.path.exists(file_path):
+            return f"Error: Source path '{file_path}' does not exist."
 
         # If the target is a directory, move files inside it
         if os.path.isdir(target_path):
-            # Get the basename of the file or folder being moved
             item_name = os.path.basename(file_path)
             final_target_path = os.path.join(target_path, item_name)
 
-            # Replace the existing file if it exists
             if os.path.exists(final_target_path):
-                if os.path.isfile(final_target_path):
-                    os.remove(final_target_path)  # Replace file only
+                if os.path.isdir(final_target_path):
+                    shutil.rmtree(final_target_path)
+                else:
+                    os.remove(final_target_path)
 
-            # Move the file or directory into the target directory
             shutil.move(file_path, target_path)
+            res = subprocess.run(['chown', '-R', f'{username_string}:{username_string}', final_target_path], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(final_target_path, username_string)
         else:
-            # If the target is not a directory, move directly
             shutil.move(file_path, target_path)
+            res = subprocess.run(['chown', '-R', f'{username_string}:{username_string}', target_path], check=False)
+            if res.returncode != 0:
+                set_permissions_and_ownership(target_path, username_string)
 
         return f"File moved successfully to '{target_path}'."
     except Exception as e:
         return f"Error: {str(e)}"  
         
         
-        
 def f_delete(username_string, file_name):
-    """
-    Delete a file or folder for a specific user.
-    """
     try:
-        # Normalize the file path
-        if file_name.startswith('/'):
-            file_name = file_name[1:]
-
         base_dir = f'/home/{username_string}/'
-        file_path = os.path.join(base_dir, file_name)
+        clean_file = clean_user_relpath(file_name, username_string)
+        file_path = os.path.join(base_dir, clean_file)
 
-        # Check if the path is a folder or file and delete accordingly
         if os.path.isdir(file_path):
-            shutil.rmtree(file_path)  # Recursively delete the folder
+            shutil.rmtree(file_path)
         elif os.path.isfile(file_path):
-            os.remove(file_path)  # Delete the file
+            os.remove(file_path)
         else:
             return f"Error: '{file_path}' does not exist or is not a valid file/directory."
 
@@ -128,27 +127,15 @@ def f_delete(username_string, file_name):
 
 def f_compress(username_string, parent, file_name=None, target_name=None, selected_items=None):
     try:
-        # Validate and sanitize inputs
         if not target_name:
             return JsonResponse({'status': 'error', 'message': 'Target name is required.'}, status=400)
 
-        if isinstance(target_name, str) and target_name.startswith('/'):
-            target_name = target_name[1:]
-
-        if file_name and isinstance(file_name, str) and file_name.startswith('/'):
-            file_name = file_name[1:]
-
         base_dir = f'/home/{username_string}/'
-        source_path = os.path.join(base_dir, parent)  # Path to the source folder
+        clean_parent = clean_user_relpath(parent, username_string)
+        source_path = os.path.join(base_dir, clean_parent)
 
-        # Construct the target path and ensure it's valid
-        if target_name:
-            target_path = os.path.join(base_dir, target_name)
-            target_path = ensure_user_home_prefix(target_path, username_string)
-            if not isinstance(target_path, str):
-                raise ValueError(f"Invalid target path: {target_path}")
-
-        # Create the zip target path
+        clean_target = clean_user_relpath(target_name, username_string)
+        target_path = os.path.join(base_dir, clean_target)
         zip_target = target_path if target_path.endswith('.zip') else target_path + '.zip'
 
         # Check if the zip file already exists

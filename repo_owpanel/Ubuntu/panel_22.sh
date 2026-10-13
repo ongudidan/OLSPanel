@@ -600,7 +600,7 @@ try:
   configFile              conf/vhosts/Example/vhconf.conf
   allowSymbolLink         1
   enableScript            1
-  restrained              1
+  restrained              0
 }
 
 virtualhost mypanel {
@@ -613,7 +613,7 @@ virtualhost mypanel {
     if "virtualhost Example" not in content:
         content = content.strip() + "\\n" + vhost_blocks.strip() + "\\n"
 
-    pattern = r"(virtualhost\s+(?:panel_[^{]+|mypanel)\s*\{[\s\S]*?restrained\s+)1"
+    pattern = r"(virtualhost\s+(?:Example|mypanel|panel_[^{]+)\s*\{[\s\S]*?restrained\s+)1"
     new_content, count = re.subn(pattern, r"\\g<1>0", content)
     if count == 0:
         new_content = content
@@ -874,9 +874,10 @@ set_ownership_and_permissions() {
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/olspanel/phpmyadmin
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/olspanel/webmail
         # Point OLS html dir to the correct locations
+        sudo ln -sfn /usr/local/olspanel/mypanel/3rdparty /usr/local/lsws/Example/html/3rdparty
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
         sudo ln -sf /usr/local/olspanel/webmail /usr/local/lsws/Example/html/webmail
-        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail
+        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail /usr/local/lsws/Example/html/3rdparty
     fi
 }
 

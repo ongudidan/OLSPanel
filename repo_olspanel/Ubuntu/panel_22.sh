@@ -588,7 +588,7 @@ path = '$HTTPD_CONFIG_TARGET'
 try:
     with open(path, 'r') as f:
         content = f.read()
-    pattern = r'(virtualhost\\s+(?:panel_[^{]+|mypanel)\\s*\\{[\\s\\S]*?restrained\\s+)1'
+    pattern = r'(virtualhost\\s+(?:Example|mypanel|panel_[^{]+)\\s*\\{[\\s\\S]*?restrained\\s+)1'
     new_content, count = re.subn(pattern, r'\\g<1>0', content)
     if count > 0:
         with open(path, 'w') as f:
