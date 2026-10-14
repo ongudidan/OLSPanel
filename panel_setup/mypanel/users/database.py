@@ -434,7 +434,8 @@ def get_server_ipv6():
 
 
 def create_database(username, db_name):
-    prefixed_db_name = f"{username}_{db_name}"
+    clean_db_name = replace_first_with_underscore(db_name, username)
+    prefixed_db_name = f"{username}_{clean_db_name}"
     try:
         safe_db_name = clean_mysql_identifier(prefixed_db_name)
     except ValueError as e:
@@ -468,7 +469,7 @@ def create_database(username, db_name):
             return False, error_message  # Return False and the error message
 
 def create_mysql_user(username, db_user, db_pass):
-    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user, username)}"
     if not re.match(r'^[a-zA-Z0-9_]+$', full_db_user):
         return False, "Invalid database user name"
     if len(db_pass) < 8:
@@ -488,8 +489,8 @@ def create_mysql_user(username, db_user, db_pass):
         return False, str(e)
 
 def grant_user_privileges(username, db_user, db_name, privileges_list):
-    full_db_name = f"{username}_{replace_first_with_underscore(db_name)}"
-    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    full_db_name = f"{username}_{replace_first_with_underscore(db_name, username)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user, username)}"
     
     if not re.match(r'^[a-zA-Z0-9_]+$', full_db_name):
         return False, "Invalid database name"
@@ -532,8 +533,8 @@ def grant_user_privileges(username, db_user, db_name, privileges_list):
         return False, str(e)
 
 def revoke_user_privileges(username, db_user, db_name):
-    full_db_name = f"{username}_{replace_first_with_underscore(db_name)}"
-    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    full_db_name = f"{username}_{replace_first_with_underscore(db_name, username)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user, username)}"
     
     if not re.match(r'^[a-zA-Z0-9_]+$', full_db_name):
         return False, "Invalid database name"
@@ -553,8 +554,8 @@ def revoke_user_privileges(username, db_user, db_name):
         return False, str(e)
 
 def get_user_db_privileges(username, db_user, db_name):
-    full_db_name = f"{username}_{replace_first_with_underscore(db_name)}"
-    full_db_user = f"{username}_{replace_first_with_underscore(db_user)}"
+    full_db_name = f"{username}_{replace_first_with_underscore(db_name, username)}"
+    full_db_user = f"{username}_{replace_first_with_underscore(db_user, username)}"
     
     priv_cols = [
         'Select_priv', 'Insert_priv', 'Update_priv', 'Delete_priv', 'Create_priv', 'Drop_priv',
@@ -594,8 +595,8 @@ def db_user_exists(username, db_user):
             return False
            
 def create_database_and_user(request, username, db_name, db_user, db_pass, is_backup=False):
-    db_user = f"{username}_{db_user}"  # User with username prefix
-    prefixed_db_name = f"{username}_{db_name}"  # Database with username prefix
+    db_user = f"{username}_{replace_first_with_underscore(db_user, username)}"  # User with username prefix
+    prefixed_db_name = f"{username}_{replace_first_with_underscore(db_name, username)}"  # Database with username prefix
     common_user = f"{username}"  # Common user name
     django_root = settings.BASE_DIR
 
@@ -860,28 +861,38 @@ def count_users_by_prefix(username):
 
     return user_count    
     
-def replace_first_with_underscore(input_string):
-    
-    # Check if input_string is None
+def replace_first_with_underscore(input_string, prefix=None):
+    """
+    Safely strips the user's prefix (e.g. '{username}_') from a database name or username.
+    If prefix is provided, only strips if input_string actually starts with that prefix.
+    If prefix is None, only strips if the string starts with a recognized username prefix
+    (User model lookup) to avoid corrupting multi-part names like 'estate_desk'.
+    """
     if input_string is None:
         return None
+    input_str = str(input_string).strip()
 
-    # Split the string by the first occurrence of '_'
-    parts = input_string.split('_', 1)
-    
-    # Check if the string contains at least one underscore
-    if len(parts) > 1:
-        # Return only the part after the first underscore
-        return parts[1]
-    else:
-        # If no underscore is found, return the original string
-        return input_string
+    if prefix:
+        p = f"{prefix}_" if not str(prefix).endswith('_') else str(prefix)
+        if input_str.startswith(p):
+            return input_str[len(p):]
+        return input_str
+
+    try:
+        from django.contrib.auth.models import User
+        parts = input_str.split('_', 1)
+        if len(parts) > 1 and User.objects.filter(username=parts[0]).exists():
+            return parts[1]
+    except Exception:
+        pass
+
+    return input_str
 
     
 def update_db_user_credentials(username, current_db, db_user, new_password=None):
     # Adjust the current and new database usernames by replacing the first part with an underscore
-    current_db = replace_first_with_underscore(current_db)
-    db_user = replace_first_with_underscore(db_user)
+    current_db = replace_first_with_underscore(current_db, username)
+    db_user = replace_first_with_underscore(db_user, username)
 
     # Construct the full database username for both the old and new usernames
     current_db_name = f"{username}_{current_db}"
@@ -933,7 +944,7 @@ def update_db_user_credentials(username, current_db, db_user, new_password=None)
         
 
 def delete_db_user_credentials(username, db_user):
-    db_user = replace_first_with_underscore(db_user)
+    db_user = replace_first_with_underscore(db_user, username)
     full_db_user = f"{username}_{db_user}"
     try:
         if not re.match(r'^[a-zA-Z0-9_]+$', full_db_user):
@@ -954,8 +965,8 @@ def delete_db_user_credentials(username, db_user):
         
 
 def rename_database(username_string,old_db_name, new_db_name):
-    current_db = replace_first_with_underscore(old_db_name)
-    new_db_name = replace_first_with_underscore(new_db_name)
+    current_db = replace_first_with_underscore(old_db_name, username_string)
+    new_db_name = replace_first_with_underscore(new_db_name, username_string)
     old_db_name = f"{username_string}_{current_db}"
     new_db_name = f"{username_string}_{new_db_name}"
     
@@ -1040,7 +1051,7 @@ def rename_database(username_string,old_db_name, new_db_name):
         
         
 def delete_database(username_string,database_name):
-    database_name = replace_first_with_underscore(database_name)
+    database_name = replace_first_with_underscore(database_name, username_string)
     database_namex = f"{username_string}_{database_name}"
     try:
         if not re.match(r'^[a-zA-Z0-9_]+$', database_namex):
@@ -1343,7 +1354,7 @@ def drop_existing_database_tables(db_name, env):
 
 
 def import_database(username, file_path, db_name, overwrite=True):
-    db_name = replace_first_with_underscore(db_name)
+    db_name = replace_first_with_underscore(db_name, username)
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
     
@@ -1418,7 +1429,7 @@ def import_database(username, file_path, db_name, overwrite=True):
         
         
 def export_database(username, file_path, db_name):
-    db_name = replace_first_with_underscore(db_name)
+    db_name = replace_first_with_underscore(db_name, username)
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
     
@@ -1443,7 +1454,7 @@ def export_database(username, file_path, db_name):
         raise Exception(f"Error exporting database: {e}")   
 
 def repair_database(username, db_name):
-    db_name = replace_first_with_underscore(db_name)
+    db_name = replace_first_with_underscore(db_name, username)
     db_name = f"{username}_{db_name}"
     db_password = settings.DATABASES['default']['PASSWORD']
     
@@ -2073,8 +2084,8 @@ def restore_backup_xml(backup_folder,passwords,category):
                 db_user1 = db.find("databaseUsers/dbUser").text
                 db_host = db.find("databaseUsers/dbHost").text
                 db_password = db.find("databaseUsers/password").text
-                db_user = replace_first_with_underscore(db_user1)
-                db_name = replace_first_with_underscore(db_name1)
+                db_user = replace_first_with_underscore(db_user1, username)
+                db_name = replace_first_with_underscore(db_name1, username)
                 create_database(username, db_name)
                 create_database_and_user("", username, db_name, db_user, db_password, is_backup=True)
                 sql_file_path = os.path.join(backup_folder, f"{db_name1}.sql")
@@ -2168,8 +2179,8 @@ def restore_backup_cpanel(backup_folder, passwords):
         for db_info in db_info_list:
             db_user1 = extract_db_user_from_sql_cpanel(backup_folder,db_info['db_name'])
             db_password = extract_db_pass_from_sql_cpanel(backup_folder,db_user1)
-            db_user = replace_first_with_underscore(db_user1)
-            db_name = replace_first_with_underscore(db_info['db_name'])
+            db_user = replace_first_with_underscore(db_user1, username)
+            db_name = replace_first_with_underscore(db_info['db_name'], username)
             logger.error(f"Database: {username}, {db_name}, {db_password}, {db_user}")
             
             create_database(username, db_name)

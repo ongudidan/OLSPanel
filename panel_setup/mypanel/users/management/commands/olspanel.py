@@ -337,7 +337,7 @@ class Command(BaseCommand):
 
             user_list = list_users_by_prefix(usr.username)
             for user_db in user_list:
-                dbx = replace_first_with_underscore(user_db)
+                dbx = replace_first_with_underscore(user_db, usr.username)
                 delete_db_user_credentials(usr.username, dbx)
 
             if domains.exists():
@@ -895,7 +895,7 @@ class Command(BaseCommand):
             self.stderr.write(json.dumps({'success': False, 'message': 'You are not authorized to edit this database.'}))
             return
 
-        dbx = replace_first_with_underscore(db)
+        dbx = replace_first_with_underscore(db, username)
 
         # Only handle delete action
         if action == 'delete':

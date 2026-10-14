@@ -449,7 +449,7 @@ def db_edit(request, db):
     if not db.startswith(username_prefix):
         return JsonResponse({'error': 'You are not authorized to edit this database.'}, status=200)
 
-    dbx = replace_first_with_underscore(db)
+    dbx = replace_first_with_underscore(db, username_string)
 
     if request.method != 'POST':
         return JsonResponse({'db_name': dbx, 'message': 'Send POST request with action (edit/delete) and data'}, status=200)

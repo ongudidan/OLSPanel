@@ -1051,7 +1051,7 @@ def database_userlist(request):
             messages.error(request, 'You are not authorized to delete this database user.')
             return redirect('/database_list/')  # Redirect to the database user list
 
-        dbx = replace_first_with_underscore(db_user)  # Modify the database user if needed
+        dbx = replace_first_with_underscore(db_user, request.user.username)  # Modify the database user if needed
         db_username = request.user.username
         full_db_user = f"{db_username}_{dbx}"
         delete_result = delete_db_user_credentials(username, full_db_user)  # Call the delete function
@@ -1077,7 +1077,7 @@ def db_user_edit(request, db):
         messages.error(request, 'You are not authorized to edit this database user.')
         return redirect('/database_userlist')  # Redirect to the database user list
 
-    dbx = replace_first_with_underscore(db)  # Modify the database name if needed
+    dbx = replace_first_with_underscore(db, request.user.username)  # Modify the database name if needed
     
     if request.method == 'POST':
         db_user = request.POST.get('dbuser')  # Get the database user from the form
@@ -1130,7 +1130,7 @@ def db_edit(request, db):
         messages.error(request, 'You are not authorized to edit this database.')
         return redirect('/database_list/')  # Redirect to the database user list
 
-    dbx = replace_first_with_underscore(db)  # Modify the database name if needed
+    dbx = replace_first_with_underscore(db, request.user.username)  # Modify the database name if needed
 
     if request.method == 'POST':
         action = request.POST.get('action')  # Get the action (edit or delete)

@@ -1041,7 +1041,7 @@ def suspend_user(request, rid):
                     
                 user_list = list_users_by_prefix(usr.username)
                 for user_db in user_list:
-                    dbx = replace_first_with_underscore(user_db)
+                    dbx = replace_first_with_underscore(user_db, usr.username)
                     delete_db_user_credentials(usr.username, dbx)
                     
  
