@@ -59,9 +59,14 @@ if [ "$OS_NAME" = "debian" ]; then
     sudo ${PACKAGE_MANAGER} update -y || true
 fi
 
-    if ! grep -q "ondrej/php" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
-        sudo add-apt-repository -y ppa:ondrej/php || true
-        sudo ${PACKAGE_MANAGER} update -y || true
+    if [ "$OS_NAME" = "ubuntu" ]; then
+        if ! grep -q "ondrej/php" /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null; then
+            sudo add-apt-repository -y ppa:ondrej/php 2>/dev/null || true
+            if ! sudo ${PACKAGE_MANAGER} update -y; then
+                sudo add-apt-repository -y --remove ppa:ondrej/php 2>/dev/null || rm -f /etc/apt/sources.list.d/*ondrej* 2>/dev/null || true
+                sudo ${PACKAGE_MANAGER} update -y || true
+            fi
+        fi
     fi
 
 
