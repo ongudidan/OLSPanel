@@ -553,10 +553,10 @@ change_ols_password() {
 copy_conf_for_ols() {
     # Define the source and target directories
     local SSL_SOURCE_DIR="/root/item/move/conf/ssl"
-    local SSL_TARGET_DIR="/etc/letsencrypt/live/chandpurtelecom.xyz"
+    local SSL_TARGET_DIR="/etc/letsencrypt/live/localhost"
     local HTTPD_CONFIG_SOURCE="/root/item/move/conf/httpd_config.conf"
     local HTTPD_CONFIG_TARGET="/usr/local/lsws/conf/httpd_config.conf"
-    local SERVER_IP=$(curl -4 ifconfig.me)
+    local SERVER_IP=$(curl -4 -s -m 5 ifconfig.me 2>/dev/null || echo "127.0.0.1")
 
     # Ensure the source SSL directory exists
     if [ ! -d "$SSL_SOURCE_DIR" ]; then
@@ -570,11 +570,8 @@ copy_conf_for_ols() {
         mkdir -p "$SSL_TARGET_DIR"
     fi
 
-   
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout "$SSL_TARGET_DIR/privkey.pem" -out "$SSL_TARGET_DIR/fullchain.pem" -subj "/CN=$SERVER_IP"
-	
-
 
     # Ensure the source httpd config file exists
     if [ ! -f "$HTTPD_CONFIG_SOURCE" ]; then
@@ -585,65 +582,81 @@ copy_conf_for_ols() {
     # Copy the httpd config file
     echo "Copying httpd config file '$HTTPD_CONFIG_SOURCE' to '$HTTPD_CONFIG_TARGET'..."
     cp -v "$HTTPD_CONFIG_SOURCE" "$HTTPD_CONFIG_TARGET"
-	sudo systemctl restart openlitespeed
-        # sudo chown root:postfix /etc/letsencrypt/live/mail.chandpurtelecom.xyz/privkey.pem
-        # sudo chown root:postfix /etc/letsencrypt/live/mail.chandpurtelecom.xyz/fullchain.pem
 
-    # Set permissions
-      # sudo chmod 640 /etc/letsencrypt/live/mail.chandpurtelecom.xyz/privkey.pem
-      # sudo chmod 644 /etc/letsencrypt/live/mail.chandpurtelecom.xyz/fullchain.pem
-    echo "Copy operation completed."
-
-    # Configure IP and localhost mappings for mypanel
+    # Configure listeners, virtualhost Example, and PHP extprocessor in httpd_config.conf
     if [ -f "$HTTPD_CONFIG_TARGET" ]; then
-        local MAP_TARGET="  map                     mypanel mypanel"
-        local MAP_REPLACEMENT="  map                     mypanel mypanel\n  map                     mypanel $SERVER_IP\n  map                     mypanel 127.0.0.1\n  map                     mypanel localhost"
-        sed -i "s|$MAP_TARGET|$MAP_REPLACEMENT|g" "$HTTPD_CONFIG_TARGET"
-        
-        # Set restrained to 0 for panel virtual hosts, and register Example/mypanel vhosts and maps
         python3 -c '
+import os
 import re
+
 path = "/usr/local/lsws/conf/httpd_config.conf"
 try:
     with open(path, "r") as f:
         content = f.read()
-    
-    # 1. Restore/fix Default, SSL, and SSL IPv6 listeners to map Example to *
-    content = re.sub(r"listener Default\s*\{[\s\S]*?\}", "listener Default {\\n  address                 *:80\\n  secure                  0\\n  map                     Example *\\n  map                     mypanel mypanel\\n}", content)
-    content = re.sub(r"listener SSL\s*\{[\s\S]*?\}", "listener SSL {\\n  address                 *:443\\n  secure                  1\\n  keyFile                 /etc/letsencrypt/live/localhost/privkey.pem\\n  certFile                /etc/letsencrypt/live/localhost/fullchain.pem\\n  certChain               1\\n  sslProtocol             24\\n  enableECDHE             1\\n  renegProtection         1\\n  sslSessionCache         1\\n  enableSpdy              15\\n  enableStapling          1\\n  ocspRespMaxAge          86400\\n  map                     Example *\\n  map                     mypanel mypanel\\n}", content)
-    content = re.sub(r"listener SSL IPv6\s*\{[\s\S]*?\}", "listener SSL IPv6 {\\n  address                 [ANY]:443\\n  secure                  1\\n  keyFile                 /etc/letsencrypt/live/localhost/privkey.pem\\n  certFile                /etc/letsencrypt/live/localhost/fullchain.pem\\n  certChain               1\\n  sslProtocol             24\\n  enableECDHE             1\\n  renegProtection         1\\n  sslSessionCache         1\\n  enableSpdy              15\\n  enableStapling          1\\n  ocspRespMaxAge          86400\\n  map                     Example *\\n  map                     mypanel mypanel\\n}", content)
 
-    # 2. Add virtualhost declarations if not present
-    vhost_blocks = """virtualhost Example {
+    # Clean up any literal \n escape characters
+    content = content.replace(r"\nvirtualhost", "\nvirtualhost")
+    content = content.replace(r"}\n", "}\n")
+
+    # 1. Ensure Default, SSL, and SSL IPv6 listeners map Example to *
+    content = re.sub(
+        r"listener Default\s*\{[\s\S]*?\}",
+        "listener Default {\n  address                 *:80\n  secure                  0\n  map                     Example *\n}",
+        content
+    )
+    content = re.sub(
+        r"listener SSL\s*\{[\s\S]*?\}",
+        "listener SSL {\n  address                 *:443\n  secure                  1\n  keyFile                 /etc/letsencrypt/live/localhost/privkey.pem\n  certFile                /etc/letsencrypt/live/localhost/fullchain.pem\n  certChain               1\n  sslProtocol             24\n  enableECDHE             1\n  renegProtection         1\n  sslSessionCache         1\n  enableSpdy              15\n  enableStapling          1\n  ocspRespMaxAge          86400\n  map                     Example *\n}",
+        content
+    )
+    content = re.sub(
+        r"listener SSL IPv6\s*\{[\s\S]*?\}",
+        "listener SSL IPv6 {\n  address                 [ANY]:443\n  secure                  1\n  keyFile                 /etc/letsencrypt/live/localhost/privkey.pem\n  certFile                /etc/letsencrypt/live/localhost/fullchain.pem\n  certChain               1\n  sslProtocol             24\n  enableECDHE             1\n  renegProtection         1\n  sslSessionCache         1\n  enableSpdy              15\n  enableStapling          1\n  ocspRespMaxAge          86400\n  map                     Example *\n}",
+        content
+    )
+
+    # 2. Add virtualhost Example declaration if not present
+    vhost_example = """virtualhost Example {
   vhRoot                  Example/
   configFile              conf/vhosts/Example/vhconf.conf
   allowSymbolLink         1
   enableScript            1
   restrained              0
-}
-
-virtualhost mypanel {
-  vhRoot                  conf/vhosts/mypanel/
-  configFile              conf/vhosts/mypanel/vhconf.conf
-  allowSymbolLink         1
-  enableScript            1
-  restrained              0
 }"""
     if "virtualhost Example" not in content:
-        content = content.strip() + "\\n" + vhost_blocks.strip() + "\\n"
+        content = content.strip() + "\n\n" + vhost_example.strip() + "\n"
 
-    pattern = r"(virtualhost\s+(?:Example|mypanel|panel_[^{]+)\s*\{[\s\S]*?restrained\s+)1"
-    new_content, count = re.subn(pattern, r"\\g<1>0", content)
-    if count == 0:
-        new_content = content
+    # Remove any broken virtualhost mypanel block or map mypanel if present
+    content = re.sub(r"virtualhost\s+mypanel\s*\{[\s\S]*?\}\n*", "", content)
+    content = re.sub(r"[ \t]*map\s+mypanel\s+[^\n]+\n", "", content)
+
+    # Ensure restrained 0 for virtualhosts
+    pattern = r"(virtualhost\s+(?:Example|panel_[^{]+)\s*\{[\s\S]*?restrained\s+)1"
+    content = re.sub(pattern, r"\g<1>0", content)
+
+    # 3. Detect installed lsphp version and point extprocessor lsphp to it
+    installed_v = None
+    for v in ["85", "84", "83", "82", "81", "80", "74"]:
+        if os.path.isfile(f"/usr/local/lsws/lsphp{v}/bin/lsphp") and os.access(f"/usr/local/lsws/lsphp{v}/bin/lsphp", os.X_OK):
+            installed_v = v
+            break
+    if installed_v:
+        content = re.sub(
+            r"(extprocessor\s+lsphp\s*\{[\s\S]*?path\s+)lsphp\d+/bin/lsphp",
+            rf"\g<1>lsphp{installed_v}/bin/lsphp",
+            content
+        )
 
     with open(path, "w") as f:
-        f.write(new_content)
-    print("✅ [Configured] Registered Example/mypanel vhosts and mappings.")
+        f.write(content.strip() + "\n")
+    print("✅ [Configured] Registered Example vhost, listeners, and PHP extprocessor.")
 except Exception as e:
     print("Error patching httpd_config.conf:", e)
 '
     fi
+
+    sudo systemctl restart openlitespeed || true
+    echo "Copy operation completed."
 }
 
 allow_ports() {
@@ -880,15 +893,15 @@ set_ownership_and_permissions() {
         sudo chmod -R 777 /usr/local/olspanel/mypanel/3rdparty/rainloop/data
     fi
 
-    # Create Symlinks for phpMyAdmin and Webmail in default Example virtual host
+        # Create Symlinks for phpMyAdmin and Webmail in default Example virtual host
     if [ -d "/usr/local/lsws/Example/html" ]; then
-        # Fix: create compatibility symlinks
+        # Create compatibility symlinks
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/olspanel/phpmyadmin
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/olspanel/webmail
         # Point OLS html dir to the correct locations
         sudo ln -sfn /usr/local/olspanel/mypanel/3rdparty /usr/local/lsws/Example/html/3rdparty
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
-        sudo ln -sf /usr/local/olspanel/webmail /usr/local/lsws/Example/html/webmail
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/lsws/Example/html/webmail
         sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail /usr/local/lsws/Example/html/3rdparty
     fi
 }
@@ -961,14 +974,12 @@ copy_vhconf_to_example() {
         echo "Target directory '$target_dir' does not exist. Creating it."
         mkdir -p "$target_dir"
         if [ $? -ne 0 ]; then
-            echo "Failed to create target directory '$target_dir'. Exiting."
+            echo "Failed to create target directory '$target_dir'."
             return 1
         fi
     fi
 
     # Copy the source file to the target directory
-    echo "Copying '$source_file' to '$target_file'..."
-        # Copy the source file to the target directory
     echo "Copying '$source_file' to '$target_file'..."
     cp "$source_file" "$target_file"
     if [ $? -ne 0 ]; then
@@ -979,30 +990,94 @@ copy_vhconf_to_example() {
         sed -i 's|docRoot                   \$VH_ROOT/html/default|docRoot                   \$VH_ROOT/html/|g' "$target_file"
         sed -i 's|indexFiles              index.html|indexFiles              index.html, index.php|g' "$target_file"
     fi
-   mkdir -p /usr/local/lsws/conf/vhosts/mypanel 
-   cp /root/item/move/conf/mypanel/vhconf.conf /usr/local/lsws/conf/vhosts/mypanel/vhconf.conf
-    echo "File copied successfully to '$target_file'."
-    # Inject /3rdparty OLS context if not present
-    VCONF='/usr/local/lsws/conf/vhosts/mypanel/vhconf.conf'
-    if [ -f "$VCONF" ] && ! grep -q 'context /3rdparty' "$VCONF"; then
-        sed -i 's|^context / {$|context \/3rdparty {\n  location                \/usr\/local\/olspanel\/mypanel\/3rdparty\n  allowBrowse             1\n  indexFiles              index.php\n  accessControl  {\n    allow                 *\n  }\n  addDefaultCharset       off\n}\n\ncontext \/ {|' "$VCONF"
-        echo "Added /3rdparty context to mypanel vhconf"
-    fi
 
-    # Add lsphp script handler mapping to mypanel vhost configuration
+    # Inject /phpmyadmin, /3rdparty/phpmyadmin, /3rdparty, /webmail, /3rdparty/rainloop contexts into Example vhconf
     python3 -c "
-import os
-v_conf = '/usr/local/lsws/conf/vhosts/mypanel/vhconf.conf'
-if os.path.exists(v_conf):
-    with open(v_conf, 'r') as f:
-        v_content = f.read()
-    target_sh = 'scripthandler  {\n  add                     lsapi:panelext panelext\n}'
-    replacement_sh = 'scripthandler  {\n  add                     lsapi:panelext panelext\n  add                     lsapi:lsphp php\n}'
-    if target_sh in v_content:
-        with open(v_conf, 'w') as f:
-            f.write(v_content.replace(target_sh, replacement_sh))
-        print('✅ Added lsphp scripthandler to mypanel vhost.')
+vconf = '$target_file'
+try:
+    with open(vconf, 'r') as f:
+        content = f.read()
+
+    contexts = '''
+context /phpmyadmin {
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/\"
+  }
+}
+
+context /3rdparty/phpmyadmin {
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/\"
+  }
+}
+
+context /3rdparty {
+  location                /usr/local/olspanel/mypanel/3rdparty
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+}
+
+context /webmail {
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/\"
+  }
+}
+
+context /3rdparty/rainloop {
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/\"
+  }
+}
+'''
+    if 'context /phpmyadmin' not in content:
+        with open(vconf, 'w') as f:
+            f.write(content.strip() + '\\n' + contexts.strip() + '\\n')
+        print('✅ [Configured] Added phpMyAdmin and webmail contexts to Example vhost.')
+except Exception as e:
+    print('Error configuring Example vhconf contexts:', e)
 "
+    echo "File copied successfully to '$target_file'."
 }
 
 install_all_lsphp_versions() {
