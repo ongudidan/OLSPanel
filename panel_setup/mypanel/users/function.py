@@ -963,7 +963,9 @@ def get_phpmyadmin_password(username):
     
     
 def password_save_file(username, data):
-    new_data = encode(data)
+    if not data:
+        return None
+    new_data = encode(str(data))
     django_root = settings.BASE_DIR
     file_path = os.path.join(django_root, 'etc', f"_{username}")
    
@@ -993,9 +995,11 @@ def get_fernet():
     return Fernet(fernet_key)
 
 def encode(data: str) -> str:
+    if data is None:
+        data = ""
     # Encrypt the string using Fernet
     f = get_fernet()
-    encrypted_bytes = f.encrypt(data.encode('utf-8'))
+    encrypted_bytes = f.encrypt(str(data).encode('utf-8'))
     # Prepend a random 5-character string for structural compatibility
     random_string = ''.join(random.choices(string.ascii_lowercase, k=5))
     return random_string + encrypted_bytes.decode('utf-8')

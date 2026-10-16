@@ -23,7 +23,7 @@
             <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
                 <i class="mdi mdi-check-decagram text-emerald-600 text-base"></i> Account Created Successfully
             </h4>
-            <a href="{% url 'user_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+            <a href="{% url 'user_list_all' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
                 <i class="mdi mdi-arrow-left"></i> Go to User Accounts
             </a>
         </div>
@@ -84,7 +84,7 @@
             </div>
 
             <div class="pt-2 flex items-center gap-3">
-                <a href="{% url 'user_list' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                <a href="{% url 'user_list_all' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
                     <i class="mdi mdi-account-multiple"></i> View All Users
                 </a>
             </div>
