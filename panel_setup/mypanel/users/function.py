@@ -1559,7 +1559,45 @@ def get_plugin_config_value(name, plugin_name):
         config = configparser.ConfigParser()
         config.optionxform = str  # preserve case
         config.read_string(content)
-        return config['DEFAULT'].get(name)
+        val = config['DEFAULT'].get(name)
+        if name == 'icon' and val:
+            clean_val = val.strip()
+            # If icon points to a media/icon file, verify it exists or fallback gracefully
+            if clean_val.startswith('/media/icon/'):
+                icon_file = os.path.basename(clean_val)
+                media_icon_dir = os.path.join(settings.BASE_DIR, 'media', 'icon')
+                icon_path = os.path.join(media_icon_dir, icon_file)
+                if not os.path.isfile(icon_path):
+                    stem, ext = os.path.splitext(icon_file)
+                    # Check if alternate extension exists (.svg, .png, .webp, .jpg)
+                    for alt_ext in ('.svg', '.png', '.webp', '.jpg'):
+                        alt_path = os.path.join(media_icon_dir, f"{stem}{alt_ext}")
+                        if os.path.isfile(alt_path):
+                            return f"/media/icon/{stem}{alt_ext}"
+                    # Check by plugin_name
+                    for alt_ext in ('.svg', '.png', '.webp', '.jpg'):
+                        alt_path = os.path.join(media_icon_dir, f"{plugin_name}{alt_ext}")
+                        if os.path.isfile(alt_path):
+                            return f"/media/icon/{plugin_name}{alt_ext}"
+                    # Auto-heal from 3rdparty dir if present
+                    thirdparty_svg = os.path.join(settings.BASE_DIR, '3rdparty', plugin_name, 'plugin_icon.svg')
+                    if os.path.isfile(thirdparty_svg):
+                        try:
+                            shutil.copy(thirdparty_svg, os.path.join(media_icon_dir, f"{plugin_name}.svg"))
+                            return f"/media/icon/{plugin_name}.svg"
+                        except Exception:
+                            pass
+                    thirdparty_png = os.path.join(settings.BASE_DIR, '3rdparty', plugin_name, 'plugin_icon.png')
+                    if os.path.isfile(thirdparty_png):
+                        try:
+                            shutil.copy(thirdparty_png, os.path.join(media_icon_dir, f"{plugin_name}.png"))
+                            return f"/media/icon/{plugin_name}.png"
+                        except Exception:
+                            pass
+                    # Ultimate fallback to generic extension.svg
+                    if os.path.isfile(os.path.join(media_icon_dir, 'extension.svg')):
+                        return '/media/icon/extension.svg'
+        return val
     except Exception as e:
         print(f"Error reading config '{plugin_name}': {e}")
     return None

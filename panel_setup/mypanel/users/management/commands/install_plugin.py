@@ -100,16 +100,35 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"🔍 Found plugin config: {plugin_conf_path}"))
             self.stdout.write(self.style.SUCCESS(f"📛 Plugin name: {plugin_name}"))
 
-            # Check for plugin_icon.png inside plugin_root
-            icon_found = False
-            for root, dirs, files in os.walk(plugin_root):
-                if 'plugin_icon.png' in files:
-                    icon_src = os.path.join(root, 'plugin_icon.png')
-                    icon_found = True
-                    break
+            # Check for icons inside plugin_root (both SVG and PNG supported)
+            icon_svg_src = None
+            icon_png_src = None
+            conf_icon_target_name = None
+            
+            # Extract icon target name from conf if specified
+            try:
+                with open(plugin_conf_path, 'r', encoding='utf-8') as cf:
+                    for line in cf:
+                        line = line.strip()
+                        if line.startswith('icon='):
+                            raw_icon = line.split('=', 1)[1].strip()
+                            if raw_icon:
+                                conf_icon_target_name = os.path.basename(raw_icon)
+            except Exception:
+                pass
 
-            if not icon_found:
-                raise Exception("❌ plugin_icon.png not found. Plugin installation aborted.")
+            for root, dirs, files in os.walk(plugin_root):
+                for f in files:
+                    lower_f = f.lower()
+                    if lower_f in ('plugin_icon.svg', f"{plugin_name}.svg") or (conf_icon_target_name and lower_f == conf_icon_target_name.lower() and lower_f.endswith('.svg')):
+                        if not icon_svg_src:
+                            icon_svg_src = os.path.join(root, f)
+                    elif lower_f in ('plugin_icon.png', f"{plugin_name}.png") or (conf_icon_target_name and lower_f == conf_icon_target_name.lower() and lower_f.endswith(('.png', '.webp', '.jpg', '.jpeg'))):
+                        if not icon_png_src:
+                            icon_png_src = os.path.join(root, f)
+
+            if not icon_svg_src and not icon_png_src:
+                raise Exception("❌ No plugin icon (plugin_icon.svg or plugin_icon.png) found. Plugin installation aborted.")
 
             # Prepare target directories
             base_3rdparty = os.path.join(settings.BASE_DIR, '3rdparty', plugin_name)
@@ -123,11 +142,14 @@ class Command(BaseCommand):
                 plugin_json_target = os.path.join(base_plugin, f"{plugin_name}.json")
                 shutil.move(plugin_json_path, plugin_json_target)
             # Move plugin files except config and icon
+            icon_src_paths = {p for p in (icon_svg_src, icon_png_src) if p}
             for root, dirs, files in os.walk(plugin_root):
                 for file in files:
                     full_path = os.path.join(root, file)
-                    if full_path == plugin_conf_path or file == 'plugin_icon.png':
+                    if full_path == plugin_conf_path or full_path in icon_src_paths:
                         continue  # Skip config and icon
+                    if file in ('plugin_icon.png', 'plugin_icon.svg'):
+                        continue
 
                     rel_path = os.path.relpath(full_path, plugin_root)
                     target_path = os.path.join(base_3rdparty, rel_path)
@@ -144,10 +166,41 @@ class Command(BaseCommand):
     
             self.stdout.write(self.style.SUCCESS(f"🧩 Plugin config moved to {plugin_conf_target}"))
 
-            # Copy icon file
-            icon_dest = os.path.join(media_icon_dir, f"{plugin_name}.png")
-            shutil.copy(icon_src, icon_dest)
-            self.stdout.write(self.style.SUCCESS(f"🖼️ Plugin icon copied to {icon_dest}"))
+            # Deploy icons to media_icon_dir with appropriate permissions
+            if icon_svg_src:
+                svg_dest = os.path.join(media_icon_dir, f"{plugin_name}.svg")
+                shutil.copy(icon_svg_src, svg_dest)
+                try:
+                    os.chmod(svg_dest, 0o644)
+                except Exception:
+                    pass
+                self.stdout.write(self.style.SUCCESS(f"🖼️ SVG plugin icon deployed to {svg_dest}"))
+
+            if icon_png_src:
+                png_dest = os.path.join(media_icon_dir, f"{plugin_name}.png")
+                shutil.copy(icon_png_src, png_dest)
+                try:
+                    os.chmod(png_dest, 0o644)
+                except Exception:
+                    pass
+                self.stdout.write(self.style.SUCCESS(f"🖼️ PNG plugin icon deployed to {png_dest}"))
+
+            # If conf specified a specific icon filename (e.g. icon=/media/icon/custom_name.ext), copy to that exact name as well
+            if conf_icon_target_name:
+                custom_dest = os.path.join(media_icon_dir, conf_icon_target_name)
+                if not os.path.exists(custom_dest):
+                    if conf_icon_target_name.endswith('.svg') and icon_svg_src:
+                        shutil.copy(icon_svg_src, custom_dest)
+                        try:
+                            os.chmod(custom_dest, 0o644)
+                        except Exception:
+                            pass
+                    elif icon_png_src:
+                        shutil.copy(icon_png_src, custom_dest)
+                        try:
+                            os.chmod(custom_dest, 0o644)
+                        except Exception:
+                            pass
 
             # --- NEW: Look for install.cmd and run it ---
             cmd_file = os.path.join(base_3rdparty, 'plugin.cmd')
