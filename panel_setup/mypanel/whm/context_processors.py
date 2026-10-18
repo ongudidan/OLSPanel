@@ -36,8 +36,25 @@ def dynamic_plugins(request):
     }
     
     
+from users.database import get_user_data_by_id
+
 def admin_user_context(request):
+    admin_user = getattr(request, 'admin_user', None)
+    if not admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+        if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_staff', False):
+            admin_user = request.user
+        else:
+            u_data = get_user_data_by_id(request.user.id)
+            if u_data and u_data.get('whm') == 1:
+                admin_user = request.user
+
+    is_impersonating = False
+    if admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+        if request.user.id != admin_user.id:
+            is_impersonating = True
+
     return {
-        'admin_user': getattr(request, 'admin_user', None),
-        'is_admin': bool(getattr(request, 'admin_user', None))
+        'admin_user': admin_user,
+        'is_admin': bool(admin_user and not is_impersonating),
+        'is_impersonating': is_impersonating
     }

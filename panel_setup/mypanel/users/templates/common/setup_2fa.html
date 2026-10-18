@@ -20,7 +20,7 @@
                         Disabled
                     </span>
                 {% endif %}
-                <a href="{{ dashboard_url|default:'/' }}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors ml-2">
+                <a href="{% if dashboard_url %}{{ dashboard_url }}{% elif is_admin %}/whm/{% else %}/{% endif %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors ml-2">
                     <i class="mdi mdi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>

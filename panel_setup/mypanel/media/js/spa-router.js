@@ -169,6 +169,13 @@
                 if (path.endsWith(ext)) return false;
             }
 
+            // If switching between WHM and User Panel layouts, do full navigation so outer sidebar switches
+            const currentIsWhm = window.location.pathname.startsWith('/whm');
+            const targetIsWhm = targetUrl.pathname.startsWith('/whm');
+            if (currentIsWhm !== targetIsWhm) {
+                return false;
+            }
+
             return true;
         } catch (e) {
             return false;
@@ -574,6 +581,15 @@
             const finalUrl = response.url || cleanUrl;
             const finalParsed = new URL(finalUrl, window.location.origin);
             if (finalParsed.pathname.includes('/login') || finalParsed.host !== window.location.host) {
+                TopLoader.done();
+                window.location.href = finalUrl;
+                return;
+            }
+
+            // If a server redirect switched between WHM and non-WHM layouts, full reload
+            const currentIsWhm = window.location.pathname.startsWith('/whm');
+            const finalIsWhm = finalParsed.pathname.startsWith('/whm');
+            if (currentIsWhm !== finalIsWhm) {
                 TopLoader.done();
                 window.location.href = finalUrl;
                 return;

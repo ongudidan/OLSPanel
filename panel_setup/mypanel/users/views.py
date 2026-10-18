@@ -47,6 +47,26 @@ logger = CpLogger()
 @login_required
 @admincheck
 def home(request):
+    # If the logged-in user is admin/WHM and not impersonating a regular user, redirect to WHM dashboard
+    is_impersonating = False
+    admin_user = getattr(request, 'admin_user', None)
+    if admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+        if request.user.id != admin_user.id:
+            is_impersonating = True
+
+    if not is_impersonating:
+        user_is_whm = False
+        if request.user.is_authenticated:
+            if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_staff', False):
+                user_is_whm = True
+            else:
+                user_data = get_user_data_by_id(request.user.id)
+                if user_data and user_data.get('whm') == 1:
+                    user_is_whm = True
+        
+        if admin_user or user_is_whm:
+            return redirect('/whm/')
+
     # Get the logged-in user's username
     username_string = request.user.username
 

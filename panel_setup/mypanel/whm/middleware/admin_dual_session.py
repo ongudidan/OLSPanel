@@ -28,13 +28,35 @@ class SeparateAdminSessionMiddleware:
             User = get_user_model()
             try:
                 request.admin_user = User.objects.get(id=admin_user_id)
-                if hasattr(request, 'user') and not request.user.is_authenticated:
-                    request.user = request.admin_user
             except User.DoesNotExist:
                 request.admin_user = None
                 request.admin_session.flush()
         else:
             request.admin_user = None
+
+        # Fallback 1: If admin_user is authenticated via admin session, but request.user is not authenticated,
+        # set request.user = request.admin_user
+        if request.admin_user and hasattr(request, 'user') and not request.user.is_authenticated:
+            request.user = request.admin_user
+
+        # Fallback 2: If standard request.user is authenticated and is admin (whm=1 or superuser/staff),
+        # but request.admin_user is not set (e.g. session_admin cookie missing/expired),
+        # automatically populate request.admin_user and sync the admin session
+        if not request.admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+            is_whm_admin = False
+            if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_staff', False):
+                is_whm_admin = True
+            else:
+                user_data = get_user_data_by_id(request.user.id)
+                if user_data and user_data.get('whm') == 1:
+                    is_whm_admin = True
+            
+            if is_whm_admin:
+                request.admin_user = request.user
+                if hasattr(request, 'admin_session'):
+                    request.admin_session['_auth_user_id'] = str(request.user.id)
+                    request.admin_session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+                    request.admin_session.modified = True
 
     def handle_admin_session_response(self, request, response):
         """Handle admin session cookie"""
