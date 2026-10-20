@@ -18,6 +18,8 @@ class Command(BaseCommand):
         file_url = kwargs['file']
         tmp_dir = '/home/tmp'
         os.makedirs(tmp_dir, exist_ok=True)
+        local_path = None
+        extract_path = None
 
         try:
             # Download or copy logic (unchanged) ...
@@ -185,6 +187,23 @@ class Command(BaseCommand):
                     pass
                 self.stdout.write(self.style.SUCCESS(f"🖼️ PNG plugin icon deployed to {png_dest}"))
 
+            # Ensure icons are also available in 3rdparty directory for plugin.cmd scripts
+            if icon_svg_src and os.path.exists(icon_svg_src):
+                svg_3rdparty = os.path.join(base_3rdparty, 'plugin_icon.svg')
+                try:
+                    shutil.copy(icon_svg_src, svg_3rdparty)
+                    os.chmod(svg_3rdparty, 0o644)
+                except Exception:
+                    pass
+
+            if icon_png_src and os.path.exists(icon_png_src):
+                png_3rdparty = os.path.join(base_3rdparty, 'plugin_icon.png')
+                try:
+                    shutil.copy(icon_png_src, png_3rdparty)
+                    os.chmod(png_3rdparty, 0o644)
+                except Exception:
+                    pass
+
             # If conf specified a specific icon filename (e.g. icon=/media/icon/custom_name.ext), copy to that exact name as well
             if conf_icon_target_name:
                 custom_dest = os.path.join(media_icon_dir, conf_icon_target_name)
@@ -236,21 +255,28 @@ class Command(BaseCommand):
                 result = subprocess.run(['bash', cmd_file], capture_output=True, text=True)
                 
                 if result.returncode != 0:
-                    self.stderr.write(self.style.ERROR(f"❌ plugin.cmd failed:\n{result.stderr}"))
+                    err_msg = result.stderr.strip() or result.stdout.strip()
+                    self.stderr.write(self.style.ERROR(f"❌ plugin.cmd failed:\n{err_msg}"))
                     raise Exception("plugin.cmd script returned error.")
                 else:
                     os.remove(cmd_file)
                     self.stdout.write(self.style.SUCCESS(f"✅ plugin.cmd executed successfully:\n{result.stdout}"))
                     
-                    
-            if os.path.exists(local_path):
-                os.remove(local_path)
-                self.stdout.write(f"🗑️ Removed archive: {local_path}")
-
-            if os.path.exists(extract_path):
-                shutil.rmtree(extract_path)
-                self.stdout.write(f"🗑️ Removed extracted folder: {extract_path}")
             self.stdout.write(self.style.SUCCESS("🎉 Plugin installed successfully."))
 
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"❌ Error installing plugin: {str(e)}"))
+        finally:
+            if local_path and os.path.exists(local_path):
+                try:
+                    os.remove(local_path)
+                    self.stdout.write(f"🗑️ Removed archive: {local_path}")
+                except Exception:
+                    pass
+
+            if extract_path and os.path.exists(extract_path):
+                try:
+                    shutil.rmtree(extract_path)
+                    self.stdout.write(f"🗑️ Removed extracted folder: {extract_path}")
+                except Exception:
+                    pass
