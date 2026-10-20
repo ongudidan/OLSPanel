@@ -38,19 +38,22 @@ def php_server(request, php_file, PHP_USER='root', PHP_GROUP='root'):
     if not os.path.exists(php_script_path):
         raise Http404()
 
-    if request.user:
+    if getattr(request, 'user', None) and request.user.is_authenticated:
         user_data = get_user_data_by_id(request.user.id)
-        whm = user_data.get('whm', 0)
-    elif request.admin_user:
+        whm = user_data.get('whm', 0) if user_data else (1 if request.user.is_superuser or request.user.is_staff else 0)
+    elif getattr(request, 'admin_user', None):
         user_data = get_user_data_by_id(request.admin_user.id)
-        whm = user_data.get('whm', 0)
+        whm = user_data.get('whm', 0) if user_data else (1 if request.admin_user.is_superuser or request.admin_user.is_staff else 0)
     else:
+        user_data = None
         whm = 0
         
     if whm == 1:
         panel_user = 'root'
-    else:    
+    elif getattr(request, 'user', None) and request.user.is_authenticated:    
         panel_user = request.user.username 
+    else:
+        panel_user = 'nobody' 
     
     env = os.environ.copy()
     env["REQUEST_METHOD"] = request.method
@@ -238,20 +241,23 @@ def php_serverx(request, php_file, PHP_USER='root', PHP_GROUP='root'):
         raise Http404()
 
 
-    if request.user:
+    if getattr(request, 'user', None) and request.user.is_authenticated:
         user_data = get_user_data_by_id(request.user.id)
-        whm = user_data.get('whm', 0)
-    elif request.admin_user:
+        whm = user_data.get('whm', 0) if user_data else (1 if request.user.is_superuser or request.user.is_staff else 0)
+    elif getattr(request, 'admin_user', None):
         user_data = get_user_data_by_id(request.admin_user.id)
-        whm = user_data.get('whm', 0)
+        whm = user_data.get('whm', 0) if user_data else (1 if request.admin_user.is_superuser or request.admin_user.is_staff else 0)
     else:
+        user_data = None
         whm = 0
         
         
     if whm == 1:
         panel_user = 'root'
-    else:    
+    elif getattr(request, 'user', None) and request.user.is_authenticated:    
         panel_user = request.user.username 
+    else:
+        panel_user = 'nobody' 
     
     env = os.environ.copy()
     env["REQUEST_METHOD"] = request.method
