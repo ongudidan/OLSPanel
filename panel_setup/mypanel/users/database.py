@@ -2049,6 +2049,11 @@ def restore_backup_xml(backup_folder,passwords,category):
                     vhost_dir = f"/usr/local/lsws/conf/vhosts/{domain_name}"
                     os.makedirs(vhost_dir, exist_ok=True)
                     shutil.copy(vhost_file, os.path.join(vhost_dir, "vhost.conf"))
+                    try:
+                        from users.server_core import repair_vhost_config
+                        repair_vhost_config(os.path.join(vhost_dir, "vhost.conf"))
+                    except Exception:
+                        pass
                     
                     if category == 'cyberpanel':
                         vhost_directory = f"/usr/local/lsws/conf/vhosts/{domain_name}"

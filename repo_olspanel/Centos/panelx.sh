@@ -794,7 +794,7 @@ try:
     content = re.sub(r"[ \t]*map\s+mypanel\s+[^\n]+\n", "", content)
 
     # Ensure restrained 0 for virtualhosts
-    pattern = r"(virtualhost\s+(?:Example|panel_[^{]+)\s*\{[\s\S]*?restrained\s+)1"
+    pattern = r"(virtualhost\s+[^{]+\s*\{[\s\S]*?restrained\s+)1"
     content = re.sub(pattern, r"\g<1>0", content)
 
     # 3. Detect installed lsphp version and point extprocessor lsphp to it
@@ -1411,6 +1411,15 @@ fix_dovecot_log_permissions() {
 }
 
 
+python3 -c "
+import sys
+sys.path.append('/usr/local/olspanel/mypanel')
+try:
+    from users.server_core import repair_all_vhosts_and_contexts
+    repair_all_vhosts_and_contexts()
+except Exception as e:
+    pass
+"
 display_success_message() {
     # Use tput to set colors
     GREEN=$(tput setaf 2)  # Green color
@@ -1765,6 +1774,15 @@ if [[ ("$OS_NAME" == "centos" || "$OS_NAME" == "almalinux") && ("$OS_VERSION" ==
         /root/venv/bin/python3 /usr/local/lsws/Example/html/mypanel/manage.py install_olsapp
     fi
 
+python3 -c "
+import sys
+sys.path.append('/usr/local/olspanel/mypanel')
+try:
+    from users.server_core import repair_all_vhosts_and_contexts
+    repair_all_vhosts_and_contexts()
+except Exception as e:
+    pass
+"
 display_success_message
 sudo rm -rf /root/item
 sudo rm -f /root/item/mysqlPassword

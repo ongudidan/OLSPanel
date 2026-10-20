@@ -2657,6 +2657,17 @@ def phpmyadmin_view(request):
         if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
             # Redirect to OLS on port 443 (which can serve PHP), not the Django panel port
             server_host = request.META.get('HTTP_HOST', 'localhost').split(':')[0]
+            # Ensure target virtual host configuration has required phpmyadmin contexts and valid PHP handler
+            target_vconf = f"/usr/local/lsws/conf/vhosts/{server_host}/vhost.conf"
+            if not os.path.isfile(target_vconf):
+                target_vconf = f"/usr/local/lsws/conf/vhosts/{server_host}/vhconf.conf"
+            if os.path.isfile(target_vconf):
+                try:
+                    from users.server_core import repair_vhost_config, restart_openlitespeed
+                    if repair_vhost_config(target_vconf):
+                        restart_openlitespeed()
+                except Exception:
+                    pass
             phpmyadmin_url = f"https://{server_host}/3rdparty/phpmyadmin/auto_login.php?password={encrypted_json}"
         else:
             phpmyadmin_url = f"/3rdparty/phpmyadmin/auto_login.php?password={encrypted_json}"

@@ -778,7 +778,7 @@ virtualhost {domain_name} {{
   configFile              $SERVER_ROOT/conf/vhosts/$VH_NAME/vhost.conf
   allowSymbolLink         1
   enableScript            1
-  restrained              1
+  restrained              0
   user                    {username}
   group                   {username}
 }}
@@ -813,6 +813,325 @@ virtualhost {domain_name} {{
 
 
 
+VHOST_DEFAULT_CONTEXTS = """
+context /phpmyadmin {
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/"
+  }
+}
+
+context /3rdparty/phpmyadmin {
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/"
+  }
+}
+
+context /webmail {
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/"
+  }
+}
+
+context /3rdparty/rainloop {
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/"
+  }
+}
+"""
+
+
+def get_installed_lsphp_versions():
+    """Detect available lsphp versions installed on the system."""
+    candidates = ["85", "84", "83", "82", "81", "80", "74"]
+    installed = [v for v in candidates if os.path.isfile(f"/usr/local/lsws/lsphp{v}/bin/lsphp") and os.access(f"/usr/local/lsws/lsphp{v}/bin/lsphp", os.X_OK)]
+    return installed
+
+
+def repair_vhost_config(cfile):
+    """Ensure a virtual host config has phpmyadmin/webmail contexts and points to an installed lsphp binary."""
+    if not os.path.isfile(cfile):
+        return False
+
+    try:
+        with open(cfile, "r", encoding="utf-8") as f:
+            content = f.read()
+    except Exception as e:
+        print(f"Error reading {cfile}: {e}")
+        return False
+
+    changed = False
+
+    # 1. Add missing contexts individually
+    missing_contexts = []
+    if "context /phpmyadmin" not in content:
+        missing_contexts.append("""context /phpmyadmin {
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/"
+  }
+}""")
+
+    if "context /3rdparty/phpmyadmin" not in content:
+        missing_contexts.append("""context /3rdparty/phpmyadmin {
+  location                /usr/local/lsws/Example/html/phpmyadmin
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/"
+  }
+}""")
+
+    if not re.search(r"context\s+/3rdparty\s*\{", content):
+        missing_contexts.append("""context /3rdparty {
+  location                /usr/local/olspanel/mypanel/3rdparty
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+}""")
+
+    if "context /webmail" not in content:
+        missing_contexts.append("""context /webmail {
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/"
+  }
+}""")
+
+    if "context /3rdparty/rainloop" not in content:
+        missing_contexts.append("""context /3rdparty/rainloop {
+  location                /usr/local/lsws/Example/html/webmail
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/"
+  }
+}""")
+
+    if missing_contexts:
+        content = content.rstrip() + "\n\n" + "\n\n".join(missing_contexts) + "\n"
+        changed = True
+
+    # 2. Fix missing lsphp binaries in extprocessor
+    installed = get_installed_lsphp_versions()
+    fallback_php = "82" if "82" in installed else (installed[-1] if installed else "82")
+
+    def replace_lsphp_path(match):
+        nonlocal changed
+        full_path = match.group(1)
+        check_path = full_path if full_path.startswith("/") else f"/usr/local/lsws/{full_path}"
+        if not os.path.isfile(check_path):
+            changed = True
+            new_path = f"/usr/local/lsws/lsphp{fallback_php}/bin/lsphp"
+            return f"path                    {new_path}"
+        return match.group(0)
+
+    content = re.sub(r"path\s+([^\s]+lsphp\d+/bin/lsphp)", replace_lsphp_path, content)
+
+    # 3. Fix missing lsphp in scripthandler if referencing raw lsphpXX that is not installed
+    def replace_raw_scripthandler(match):
+        nonlocal changed
+        v = match.group(1)
+        if v not in installed:
+            if not re.search(rf"extprocessor\s+lsphp{v}\s*\{{", content):
+                changed = True
+                return f"add                     lsapi:lsphp{fallback_php} php"
+        return match.group(0)
+
+    content = re.sub(r"add\s+lsapi:lsphp(\d+)\s+php", replace_raw_scripthandler, content)
+
+    if changed:
+        try:
+            with open(cfile, "w", encoding="utf-8") as f:
+                f.write(content)
+            print(f"Repaired vhost config: {cfile}")
+            return True
+        except Exception as e:
+            print(f"Error saving repaired vhost config {cfile}: {e}")
+            return False
+
+    return False
+
+
+def repair_all_vhosts_and_contexts():
+    """Scans all virtual host configurations, injects missing contexts, repairs broken PHP paths, ensures symlinks, and sets restrained 0."""
+    vhost_base = "/usr/local/lsws/conf/vhosts"
+    httpd_conf = "/usr/local/lsws/conf/httpd_config.conf"
+    updated_count = 0
+
+    # 1. Ensure Example html symlinks exist
+    try:
+        ex_dir = "/usr/local/lsws/Example/html"
+        pma_target = "/usr/local/olspanel/mypanel/3rdparty/phpmyadmin"
+        rl_target = "/usr/local/olspanel/mypanel/3rdparty/rainloop"
+        thirdparty_target = "/usr/local/olspanel/mypanel/3rdparty"
+        if os.path.isdir(ex_dir):
+            if os.path.isdir(thirdparty_target) and not os.path.exists(os.path.join(ex_dir, "3rdparty")):
+                try:
+                    os.symlink(thirdparty_target, os.path.join(ex_dir, "3rdparty"))
+                    updated_count += 1
+                except Exception:
+                    pass
+            if os.path.isdir(pma_target) and not os.path.exists(os.path.join(ex_dir, "phpmyadmin")):
+                try:
+                    os.symlink(pma_target, os.path.join(ex_dir, "phpmyadmin"))
+                    updated_count += 1
+                except Exception:
+                    pass
+            if os.path.isdir(rl_target) and not os.path.exists(os.path.join(ex_dir, "webmail")):
+                try:
+                    os.symlink(rl_target, os.path.join(ex_dir, "webmail"))
+                    updated_count += 1
+                except Exception:
+                    pass
+    except Exception as e:
+        print(f"Error ensuring Example symlinks: {e}")
+
+    # 2. Repair all vhost.conf files
+    if os.path.isdir(vhost_base):
+        try:
+            for vhost_name in os.listdir(vhost_base):
+                if vhost_name in ["Example", "preview", "mypanel"]:
+                    continue
+                cfile = os.path.join(vhost_base, vhost_name, "vhost.conf")
+                if not os.path.isfile(cfile):
+                    cfile = os.path.join(vhost_base, vhost_name, "vhconf.conf")
+                if os.path.isfile(cfile):
+                    if repair_vhost_config(cfile):
+                        updated_count += 1
+        except Exception as e:
+            print(f"Error scanning vhosts directory: {e}")
+
+    # 3. Fix restrained in httpd_config.conf for all virtualhosts
+    if os.path.isfile(httpd_conf):
+        try:
+            with open(httpd_conf, "r", encoding="utf-8") as f:
+                hcontent = f.read()
+            pattern = r"(virtualhost\s+[^{]+\s*\{[\s\S]*?restrained\s+)1"
+            new_hcontent = re.sub(pattern, r"\g<1>0", hcontent)
+
+            installed = get_installed_lsphp_versions()
+            if installed:
+                target_v = "82" if "82" in installed else installed[-1]
+                new_hcontent = re.sub(
+                    r"(extprocessor\s+lsphp\s*\{[\s\S]*?path\s+)lsphp\d+/bin/lsphp",
+                    rf"\g<1>lsphp{target_v}/bin/lsphp",
+                    new_hcontent
+                )
+
+            if new_hcontent != hcontent:
+                with open(httpd_conf, "w", encoding="utf-8") as f:
+                    f.write(new_hcontent)
+                updated_count += 1
+        except Exception as e:
+            print(f"Error updating restrained in httpd_config.conf: {e}")
+
+    if updated_count > 0:
+        restart_openlitespeed()
+        return True
+
+    return False
+
+
 def create_vhost_file(domain_name, username, document_root="public_html"):
     """Create a vhost directory and configuration file for the specified domain."""
     # Define the path for the virtual host directory and configuration file
@@ -837,6 +1156,9 @@ def create_vhost_file(domain_name, username, document_root="public_html"):
         except Exception as e:
             print(f"Failed to create directory: {str(e)}")  # Debug message
             return False  # Indicate failure
+
+    installed_phps = get_installed_lsphp_versions()
+    target_php = "82" if "82" in installed_phps else (installed_phps[-1] if installed_phps else "82")
 
     # Check if the vhost.conf file exists
     if not os.path.isfile(vhost_file_path):
@@ -879,7 +1201,7 @@ module cache {{
 }}
 
 scripthandler  {{
-  add                     lsapi:lsphp82 php
+  add                     lsapi:lsphp{target_php} php
 }}
 
 
@@ -966,8 +1288,19 @@ context /3rdparty/phpmyadmin {{
   addDefaultCharset       off
 
   phpIniOverride  {{
-    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/"
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/phpmyadmin/:/usr/local/lsws/Example/html/"
   }}
+}}
+
+context /3rdparty {{
+  location                /usr/local/olspanel/mypanel/3rdparty
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {{
+    allow                 *
+  }}
+  addDefaultCharset       off
 }}
 
 vhssl  {{
@@ -982,9 +1315,9 @@ vhssl  {{
   enableStapling          1
   ocspRespMaxAge          86400
 }}
-extprocessor lsphp82 {{
+extprocessor lsphp{target_php} {{
   type                    lsapi
-  address                 uds://tmp/lshttpd/lsphp82.sock
+  address                 uds://tmp/lshttpd/lsphp{target_php}.sock
   maxConns                10
   env                     LSAPI_CHILDREN=10
   initTimeout             60
@@ -993,7 +1326,7 @@ extprocessor lsphp82 {{
   pcKeepAliveTimeout      1
   respBuffer              0
   autoStart               1
-  path                    /usr/local/lsws/lsphp82/bin/lsphp
+  path                    /usr/local/lsws/lsphp{target_php}/bin/lsphp
   extUser                 {username}
   extGroup                {username}
   memSoftLimit            2047M
@@ -1013,6 +1346,9 @@ extprocessor lsphp82 {{
             return False  # Indicate failure
     else:
         print(f"Vhost file '{vhost_file_path}' already exists.")  # Debug message
+        # Ensure existing vhosts are repaired and verified
+        if repair_vhost_config(vhost_file_path):
+            restart_openlitespeed()
         return False  # Indicate that the file already exists
         
 

@@ -637,7 +637,7 @@ try:
     content = re.sub(r"[ \t]*map\s+mypanel\s+[^\n]+\n", "", content)
 
     # Ensure restrained 0 for virtualhosts
-    pattern = r"(virtualhost\s+(?:Example|panel_[^{]+)\s*\{[\s\S]*?restrained\s+)1"
+    pattern = r"(virtualhost\s+[^{]+\s*\{[\s\S]*?restrained\s+)1"
     content = re.sub(pattern, r"\g<1>0", content)
 
     # 3. Detect installed lsphp version and point extprocessor lsphp to it
@@ -1203,6 +1203,15 @@ fix_dovecot_log_permissions() {
 }
 
 
+python3 -c "
+import sys
+sys.path.append('/usr/local/olspanel/mypanel')
+try:
+    from users.server_core import repair_all_vhosts_and_contexts
+    repair_all_vhosts_and_contexts()
+except Exception as e:
+    pass
+"
 display_success_message() {
 
     GREEN='\033[38;5;83m'
@@ -1331,6 +1340,15 @@ cp /root/item/move/conf/olspanel.sh /etc/profile.d
 python3 /usr/local/lsws/Example/html/mypanel/manage.py reset_admin_password "$(get_password_from_file "/root/db_credentials_panel.txt")"
 add_backup_cronjobs
 sudo apt-get install libwww-perl -y
+python3 -c "
+import sys
+sys.path.append('/usr/local/olspanel/mypanel')
+try:
+    from users.server_core import repair_all_vhosts_and_contexts
+    repair_all_vhosts_and_contexts()
+except Exception as e:
+    pass
+"
 display_success_message
 sudo systemctl stop systemd-resolved >/dev/null 2>&1
 sudo systemctl disable systemd-resolved >/dev/null 2>&1
