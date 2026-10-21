@@ -34,33 +34,44 @@ if [ ! -f "/etc/dovecot/cert.pem" ]; then
     chmod 644 /etc/dovecot/cert.pem
 fi
 
-wget -qO /etc/dovecot/dovecot.conf \
-https://ongudidan.github.io/OLSPanel/extra/dovecot/dovecot.conf
+# Detect Dovecot Version
+RAW_VERSION=$(dovecot --version 2>/dev/null | awk '{print $1}' | cut -d'-' -f1)
+VERSION=$(echo "$RAW_VERSION" | grep -oE '^[0-9]+(\.[0-9]+)+')
 
-
-# Permissions fix
-chmod 644 /etc/dovecot/dovecot.conf
-
-echo "Configs updated successfully."
-
-
-# Load DB password
-if [ -f "/root/db_credentials_panel.txt" ]; then
-    PASSWORD=$(cat /root/db_credentials_panel.txt)
-
-    sed -i "s|%password%|$PASSWORD|g" /etc/dovecot/dovecot.conf
-fi
-
-# Get full version
-VERSION=$(dovecot --version | cut -d'-' -f1)
-
-echo "Dovecot version: $VERSION"
-
-sed -i "s|%version%|$VERSION|g" /etc/dovecot/dovecot.conf
+echo "Dovecot version detected: $VERSION (raw: $RAW_VERSION)"
 
 # Check version >= 2.4
-if echo "$VERSION" | awk -F. '{exit !($1==2 && $2>=4)}'; then
-    echo "Dovecot 2.4+ detected, starting service..."
+if echo "$VERSION" | awk -F. '{exit !($1>2 || ($1==2 && $2>=4))}'; then
+    echo "Dovecot 2.4+ detected, applying 2.4 configuration..."
+
+    wget -qO /etc/dovecot/dovecot.conf \
+    https://ongudidan.github.io/OLSPanel/extra/dovecot/dovecot.conf
+
+    chmod 644 /etc/dovecot/dovecot.conf
+
+    # Load DB password
+    PASSWORD=""
+    if [ -f "/root/db_credentials_panel.txt" ]; then
+        PASSWORD=$(cat /root/db_credentials_panel.txt)
+    elif [ -f "/usr/local/olspanel/mypanel/user_management/settings.py" ]; then
+        PASSWORD=$(python3 -c "
+try:
+    import sys; sys.path.append('/usr/local/olspanel/mypanel')
+    from user_management.settings import DATABASES
+    print(DATABASES['default']['PASSWORD'])
+except:
+    pass
+" 2>/dev/null)
+    fi
+
+    if [ -n "$PASSWORD" ]; then
+        sed -i "s|%password%|$PASSWORD|g" /etc/dovecot/dovecot.conf
+    fi
+
+    sed -i "s|%version%|$VERSION|g" /etc/dovecot/dovecot.conf
+
+    # Ensure version string in dovecot.conf contains only numbers and dots
+    sed -i -E 's/^(dovecot_(config|storage)_version\s*=\s*[0-9]+(\.[0-9]+)+).*/\1/' /etc/dovecot/dovecot.conf
 
     systemctl restart dovecot
 
@@ -71,5 +82,6 @@ if echo "$VERSION" | awk -F. '{exit !($1==2 && $2>=4)}'; then
         journalctl -u dovecot -n 50 --no-pager
     fi
 else
-    echo "Dovecot version too old: $VERSION"
+    echo "Dovecot version is 2.3 or older ($VERSION). Ensuring service is running..."
+    systemctl restart dovecot
 fi

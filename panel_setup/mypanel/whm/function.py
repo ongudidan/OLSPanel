@@ -1193,6 +1193,18 @@ def service_operation(service_name, action):
             
             err = result.stderr.strip() or result.stdout.strip()
             last_error = err
+
+            # Auto-heal dovecot if start/restart failed
+            if 'dovecot' in target.lower() and action in ['start', 'restart']:
+                try:
+                    from users.server_core import repair_dovecot_config
+                    if repair_dovecot_config():
+                        retry_res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=15)
+                        if retry_res.returncode == 0:
+                            return {'status': 'success', 'message': f'Service {target} repaired and {action}ed successfully.'}
+                except Exception:
+                    pass
+
             # If unit not found, continue loop to try fallback candidates
             if "not found" in err.lower() or "could not be found" in err.lower():
                 continue

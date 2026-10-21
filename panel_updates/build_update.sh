@@ -67,6 +67,20 @@ if os.path.exists(mypanel_dir):
     print("✅ Created panel_updates/panel_setup.zip successfully!")
 else:
     print("❌ Error: Panel source directory 'mypanel' not found.")
+
+# 4. Create root panel_setup.zip (used for full fresh installations)
+root_panel_zip = os.path.join(base_dir, "panel_setup.zip")
+panel_setup_dir = os.path.join(base_dir, "panel_setup")
+if os.path.exists(panel_setup_dir):
+    with zipfile.ZipFile(root_panel_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(panel_setup_dir):
+            for file in files:
+                if file.endswith(".pyc") or "__pycache__" in root or file in ["update", "license.key"]:
+                    continue
+                full_p = os.path.join(root, file)
+                arc_p = os.path.relpath(full_p, panel_setup_dir)
+                zf.write(full_p, arc_p)
+    print("✅ Created root panel_setup.zip successfully!")
 EOF
 
 echo "🎉 Build Complete. Distribution archives are up to date."

@@ -1125,6 +1125,13 @@ def repair_all_vhosts_and_contexts():
         except Exception as e:
             print(f"Error updating restrained in httpd_config.conf: {e}")
 
+    # 4. Ensure Dovecot configuration is valid
+    try:
+        if repair_dovecot_config():
+            updated_count += 1
+    except Exception as e:
+        print(f"Error checking Dovecot configuration: {e}")
+
     if updated_count > 0:
         restart_openlitespeed()
         return True
@@ -2108,13 +2115,59 @@ def issue_ssl_certificate(domain: str, webroot_path: str) -> bool:
 
 
 def get_dovecot_version():
-    result = subprocess.run(["dovecot", "--version"], capture_output=True, text=True)
-    return result.stdout.strip().split()[0].split("-")[0]
+    try:
+        result = subprocess.run(["dovecot", "--version"], capture_output=True, text=True)
+        raw = result.stdout.strip().split()[0].split("-")[0]
+        clean = re.search(r"(\d+(\.\d+)+)", raw)
+        return clean.group(1) if clean else raw
+    except Exception:
+        return "2.3.0"
 
 def is_dovecot_24_plus():
     version = get_dovecot_version()
-    major, minor = map(int, version.split(".")[:2])
-    return (major > 2) or (major == 2 and minor >= 4)
+    try:
+        parts = [int(p) for p in version.split(".")[:2]]
+        major = parts[0]
+        minor = parts[1] if len(parts) > 1 else 0
+        return (major > 2) or (major == 2 and minor >= 4)
+    except Exception:
+        return False
+
+def repair_dovecot_config():
+    """Ensure dovecot.conf has valid version syntax and required SSL files."""
+    conf_path = '/etc/dovecot/dovecot.conf'
+    if not os.path.isfile(conf_path):
+        return False
+
+    try:
+        with open(conf_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        changed = False
+
+        # Fix invalid dovecot_config_version (e.g. 2.4.2 (0962ed2104) -> 2.4.2)
+        def fix_version(match):
+            nonlocal changed
+            prefix = match.group(1)
+            raw_ver = match.group(2)
+            clean_match = re.search(r'(\d+(\.\d+)+)', raw_ver)
+            clean_ver = clean_match.group(1) if clean_match else raw_ver.split()[0].split('-')[0].strip()
+            if raw_ver.strip() != clean_ver:
+                changed = True
+            return f"{prefix}{clean_ver}"
+
+        new_content = re.sub(r'^(dovecot_(?:config|storage)_version\s*=\s*)([^\n]+)', fix_version, content, flags=re.MULTILINE)
+
+        if changed or new_content != content:
+            with open(conf_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            print("Repaired dovecot.conf configuration versions.")
+            prefix = ["sudo"] if hasattr(os, 'geteuid') and os.geteuid() != 0 else []
+            subprocess.run(prefix + ["systemctl", "restart", "dovecot"], check=False)
+            return True
+    except Exception as e:
+        print(f"Error repairing dovecot config: {e}")
+    return False
 
 def email_ssl(domain):
     file_path = '/etc/dovecot/dovecot.conf'
