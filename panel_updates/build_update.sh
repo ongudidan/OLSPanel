@@ -10,6 +10,14 @@ echo "📦 Packaging Custom OLSPanel Update & Plugins..."
 mkdir -p "${UPDATES_DIR}"
 mkdir -p "${PROJECT_ROOT}/plugin"
 
+# Optional: update version if passed as argument (e.g., ./build_update.sh 1.0.2)
+NEW_VERSION="$1"
+if [ -n "${NEW_VERSION}" ]; then
+    echo "🏷️  Setting version to ${NEW_VERSION} in panel_setup/mypanel/etc/version..."
+    mkdir -p "${PROJECT_ROOT}/panel_setup/mypanel/etc"
+    echo "${NEW_VERSION}" > "${PROJECT_ROOT}/panel_setup/mypanel/etc/version"
+fi
+
 # Compile Tailwind CSS bundle
 if command -v npx &> /dev/null && [ -d "${PROJECT_ROOT}/panel_setup/mypanel" ]; then
     echo "🎨 Compiling Tailwind CSS..."

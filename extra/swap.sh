@@ -84,3 +84,11 @@ chmod +x /usr/local/bin/olspanel
         fi
 
 install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/phpmyadmin.zip
+
+if [ -d "/usr/local/lsws/Example/html" ]; then
+    ln -sf "$PROJECT_DIR/3rdparty/roundcube" /usr/local/lsws/Example/html/roundcube 2>/dev/null || true
+    ln -sf "$PROJECT_DIR/3rdparty/roundcube" /usr/local/lsws/Example/html/webmail 2>/dev/null || true
+    ln -sf "$PROJECT_DIR/3rdparty/rainloop" /usr/local/lsws/Example/html/rainloop 2>/dev/null || true
+    ln -sf "$PROJECT_DIR/3rdparty/roundcube" /usr/local/olspanel/webmail 2>/dev/null || true
+    ln -sf "$PROJECT_DIR/3rdparty/roundcube" /usr/local/olspanel/roundcube 2>/dev/null || true
+fi

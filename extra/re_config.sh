@@ -19,27 +19,22 @@ replace_password_placeholder() {
     echo "🎉 Replacement complete."
 }
 
-get_password_from_file() {
-    local password_file="$1"
-
-    # Check if the file exists
-    if [ ! -f "$password_file" ]; then
-        echo "Error: File $password_file does not exist." >&2
-        return 1
+get_panel_password() {
+    if [ -f "/root/db_credentials_panel.txt" ]; then
+        cat /root/db_credentials_panel.txt | tr -d '[:space:]'
+    elif [ -f "/etc/dovecot/dovecot-sql.conf.ext" ]; then
+        grep -oP 'password=\K\S+' /etc/dovecot/dovecot-sql.conf.ext
+    elif [ -f "/etc/postfix/mysql-virtual_domains.cf" ]; then
+        grep -oP '^password\s*=\s*\K\S+' /etc/postfix/mysql-virtual_domains.cf
+    elif [ -f "/usr/local/olspanel/mypanel/etc/mysqlPassword" ]; then
+        cat /usr/local/olspanel/mypanel/etc/mysqlPassword | tr -d '[:space:]'
     fi
-
-    # Read the password from the file
-    local password
-    password=$(cat "$password_file")
-
-    # Check if the password is empty
-    if [ -z "$password" ]; then
-        echo "Error: File $password_file is empty." >&2
-        return 1
-    fi
-
-    # Return the password
-    echo "$password"
 }
 
-replace_password_placeholder /etc "$(get_password_from_file "/root/db_credentials_panel.txt")"
+PASS="$(get_panel_password)"
+if [ -n "$PASS" ]; then
+    replace_password_placeholder /etc "$PASS"
+else
+    echo "Error: Could not determine panel database password." >&2
+    exit 1
+fi

@@ -889,6 +889,44 @@ context /3rdparty/rainloop {
     php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/"
   }
 }
+
+context /roundcube {
+  location                /usr/local/olspanel/mypanel/3rdparty/roundcube
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/roundcube/:/usr/local/lsws/Example/html/:/home/:/root/"
+  }
+}
+
+context /3rdparty/roundcube {
+  location                /usr/local/olspanel/mypanel/3rdparty/roundcube
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/roundcube/:/usr/local/lsws/Example/html/:/home/:/root/"
+  }
+}
 """
 
 
@@ -1007,6 +1045,46 @@ def repair_vhost_config(cfile):
   }
 }""")
 
+    if "context /roundcube" not in content:
+        missing_contexts.append("""context /roundcube {
+  location                /usr/local/olspanel/mypanel/3rdparty/roundcube
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/roundcube/:/usr/local/lsws/Example/html/:/home/:/root/"
+  }
+}""")
+
+    if "context /3rdparty/roundcube" not in content:
+        missing_contexts.append("""context /3rdparty/roundcube {
+  location                /usr/local/olspanel/mypanel/3rdparty/roundcube
+  allowBrowse             1
+  indexFiles              index.php
+
+  rewrite  {
+    enable                0
+  }
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir "/tmp:/usr/local/olspanel/mypanel/3rdparty/roundcube/:/usr/local/lsws/Example/html/:/home/:/root/"
+  }
+}""")
+
     if missing_contexts:
         content = content.rstrip() + "\n\n" + "\n\n".join(missing_contexts) + "\n"
         changed = True
@@ -1063,6 +1141,7 @@ def repair_all_vhosts_and_contexts():
         ex_dir = "/usr/local/lsws/Example/html"
         pma_target = "/usr/local/olspanel/mypanel/3rdparty/phpmyadmin"
         rl_target = "/usr/local/olspanel/mypanel/3rdparty/rainloop"
+        rc_target = "/usr/local/olspanel/mypanel/3rdparty/roundcube"
         thirdparty_target = "/usr/local/olspanel/mypanel/3rdparty"
         if os.path.isdir(ex_dir):
             if os.path.isdir(thirdparty_target) and not os.path.exists(os.path.join(ex_dir, "3rdparty")):
@@ -1077,10 +1156,38 @@ def repair_all_vhosts_and_contexts():
                     updated_count += 1
                 except Exception:
                     pass
+            if os.path.isdir(rl_target) and not os.path.exists(os.path.join(ex_dir, "rainloop")):
+                try:
+                    os.symlink(rl_target, os.path.join(ex_dir, "rainloop"))
+                    updated_count += 1
+                except Exception:
+                    pass
+            if os.path.isdir(rc_target) and not os.path.exists(os.path.join(ex_dir, "roundcube")):
+                try:
+                    os.symlink(rc_target, os.path.join(ex_dir, "roundcube"))
+                    updated_count += 1
+                except Exception:
+                    pass
             if os.path.isdir(rl_target) and not os.path.exists(os.path.join(ex_dir, "webmail")):
                 try:
                     os.symlink(rl_target, os.path.join(ex_dir, "webmail"))
                     updated_count += 1
+                except Exception:
+                    pass
+
+        # Ensure mail web client data directories are writable for suEXEC domain users
+        rl_data = "/usr/local/olspanel/mypanel/3rdparty/rainloop/data"
+        if os.path.isdir(rl_data):
+            try:
+                subprocess.run(["chmod", "-R", "777", rl_data], check=False)
+            except Exception:
+                pass
+
+        for sub in ["temp", "logs"]:
+            rc_sub = os.path.join("/usr/local/olspanel/mypanel/3rdparty/roundcube", sub)
+            if os.path.isdir(rc_sub):
+                try:
+                    subprocess.run(["chmod", "-R", "777", rc_sub], check=False)
                 except Exception:
                     pass
     except Exception as e:
@@ -2761,9 +2868,86 @@ def install_php(versions):
 
     except subprocess.CalledProcessError as e:
         return {'status': 'error', 'message': f'Unsupported php version {versions} for OS {os_name} {os_f}'}
+
+
+def get_php_full_version(version_dot):
+    """Returns full PHP version string (e.g. 8.4.27) for an installed lsphp version, or None if not installed."""
+    v = str(version_dot).replace('.', '').strip()
+    for bin_name in ["php", "lsphp"]:
+        binary = f"/usr/local/lsws/lsphp{v}/bin/{bin_name}"
+        if os.path.isfile(binary) and os.access(binary, os.X_OK):
+            try:
+                res = subprocess.run([binary, "-r", "echo PHP_VERSION;"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=3)
+                if res.returncode == 0 and res.stdout.strip():
+                    return res.stdout.strip()
+            except Exception:
+                pass
+    return None
+
+
+def update_php(versions):
+    """
+    Updates the installed PHP package(s) to the latest upstream release / security patch.
+    versions can be a specific version like '8.4', or 'all' to update all installed versions.
+    """
+    os_name = getattr(settings, "MY_OS_NAME", "linux").lower()
+    
+    if os_name in ["ubuntu", "debian"]:
+        install_command = "apt-get"
+    elif os_name in ["centos", "almalinux", "rocky", "rhel", "fedora", "oraclelinux", "amazonlinux"]:
+        install_command = "dnf" if subprocess.run(["command", "-v", "dnf"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0 else "yum"
+    else:
+        return {'status': 'error', 'message': f'Unsupported OS: {os_name}'}
+
+    try:
+        if versions == 'all':
+            if os_name in ["ubuntu", "debian"]:
+                subprocess.run(["sudo", "apt-get", "update", "-q"], check=False)
+                subprocess.run(
+                    ["sudo", "apt-get", "install", "--only-upgrade", "-y", "lsphp*"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            else:
+                subprocess.run(
+                    ["sudo", install_command, "upgrade", "-y", "lsphp*"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            restart_lsphp()
+            return {'status': 'success', 'message': 'All installed PHP versions have been updated to the latest upstream releases.'}
+        else:
+            version = str(versions).replace('.', '').strip()
+            if not re.match(r'^[0-9]+$', version):
+                return {'status': 'error', 'message': 'Invalid PHP version input.'}
+
+            if os_name in ["ubuntu", "debian"]:
+                subprocess.run(["sudo", "apt-get", "update", "-q"], check=False)
+                subprocess.run(
+                    ["sudo", "apt-get", "install", "--only-upgrade", "-y", f"lsphp{version}", f"lsphp{version}-*"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+            else:
+                subprocess.run(
+                    ["sudo", install_command, "upgrade", "-y", f"lsphp{version}*"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
             
-            
-            
+            restart_lsphp()
+
+            full_ver = get_php_full_version(versions)
+            ver_display = f" (version {full_ver})" if full_ver else ""
+            return {'status': 'success', 'message': f'PHP {versions} updated successfully{ver_display}.'}
+
+    except Exception as e:
+        return {'status': 'error', 'message': f'Failed to update PHP {versions}: {str(e)}'}
+
        
         
 def write_httpd_config():
@@ -3038,11 +3222,11 @@ def get_config_value_mod(name):
 
 def restart_lsphp():
     try:
-        # Kill all lsphp processes
-        subprocess.run(["sudo", "pkill", "lsphp"], check=True)
-        print("lsphp processes killed successfully. LiteSpeed will restart them automatically.")
+        # Kill any running lsphp worker processes so LiteSpeed spawns fresh workers with the new binary
+        subprocess.run(["sudo", "pkill", "-9", "-f", "lsphp"], check=False)
+        print("lsphp processes reloaded successfully. LiteSpeed will spawn fresh workers automatically.")
         return True
-    except subprocess.CalledProcessError as e:
+    except Exception as e:
         print(f"Error restarting lsphp: {e}")
         return False    
 

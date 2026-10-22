@@ -101,6 +101,24 @@ sudo ${PACKAGE_MANAGER} install -y php${version}-json || true
         fi
     done
 
+    # Ensure baseline system php-cgi and extensions are installed for webmail & 3rdparty
+    sudo ${PACKAGE_MANAGER} install -y \
+        php-cgi \
+        php-cli \
+        php-common \
+        php-mbstring \
+        php-zip \
+        php-curl \
+        php-sqlite3 \
+        php-intl \
+        php-xml \
+        php-mysql || true
+
+    # Configure default CGI binary in panel database if MySQL is accessible
+    if [ -x "/usr/bin/php-cgi" ] && [ -n "$MYSQL_PASSWORD" ]; then
+        mysql -u root -p"$MYSQL_PASSWORD" panel -e "UPDATE app_settings SET setting_value='/usr/bin/php-cgi' WHERE setting_key='cgi_bin';" 2>/dev/null || true
+    fi
+
     sudo pkill php || true
 }
 

@@ -12,19 +12,27 @@
             </div>
             <div>
                 <h4 class="text-xs font-bold text-slate-900 m-0 leading-tight">PHP Versions Manager</h4>
-                <p class="text-[11px] text-slate-500 m-0 leading-tight">Install and manage supported LiteSpeed PHP runtime binaries</p>
+                <p class="text-[11px] text-slate-500 m-0 leading-tight">Install, update and manage supported LiteSpeed PHP runtime binaries</p>
             </div>
         </div>
-        <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
-            <i class="mdi mdi-arrow-left text-xs"></i>
-            <span>Dashboard</span>
-        </a>
+        <div class="flex items-center gap-2">
+            {% if has_installed %}
+            <button type="button" onclick="updatephp('all', this)" class="px-2.5 py-1 bg-brand text-white hover:bg-brand/90 rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1 cursor-pointer" title="Update all installed PHP packages to the latest security releases">
+                <i class="mdi mdi-shield-sync-outline text-xs"></i>
+                <span>Update All PHP</span>
+            </button>
+            {% endif %}
+            <a href="{% url 'whm_home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                <i class="mdi mdi-arrow-left text-xs"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
     </div>
 
     <!-- Active Loading Alert -->
     <div id="responseContainer" class="hidden p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-lg text-xs flex items-center gap-2 shadow-xs">
         <svg class="animate-spin h-4 w-4 text-sky-600 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-        <span class="font-semibold">Installing PHP version packages from repository, please wait...</span>
+        <span id="responseMessage" class="font-semibold">Processing PHP packages, please wait...</span>
     </div>
 
     <!-- Feedback Alert -->
@@ -49,12 +57,13 @@
                 <thead class="bg-slate-50/50 text-slate-500 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-200">
                     <tr>
                         <th class="px-3.5 py-2">Runtime Version</th>
+                        <th class="px-3.5 py-2">Exact Release</th>
                         <th class="px-3.5 py-2">Installation Status</th>
                         <th class="px-3.5 py-2 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                    {% for version, status in php_versions_status.items %}
+                    {% for version, data in php_versions_status.items %}
                     <tr class="hover:bg-slate-50/80 transition-colors">
                         <td class="px-3.5 py-2 font-semibold text-slate-900 flex items-center gap-2">
                             <div class="w-6 h-6 rounded bg-emerald-50 text-brand border border-emerald-100 flex items-center justify-center shrink-0">
@@ -63,7 +72,16 @@
                             <span>PHP {{ version }}</span>
                         </td>
                         <td class="px-3.5 py-2">
-                            {% if status == 'installed' %}
+                            {% if data.full_version %}
+                                <span class="inline-flex items-center font-mono font-semibold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px]">
+                                    v{{ data.full_version }}
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400 text-[11px]">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3.5 py-2">
+                            {% if data.status == 'installed' %}
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Installed
                                 </span>
@@ -74,19 +92,22 @@
                             {% endif %}
                         </td>
                         <td class="px-3.5 py-2 text-right">
-                            {% if status == 'uninstall' %}
+                            {% if data.status == 'installed' %}
+                                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded shadow-xs transition-colors cursor-pointer" onclick="updatephp('{{ version }}', this)" title="Upgrade to latest upstream patch release">
+                                    <i class="mdi mdi-refresh text-xs text-brand"></i>
+                                    <span>Update</span>
+                                </button>
+                            {% else %}
                                 <button type="button" class="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-white bg-brand hover:bg-brand/90 rounded shadow-xs transition-colors cursor-pointer" onclick="installphp('{{ version }}', this)">
                                     <i class="mdi mdi-download text-xs"></i>
                                     <span>Install</span>
                                 </button>
-                            {% else %}
-                                <span class="text-slate-400 text-[11px]">&mdash;</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="3" class="px-4 py-8 text-center text-slate-400 text-xs">No PHP versions configured.</td>
+                        <td colspan="4" class="px-4 py-8 text-center text-slate-400 text-xs">No PHP versions configured.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -100,6 +121,7 @@ function installphp(version, btn) {
     if (!version) return;
 
     const responseDisplay = document.getElementById('responseContainer');
+    const responseMsg = document.getElementById('responseMessage');
     const alertContainer = document.getElementById('alertContainer');
     const messageDisplay = document.getElementById('message');
     const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
@@ -109,6 +131,7 @@ function installphp(version, btn) {
         btn.innerHTML = `<svg class="animate-spin h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Installing...</span>`;
     }
 
+    if (responseMsg) responseMsg.innerText = `Installing PHP ${version} packages from repository, please wait...`;
     if (responseDisplay) responseDisplay.classList.remove('hidden');
 
     fetch("{% url 'php_install_now' %}", {
@@ -146,6 +169,64 @@ function installphp(version, btn) {
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = `<i class="mdi mdi-download text-xs"></i> <span>Install</span>`;
+        }
+    });
+}
+
+function updatephp(version, btn) {
+    if (!version) return;
+
+    const responseDisplay = document.getElementById('responseContainer');
+    const responseMsg = document.getElementById('responseMessage');
+    const alertContainer = document.getElementById('alertContainer');
+    const messageDisplay = document.getElementById('message');
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+
+    const originalHtml = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<svg class="animate-spin h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> <span>Updating...</span>`;
+    }
+
+    const label = (version === 'all') ? 'all installed PHP versions' : `PHP ${version}`;
+    if (responseMsg) responseMsg.innerText = `Checking repository and updating ${label} to latest release...`;
+    if (responseDisplay) responseDisplay.classList.remove('hidden');
+
+    fetch("{% url 'php_update_now' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken
+        },
+        body: new URLSearchParams({ 'php_version': version })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = (data.status === 'success')
+                ? "p-3 rounded-lg border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shadow-xs"
+                : "p-3 rounded-lg border bg-rose-50 border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-xs";
+            messageDisplay.innerText = data.message || 'Operation completed.';
+            alertContainer.classList.remove('hidden');
+        }
+        if (data.status === 'success') {
+            setTimeout(() => location.reload(), 1500);
+        } else if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    })
+    .catch(error => {
+        if (responseDisplay) responseDisplay.classList.add('hidden');
+        if (alertContainer && messageDisplay) {
+            alertContainer.className = "p-3 rounded-lg border bg-rose-50 border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-xs";
+            messageDisplay.innerText = 'Error: ' + error.message;
+            alertContainer.classList.remove('hidden');
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
     });
 }

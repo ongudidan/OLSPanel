@@ -773,23 +773,25 @@ def domain_delete(request, pk):
     
     # Check if the current user is the owner of the domain
     if domain.userid != request.user:
-        return redirect('domain_list')  # Redirect to home if not authorized
-    
-    if request.method == 'POST':
+        messages.error(request, 'You are not authorized to delete this domain.')
+        return redirect('domain_list')
+
+    try:
+        domain_name = domain.domain
         # Remove the domain mapping from the HTTPD configuration
-        success = remove_map_from_httpd_config(domain.domain)  # Update with actual config file path
-        remove_virtual_host_from_httpd_config(domain.domain)
-        remove_domain_folder(domain.domain)
-        delete_record(domain.domain)
+        remove_map_from_httpd_config(domain_name)
+        remove_virtual_host_from_httpd_config(domain_name)
+        remove_domain_folder(domain_name)
+        delete_record(domain_name)
         domain.delete()  # Delete the domain from the database
         restart_pdns()
-        messages.success(request, f'Domain "{domain.domain}" has been deleted successfully.')
-        
-        
-        return redirect('domain_list')  # Redirect to the domain list after deletion
-    
-    # Render the confirmation delete page
-    return render(request, 'users/domain_confirm_delete.html', {'domain': domain})
+        restart_openlitespeed()
+        messages.success(request, f'Domain "{domain_name}" has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error deleting domain {pk}: {e}")
+        messages.error(request, f'Failed to delete domain: {e}')
+
+    return redirect('domain_list')
 
     
 @login_required
@@ -1292,15 +1294,15 @@ def dns_delete(request, rid):
     if dns.userid != request.user:
         return redirect('/dns')
 
-    if request.method == 'POST':
-        # Delete the DNS record
+    domain_id = dns.domain_id
+    try:
         dns.delete()
-
-        # Display a success message after deletion
         messages.success(request, 'DNS record has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error deleting DNS record {rid}: {e}")
+        messages.error(request, f'Failed to delete DNS record: {e}')
 
-        # Redirect to the list page after deletion
-        return redirect(f'/dns/list/{dns.domain_id}')   
+    return redirect(f'/dns/list/{domain_id}')
 
 
 @login_required
@@ -1864,45 +1866,46 @@ def email_forword_list(request):
 @login_required
 @admincheck
 def email_forword_delete(request, email_id):
-    # Fetch the DNS record based on the provided id (rid) and ensure it belongs to the logged-in user
+    # Fetch the record based on the provided id and ensure it belongs to the logged-in user
     email = get_object_or_404(EmailForword, userid=request.user.id, id=email_id)
 
     # Check if the record belongs to the current user
     if email.userid != request.user.id:
         return redirect('/email_forword_list')
 
-    if request.method == 'POST':
-        # Delete the DNS record
+    try:
         email.delete()
+        messages.success(request, 'Email forward has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error deleting email forward {email_id}: {e}")
+        messages.error(request, f'Failed to delete email forward: {e}')
 
-        # Display a success message after deletion
-        messages.success(request, 'Email has been deleted successfully.')
-
-        # Redirect to the list page after deletion
-        return redirect('/email_forword_list') 
+    return redirect('/email_forword_list') 
 
 @login_required
 @admincheck
 def email_delete(request, email_id):
-    # Fetch the DNS record based on the provided id (rid) and ensure it belongs to the logged-in user
+    # Fetch the mailbox record based on the provided id and ensure it belongs to the logged-in user
     email = get_object_or_404(Emails, userid=request.user.id, id=email_id)
 
     # Check if the record belongs to the current user
     if email.userid != request.user.id:
         return redirect('/email_accounts')
 
-    if request.method == 'POST':
-        maildir_full_path = email.mail  # This assumes you have a mail field in Emails model
+    try:
+        maildir_full_path = email.mail or ''
         maildir_only_path = maildir_full_path.split(':', 1)[1] if ':' in maildir_full_path else maildir_full_path
-        if maildir_only_path.startswith('/home/vmail'):
-            email.delete()
+        if maildir_only_path and maildir_only_path.startswith('/home/vmail'):
             delete_path(maildir_only_path)
 
-        # Display a success message after deletion
-            messages.success(request, 'Email has been deleted successfully.')
+        email_address = email.email
+        email.delete()
+        messages.success(request, f'Email "{email_address}" has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error deleting email account {email_id}: {e}")
+        messages.error(request, f'Failed to delete email account: {e}')
 
-        # Redirect to the list page after deletion
-        return redirect('/email_accounts')
+    return redirect('/email_accounts')
 
 @login_required
 @admincheck
@@ -2012,7 +2015,7 @@ def email_pipe_list(request):
 @login_required
 @admincheck
 def email_pipe_delete(request, email_id):
-    # Fetch the DNS record based on the provided id (rid) and ensure it belongs to the logged-in user
+    # Fetch the record based on the provided id and ensure it belongs to the logged-in user
     email = get_object_or_404(EmailForword, userid=request.user.id, id=email_id)
     username_string = request.user.username
 
@@ -2020,7 +2023,7 @@ def email_pipe_delete(request, email_id):
     if email.userid != request.user.id:
         return redirect('/email_pipe_list')
 
-    if request.method == 'POST':
+    try:
         remove_script_filter(email.source)
         remove_master_line(email.source, username_string, email.path)
         command = "postmap /etc/postfix/script_filter"
@@ -2028,13 +2031,12 @@ def email_pipe_delete(request, email_id):
         command = "postfix reload"
         run_command(command)
         email.delete()
-        
+        messages.success(request, 'Email pipe has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error deleting email pipe {email_id}: {e}")
+        messages.error(request, f'Failed to delete email pipe: {e}')
 
-        # Display a success message after deletion
-        messages.success(request, 'Email has been deleted successfully.')
-
-        # Redirect to the list page after deletion
-        return redirect('/email_pipe_list')
+    return redirect('/email_pipe_list')
 
 
 @loginadminoruser
@@ -3178,8 +3180,8 @@ def default_email_delete(request, email_id):
     if email.userid != request.user.id:
         return redirect('/default_email_list')
 
-    if request.method == 'POST':
-        email_source = email.source.replace('@', '')
+    try:
+        email_source = email.source.replace('@', '') if email.source else ''
         if email.path:
             remove_script_filter(email_source)
             remove_master_line(email_source, username_string, email.path)
@@ -3188,12 +3190,12 @@ def default_email_delete(request, email_id):
             command = "postfix reload"
             run_command(command)
         email.delete()
+        messages.success(request, 'Default email has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error deleting default email {email_id}: {e}")
+        messages.error(request, f'Failed to delete default email: {e}')
 
-        # Display a success message after deletion
-        messages.success(request, 'Email has been deleted successfully.')
-
-        # Redirect to the list page after deletion
-        return redirect('/default_email_list') 
+    return redirect('/default_email_list')
         
         
 @login_required
@@ -3527,7 +3529,10 @@ def web_server(request, php_file):
                 
 
             # Authorization check
-            if service_value == 'user_panel':
+            features_val = (get_plugin_config_value('features', plugin_name) or '').lower()
+            is_mail_plugin = 'mail' in [f.strip() for f in features_val.split(',') if f.strip()]
+
+            if service_value == 'user_panel' and not is_mail_plugin:
                 if whm == 1:
                     return HttpResponse("Forbidden: WHM users cannot access user panel plugins.", status=403)
             elif service_value == 'whm':
@@ -3576,15 +3581,18 @@ def web_server(request, php_file):
 @login_required
 @admincheck
 def webmail_service(request, email):
-    email_main = Emails.objects.filter(userid=request.user.id, email=email).first()
+    user_data = get_user_data_by_id(request.user.id)
+    whm = user_data.get('whm', 0) if user_data else (1 if request.user.is_superuser or request.user.is_staff else 0)
+    if whm == 1:
+        email_main = Emails.objects.filter(email=email).first()
+    else:
+        email_main = Emails.objects.filter(userid=request.user.id, email=email).first()
+
     passw = get_auto_login_password(email)
     auto_login_is_enable = passw and not passw.startswith("Password file for user") and not passw.startswith("An error occurred")
 
     if not auto_login_is_enable:
         messages.error(request, "Please change your email password once to enable auto-login when clicking Open Mail.")
-      
-        
-        
 
     if not email_main:
         messages.error(request, 'Invalid email selected.')

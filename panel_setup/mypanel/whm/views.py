@@ -449,26 +449,23 @@ def add_domain(request):
 @alogin_required    
 def domain_delete_all(request, pk):
     domain = get_object_or_404(Domain, pk=pk)
-    
-    # Check if the current user is the owner of the domain
-    if domain.userid != request.admin_user:
-        return redirect('domain_list')  # Redirect to home if not authorized
-    
-    if request.method == 'POST':
+
+    try:
+        domain_name = domain.domain
         # Remove the domain mapping from the HTTPD configuration
-        success = remove_map_from_httpd_config(domain.domain)  # Update with actual config file path
-        remove_virtual_host_from_httpd_config(domain.domain)
-        remove_domain_folder(domain.domain)
-        delete_record(domain.domain)
+        remove_map_from_httpd_config(domain_name)
+        remove_virtual_host_from_httpd_config(domain_name)
+        remove_domain_folder(domain_name)
+        delete_record(domain_name)
         domain.delete()  # Delete the domain from the database
         restart_pdns()
-        messages.success(request, f'Domain "{domain.domain}" has been deleted successfully.')
-        
-        
-        return redirect('/whm/domain_list_all')  # Redirect to the domain list after deletion
-    
-    # Render the confirmation delete page
-    return render(request, 'whm/domain_confirm_delete.html', {'domain': domain})
+        restart_openlitespeed()
+        messages.success(request, f'Domain "{domain_name}" has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error in domain_delete_all {pk}: {e}")
+        messages.error(request, f'Failed to delete domain: {e}')
+
+    return redirect('/whm/domain_list_all')
 
     
 @alogin_required
@@ -582,22 +579,18 @@ def dns_edit_all(request, rid):
     
 @alogin_required
 def dns_delete_all(request, rid):
-    # Fetch the DNS record based on the provided id (rid) and ensure it belongs to the logged-in user
+    # Fetch the DNS record based on the provided id (rid)
     dns = get_object_or_404(Dns_record, id=rid)
+    domain_id = dns.domain_id
 
-    # Check if the record belongs to the current user
-    if dns.userid != request.admin_user:
-        return redirect('/whm/dns')
-
-    if request.method == 'POST':
-        # Delete the DNS record
+    try:
         dns.delete()
-
-        # Display a success message after deletion
         messages.success(request, 'DNS record has been deleted successfully.')
+    except Exception as e:
+        logger.error(f"Error in dns_delete_all {rid}: {e}")
+        messages.error(request, f'Failed to delete DNS record: {e}')
 
-        # Redirect to the list page after deletion
-        return redirect(f'/whm/dns/list/{dns.domain_id}')   
+    return redirect(f'/whm/dns/list/{domain_id}')
 
 
 @alogin_required
@@ -1431,14 +1424,26 @@ def php_versions(request):
 
     # Compare installed versions with all available versions
     php_versions_status = {}
+    has_installed = False
     for version in all_php_versions:
         if version in installed_php_versions:
-            php_versions_status[version] = 'installed'
+            full_ver = get_php_full_version(version)
+            php_versions_status[version] = {
+                'status': 'installed',
+                'full_version': full_ver,
+            }
+            has_installed = True
         else:
-            php_versions_status[version] = 'uninstall'
+            php_versions_status[version] = {
+                'status': 'uninstall',
+                'full_version': None,
+            }
 
     # Pass to template
-    return render(request, 'whm/php_versions.html', {'php_versions_status': php_versions_status})
+    return render(request, 'whm/php_versions.html', {
+        'php_versions_status': php_versions_status,
+        'has_installed': has_installed,
+    })
     
     
 @alogin_required
@@ -1448,16 +1453,39 @@ def php_install_now(request):
         if php_version:
             extensions_status = install_php(php_version)
             message = extensions_status.get('message', 'Installation status not available')
+            full_ver = get_php_full_version(php_version)
             return JsonResponse({
                 'status': extensions_status['status'],
                 'message': message,
                 'selected_version': php_version,
+                'full_version': full_ver,
             })
         else:
             return JsonResponse({
                 'status': 'error',
                 'message': 'PHP version is required.'
             })
+
+
+@alogin_required
+def php_update_now(request):
+    if request.method == "POST":
+        php_version = request.POST.get('php_version')
+        if php_version:
+            result = update_php(php_version)
+            full_ver = get_php_full_version(php_version) if php_version != 'all' else None
+            return JsonResponse({
+                'status': result.get('status', 'error'),
+                'message': result.get('message', 'Update status not available'),
+                'selected_version': php_version,
+                'full_version': full_ver,
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'PHP version is required.'
+            })
+
     
     
     

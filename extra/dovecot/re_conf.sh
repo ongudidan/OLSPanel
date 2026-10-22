@@ -52,7 +52,13 @@ if echo "$VERSION" | awk -F. '{exit !($1>2 || ($1==2 && $2>=4))}'; then
     # Load DB password
     PASSWORD=""
     if [ -f "/root/db_credentials_panel.txt" ]; then
-        PASSWORD=$(cat /root/db_credentials_panel.txt)
+        PASSWORD=$(cat /root/db_credentials_panel.txt | tr -d '[:space:]')
+    elif [ -f "/etc/dovecot/dovecot-sql.conf.ext" ]; then
+        PASSWORD=$(grep -oP 'password=\K\S+' /etc/dovecot/dovecot-sql.conf.ext)
+    elif [ -f "/etc/postfix/mysql-virtual_domains.cf" ]; then
+        PASSWORD=$(grep -oP '^password\s*=\s*\K\S+' /etc/postfix/mysql-virtual_domains.cf)
+    elif [ -f "/usr/local/olspanel/mypanel/etc/mysqlPassword" ]; then
+        PASSWORD=$(cat /usr/local/olspanel/mypanel/etc/mysqlPassword | tr -d '[:space:]')
     elif [ -f "/usr/local/olspanel/mypanel/user_management/settings.py" ]; then
         PASSWORD=$(python3 -c "
 try:

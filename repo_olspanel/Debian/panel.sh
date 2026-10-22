@@ -1598,9 +1598,7 @@ curl -sSL https://ongudidan.github.io/OLSPanel/extra/swap.sh | sed 's/\r$//' | b
 curl -sSL https://ongudidan.github.io/OLSPanel/extra/database_update.sh | sed 's/\r$//' | bash
 curl -sSL https://ongudidan.github.io/OLSPanel/olsapp/install.sh | sed 's/\r$//' | bash
 olspanel reset_admin_password "$(get_password_from_file "/root/db_credentials_panel.txt")"
-olspanel --olsapp-install
-sudo chown -R nobody:nogroup /usr/local/olspanel/mypanel/3rdparty/rainloop/data
-sudo chmod -R 775 /usr/local/olspanel/mypanel/3rdparty/rainloop/data
+sudo chmod -R 777 /usr/local/olspanel/mypanel/3rdparty/rainloop/data
 python3 -c "
 import sys
 sys.path.append('/usr/local/olspanel/mypanel')

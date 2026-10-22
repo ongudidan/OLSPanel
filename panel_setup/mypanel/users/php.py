@@ -1,11 +1,80 @@
 import os
 import subprocess
 import mimetypes
+import shutil
+import pwd
+import grp
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse,Http404
 from django.conf import settings
 from http.cookies import SimpleCookie
 from .database import * 
 from .models import * 
+
+
+def get_php_cgi_binary():
+    """Detect available php-cgi binary on the system dynamically."""
+    try:
+        binary = AppSettings.objects.get(setting_key='cgi_bin').setting_value.strip()
+        if binary and os.path.isfile(binary) and os.access(binary, os.X_OK):
+            return binary
+    except Exception:
+        pass
+
+    candidates = [
+        '/usr/bin/php-cgi',
+        '/usr/bin/php-cgi8.5',
+        '/usr/bin/php-cgi8.4',
+        '/usr/bin/php-cgi8.3',
+        '/usr/bin/php-cgi8.2',
+        '/usr/bin/php-cgi8.1',
+        '/usr/bin/php-cgi7.4',
+    ]
+    for c in candidates:
+        if os.path.isfile(c) and os.access(c, os.X_OK):
+            try:
+                setting, _ = AppSettings.objects.get_or_create(setting_key='cgi_bin')
+                setting.setting_value = c
+                setting.save()
+            except Exception:
+                pass
+            return c
+
+    which_bin = shutil.which('php-cgi')
+    if which_bin:
+        return which_bin
+
+    return '/usr/bin/php-cgi'
+
+
+def spawn_php_cgi_process(php_binary, php_script_path, env, php_user='root', php_group='root'):
+    """Spawn PHP-CGI process dropping privileges cleanly without sudo -E warnings."""
+    popen_kwargs = {
+        'stdin': subprocess.PIPE,
+        'stdout': subprocess.PIPE,
+        'stderr': subprocess.PIPE,
+        'env': env,
+        'cwd': os.path.dirname(php_script_path)
+    }
+
+    if os.geteuid() == 0 and php_user and php_user != 'root':
+        try:
+            pwd.getpwnam(php_user)
+            popen_kwargs['user'] = php_user
+            if php_group and php_group != 'root':
+                try:
+                    grp.getgrnam(php_group)
+                    popen_kwargs['group'] = php_group
+                except Exception:
+                    pass
+            cmd = [php_binary]
+        except Exception:
+            cmd = ['sudo', '-u', php_user, php_binary]
+    elif php_user and php_user != 'root':
+        cmd = ['sudo', '-u', php_user, php_binary]
+    else:
+        cmd = [php_binary]
+
+    return subprocess.Popen(cmd, **popen_kwargs)
 
 
 def php_server(request, php_file, PHP_USER='root', PHP_GROUP='root'):
@@ -19,10 +88,7 @@ def php_server(request, php_file, PHP_USER='root', PHP_GROUP='root'):
     scheme = 'https' if request.is_secure() else 'http'    
     PROJECT_ROOT = str(settings.BASE_DIR)
     PHP_ROOT = os.path.join(PROJECT_ROOT, public_folder)
-    try:
-        PHP_BINARY = AppSettings.objects.get(setting_key='cgi_bin').setting_value.strip()
-    except AppSettings.DoesNotExist:
-        PHP_BINARY = '/usr/bin/php-cgi8.2'  # fallback default
+    PHP_BINARY = get_php_cgi_binary()
 
     php_script_path = os.path.join(PHP_ROOT, php_file)
 
@@ -93,14 +159,7 @@ def php_server(request, php_file, PHP_USER='root', PHP_GROUP='root'):
         env["HTTP_COOKIE"] = cookie_string
 
     try:
-        process = subprocess.Popen(
-            ['sudo', '-u', PHP_USER, '-E', PHP_BINARY],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=env,
-            cwd=os.path.dirname(php_script_path)
-        )
+        process = spawn_php_cgi_process(PHP_BINARY, php_script_path, env, PHP_USER, PHP_GROUP)
         stdout, stderr = process.communicate(input=request.body)
 
         if process.returncode != 0:
@@ -218,10 +277,7 @@ def php_serverx(request, php_file, PHP_USER='root', PHP_GROUP='root'):
     scheme = 'https' if request.is_secure() else 'http'    
     PROJECT_ROOT = str(settings.BASE_DIR)
     PHP_ROOT = os.path.join(PROJECT_ROOT, public_folder)
-    try:
-        PHP_BINARY = AppSettings.objects.get(setting_key='cgi_bin').setting_value.strip()
-    except AppSettings.DoesNotExist:
-        PHP_BINARY = '/usr/bin/php-cgi8.2'  # fallback default
+    PHP_BINARY = get_php_cgi_binary()
     #PHP_USER = 'root'
     #PHP_GROUP = 'root'
 
@@ -299,14 +355,7 @@ def php_serverx(request, php_file, PHP_USER='root', PHP_GROUP='root'):
         env["HTTP_COOKIE"] = cookie_string
 
     try:
-        process = subprocess.Popen(
-            ['sudo', '-u', PHP_USER, '-E', PHP_BINARY],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=env,
-            cwd=os.path.dirname(php_script_path)
-        )
+        process = spawn_php_cgi_process(PHP_BINARY, php_script_path, env, PHP_USER, PHP_GROUP)
         stdout, stderr = process.communicate(input=request.body)
 
         if process.returncode != 0:

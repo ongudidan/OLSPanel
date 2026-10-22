@@ -38,6 +38,7 @@ urlpatterns = [
     path('php_ext_load/', php_ext_load, name='php_ext_load'),
     path('php_versions/', php_versions, name='php_versions'),
     path('php_install_now/', php_install_now, name='php_install_now'),
+    path('php_update_now/', php_update_now, name='php_update_now'),
     path('services/', services, name='services'),
     path('service/<str:service_name>/<str:action>/', service_action, name='service_action'),
     path('process_manager/', process_manager, name='process_manager'),

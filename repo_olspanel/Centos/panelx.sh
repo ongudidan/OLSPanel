@@ -1041,10 +1041,7 @@ set_ownership_and_permissions() {
     sudo chmod -R 755 /usr/local/lsws/Example/html/mypanel
     sudo chown -R www-data:www-data /usr/local/lsws/Example/html/webmail
     sudo chmod -R 755 /usr/local/lsws/Example/html/webmail
-    sudo groupadd nobody
-    sudo chown -R nobody:nobody /usr/local/lsws/Example/html/webmail/data
-    sudo chown -R nobody:nobody /usr/local/lsws/Example/html/webmail/data
-    sudo chmod -R 755 /usr/local/lsws/Example/html/webmail/data
+    sudo chmod -R 777 /usr/local/lsws/Example/html/webmail/data
 
 
     echo "Ownership and permissions set successfully for all specified directories."
@@ -1701,9 +1698,7 @@ sudo ${PACKAGE_MANAGER} install perl-libwww-perl -y
 sudo ${PACKAGE_MANAGER} install perl-CGI -y
 sudo systemctl stop systemd-resolved >/dev/null 2>&1
 sudo systemctl disable systemd-resolved >/dev/null 2>&1
-systemctl restart systemd-networkd >/dev/null 2>&1
-sudo chown -R nobody:nobody /usr/local/lsws/Example/html/webmail/data
-sudo chmod -R 755 /usr/local/lsws/Example/html/webmail/data
+sudo chmod -R 777 /usr/local/lsws/Example/html/webmail/data
 echo -n "$OS_NAME" > /usr/local/lsws/Example/html/mypanel/etc/osName
 echo -n "$OS_VERSION" > /usr/local/lsws/Example/html/mypanel/etc/osVersion
 sudo postmap /etc/postfix/script_filter

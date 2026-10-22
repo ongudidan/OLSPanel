@@ -981,12 +981,16 @@ set_ownership_and_permissions() {
     if [ -d "/usr/local/lsws/Example/html" ]; then
         # Create compatibility symlinks
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/olspanel/phpmyadmin
-        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/olspanel/webmail
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/roundcube /usr/local/olspanel/webmail
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/roundcube /usr/local/olspanel/roundcube
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/olspanel/rainloop
         # Point OLS html dir to the correct locations
         sudo ln -sfn /usr/local/olspanel/mypanel/3rdparty /usr/local/lsws/Example/html/3rdparty
         sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/phpmyadmin /usr/local/lsws/Example/html/phpmyadmin
-        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/lsws/Example/html/webmail
-        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail /usr/local/lsws/Example/html/3rdparty
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/roundcube /usr/local/lsws/Example/html/webmail
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/roundcube /usr/local/lsws/Example/html/roundcube
+        sudo ln -sf /usr/local/olspanel/mypanel/3rdparty/rainloop /usr/local/lsws/Example/html/rainloop
+        sudo chown -h www-data:www-data /usr/local/lsws/Example/html/phpmyadmin /usr/local/lsws/Example/html/webmail /usr/local/lsws/Example/html/roundcube /usr/local/lsws/Example/html/rainloop /usr/local/lsws/Example/html/3rdparty
     fi
 }
 
@@ -1151,6 +1155,36 @@ context /3rdparty/rainloop {
     php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/rainloop/:/usr/local/lsws/Example/html/\"
   }
 }
+
+context /roundcube {
+  location                /usr/local/olspanel/mypanel/3rdparty/roundcube
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/roundcube/:/usr/local/lsws/Example/html/:/home/:/root/\"
+  }
+}
+
+context /3rdparty/roundcube {
+  location                /usr/local/olspanel/mypanel/3rdparty/roundcube
+  allowBrowse             1
+  indexFiles              index.php
+
+  accessControl  {
+    allow                 *
+  }
+  addDefaultCharset       off
+
+  phpIniOverride  {
+    php_admin_value open_basedir \"/tmp:/usr/local/olspanel/mypanel/3rdparty/roundcube/:/usr/local/lsws/Example/html/:/home/:/root/\"
+  }
+}
 '''
     if 'context /phpmyadmin' not in content:
         with open(vconf, 'w') as f:
@@ -1178,6 +1212,7 @@ install_all_lsphp_versions() {
         sudo apt-get install -y lsphp"$version" lsphp"$version"-common lsphp"$version"-mysql
         sudo apt-get install -y lsphp"$version"-curl
 	sudo apt-get install -y lsphp"$version"-json
+        sudo apt-get install -y lsphp"$version"-intl lsphp"$version"-sqlite3 lsphp"$version"-imap lsphp"$version"-imagick || true
         # Check if installation was successful
         if [ -x "/usr/local/lsws/lsphp$version/bin/php" ]; then
             echo "PHP $version installed successfully!"
@@ -1212,6 +1247,8 @@ install_all_lsphp_versions() {
             echo "PHP $version installation failed."
         fi
     done
+    # Install default system php-cgi and extensions required for 3rdparty apps (Roundcube, etc.)
+    sudo apt-get install -y php-cgi php-cli php-common php-mbstring php-zip php-curl php-sqlite3 php-intl php-xml php-mysql || true
 pkill lsphp
 
     # Update default extprocessor lsphp in httpd_config.conf to point to an installed version
