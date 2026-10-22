@@ -78,11 +78,11 @@
                 <div class="sm:col-span-4 space-y-1">
                     <div class="flex items-center justify-between">
                         <label for="username" class="block text-[11px] font-semibold text-slate-700">Username</label>
-                        <span class="text-[10px] text-slate-400">max 9 chars</span>
+                        <span class="text-[10px] text-slate-400">max 32 chars</span>
                     </div>
                     <div class="relative">
                         <i class="mdi mdi-identifier absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="username" name="username" maxlength="9" placeholder="john" required>
+                        <input type="text" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="username" name="username" maxlength="32" placeholder="e.g. fortunedevs" required autocomplete="off">
                     </div>
                 </div>
 
@@ -142,21 +142,29 @@
 const domainInput = document.getElementById('tdomain');
 const usernameInput = document.getElementById('username');
 
-// Auto-fill username from domain
-domainInput.addEventListener('input', function () {
-    let namePart = this.value.trim().split('.')[0];
-    namePart = namePart.replace(/[^a-zA-Z0-9]/g, '');
-    namePart = namePart.replace(/^[0-9]+/, '');
-    namePart = namePart.slice(0, 9).toLowerCase();
+let userEditedUsername = false;
 
-    usernameInput.value = namePart;
+// Auto-fill username from domain ONLY if the user hasn't manually edited the username
+domainInput.addEventListener('input', function () {
+    if (userEditedUsername) return; // Never overwrite a custom username entered by the user
+
+    let namePart = (this.value.trim().split('.')[0] || '');
+    namePart = namePart.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
+    namePart = namePart.replace(/^[0-9]+/, ''); // Linux usernames shouldn't start with digits
+    usernameInput.value = namePart.slice(0, 32);
 });
 
-// Restrict manual input
+// Full freedom for manual editing of the username
 usernameInput.addEventListener('input', function () {
-    let value = this.value.replace(/[^a-zA-Z0-9]/g, '');
-    value = value.replace(/^[0-9]+/, '');
-    this.value = value.slice(0, 9).toLowerCase();
+    if (this.value.length > 0) {
+        userEditedUsername = true;
+    } else {
+        userEditedUsername = false;
+    }
+
+    // Allow valid system characters (letters, digits, underscores, hyphens) up to 32 chars
+    let value = this.value.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
+    this.value = value.slice(0, 32);
 });
 
 function generateStrongPassword(length = 16) {
