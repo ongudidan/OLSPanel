@@ -8,7 +8,7 @@
             <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
                 <i class="mdi mdi-folder-key-outline text-brand text-base"></i> Manage FTP Account: {{ ftp.user }}
             </h4>
-            <a href="{% url 'ftp_list' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+            <a href="{% url 'ftp_list_all' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
                 <i class="mdi mdi-arrow-left"></i> Back to FTP Accounts
             </a>
         </div>
@@ -101,7 +101,7 @@
         </div>
         <div class="p-5 flex items-center justify-between flex-wrap gap-3">
             <p class="text-xs text-slate-600 m-0">Permanently delete this FTP account credentials. Files in the root path will remain safe.</p>
-            <form action="{% url 'ftp_delete' ftp.id %}" method="post" class="m-0" onsubmit="return confirm('Are you sure you want to delete this FTP account?');">
+            <form action="{% url 'whm_ftp_delete' ftp.id %}" method="post" class="m-0" onsubmit="return confirm('Are you sure you want to delete this FTP account?');">
                 {% csrf_token %}
                 <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
                     <i class="mdi mdi-delete-forever"></i> Delete FTP User
@@ -114,17 +114,17 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    var diskUsage = {{ ftp.QuotaSize|default:0 }};
+    var diskUsage = "{{ ftp.QuotaSize|default:0 }}";
     var spaceLimitSelect = document.getElementById('spaceLimit');
     if (spaceLimitSelect) {
-        if (diskUsage === 0 || diskUsage === "0" || diskUsage === "unlimited") {
+        if (diskUsage === "0" || diskUsage === "unlimited" || !diskUsage) {
             spaceLimitSelect.value = 'unlimited';
         } else {
             spaceLimitSelect.value = String(diskUsage);
         }
     }
 
-    var statusVal = {{ ftp.status|default:1 }};
+    var statusVal = "{{ ftp.status|default:1 }}";
     var statusSelect = document.getElementById('status');
     if (statusSelect) {
         statusSelect.value = String(statusVal);

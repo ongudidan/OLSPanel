@@ -17,9 +17,9 @@
         </div>
         <div class="flex items-center gap-2">
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Limit: {% if limit == 0 %}Unlimited{% else %}{{ limit }} MB{% endif %}
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Limit: {% if limit == 0 %}Unlimited{% else %}{{ limit }} MB{% endif %}
             </span>
-            <a href="{% url 'dashboard' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+            <a href="{% url 'users-home' %}" class="px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-semibold transition-colors flex items-center gap-1">
                 <i class="mdi mdi-view-dashboard-outline text-xs"></i>
                 <span>Dashboard</span>
             </a>
@@ -58,7 +58,9 @@ const bandwidthData = [
 ];
 
 const maxBandwidthMB = {{ limit|default:0 }};
-const maxBandwidth = maxBandwidthMB > 0 ? (maxBandwidthMB / 1024) : 100; // GB fallback
+const isUnlimited = maxBandwidthMB === 0;
+const peakUsage = bandwidthData.length > 0 ? Math.max(...bandwidthData.map(d => d.usage), 0.1) : 1;
+const maxBandwidth = !isUnlimited ? (maxBandwidthMB / 1024) : peakUsage;
 
 const chartContainer = document.getElementById('chart-container');
 const noMsg = document.getElementById('no-bandwidth-msg');
@@ -67,16 +69,28 @@ if (bandwidthData.length === 0) {
     if (noMsg) noMsg.style.display = 'block';
 } else {
     bandwidthData.forEach(data => {
-        const percentage = Math.min(100, (data.usage / maxBandwidth) * 100);
+        let barWidth = 0;
         let colorClass = 'bg-emerald-500';
         let badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-        
-        if (percentage >= 85) {
-            colorClass = 'bg-rose-500';
-            badgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
-        } else if (percentage >= 60) {
-            colorClass = 'bg-amber-500';
-            badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+        let badgeContent = '';
+
+        if (isUnlimited) {
+            // For unlimited plans, scale relative to peak usage with clean green visuals
+            barWidth = Math.max(3, (data.usage / peakUsage) * 100);
+            colorClass = 'bg-emerald-500';
+            badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            badgeContent = '<i class="mdi mdi-infinity mr-1 text-xs"></i>Unmetered';
+        } else {
+            const percentage = Math.min(100, (data.usage / maxBandwidth) * 100);
+            barWidth = Math.max(2, percentage);
+            if (percentage >= 85) {
+                colorClass = 'bg-rose-500';
+                badgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+            } else if (percentage >= 60) {
+                colorClass = 'bg-amber-500';
+                badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+            }
+            badgeContent = `${percentage.toFixed(1)}%`;
         }
 
         const bar = document.createElement('div');
@@ -89,13 +103,13 @@ if (bandwidthData.length === 0) {
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="font-mono text-slate-700 text-[11px] font-semibold">${data.usage.toFixed(2)} GB</span>
-                    <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold border ${badgeClass}">
-                        ${percentage.toFixed(1)}%
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold border ${badgeClass}">
+                        ${badgeContent}
                     </span>
                 </div>
             </div>
             <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div class="${colorClass} h-full rounded-full transition-all duration-500" style="width: ${Math.max(2, percentage)}%;"></div>
+                <div class="${colorClass} h-full rounded-full transition-all duration-500" style="width: ${barWidth}%;"></div>
             </div>
         `;
         chartContainer.appendChild(bar);

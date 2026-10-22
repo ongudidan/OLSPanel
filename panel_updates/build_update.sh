@@ -55,16 +55,40 @@ mypanel_dir = os.path.join(base_dir, "panel_setup", "mypanel")
 if not os.path.exists(mypanel_dir):
     mypanel_dir = os.path.join(base_dir, "mypanel")
 
+ignored_names = {
+    "update", "license.key", "mysqlPassword", "dbPassword", 
+    "ip", "time.zone", "conf.ini", "db.sqlite3", "osName", "osVersion"
+}
+
+def should_ignore(filename, rel_dir):
+    if filename.endswith(".pyc") or "__pycache__" in rel_dir:
+        return True
+    if filename in ignored_names:
+        return True
+    if filename.startswith("phpmyadmin_") or filename.startswith("_"):
+        return True
+    return False
+
 if os.path.exists(mypanel_dir):
     with zipfile.ZipFile(panel_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         for root, dirs, files in os.walk(mypanel_dir):
             for file in files:
-                if file.endswith(".pyc") or "__pycache__" in root or file in ["update", "license.key"]:
+                if should_ignore(file, root):
                     continue
                 full_p = os.path.join(root, file)
                 arc_p = os.path.join("mypanel", os.path.relpath(full_p, mypanel_dir))
                 zf.write(full_p, arc_p)
-    print("✅ Created panel_updates/panel_setup.zip successfully!")
+    print("✅ Created panel_updates/panel_setup.zip successfully (sensitive files excluded)!")
+
+    # Synchronize version.txt with mypanel/etc/version
+    ver_file = os.path.join(mypanel_dir, "etc", "version")
+    if os.path.exists(ver_file):
+        with open(ver_file, "r") as vf:
+            ver = vf.read().strip()
+        ver_txt = os.path.join(base_dir, "panel_updates", "version.txt")
+        with open(ver_txt, "w") as out_vf:
+            out_vf.write(f"{ver}\n")
+        print(f"✅ Synchronized panel_updates/version.txt with version {ver}")
 else:
     print("❌ Error: Panel source directory 'mypanel' not found.")
 
@@ -75,7 +99,7 @@ if os.path.exists(panel_setup_dir):
     with zipfile.ZipFile(root_panel_zip, "w", zipfile.ZIP_DEFLATED) as zf:
         for root, dirs, files in os.walk(panel_setup_dir):
             for file in files:
-                if file.endswith(".pyc") or "__pycache__" in root or file in ["update", "license.key"]:
+                if should_ignore(file, root):
                     continue
                 full_p = os.path.join(root, file)
                 arc_p = os.path.relpath(full_p, panel_setup_dir)

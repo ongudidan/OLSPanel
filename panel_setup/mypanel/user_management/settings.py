@@ -249,6 +249,20 @@ MY_OS_NAME, MY_OS_VERSION = get_os_info()
 IS_DEBIAN_LIKE = MY_OS_NAME in ['ubuntu', 'debian', 'pop', 'linuxmint', 'raspbian', 'kali', 'elementary']
 IS_RHEL_LIKE = MY_OS_NAME in ['centos', 'almalinux', 'rocky', 'rhel', 'fedora', 'ol', 'oraclelinux', 'cloudlinux', 'amazonlinux']
 
+def get_panel_version():
+    version_file = os.path.join(BASE_DIR, 'etc', 'version')
+    if os.path.exists(version_file):
+        try:
+            with open(version_file, 'r') as f:
+                ver = f.read().strip()
+                if ver:
+                    return ver
+        except Exception:
+            pass
+    return "1.0.0"
+
+VERSION = get_panel_version()
+
 USE_I18N = True
 
 USE_L10N = True

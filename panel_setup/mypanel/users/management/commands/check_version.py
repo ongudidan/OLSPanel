@@ -54,7 +54,7 @@ class Command(BaseCommand):
             }
 
             # Fetch the latest version
-            response = requests.post(version_url, data=data, timeout=10)
+            response = requests.get(version_url, params=data, timeout=10)
             response.raise_for_status()  # Raise error if request fails
             latest_version = response.text.strip()
 
@@ -68,8 +68,8 @@ class Command(BaseCommand):
             update_file_path = os.path.join(django_root, 'etc', 'update')
 
             # Compare versions
-            if current_version == latest_version:
-                self.stdout.write(f"✅ The project is up to date (Version: {current_version})")
+            if version_tuple(latest_version) <= version_tuple(current_version):
+                self.stdout.write(f"✅ The project is up to date (Current: {current_version}, Latest: {latest_version})")
                 # Remove update file if it exists (no update needed)
                 if os.path.exists(update_file_path):
                     os.remove(update_file_path)
@@ -81,8 +81,7 @@ class Command(BaseCommand):
                 with open(update_file_path, "w") as update_file:
                     update_file.write(f"{latest_version}\n")
                     
-                    
-                response = requests.post(auto_update_version_url, data=data, timeout=10)
+                response = requests.get(auto_update_version_url, params=data, timeout=10)
                 response.raise_for_status()  # Raise error if request fails
                 auto_latest_version = response.text.strip()            
                 current_version = getattr(settings, "VERSION", "0.0.0")

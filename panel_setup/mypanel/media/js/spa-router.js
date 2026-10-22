@@ -186,13 +186,17 @@
         if (!doc) return false;
         const url = (urlStr || '').toLowerCase();
         if (url.includes('/login/') || url.endsWith('/login')) return true;
-        if (doc.querySelector('form button[name="login"]') || doc.querySelector('#form_errors')) {
+
+        // If the document contains panel layout elements or a sidebar, it is definitely not an unauthenticated login page
+        if (doc.getElementById('sidebar-wrapper') || doc.querySelector('.sidebar') || doc.getElementById('sidebar') || doc.getElementById('app-layout')) {
+            return false;
+        }
+
+        // Dedicated elements present exclusively on the actual login/auth pages
+        if (doc.querySelector('form button[name="login"]') || doc.querySelector('#form_errors') || doc.querySelector('input[name="remember_me"]')) {
             return true;
         }
-        const loginForm = doc.querySelector('form[method="post"], form[method="POST"]');
-        if (loginForm && loginForm.querySelector('input[name="username"]') && loginForm.querySelector('input[name="password"]') && !loginForm.querySelector('input[name="email"]')) {
-            return true;
-        }
+
         const title = (doc.title || '').toLowerCase().trim();
         if (title === 'login page' || (title.startsWith('login') && !title.includes('auto login') && !title.includes('history'))) {
             return true;

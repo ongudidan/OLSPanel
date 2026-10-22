@@ -338,16 +338,22 @@ def get_file_plugins_list():
         'target': '_blank',
     },
     {
+        'name': 'FTP Accounts',
+        'icon': '/media/icon/ftp.svg',
+        'url': reverse('ftp_list_all'),
+        'sorder': 2,
+    },
+    {
         'name': 'Backup Restore',
         'icon': '/media/icon/backup.svg',
         'url': reverse('backup_restore'),
-        'sorder': 2,
+        'sorder': 3,
     },
     {
         'name': 'Backup',
         'icon': '/media/icon/backup.svg',
         'url': reverse('backup_whm'),
-        'sorder': 3,
+        'sorder': 4,
     },
     ])
 

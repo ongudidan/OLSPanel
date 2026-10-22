@@ -8,7 +8,7 @@
             <i class="mdi mdi-folder-network-outline text-brand text-base"></i> FTP Accounts
         </h4>
         <div class="flex items-center gap-2.5">
-            <a href="{% url 'ftp_new' %}" class="btn btn-brand inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs">
+            <a href="{% url 'whm_ftp_new' %}" class="btn btn-brand inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md shadow-xs">
                 <i class="mdi mdi-plus-circle-outline"></i> Add FTP Account
             </a>
         </div>
@@ -72,7 +72,7 @@
                             {% endif %}
                         </td>
                         <td class="py-3 px-4 text-right">
-                            <a href="{% url 'ftp_edit' ftp.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-brand hover:text-white hover:bg-brand border border-brand/30 hover:border-brand rounded text-[11px] font-semibold transition-all shadow-xs">
+                            <a href="{% url 'whm_ftp_edit' ftp.id %}" class="inline-flex items-center gap-1 px-2.5 py-1 text-brand hover:text-white hover:bg-brand border border-brand/30 hover:border-brand rounded text-[11px] font-semibold transition-all shadow-xs">
                                 <i class="mdi mdi-cog-outline"></i> Manage
                             </a>
                         </td>

@@ -10,24 +10,30 @@ from django.shortcuts import render
 def admincheck(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        # Check if the user is authenticated
-        if not request.user.is_authenticated:
-            return HttpResponseRedirect('/login/')        
+        admin_user = getattr(request, 'admin_user', None)
+        if admin_user and (not hasattr(request, 'user') or not request.user.is_authenticated):
+            request.user = admin_user
+            
+        if not hasattr(request, 'user') or not request.user.is_authenticated:
+            return HttpResponseRedirect('/login/?next=' + request.path)        
        
         return view_func(request, *args, **kwargs)
     return wrapper
-    
     
     
 def loginadminoruser(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         # Check if either regular user OR admin user is authenticated
-        regular_user_authenticated = request.user.is_authenticated
-        admin_user_authenticated = hasattr(request, 'admin_user') and request.admin_user
+        admin_user = getattr(request, 'admin_user', None)
+        if admin_user and (not hasattr(request, 'user') or not request.user.is_authenticated):
+            request.user = admin_user
+
+        regular_user_authenticated = hasattr(request, 'user') and request.user.is_authenticated
+        admin_user_authenticated = bool(admin_user)
         
         if not regular_user_authenticated and not admin_user_authenticated:
-            return HttpResponseRedirect('/login/')
+            return HttpResponseRedirect('/login/?next=' + request.path)
         
         return view_func(request, *args, **kwargs)
     return wrapper   

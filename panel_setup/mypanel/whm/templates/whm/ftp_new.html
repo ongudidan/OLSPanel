@@ -1,0 +1,141 @@
+{% extends "whm/base.html" %}
+{% block title %}Add FTP Account{% endblock title %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-visible">
+        <!-- Card Header -->
+        <div class="px-5 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between">
+            <h4 class="text-sm font-semibold text-slate-900 m-0 flex items-center gap-2">
+                <i class="mdi mdi-folder-key-network-outline text-brand text-base"></i> Add New FTP Account
+            </h4>
+            <a href="{% url 'ftp_list_all' %}" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-brand transition-colors">
+                <i class="mdi mdi-arrow-left"></i> Back to FTP Accounts
+            </a>
+        </div>
+
+        <!-- Form Body -->
+        <div class="p-5">
+            <form method="post" action="{% url 'whm_ftp_new' %}" class="space-y-4">
+                {% csrf_token %}
+
+                <!-- Target User & Quota Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="xuser">FTP Owner Account <span class="text-rose-500">*</span></label>
+                        <div>
+                            <select name="user" id="xuser" required class="searchable-select w-full" data-placeholder="Select account..." data-search-placeholder="Search users..." data-icon="mdi-account-outline" onchange="updateUserPrefix(this.value);">
+                                {% for auser in all_user %}
+                                    <option value="{{ auser.username }}">{{ auser.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="spaceLimit">Disk Quota Limit <span class="text-rose-500">*</span></label>
+                        <div>
+                            <select id="spaceLimit" name="space_limit" class="searchable-select w-full" data-placeholder="Select quota..." data-search-placeholder="Search limits..." data-icon="mdi-database-outline">
+                                <option value="unlimited">Unlimited Storage</option>
+                                <option value="100">100 MB</option>
+                                <option value="500">500 MB</option>
+                                <option value="1000">1 GB</option>
+                                <option value="1500">1.5 GB</option>
+                                <option value="2000">2 GB</option>
+                                <option value="3000">3 GB</option>
+                                <option value="5000">5 GB</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Username -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-semibold text-slate-700" for="dbuser">FTP Username <span class="text-rose-500">*</span></label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span id="userPrefixLabel" class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-600 text-xs font-mono font-bold rounded-l-md select-none">
+                            {% if all_user.0 %}{{ all_user.0.username }}_{% else %}user_{% endif %}
+                        </span>
+                        <input type="text" id="dbuser" name="username" required placeholder="ftpuser" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono font-semibold focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
+                </div>
+
+                <!-- Scoped Directory Path -->
+                <div class="space-y-1">
+                    <label class="block text-xs font-semibold text-slate-700" for="path">Accessible Directory Path</label>
+                    <div class="flex items-center rounded-md shadow-xs">
+                        <span id="userHomePrefix" class="inline-flex items-center px-3 py-2 border border-r-0 border-slate-200 bg-slate-50 text-slate-500 text-xs font-mono rounded-l-md select-none">
+                            /home/{% if all_user.0 %}{{ all_user.0.username }}{% else %}user{% endif %}/
+                        </span>
+                        <input type="text" id="path" name="path" value="" placeholder="public_html" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-r-md text-xs text-slate-800 font-mono focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Leave empty to grant home root access, or specify a subfolder (e.g. <code>public_html</code>).</p>
+                </div>
+
+                <!-- Password Fields Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="dbpass">Password <span class="text-rose-500">*</span></label>
+                        <div class="flex items-center gap-1.5">
+                            <input type="text" id="dbpass" name="password" required placeholder="Strong password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                            <button type="button" onclick="generateAndFillPassword();" class="px-2.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200 text-xs font-semibold transition-colors shrink-0 cursor-pointer" title="Generate Strong Password">
+                                <i class="mdi mdi-refresh text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold text-slate-700" for="dbpassc">Confirm Password <span class="text-rose-500">*</span></label>
+                        <input type="text" id="dbpassc" name="passwordc" required placeholder="Repeat password" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all">
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="pt-2">
+                    <button type="submit" class="btn btn-secondary inline-flex items-center gap-1.5 px-4 py-2 hover:/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors cursor-pointer">
+                        <i class="mdi mdi-plus-circle-outline"></i> Create FTP Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateUserPrefix(username) {
+    if (!username) return;
+    const prefixEl = document.getElementById('userPrefixLabel');
+    if (prefixEl) prefixEl.textContent = username + '_';
+    const homeEl = document.getElementById('userHomePrefix');
+    if (homeEl) homeEl.textContent = '/home/' + username + '/';
+}
+
+function generateStrongPassword(length = 16) {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const digits = '0123456789';
+    const specialChars = '!@#$%^&*()_+[]{}|;:,.<>?';
+    const allCharacters = lowercase + uppercase + digits + specialChars;
+    let password = '';
+
+    password += lowercase[Math.floor(Math.random() * lowercase.length)];
+    password += uppercase[Math.floor(Math.random() * uppercase.length)];
+    password += digits[Math.floor(Math.random() * digits.length)];
+    password += specialChars[Math.floor(Math.random() * specialChars.length)];
+
+    for (let i = password.length; i < length; i++) {
+        password += allCharacters[Math.floor(Math.random() * allCharacters.length)];
+    }
+
+    return password.split('').sort(() => 0.5 - Math.random()).join('');
+}
+
+function generateAndFillPassword() {
+    const pass = generateStrongPassword(16);
+    const p1 = document.getElementById('dbpass');
+    const p2 = document.getElementById('dbpassc');
+    if (p1) p1.value = pass;
+    if (p2) p2.value = pass;
+}
+</script>
+{% endblock content %}

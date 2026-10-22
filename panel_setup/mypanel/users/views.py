@@ -44,28 +44,43 @@ authenticator = GoogleAuthenticator()
 logger = CpLogger()
 
 
+def is_whm_user(request):
+    """
+    Check if the currently authenticated user has WHM/super-admin privileges
+    and is not currently impersonating a regular user.
+    """
+    admin_user = getattr(request, 'admin_user', None)
+    current_user = getattr(request, 'user', None)
+    
+    # Check impersonation: if admin_user exists and request.user is a different authenticated user
+    if admin_user and current_user and current_user.is_authenticated and current_user.id != admin_user.id:
+        return False
+
+    # Check admin_user
+    if admin_user:
+        user_data = get_user_data_by_id(admin_user.id)
+        if user_data and user_data.get('whm') == 1:
+            return True
+        if getattr(admin_user, 'is_superuser', False) or getattr(admin_user, 'is_staff', False):
+            return True
+
+    # Check request.user
+    if current_user and current_user.is_authenticated:
+        if getattr(current_user, 'is_superuser', False) or getattr(current_user, 'is_staff', False):
+            return True
+        user_data = get_user_data_by_id(current_user.id)
+        if user_data and user_data.get('whm') == 1:
+            return True
+
+    return False
+
+
 @login_required
 @admincheck
 def home(request):
     # If the logged-in user is admin/WHM and not impersonating a regular user, redirect to WHM dashboard
-    is_impersonating = False
-    admin_user = getattr(request, 'admin_user', None)
-    if admin_user and hasattr(request, 'user') and request.user.is_authenticated:
-        if request.user.id != admin_user.id:
-            is_impersonating = True
-
-    if not is_impersonating:
-        user_is_whm = False
-        if request.user.is_authenticated:
-            if getattr(request.user, 'is_superuser', False) or getattr(request.user, 'is_staff', False):
-                user_is_whm = True
-            else:
-                user_data = get_user_data_by_id(request.user.id)
-                if user_data and user_data.get('whm') == 1:
-                    user_is_whm = True
-        
-        if admin_user or user_is_whm:
-            return redirect('/whm/')
+    if is_whm_user(request):
+        return redirect('/whm/')
 
     # Get the logged-in user's username
     username_string = request.user.username
@@ -214,7 +229,8 @@ def handler404(request, exception):
 def handler500(request):
     context = {}
     response = render(request, "users/500.html", context=context)
-    response.status_code
+    response.status_code = 500
+    return response
     
 def handler403(request, exception=None):
     context = {}
@@ -240,6 +256,11 @@ class CustomLoginView(LoginView):
     def dispatch(self, request, *args, **kwargs):
         # Auto-redirect already authenticated users
         admin_user = getattr(request, 'admin_user', None)
+        next_url = request.GET.get('next') or request.POST.get('next')
+        if next_url and not next_url.startswith('/login') and next_url != '/':
+            if (admin_user and getattr(admin_user, 'is_authenticated', False)) or request.user.is_authenticated:
+                return redirect(next_url)
+
         if admin_user:
             return redirect('/whm/')
         if request.user.is_authenticated:
@@ -2016,83 +2037,132 @@ def email_pipe_delete(request, email_id):
         return redirect('/email_pipe_list')
 
 
-@login_required
-@admincheck
+@loginadminoruser
 def ftp_list(request):
-    username_string = request.user.username
+    whm_mode = is_whm_user(request)
     
+    # If in WHM mode and accessed via /ftp_list/, seamlessly redirect to /whm/ftp_list_all/
+    if whm_mode and not request.path.startswith('/whm/'):
+        return redirect('ftp_list_all')
+
+    if whm_mode:
+        if request.method == 'POST':
+            search_query = request.POST.get('search', '').strip()
+            ftp = Ftps.objects.filter(user__icontains=search_query)
+        else:
+            ftp = Ftps.objects.all()
+        return render(request, 'whm/ftp_list.html', {'ftps': ftp})
+
     if request.method == 'POST':
-        search_query = request.POST.get('search', '')
-        # Exclude emails that are equal to 'pipe@example.com'
+        search_query = request.POST.get('search', '').strip()
         ftp = Ftps.objects.filter(userid=request.user.id, user__icontains=search_query)
     else:
-        # Exclude emails that are equal to 'pipe@example.com'
         ftp = Ftps.objects.filter(userid=request.user.id)
 
     return render(request, 'users/ftp_list.html', {'ftps': ftp})   
 
 
 
-@login_required
-@admincheck
+@loginadminoruser
 def ftp_new(request):
-    # Fetch the domains associated with the logged-in user
-    domains = Domain.objects.filter(userid=request.user.id)
-    username_string = request.user.username
-    user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
-    total_ftp_count = Ftps.objects.filter(userid=request.user.id).count()
+    whm_mode = is_whm_user(request)
+
+    # If in WHM mode and accessed via /ftp_new/, seamlessly redirect to /whm/ftp_new/
+    if whm_mode and not request.path.startswith('/whm/'):
+        return redirect('whm_ftp_new')
+
+    redirect_list = 'ftp_list_all' if whm_mode else 'ftp_list'
+    redirect_new = 'whm_ftp_new' if whm_mode else 'ftp_new'
+
+    all_users = User.objects.exclude(id=1) if whm_mode else None
+    domains = Domain.objects.all() if whm_mode else Domain.objects.filter(userid=request.user.id)
+    total_ftp_count = Ftps.objects.filter(userid=request.user.id).count() if not whm_mode else 0
+
+    user_package = None
+    if not whm_mode:
+        user_data = get_user_data_by_id(request.user.id)
+        if user_data and user_data.get('pkg_id'):
+            user_package = Package.objects.filter(id=user_data.get('pkg_id')).first()
 
     if request.method == 'POST':
-        req_username = request.POST.get('username')
-        path = request.POST.get('path')
-        password = request.POST.get('password')
-        passwordc = request.POST.get('passwordc')
-        space_limit = request.POST.get('space_limit')
+        req_username = request.POST.get('username', '').strip()
+        path = request.POST.get('path', '').strip().lstrip('/')
+        password = request.POST.get('password', '')
+        passwordc = request.POST.get('passwordc', '')
+        space_limit = request.POST.get('space_limit', '')
         
         # Validate inputs
-        
         if not is_valid_email_username(req_username):
-            messages.error(request, 'Username too long or invaild.')
-            return redirect('/ftp_new')
+            messages.error(request, 'Username too long or invalid.')
+            return redirect(redirect_new)
             
-        
-        if user_package.ftp_accounts != 0 and total_ftp_count >= user_package.ftp_accounts:    
+        if not whm_mode and user_package and user_package.ftp_accounts != 0 and total_ftp_count >= user_package.ftp_accounts:    
             messages.error(request, 'Ftp account limit exceeded.')
-            return redirect('/ftp_new')
+            return redirect(redirect_new)
             
         if not req_username or not password or not passwordc:
             messages.error(request, 'All fields are required.')
-            return redirect('/ftp_new')
+            return redirect(redirect_new)
 
         if len(req_username) < 2:
             messages.error(request, 'Username must be at least 2 characters long.')
-            return redirect('/ftp_new')
+            return redirect(redirect_new)
 
         if len(password) < 6:
-            messages.error(request, 'Password must be at least 8 characters long.')
-            return redirect('/ftp_new')
+            messages.error(request, 'Password must be at least 6 characters long.')
+            return redirect(redirect_new)
 
         if password != passwordc:
             messages.error(request, 'Passwords do not match.')
-            return redirect('/ftp_new')
+            return redirect(redirect_new)
 
-        
-        # Construct the email address using the username and domain
-        ftp_user = f"{username_string}_{req_username}"
+        # Determine target user ownership
+        if whm_mode:
+            target_username = request.POST.get('user', '').strip()
+            target_user = User.objects.filter(username=target_username).first() if target_username else None
+            if not target_user:
+                target_user = User.objects.exclude(id=1).first()
+            if not target_user:
+                target_user = request.user
+            target_username = target_user.username
+            target_userid = target_user.id
+        else:
+            target_username = request.user.username
+            target_userid = request.user.id
 
-        # Check if a record with the same email already exists
+        ftp_user = f"{target_username}_{req_username}"
+
+        # Check if a record with the same username already exists
         if Ftps.objects.filter(user=ftp_user).exists():
             messages.error(request, 'Ftp user already exists.')
-            return redirect('/ftp_new')
-            
-          
+            return redirect(redirect_new)
 
         # Hash the password with the custom function
         hashed_password = hash_password_crypt(password)
-        base_dir = f'/home/{username_string}/{path}'
-        uid, gid = get_uid_gid(username_string)
+        base_dir = f'/home/{target_username}/{path}' if path else f'/home/{target_username}'
+        uid, gid = get_uid_gid(target_username)
+
+        # Fallback if target_username has no system uid/gid (e.g. admin or missing system user)
+        if uid is None or gid is None:
+            user_home = f'/home/{target_username}'
+            if os.path.exists(user_home):
+                try:
+                    stat_info = os.stat(user_home)
+                    uid = stat_info.st_uid
+                    gid = stat_info.st_gid
+                except Exception:
+                    pass
+            if uid is None or gid is None:
+                for u in User.objects.exclude(id=1):
+                    cand_uid, cand_gid = get_uid_gid(u.username)
+                    if cand_uid is not None and cand_gid is not None:
+                        uid, gid = cand_uid, cand_gid
+                        break
+            if uid is None or gid is None:
+                messages.error(request, f'System user {target_username} not found on server.')
+                return redirect(redirect_new)
         
-        # Construct the Maildir path
+        # Space limit
         if space_limit == "unlimited":
             QuotaSize = 0  # Set to 0 for unlimited
         else:
@@ -2100,74 +2170,86 @@ def ftp_new(request):
                 QuotaSize = int(space_limit)  # Convert to integer
             except ValueError:
                 messages.error(request, 'Invalid space limit value.')
-                return redirect('/ftp_new')
+                return redirect(redirect_new)
      
-        # Create a new email record with the hashed password and Maildir path
         new_ftp = Ftps(
             user=ftp_user,
-            dir=base_dir,  # Use the correct field name
-            password=hashed_password,  # Assuming you have a password field in the Emails model
-            userid=request.user.id,  # Assuming userid is a ForeignKey to the User model
-            QuotaSize=QuotaSize,  # Assuming you have a domain_id field in your Emails model
+            dir=base_dir,
+            password=hashed_password,
+            userid=target_userid,
+            QuotaSize=QuotaSize,
             uid=uid,
             gid=gid,
             status=1
         )
         new_ftp.save()
-       
 
         # Display a success message and redirect to the list page
         messages.success(request, 'FTP Account has been created successfully.')
-        return redirect('/ftp_list')
+        return redirect(redirect_list)
 
-    # Render the email creation form with the available domains
-    return render(request, 'users/ftp_new.html', {'domains': domains})
+    # Render the creation form
+    context = {'domains': domains}
+    if whm_mode:
+        context['all_user'] = all_users
+        return render(request, 'whm/ftp_new.html', context)
+    return render(request, 'users/ftp_new.html', context)
     
     
-@login_required
-@admincheck
+@loginadminoruser
 def ftp_edit(request, ftp_id):
-    # Fetch the email record for the logged-in user
-    ftp = Ftps.objects.filter(userid=request.user.id, id=ftp_id).first()
-    username_string = request.user.username
-    file = remove_home_anyname(ftp.dir)
-    base_dirs = f'/home/{username_string}/'
-    file_path =  file.lstrip('/')
-    file_path = remove_home_anyname(file_path)
+    whm_mode = is_whm_user(request)
+    
+    # If in WHM mode and accessed via /ftp_edit/<id>/, seamlessly redirect to /whm/ftp_edit/<id>/
+    if whm_mode and not request.path.startswith('/whm/'):
+        return redirect('whm_ftp_edit', ftp_id=ftp_id)
+
+    redirect_list = 'ftp_list_all' if whm_mode else 'ftp_list'
+    redirect_edit = 'whm_ftp_edit' if whm_mode else 'ftp_edit'
+
+    if whm_mode:
+        ftp = Ftps.objects.filter(id=ftp_id).first()
+    else:
+        ftp = Ftps.objects.filter(userid=request.user.id, id=ftp_id).first()
 
     if not ftp:
-        messages.error(request, 'Invalid ftp selected.')
-        return redirect('/ftp_edit', ftp_id=ftp_id)
+        messages.error(request, 'Invalid FTP account selected.')
+        return redirect(redirect_list)
+
+    owner_user = User.objects.filter(id=ftp.userid).first()
+    owner_username = owner_user.username if owner_user else request.user.username
+    file = remove_home_anyname(ftp.dir or '')
+    file_path = file.lstrip('/')
+    file_path = remove_home_anyname(file_path).lstrip('/')
 
     if request.method == 'POST':
         password = request.POST.get('password')  # Get the password from the form
         passwordc = request.POST.get('passwordc')  # Get the confirm password from the form
         space_limit = request.POST.get('space_limit')  # Get the space limit from the form
         status = request.POST.get('status')  # Get the space limit from the form
-        path = request.POST.get('path')
-        base_dir = f'/home/{username_string}/{path}'
+        path = request.POST.get('path', '').strip().lstrip('/')
+        base_dir = f'/home/{owner_username}/{path}' if path else f'/home/{owner_username}'
         
-        ftp.dir =base_dir
+        ftp.dir = base_dir
 
         # Validate password input if it's not empty
         if password:
             if len(password) < 6:
                 messages.error(request, 'Password must be at least 6 characters long.')
-                return redirect('/ftp_edit', ftp_id=ftp_id)
+                return redirect(redirect_edit, ftp_id=ftp_id)
 
             if password != passwordc:
                 messages.error(request, 'Passwords do not match.')
-                return redirect('/ftp_edit', ftp_id=ftp_id)
+                return redirect(redirect_edit, ftp_id=ftp_id)
 
             # Hash the new password and update it
             hashed_password = hash_password_crypt(password)
             ftp.password = hashed_password  # Update password only if provided
             
-        if status == "1":
-            ftp.status = 1  # Set to 0 for unlimited
+        if status == "1" or status == 1:
+            ftp.status = 1
         else:
             ftp.status = 0
-    
 
         # Set the space limit
         if space_limit == "unlimited":
@@ -2177,42 +2259,41 @@ def ftp_edit(request, ftp_id):
                 ftp.QuotaSize = int(space_limit)  # Convert to integer
             except ValueError:
                 messages.error(request, 'Invalid space limit value.')
-                return redirect('/ftp_edit', ftp_id=ftp_id)
+                return redirect(redirect_edit, ftp_id=ftp_id)
 
-        # Save the updated email object
+        # Save the updated ftp object
         ftp.save()
 
-        messages.success(request, 'FTP  updated successfully.')
-        return redirect('/ftp_list')  # Redirect to email list page or wherever appropriate
+        messages.success(request, 'FTP updated successfully.')
+        return redirect(redirect_list)
     
-    return render(request, 'users/ftp_edit.html', {'ftp_id': ftp_id, 'ftp': ftp, 'file_path':file_path})   
+    context = {'ftp_id': ftp_id, 'ftp': ftp, 'file_path': file_path}
+    if whm_mode:
+        return render(request, 'whm/ftp_edit.html', context)
+    return render(request, 'users/ftp_edit.html', context)   
     
     
-@login_required
-@admincheck
+@loginadminoruser
 def ftp_delete(request, ftp_id):
-    # Fetch the DNS record based on the provided id (rid) and ensure it belongs to the logged-in user
-    ftp = get_object_or_404(Ftps, userid=request.user.id, id=ftp_id)
+    whm_mode = is_whm_user(request)
+    redirect_list = 'ftp_list_all' if whm_mode else 'ftp_list'
 
-    # Check if the record belongs to the current user
-    if ftp.userid != request.user.id:
-        return redirect('/ftp_list')
-        
-        
-    if ftp.user == request.user.username:
-        messages.error(request, 'This account can not delete.')
-        return redirect('/ftp_list')    
+    if whm_mode:
+        ftp = get_object_or_404(Ftps, id=ftp_id)
+    else:
+        ftp = get_object_or_404(Ftps, userid=request.user.id, id=ftp_id)
+
+    # Prevent deleting own username account if non-WHM
+    if not whm_mode and ftp.user == request.user.username:
+        messages.error(request, 'This account can not be deleted.')
+        return redirect(redirect_list)
 
     if request.method == 'POST':
-       
         ftp.delete()
-            
-
-        # Display a success message after deletion
         messages.success(request, 'FTP has been deleted successfully.')
+        return redirect(redirect_list)
 
-        # Redirect to the list page after deletion
-        return redirect('/ftp_list')   
+    return redirect(redirect_list)   
 
 
 @login_required
@@ -2222,6 +2303,8 @@ def cronjob_list(request):
     
     # Call the parse_cron_jobs function to get structured data
     cronjob = parse_cron_jobs(username_string)
+    if not isinstance(cronjob, list) or (len(cronjob) == 1 and isinstance(cronjob[0], str)):
+        cronjob = []
 
     return render(request, 'users/cronjob_list.html', {'cronjob': cronjob})
 
@@ -2264,6 +2347,9 @@ def cronjob_edit(request, line):
 
     # Step 1: Call the parse_cron_jobs function to get structured data
     cronjob = get_cron_job_by_line_number(username_string, line)
+    if not isinstance(cronjob, dict):
+        messages.error(request, 'Selected cron job was not found.')
+        return redirect('/cronjob_list')
 
     if request.method == 'POST':
         minute = request.POST.get('minute')
@@ -2365,12 +2451,13 @@ def visitor_view(request,id):
 @login_required
 @admincheck
 def bandth(request):
-    
     ban = Bandwidth.objects.filter(userid=request.user.id).order_by('-id')
-    user_package = Package.objects.filter(id=get_user_data_by_id(request.user.id).get('pkg_id')).first()
-    limit = user_package.bandwidth if user_package.bandwidth != 0 else 2000
+    user_data = get_user_data_by_id(request.user.id)
+    pkg_id = user_data.get('pkg_id') if user_data else None
+    user_package = Package.objects.filter(id=pkg_id).first() if pkg_id else None
+    limit = user_package.bandwidth if user_package else 0
 
-    return render(request, 'users/bandth.html', {'bandths': ban, 'limit':limit})
+    return render(request, 'users/bandth.html', {'bandths': ban, 'limit': limit})
     
     
     

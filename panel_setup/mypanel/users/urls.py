@@ -3,6 +3,7 @@ from .views import *
 from . import views
 urlpatterns = [
     path('', home, name='users-home'),
+    path('dashboard/', home, name='dashboard'),
     path('profile/', profile, name='users-profile'),
     path('domain/', domain, name='users-domain'),
     path('domain_list/', domain_list, name='domain_list'),
@@ -62,6 +63,7 @@ urlpatterns = [
     path('phpmyadmin_view/', phpmyadmin_view, name='phpmyadmin'),
     path('webmail/', webmail, name='webmail'),
     path('password-change/', change_password, name='password_change'),
+    path('change-password/', change_password, name='change_password'),
     path('app_install/<str:name>/', app_install, name='app_install'),
     path('app_install_view/<str:name>/', app_install_view, name='app_install_view'),
     path('default_email/', default_email, name='default_email'),
@@ -91,6 +93,7 @@ urlpatterns = [
     path('composer/install/run/', composer_install_run, name='composer_install_run'),
     path('google_otp/', google_otp, name='google_otp'),
     path('passkeys/', users_passkeys, name='users_passkeys'),
+    path('user_passkeys/', users_passkeys, name='user_passkeys'),
     path('home_data/', home_data, name='home_data'),
     path('api/passkey/register/options/', passkey_register_options, name='passkey_register_options'),
     path('api/passkey/register/verify/', passkey_register_verify, name='passkey_register_verify'),

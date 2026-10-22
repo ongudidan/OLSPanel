@@ -2,7 +2,7 @@ from django.urls import path
 from .views import *
 from . import views
 from .replication_views import *
-from users.views import CustomLoginView
+from users.views import CustomLoginView, ftp_list, ftp_new, ftp_edit, ftp_delete
 
 
 urlpatterns = [
@@ -146,6 +146,10 @@ urlpatterns = [
     path("api/db_replication/channel_action/", db_replication_channel_action, name="db_replication_channel_action"),
     path("api/db_replication/kill_thread/", db_replication_kill_thread, name="db_replication_kill_thread"),
     path("api/db_replication/test_connection/", db_replication_test_connection, name="db_replication_test_connection"),
+    path('ftp_list_all/', ftp_list, name='ftp_list_all'),
+    path('ftp_new/', ftp_new, name='whm_ftp_new'),
+    path('ftp_edit/<int:ftp_id>/', ftp_edit, name='whm_ftp_edit'),
+    path('ftp_delete/<int:ftp_id>/', ftp_delete, name='whm_ftp_delete'),
 ]
 
 

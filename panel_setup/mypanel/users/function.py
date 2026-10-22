@@ -766,15 +766,18 @@ def parse_cron_jobs(username):
     cron_file_path = os.path.join('/var/spool/cronjobs', username)
 
     if not os.path.exists(cron_file_path):
-        return [f"No cron jobs found for user {username}."]
+        return []
 
     parsed_jobs = []
     
-    with open(cron_file_path, 'r') as cron_file:
-        cron_jobs = cron_file.readlines()
+    try:
+        with open(cron_file_path, 'r') as cron_file:
+            cron_jobs = cron_file.readlines()
+    except Exception:
+        return []
 
     for line_number, job in enumerate(cron_jobs, start=1):  # Start counting from 1
-        parts = job.split()
+        parts = job.strip().split()
         if len(parts) < 6:
             continue  # Skip if the job doesn't have enough parts
         
@@ -786,7 +789,8 @@ def parse_cron_jobs(username):
         command = ' '.join(parts[5:])  # Join the rest as command
         
         parsed_jobs.append({
-            'line_number': line_number,  # Add line number
+            'line_number': line_number,
+            'line': line_number,  # Add both line and line_number for template compatibility
             'minute': minute,
             'hour': hour,
             'day': day,
@@ -1481,13 +1485,12 @@ def get_php_settings(php_version: str, override_path: str = None):
     
     
 def check_for_update():
-    
     try:
         version_url = "https://ongudidan.github.io/OLSPanel/panel_updates/version.txt"
 
         os_name = getattr(settings, "MY_OS_NAME", "linux")
         os_version = getattr(settings, "MY_OS_VERSION", "0")
-        panel_version = getattr(settings, "VERSION", "0")
+        panel_version = getattr(settings, "VERSION", "0.0.0")
 
         data = {
             "osname": os_name,
@@ -1495,7 +1498,8 @@ def check_for_update():
             "panel": panel_version
         }
 
-        response = requests.post(version_url, data=data, timeout=10)
+        # GitHub Pages / static CDNs require GET requests; POST returns 405 Method Not Allowed
+        response = requests.get(version_url, params=data, timeout=10)
         response.raise_for_status()
         latest_version = response.text.strip()
 
@@ -1503,8 +1507,8 @@ def check_for_update():
         django_root = settings.BASE_DIR
         update_file_path = os.path.join(django_root, 'etc', 'update')
 
-        if current_version == latest_version:
-            print(f"✅ The project is up to date (Version: {current_version})")
+        if version_tuple(latest_version) <= version_tuple(current_version):
+            print(f"✅ The project is up to date (Current: {current_version}, Latest: {latest_version})")
             if os.path.exists(update_file_path):
                 os.remove(update_file_path)
                 print("🗑️ Removed outdated update file.")

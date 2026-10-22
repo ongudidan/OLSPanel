@@ -64,50 +64,33 @@ def change_hostname(old_hostname, new_hostname):
         print(f"An error occurred: {e}")
         
 def install_panel_update():
-    """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
-    
+    """Downloads and executes upgrade.sh from the update server"""
     upgrade_script_url = "https://ongudidan.github.io/OLSPanel/panel_updates/upgrade.sh"
-    update_url = "https://ongudidan.github.io/OLSPanel/panel_updates/panel_setup.zip"
-    download_path = f"{settings.BASE_DIR.parent}/panel_setup.zip"
-    extract_path = settings.BASE_DIR.parent
-    upgrade_script_path = f"{settings.BASE_DIR.parent}/upgrade.sh"
+    upgrade_script_path = "/tmp/upgrade.sh"
 
     try:
         print("Step 1: Downloading upgrade.sh...")
-        subprocess.run(["wget", "-O", upgrade_script_path, upgrade_script_url], check=True)
+        cache_buster = int(time.time())
+        subprocess.run(["wget", "-q", "-O", upgrade_script_path, f"{upgrade_script_url}?{cache_buster}"], check=True)
 
-        print("Step 2: Removing Windows-style line endings from upgrade.sh...")
+        print("Step 2: Sanitizing upgrade.sh...")
         subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
+        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
 
         print("Step 3: Running upgrade.sh...")
-        subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
         subprocess.run(["bash", upgrade_script_path], check=True)
 
-        print("Step 4: Downloading update file...")
-        cache_buster = int(time.time())
-        #subprocess.run(["wget", "-O", download_path, f"{update_url}?{cache_buster}"], check=True)
+        print("Step 4: Cleaning up...")
+        if os.path.exists(upgrade_script_path):
+            os.remove(upgrade_script_path)
 
-        if not os.path.isfile(download_path):
-            print("Error: Downloaded file not found, the download may have failed.")
-            return "Error: Downloaded file not found, the download may have failed."
-
-        print("Step 5: Extracting update file...")
-        #subprocess.run(["sudo", "unzip", "-o", download_path, "-d", extract_path], check=True)
-
-        print("Step 6: Cleaning up...")
-        os.remove(download_path)
-        os.remove(upgrade_script_path)
         restart_cp()
-
         print("Update installation complete!")
         return "Update has been successfully installed."
 
     except subprocess.CalledProcessError as e:
-        print(f"Error during update process: {e}")
+        logger.error(f"Error during update process: {e}")
         return f"Update failed: {e}"
-        
-        
-
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return f"Unexpected error: {e}"
@@ -2852,6 +2835,7 @@ def download_license_file(download_url: str, save_path="/etc/olspanel/license.ke
                 
 def restart_cp_command():
     try:
+        time.sleep(1.5)
         subprocess.run(["sudo", "systemctl", "restart", "cp"], check=True)
     except Exception as e:
         print(f"CP restart failed: {e}")
