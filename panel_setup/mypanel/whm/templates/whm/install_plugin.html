@@ -70,13 +70,7 @@ function renderPlugin() {
     }
 	
     let btn = "";
-    if (plugin.license_valid === false) {
-        btn = `
-            <a href="/whm/license/" class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
-                <i class="mdi mdi-lock-outline"></i> License Required
-            </a>
-        `;
-    } else if (plugin.is_installed) {
+    if (plugin.is_installed) {
         btn = `
             <div class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-600 text-white text-xs font-semibold rounded-md shadow-xs">
                 <i class="mdi mdi-check-circle-outline"></i> Already Installed

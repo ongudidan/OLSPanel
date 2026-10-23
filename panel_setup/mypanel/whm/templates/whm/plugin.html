@@ -112,11 +112,6 @@ function renderPlugins() {
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 <span>Installed</span>
             </button>`;
-        } else if (p.license_valid === false) {
-            btn = `<a href="{% url 'license' %}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold transition-colors">
-                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                <span>Unlock License</span>
-            </a>`;
         } else if (p.pre_build_path) {
             let currentUrl = window.location.origin + window.location.pathname;
             let baseUrl = currentUrl.replace(/plugin\/?$/, '');

@@ -82,7 +82,6 @@ MIDDLEWARE = [
     'whm.middleware.admin_dual_session.SeparateAdminSessionMiddleware',    
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'users.middleware.LicenseMiddleware.LicenseMiddleware',
 ]
 
 ROOT_URLCONF = 'user_management.urls'

@@ -867,13 +867,6 @@ def get_advance_plugins_list():
     binary_path = "/usr/local/bin/olspanelcp"
     if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
         plugin_list.append({
-            'name': 'License',
-            'icon': '/media/icon/license.svg',
-            'url': reverse('license'),
-            'sorder': 0,
-          
-        })
-        plugin_list.append({
             'name': 'Branding',
             'icon': '/media/icon/panel_brand.svg',
             'url': reverse('panel_brand'),

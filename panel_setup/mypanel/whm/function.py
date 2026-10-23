@@ -2780,59 +2780,7 @@ def generate_password(length=16):
     return ''.join(password)                  
     
                 
-                
 
-
-
-LICENSE_API_URL = "https://cp.olspanel.com/api/license/status"
-
-
-def verify_license(license_key: str):
-    """
-    Call remote license server and return JSON response
-    """
-
-    try:
-        response = requests.post(
-            LICENSE_API_URL,
-            data={"license_key": license_key},
-            timeout=30
-        )
-
-        return response.json()
-
-    except requests.RequestException as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
-
-def download_license_file(download_url: str, save_path="/etc/olspanel/license.key"):
-    """
-    Download license file and save locally
-    """
-
-    try:
-        r = requests.get(download_url, timeout=15)
-        r.raise_for_status()
-
-        os.makedirs(os.path.dirname(save_path), exist_ok=True)
-
-        with open(save_path, "wb") as f:
-            f.write(r.content)
-
-        return {
-            "status": "success",
-            "path": save_path
-        }
-
-    except requests.RequestException as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-                
 def restart_cp_command():
     try:
         time.sleep(1.5)

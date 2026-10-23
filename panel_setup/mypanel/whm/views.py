@@ -3281,103 +3281,7 @@ def install_postgresql(request):
           
 
 
-@alogin_required
-def license(request):
-    license_key = request.META.get('LICENSE_KEY')
-    license_type = request.META.get('LICENSE_TYPE')
-    license_ip = request.META.get('LICENSE_IP')
-    license_expire_raw = request.META.get('LICENSE_EXPIRE')
-
-    license_data = {
-        'key': license_key or '',
-        'type': license_type or '',
-        'ip': license_ip or '',
-        'expire_date': None,
-        'status': 'Inactive'
-    }
-
-    if license_key and license_expire_raw:
-        try:
-            normalized = license_expire_raw.strip().replace('Z', '+00:00')
-            expire_date = datetime.fromisoformat(normalized)
-
-            # Force UTC if naive
-            if expire_date.tzinfo is None:
-                expire_date = expire_date.replace(tzinfo=dt_timezone.utc)
-
-            now_time = datetime.now(tz=dt_timezone.utc)  # ✅ pure UTC, no Django tz config
-
-            license_data['expire_date'] = expire_date
-            license_data['status'] = 'Active' if expire_date > now_time else 'Expired'
-
-        except (ValueError, TypeError):
-            license_data['status'] = 'Invalid'
-
-    return render(request, 'whm/license.html', {
-        'license': license_data
-    })
-    
-    
-
-
-
-
-
-@alogin_required
-def license_activate(request):
-
-    server_ip = get_server_ip()
-
-    if request.method != "POST":
-        return JsonResponse({"status": "error", "message": "POST required"})
-
-    license_key = request.POST.get("license_key")
-
-    if not license_key:
-        return JsonResponse({"status": "error", "message": "License key required"})
-
-    # 1. verify license
-    result = verify_license(license_key)
-
-    if result.get("status") != "active":
-        return JsonResponse(result, status=400)
-
-    license_ip = result.get("ip")
-
-    # 🚨 2. IP MISMATCH CHECK
-    if license_ip and server_ip and license_ip != server_ip:
-        return JsonResponse({
-            "status": "error",
-            "message": "Server IP mismatch",
-            "server_ip": server_ip,
-            "license_ip": license_ip
-        }, status=403)
-
-    # 3. download license
-    download_url = result.get("download_url")
-
-    if not download_url:
-        return JsonResponse({"status": "error", "message": "Download URL missing"})
-
-    file_result = download_license_file(download_url)
-
-    if file_result["status"] != "success":
-        return JsonResponse(file_result, status=500)
-
-    # ✅ success response
-    response = JsonResponse({
-        "status": "success",
-        "message": "License activated",
-        "license_key": result.get("license_key"),
-        "expires": result.get("expires"),
-        "type": result.get("type"),
-        "ip": license_ip
-    })
-
-    # 🔥 restart CP (safe background thread)
-    restart_cp()
-
-    return response          
+          
     
 
 @alogin_required    
@@ -3388,18 +3292,7 @@ def plugin(request):
 def api_plugins(request):
     try:
         plugin_id = request.GET.get("id")
-        # =========================
-        # LICENSE STATUS
-        # =========================
-        status = get_license_status(request)
-
-        # free-only if invalid license
-        binary_path = "/usr/local/bin/olspanelcp"
-        if os.path.isfile(binary_path) and os.access(binary_path, os.X_OK):
-            base_url = "https://cp.olspanel.com/api/plugins"
-        else:
-            base_url = "https://cp.olspanel.com/api/plugins?type=free"
-            
+        base_url = "https://cp.olspanel.com/api/plugins"
             
         # =========================
         # ADD ID PARAM IF EXISTS
@@ -3421,17 +3314,6 @@ def api_plugins(request):
         plugins = data.get("plugins", [])
 
         # =========================
-        # USER LICENSE TYPES
-        # =========================
-        license_type_raw = request.META.get("LICENSE_TYPE") or ""
-
-        user_license_types = [
-            t.strip().lower()
-            for t in license_type_raw.split(",")
-            if t.strip()
-        ]
-
-        # =========================
         # PROCESS PLUGINS
         # =========================
         for p in plugins:
@@ -3447,27 +3329,7 @@ def api_plugins(request):
             # INSTALL CHECK
             # =========================
             p["is_installed"] = bool(path) and os.path.exists(path)
-
-            # =========================
-            # PLUGIN LICENSE TYPES
-            # =========================
-            plugin_types = [
-                t.strip().lower()
-                for t in (p.get("type") or "").split(",")
-                if t.strip()
-            ]
-
-            # =========================
-            # LICENSE ACCESS CHECK
-            # =========================
-            if "free" in plugin_types:
-                p["license_valid"] = True
-
-            else:
-                p["license_valid"] = any(
-                    t in plugin_types
-                    for t in user_license_types
-                )
+            p["license_valid"] = True
 
         # =========================
         # RETURN
@@ -3520,42 +3382,7 @@ def install_plugin_run(request, plugin_id):
                 status=404
             )
 
-        # =========================
-        # LICENSE CHECK
-        # =========================
-        status = get_license_status(request)
 
-        license_type_raw = request.META.get("LICENSE_TYPE") or ""
-
-        user_license_types = [
-            t.strip().lower()
-            for t in license_type_raw.split(",")
-            if t.strip()
-        ]
-
-        plugin_types = [
-            t.strip().lower()
-            for t in (plugin.get("type") or "").split(",")
-            if t.strip()
-        ]
-
-        license_valid = False
-
-        if "free" in plugin_types:
-            license_valid = True
-
-        elif status not in ["missing", "invalid", "expired"]:
-            license_valid = any(
-                t in plugin_types
-                for t in user_license_types
-            )
-
-        # ❌ BLOCK IF INVALID
-        if not license_valid:
-            return JsonResponse({
-                "status": "error",
-                "message": "License not valid. Please upgrade."
-            }, status=403)
 
         # =========================
         # DATA

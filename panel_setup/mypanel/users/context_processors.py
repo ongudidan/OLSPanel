@@ -30,11 +30,6 @@ def branding(request):
         "button_secondary_color": "#fd5190",
     }
 
-    # license check FIRST (clean exit)
-    status = get_license_status(request)
-    if status in ["missing", "invalid", "expired"]:
-        return {"branding": branding_data}
-
     keys = branding_data.keys()
 
     qs = AppSettings.objects.filter(setting_key__in=keys)
