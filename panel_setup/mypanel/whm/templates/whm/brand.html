@@ -268,6 +268,25 @@
         if (brandBadge) {
             brandBadge.style.setProperty('background-color', hex, 'important');
         }
+
+        // Live update CSS variables so sidebar badge conic gradient & glow update immediately in real-time
+        if (hex) {
+            document.documentElement.style.setProperty('--brand-color', hex);
+            function hexToRgb(h) {
+                h = (h || '').replace('#', '').trim();
+                if (h.startsWith('rgb')) {
+                    var inner = h.substring(h.indexOf('(')+1, h.indexOf(')')).split(',');
+                    if (inner.length >= 3) return inner[0].trim() + ', ' + inner[1].trim() + ', ' + inner[2].trim();
+                }
+                if (h.length === 3) h = h.split('').map(function(c) { return c + c; }).join('');
+                if (h.length === 6) {
+                    var n = parseInt(h, 16);
+                    if (!isNaN(n)) return ((n >> 16) & 255) + ', ' + ((n >> 8) & 255) + ', ' + (n & 255);
+                }
+                return '239, 109, 25';
+            }
+            document.documentElement.style.setProperty('--brand-rgb', hexToRgb(hex));
+        }
     };
 
     window.setBrandColor = function(hex) {

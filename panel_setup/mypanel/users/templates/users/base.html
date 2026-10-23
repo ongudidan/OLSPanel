@@ -28,9 +28,32 @@
   <link id="main-css-href" rel="stylesheet" href="/media/css/style.css?v=2.3.18" />
     <title>{% block title %} {% endblock %} </title>
     
+    <script>
+    (function() {
+        function hexToRgb(h) {
+            h = (h || '').replace('#', '').trim();
+            if (h.startsWith('rgb')) {
+                var inner = h.substring(h.indexOf('(')+1, h.indexOf(')')).split(',');
+                if (inner.length >= 3) return inner[0].trim() + ', ' + inner[1].trim() + ', ' + inner[2].trim();
+            }
+            if (h.length === 3) h = h.split('').map(function(c) { return c + c; }).join('');
+            if (h.length === 6) {
+                var n = parseInt(h, 16);
+                if (!isNaN(n)) return ((n >> 16) & 255) + ', ' + ((n >> 8) & 255) + ', ' + (n & 255);
+            }
+            return '239, 109, 25';
+        }
+        var brand = "{{ branding.brand_color|default:'#ef6d19' }}";
+        var rgb = hexToRgb(brand);
+        document.documentElement.style.setProperty('--brand-rgb', rgb);
+        document.documentElement.style.setProperty('--brand-color', brand);
+    })();
+    </script>
+
     <style>
         :root {
             --brand-color: {{ branding.brand_color|default:"#ef6d19" }} !important;
+            --brand-rgb: {{ branding.brand_color_rgb|default:"239, 109, 25" }} !important;
             --primary: {{ branding.brand_color|default:"#ef6d19" }} !important;
             --button-primary: {{ branding.button_primary_color|default:"#9e6de0" }} !important;
             --button-secondary: {{ branding.button_secondary_color|default:"#fd5190" }} !important;
@@ -251,20 +274,156 @@
         .left-sidebar, .sidebar-dark { background-color: #000000 !important; border-right: 1px solid #18181b !important; box-shadow: none !important; overflow: hidden !important; width: 195px !important; }
         .left-sidebar::before { display: none !important; }
         #sidebar, .sidebar { background-color: #000000 !important; display: flex !important; flex-direction: column !important; height: 100vh !important; max-height: 100vh !important; overflow: hidden !important; position: relative !important; width: 195px !important; }
-        .app-brand { height: 56px !important; min-height: 56px !important; max-height: 56px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 6px 10px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
-        .app-brand a { height: 100% !important; display: flex !important; align-items: center !important; justify-content: center !important; width: 100% !important; padding: 0 !important; overflow: hidden !important; text-decoration: none !important; }
-        .app-brand .brand-name { font-size: 0.88rem !important; font-weight: 700 !important; letter-spacing: -0.02em !important; }
-        .brand-full-logo { max-height: 28px !important; max-width: 135px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
-        .brand-minified-icon { max-height: 26px !important; max-width: 26px !important; width: auto !important; height: auto !important; object-fit: contain !important; display: none !important; margin: 0 auto !important; }
-        .sidebar-left { flex: 1 1 auto !important; height: calc(100% - 60px) !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; }
+        @keyframes rotateBorder {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-        /* App Brand Logo & Icon in Collapsed vs Expanded-on-hover */
-        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .brand-full-logo { display: none !important; }
-        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .brand-minified-icon { display: block !important; }
-        body.sidebar-minified-out .left-sidebar .brand-full-logo,
-        body.sidebar-minified .left-sidebar:hover .brand-full-logo { display: block !important; }
-        body.sidebar-minified-out .left-sidebar .brand-minified-icon,
-        body.sidebar-minified .left-sidebar:hover .brand-minified-icon { display: none !important; }
+        .fortune-wordmark-badge {
+            position: relative !important;
+            display: flex !important;
+            width: 100% !important;
+            height: 38px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0.35rem 0.65rem !important;
+            border-radius: 0.5rem !important;
+            box-shadow: 
+                0 0 0 1px rgba(var(--brand-rgb), 0.35),
+                0 0 16px -2px rgba(var(--brand-rgb), 0.4),
+                0 4px 12px rgba(0, 0, 0, 0.6) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            text-decoration: none !important;
+            overflow: hidden !important;
+            z-index: 1 !important;
+        }
+
+        .fortune-wordmark-badge img {
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        .fortune-wordmark-badge::before {
+            content: '' !important;
+            position: absolute !important;
+            top: -150% !important;
+            left: -150% !important;
+            width: 400% !important;
+            height: 400% !important;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(var(--brand-rgb), 0.9) 60deg,
+                rgba(255, 255, 255, 0.95) 90deg,
+                rgba(var(--brand-rgb), 0.9) 120deg,
+                transparent 180deg,
+                rgba(56, 189, 248, 0.6) 240deg,
+                rgba(var(--brand-rgb), 0.85) 300deg,
+                transparent 360deg
+            ) !important;
+            animation: rotateBorder 4s linear infinite !important;
+            z-index: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .fortune-wordmark-badge::after {
+            content: '' !important;
+            position: absolute !important;
+            inset: 1.5px !important;
+            background: radial-gradient(ellipse at 50% -20%, rgba(var(--brand-rgb), 0.22), rgba(16, 21, 33, 0.96) 70%), #0a0e17 !important;
+            border-radius: calc(0.5rem - 1.5px) !important;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1px 2px rgba(0, 0, 0, 0.8) !important;
+            z-index: 1 !important;
+            pointer-events: none !important;
+        }
+
+        .fortune-wordmark-badge:hover {
+            box-shadow: 
+                0 0 0 1px rgba(var(--brand-rgb), 0.7),
+                0 0 22px rgba(var(--brand-rgb), 0.6),
+                0 6px 18px rgba(0, 0, 0, 0.75) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .fortune-favicon-badge {
+            position: relative !important;
+            display: none !important;
+            width: 38px !important;
+            height: 38px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 0.5rem !important;
+            box-shadow: 
+                0 0 0 1px rgba(var(--brand-rgb), 0.35),
+                0 0 16px -2px rgba(var(--brand-rgb), 0.4),
+                0 4px 12px rgba(0, 0, 0, 0.6) !important;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            text-decoration: none !important;
+            overflow: hidden !important;
+            z-index: 1 !important;
+            margin: 0 auto !important;
+        }
+
+        .fortune-favicon-badge img {
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        .fortune-favicon-badge::before {
+            content: '' !important;
+            position: absolute !important;
+            top: -150% !important;
+            left: -150% !important;
+            width: 400% !important;
+            height: 400% !important;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(var(--brand-rgb), 0.9) 60deg,
+                rgba(255, 255, 255, 0.95) 90deg,
+                rgba(var(--brand-rgb), 0.9) 120deg,
+                transparent 180deg,
+                rgba(56, 189, 248, 0.6) 240deg,
+                rgba(var(--brand-rgb), 0.85) 300deg,
+                transparent 360deg
+            ) !important;
+            animation: rotateBorder 4s linear infinite !important;
+            z-index: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .fortune-favicon-badge::after {
+            content: '' !important;
+            position: absolute !important;
+            inset: 1.5px !important;
+            background: radial-gradient(ellipse at 50% -20%, rgba(var(--brand-rgb), 0.22), rgba(16, 21, 33, 0.96) 70%), #0a0e17 !important;
+            border-radius: calc(0.5rem - 1.5px) !important;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.35), inset 0 -1px 2px rgba(0, 0, 0, 0.8) !important;
+            z-index: 1 !important;
+            pointer-events: none !important;
+        }
+
+        .fortune-favicon-badge:hover {
+            box-shadow: 
+                0 0 0 1px rgba(var(--brand-rgb), 0.7),
+                0 0 22px rgba(var(--brand-rgb), 0.6),
+                0 6px 18px rgba(0, 0, 0, 0.75) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .fortune-logo-expanded { display: flex !important; }
+        .fortune-logo-collapsed { display: none !important; }
+
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .fortune-logo-expanded { display: none !important; }
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .fortune-logo-collapsed { display: flex !important; }
+        body.sidebar-minified-out .left-sidebar .fortune-logo-expanded,
+        body.sidebar-minified .left-sidebar:hover .fortune-logo-expanded { display: flex !important; }
+        body.sidebar-minified-out .left-sidebar .fortune-logo-collapsed,
+        body.sidebar-minified .left-sidebar:hover .fortune-logo-collapsed { display: none !important; }
+
+        .app-brand { height: 56px !important; min-height: 56px !important; max-height: 56px !important; flex-shrink: 0 !important; background-color: #000000 !important; border-bottom: 1px solid #18181b !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 0 10px !important; overflow: hidden !important; z-index: 10 !important; position: relative !important; }
+        body.sidebar-minified:not(.sidebar-minified-out) .left-sidebar:not(:hover) .app-brand { padding: 0 8px !important; }
+        .sidebar-left { flex: 1 1 auto !important; height: calc(100% - 60px) !important; min-height: 0 !important; overflow-y: auto !important; overflow-x: hidden !important; }
 
         /* Sidebar Search Box (Default Expanded) */
         #custom-search { padding: 6px 8px 3px !important; margin-bottom: 0 !important; }
@@ -557,14 +716,22 @@
             <!-- Application Brand -->
             <div class="app-brand">
               {% if branding.brand_image %}
-              <a href="{% if is_admin %}/whm/{% else %}/{% endif %}" class="flex items-center justify-center w-full h-full p-0">
-                <img class="brand-full-logo" src="{{ branding.brand_image }}" alt="{{ branding.brand_title|default:'Brand Logo' }}" style="max-height: 28px; max-width: 145px; object-fit: contain;">
-                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 26px; max-width: 26px; object-fit: contain;">
+              <!-- Expanded Full Wordmark Badge -->
+              <a href="{% if is_admin %}/whm/{% else %}/{% endif %}" class="fortune-wordmark-badge fortune-logo-expanded" title="FortuneDevs">
+                <img src="{{ branding.brand_image }}" alt="{{ branding.brand_title|default:'FortuneDevs' }}" style="height: 23px; width: auto; max-width: 155px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7)); display: block;">
+              </a>
+
+              <!-- Collapsed Favicon Badge with Matching Rotating Border -->
+              <a href="{% if is_admin %}/whm/{% else %}/{% endif %}" class="fortune-favicon-badge fortune-logo-collapsed" title="FortuneDevs">
+                <img src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="{{ branding.brand_title|default:'FortuneDevs' }}" style="height: 26px; width: 26px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7)); display: block;">
               </a>
               {% else %}
-              <a href="{% if is_admin %}/whm/{% else %}/{% endif %}" class="flex items-center justify-center w-full h-full gap-2 p-0">
-                <img class="brand-minified-icon" src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Brand Icon" style="max-height: 26px; max-width: 26px; object-fit: contain;">
-                <span class="brand-name font-bold text-xs" style="color: {{ branding.brand_color|default:'#ef6d19' }};">{{ branding.brand_title|default:'OLSPanel' }}</span>
+              <a href="{% if is_admin %}/whm/{% else %}/{% endif %}" class="fortune-wordmark-badge fortune-logo-expanded" title="FortuneDevs">
+                <img src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Icon" style="height: 22px; width: 22px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7)); margin-right: 6px;">
+                <span class="brand-name font-bold text-xs" style="color: #fff; position: relative; z-index: 2;">{{ branding.brand_title|default:'OLSPanel' }}</span>
+              </a>
+              <a href="{% if is_admin %}/whm/{% else %}/{% endif %}" class="fortune-favicon-badge fortune-logo-collapsed" title="FortuneDevs">
+                <img src="{{ branding.brand_icon|default:'/media/logo.png' }}" alt="Icon" style="height: 26px; width: 26px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7)); display: block;">
               </a>
               {% endif %}
             </div>

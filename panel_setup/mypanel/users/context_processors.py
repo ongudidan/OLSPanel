@@ -18,6 +18,27 @@ def dynamic_plugins(request):
         'advance_plugin': get_advance_plugins_list(),
     }
 
+def hex_to_rgb(hex_code, default="239, 109, 25"):
+    try:
+        if not hex_code:
+            return default
+        h = str(hex_code).strip()
+        if h.startswith("rgb"):
+            inner = h[h.find("(")+1:h.find(")")].split(",")
+            if len(inner) >= 3:
+                return f"{int(inner[0].strip())}, {int(inner[1].strip())}, {int(inner[2].strip())}"
+        h = h.lstrip("#")
+        if len(h) == 3:
+            h = "".join([c * 2 for c in h])
+        if len(h) == 6:
+            r = int(h[0:2], 16)
+            g = int(h[2:4], 16)
+            b = int(h[4:6], 16)
+            return f"{r}, {g}, {b}"
+    except Exception:
+        pass
+    return default
+
 def branding(request):
 
     # defaults
@@ -26,11 +47,12 @@ def branding(request):
         "brand_image": "/media/ow.png",
         "brand_icon": "/media/logo.png",
         "brand_color": "#ef6d19",
+        "brand_color_rgb": "239, 109, 25",
         "button_primary_color": "#9e6de0",
         "button_secondary_color": "#fd5190",
     }
 
-    keys = branding_data.keys()
+    keys = ["brand_title", "brand_image", "brand_icon", "brand_color", "button_primary_color", "button_secondary_color"]
 
     qs = AppSettings.objects.filter(setting_key__in=keys)
 
@@ -44,4 +66,5 @@ def branding(request):
             if value and str(value).strip():
                 branding_data[item.setting_key] = value
 
+    branding_data["brand_color_rgb"] = hex_to_rgb(branding_data.get("brand_color", "#ef6d19"))
     return {"branding": branding_data}
