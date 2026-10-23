@@ -384,7 +384,14 @@ class CustomLoginView(LoginView):
 def user_logout(request):
     """
     Log out the user and redirect to login page.
+    If an admin was impersonating a regular user, only log out of the impersonated user session
+    and redirect back to WHM admin dashboard, leaving the admin session completely intact!
     """
+    admin_user = getattr(request, 'admin_user', None)
+    if admin_user and hasattr(request, 'user') and request.user.is_authenticated and request.user.id != admin_user.id:
+        logout(request)
+        return redirect('/whm/')
+
     if hasattr(request, 'admin_session'):
         request.admin_session.flush()
     logout(request)

@@ -2319,6 +2319,21 @@ def whm_logout(request):
         logout(request)
     return redirect('/login/')
     
+
+@alogin_required
+def exit_impersonate(request):
+    """
+    Clears any lingering impersonated regular user session and redirects back to WHM,
+    keeping the administrator session completely active.
+    """
+    if hasattr(request, 'session'):
+        request.session.flush()
+    messages.success(request, "Impersonated client session cleared successfully.")
+    referer = request.META.get('HTTP_REFERER')
+    if referer and '/login/' not in referer and ('/whm/' in referer or 'scope=admin' in referer):
+        return redirect(referer)
+    return redirect('/whm/')
+    
     
 @alogin_required
 def account_details(request,id):

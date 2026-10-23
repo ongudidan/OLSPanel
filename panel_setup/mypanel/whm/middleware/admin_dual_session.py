@@ -39,6 +39,18 @@ class SeparateAdminSessionMiddleware:
         if request.admin_user and hasattr(request, 'user') and not request.user.is_authenticated:
             request.user = request.admin_user
 
+        # Track impersonated client user (if request.user is an authenticated client distinct from admin_user)
+        request.impersonated_user = None
+        if request.admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+            if request.user.id != request.admin_user.id:
+                request.impersonated_user = request.user
+
+        # WHM & Admin Scope: If navigating inside /whm/ or under an explicit admin scope (e.g. ?scope=admin),
+        # always bind request.user to request.admin_user so administrative interfaces execute with full admin context
+        # and are never polluted by a client session opened in another tab.
+        if request.admin_user and (request.path.startswith('/whm/') or request.GET.get('scope') == 'admin'):
+            request.user = request.admin_user
+
         # Fallback 2: If standard request.user is authenticated and is admin (whm=1 or superuser/staff),
         # but request.admin_user is not set (e.g. session_admin cookie missing/expired),
         # automatically populate request.admin_user and sync the admin session

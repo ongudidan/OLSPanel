@@ -1126,6 +1126,21 @@
       ——— PAGE WRAPPER
       ===================================== -->
       <div class="page-wrapper">
+        {% if is_impersonating and admin_user %}
+        <!-- Impersonation Notice Bar -->
+        <div class="bg-indigo-950 text-indigo-100 px-4 py-2 flex items-center justify-between text-xs z-50 border-b border-indigo-800">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center px-2 py-0.5 rounded bg-indigo-700 text-white font-bold uppercase tracking-wider text-[10px]">Admin Impersonation</span>
+            <span>You are viewing <strong>{{ user.username }}</strong> as <strong>{{ admin_user.username }}</strong>.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <a href="{% url 'exit_impersonate' %}" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white text-indigo-900 hover:bg-indigo-50 font-semibold rounded shadow-xs transition-colors">
+              <svg class="w-3.5 h-3.5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              <span>Return to WHM</span>
+            </a>
+          </div>
+        </div>
+        {% endif %}
         
           <!-- Header -->
           <header class="main-header" id="header">
@@ -1144,6 +1159,12 @@
 
               <!-- Right User Menu -->
               <div class="flex items-center">
+                {% if is_impersonating and admin_user %}
+                <a href="{% url 'exit_impersonate' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 mr-2.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 rounded-md text-xs font-semibold transition-colors shadow-2xs" title="Return to WHM Administrator Panel">
+                  <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                  <span>Return to WHM</span>
+                </a>
+                {% endif %}
                 <div class="dropdown relative user-menu">
                   <button class="flex items-center gap-2 px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-md text-xs font-semibold text-slate-700 transition-colors dropdown-toggle" data-toggle="dropdown" type="button">
                     <img src="/media/icon/user.svg" class="w-4 h-4 object-contain" alt="User" />
@@ -1154,6 +1175,13 @@
                       <img src="/media/icon/user.svg" class="w-4 h-4 object-contain" alt="Profile" />
                       <span>Profile</span>
                     </a>
+                    {% if is_impersonating and admin_user %}
+                    <div class="border-t border-slate-100 my-1"></div>
+                    <a class="flex items-center gap-2 px-3 py-2 text-indigo-700 hover:bg-indigo-50 transition-colors" href="{% url 'exit_impersonate' %}">
+                      <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                      <span>Return to WHM</span>
+                    </a>
+                    {% endif %}
                     <div class="border-t border-slate-100 my-1"></div>
                     <a class="flex items-center gap-2 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors" href="{% url 'logout' %}">
                       <img src="/media/icon/logout.svg" class="w-4 h-4 object-contain" alt="Logout" />

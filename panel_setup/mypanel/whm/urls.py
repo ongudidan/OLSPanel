@@ -57,6 +57,7 @@ urlpatterns = [
     path('time_zone/', time_zone, name='time_zone'),
     path('phpmyadmins/', phpmyadmin_view_admin, name='phpmyadmins'),
     path('auto_login/<int:rid>/', auto_login_by_admin, name='auto_login'),
+    path('exit_impersonate/', exit_impersonate, name='exit_impersonate'),
     path('panel_ssl/', panel_ssl, name='panel_ssl'),
     path('backup_whm/', backup_whm, name='backup_whm'),
     path('backup_delete_whm/<int:id>/', backup_delete_whm, name='backup_delete_whm'),

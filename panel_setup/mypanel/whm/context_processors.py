@@ -48,13 +48,21 @@ def admin_user_context(request):
             if u_data and u_data.get('whm') == 1:
                 admin_user = request.user
 
-    is_impersonating = False
-    if admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+    impersonated_user = getattr(request, 'impersonated_user', None)
+    if not impersonated_user and admin_user and hasattr(request, 'user') and request.user.is_authenticated:
         if request.user.id != admin_user.id:
-            is_impersonating = True
+            impersonated_user = request.user
+
+    is_impersonating = bool(impersonated_user)
+
+    # In WHM pages (/whm/ or ?scope=admin), an authenticated admin is always is_admin=True!
+    in_whm = request.path.startswith('/whm/') or request.GET.get('scope') == 'admin'
+    is_admin = bool(admin_user and (in_whm or not is_impersonating))
 
     return {
         'admin_user': admin_user,
-        'is_admin': bool(admin_user and not is_impersonating),
+        'impersonated_user': impersonated_user,
+        'is_admin': is_admin,
+        'has_admin_rights': bool(admin_user),
         'is_impersonating': is_impersonating
     }
