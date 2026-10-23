@@ -52,7 +52,7 @@ def get_users_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -146,7 +146,7 @@ def get_database_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -220,7 +220,7 @@ def get_domain_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -289,7 +289,7 @@ def get_file_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -374,7 +374,7 @@ def get_security_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -504,7 +504,7 @@ def get_server_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -602,7 +602,7 @@ def get_email_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -667,7 +667,7 @@ def get_php_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -755,7 +755,7 @@ def get_node_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -827,7 +827,7 @@ def get_advance_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -914,7 +914,7 @@ def get_configuration_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -998,7 +998,7 @@ def get_account_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
@@ -1071,7 +1071,7 @@ def get_support_plugins_list():
     # Add dynamic plugins
     for plugin_name in plugin_names:
         icon = get_plugin_config_value('icon', plugin_name)
-        url = get_plugin_config_value('url', plugin_name)
+        url = get_plugin_config_value('admin_url', plugin_name) or get_plugin_config_value('url', plugin_name)
         sorder = get_plugin_config_value('sorder', plugin_name)
         p_name = get_plugin_config_value('name', plugin_name)
         target = get_plugin_config_value('target', plugin_name)
