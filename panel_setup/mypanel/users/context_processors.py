@@ -39,6 +39,20 @@ def hex_to_rgb(hex_code, default="239, 109, 25"):
         pass
     return default
 
+def get_installed_version():
+    try:
+        from django.conf import settings
+        import os
+        version_file = os.path.join(settings.BASE_DIR, 'etc', 'version')
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as f:
+                ver = f.read().strip()
+                if ver:
+                    return ver
+        return getattr(settings, 'VERSION', '')
+    except Exception:
+        return ''
+
 def branding(request):
 
     # defaults
@@ -50,6 +64,7 @@ def branding(request):
         "brand_color_rgb": "239, 109, 25",
         "button_primary_color": "#9e6de0",
         "button_secondary_color": "#fd5190",
+        "panel_version": get_installed_version(),
     }
 
     keys = ["brand_title", "brand_image", "brand_icon", "brand_color", "button_primary_color", "button_secondary_color"]
@@ -67,4 +82,5 @@ def branding(request):
                 branding_data[item.setting_key] = value
 
     branding_data["brand_color_rgb"] = hex_to_rgb(branding_data.get("brand_color", "#ef6d19"))
-    return {"branding": branding_data}
+    branding_data["panel_version"] = get_installed_version()
+    return {"branding": branding_data, "panel_version": branding_data["panel_version"]}

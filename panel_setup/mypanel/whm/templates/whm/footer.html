@@ -10,7 +10,7 @@
     </div>
     <div class="flex items-center gap-3">
         <span class="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> OLSPanel v2.0
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Fortune Panel{% if branding.panel_version %} v{{ branding.panel_version }}{% elif panel_version %} v{{ panel_version }}{% endif %}
         </span>
     </div>
 </footer>
