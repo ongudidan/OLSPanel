@@ -26,7 +26,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2025-03-19",
         "pre_build_path": "",
-        "image": "/media/icon/postgresql.svg",
+        "image": "/media/icon/postgresql.png",
     },
     {
         "id": 1,
@@ -40,7 +40,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2025-02-05",
         "pre_build_path": "phpmymongos/",
-        "image": "/media/icon/mongodb.svg",
+        "image": "/media/icon/mongodb.png",
     },
     {
         "id": 4,
@@ -54,7 +54,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2026-02-02",
         "pre_build_path": "",
-        "image": "/media/icon/terminal.svg",
+        "image": "/media/icon/terminal.png",
     },
     {
         "id": 7,
@@ -68,7 +68,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2026-04-10",
         "pre_build_path": "",
-        "image": "/media/icon/replicator.svg",
+        "image": "/media/icon/replicator.png",
     },
     {
         "id": 8,
@@ -82,21 +82,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2026-05-01",
         "pre_build_path": "",
-        "image": "/media/icon/git_deploy.svg",
-    },
-    {
-        "id": 9,
-        "slug": "pm2",
-        "category_id": 4,
-        "category": "Development",
-        "name": "Node.js PM2 Manager",
-        "description": "Production process management, port mapping, proxy contexts, environment variables, and log streamer for Node.js apps.",
-        "path": "plugin/pm2.conf",
-        "url": "https://github.com/ongudidan/olspanel-plugin-pm2/releases/latest/download/pm2.zip",
-        "type": "free",
-        "date": "2026-05-15",
-        "pre_build_path": "",
-        "image": "/media/icon/pm2.svg",
+        "image": "/media/icon/git_deploy.png",
     },
     {
         "id": 3,
@@ -124,7 +110,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2026-08-25",
         "pre_build_path": "",
-        "image": "/media/icon/extension.svg",
+        "image": "/media/icon/htaccess.png",
     },
     {
         "id": 6,
@@ -138,7 +124,7 @@ DEFAULT_PLUGINS = [
         "type": "free",
         "date": "2026-08-25",
         "pre_build_path": "",
-        "image": "/media/icon/extension.svg",
+        "image": "/media/icon/lscache.png",
     },
 ]
 
