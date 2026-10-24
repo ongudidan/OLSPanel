@@ -152,6 +152,8 @@ create_imunify_sudoers() {
     if [ -d "$sudoers_dir" ]; then
         echo "nobody ALL=(ALL) NOPASSWD: /usr/bin/imunify-antivirus" > "$sudoers_file"
         echo "www-data ALL=(ALL) NOPASSWD: /usr/bin/imunify-antivirus" >> "$sudoers_file"
+        echo "nobody ALL=(ALL) NOPASSWD: $PROJECT_DIR/3rdparty/imunifyfav/bin/execute.py" >> "$sudoers_file"
+        echo "www-data ALL=(ALL) NOPASSWD: $PROJECT_DIR/3rdparty/imunifyfav/bin/execute.py" >> "$sudoers_file"
         chmod 0440 "$sudoers_file"
         echo "✅ Created sudoers permission: $sudoers_file"
     fi
@@ -238,6 +240,16 @@ chown -R nobody:$PANEL_GROUP "$PROJECT_DIR/3rdparty/imunifyfav" 2>/dev/null || t
 chmod 755 "$PROJECT_DIR/3rdparty/imunifyfav" 2>/dev/null || true
 if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/auto_index.php" ]; then
     chmod 644 "$PROJECT_DIR/3rdparty/imunifyfav/auto_index.php" 2>/dev/null || true
+fi
+
+# Patch Generic.php to execute execute.py via sudo so nobody/www-data can query root agent socket
+if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/Generic.php" ]; then
+    sed -i "s|sprintf(__DIR__ . '/../../bin/execute.py %s'|sprintf('sudo -n %s/../../bin/execute.py %s', __DIR__|g" "$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/Generic.php"
+fi
+
+# Ensure index.php matches ImunifyAV package mode
+if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/index.php" ]; then
+    sed -i 's/var IMUNIFY_PACKAGE = "360";/var IMUNIFY_PACKAGE = "AV";/g' "$PROJECT_DIR/3rdparty/imunifyfav/index.php"
 fi
 
 # 6. Verify installation
