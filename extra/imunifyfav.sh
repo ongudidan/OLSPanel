@@ -160,8 +160,16 @@ create_imunify_sudoers() {
 create_imunify_autologin_php() {
     local php_dir="$PROJECT_DIR/3rdparty/imunifyfav"
     local php_file="$php_dir/auto_index.php"
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local local_auto_index="$script_dir/auto_index.php"
 
     mkdir -p "$php_dir"
+
+    if [ -f "$local_auto_index" ]; then
+        cp -f "$local_auto_index" "$php_file"
+        echo "✅ Copied PHP auto-login file: $php_file"
+        return
+    fi
 
     cat > "$php_file" <<'PHP_EOF'
 <?php
