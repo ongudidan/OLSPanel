@@ -1,0 +1,51 @@
+<style>
+.pgsql-loader {
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #ef6d19;
+  border-radius: 50%;
+  width: 11px;
+  height: 11px;
+  animation: pgsql-spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+@keyframes pgsql-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<!-- PostgreSQL Database -->
+<div class="flex items-center justify-between py-1.5 border-t border-slate-100 text-xs">
+    <span class="text-slate-500 font-medium">PostgreSQL Database</span>
+    <span id="pg-count" class="text-slate-800 font-semibold">
+        <span class="pgsql-loader"></span>
+    </span>
+</div>
+
+<!-- PostgreSQL Disk -->
+<div class="flex items-center justify-between py-1.5 border-t border-slate-100 text-xs">
+    <span class="text-slate-500 font-medium">PostgreSQL Disk</span>
+    <span id="pg-disk" class="text-slate-800 font-semibold">
+        <span class="pgsql-loader"></span>
+    </span>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  fetch("/module/postgresql/admin_home/?format=json")
+    .then(response => response.json())
+    .then(data => {
+      const countEl = document.getElementById("pg-count");
+      const diskEl = document.getElementById("pg-disk");
+      if (countEl) countEl.textContent = (data && data.pdb_count !== undefined) ? data.pdb_count : '0';
+      if (diskEl) diskEl.textContent = (data && data.pdbsize !== undefined) ? data.pdbsize : '0.00 bytes';
+    })
+    .catch(err => {
+      const countEl = document.getElementById("pg-count");
+      const diskEl = document.getElementById("pg-disk");
+      if (countEl) countEl.innerHTML = "<span class='text-slate-400'>0</span>";
+      if (diskEl) diskEl.innerHTML = "<span class='text-slate-400'>0.00 bytes</span>";
+    });
+});
+</script>

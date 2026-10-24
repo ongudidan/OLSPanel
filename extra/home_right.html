@@ -1,0 +1,45 @@
+<style>
+.pgsql-loader {
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #ef6d19;
+  border-radius: 50%;
+  width: 11px;
+  height: 11px;
+  animation: pgsql-spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+@keyframes pgsql-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<div class="flex items-center justify-between py-1.5 border-t border-slate-100 text-xs gap-2">
+    <span class="text-slate-500 font-medium">PostgreSQL Databases</span>
+    <span id="pg-dbcount" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="pgsql-loader"></span></span>
+</div>
+
+<div class="flex items-center justify-between py-1.5 border-t border-slate-100 text-xs gap-2">
+    <span class="text-slate-500 font-medium">PostgreSQL Disk</span>
+    <span id="pg-disk" class="font-mono text-slate-800 text-[11px] font-semibold"><span class="pgsql-loader"></span></span>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  fetch("/module/postgresql/home/?format=json")
+    .then(response => response.json())
+    .then(data => {
+      const dbEl = document.getElementById("pg-dbcount");
+      const diskEl = document.getElementById("pg-disk");
+      if (dbEl) dbEl.textContent = `${data.pdatabases_use} / ${data.pdatabases}`;
+      if (diskEl) diskEl.textContent = `${data.pdisk_use_db} / ${data.pdisk_space} MB`;
+    })
+    .catch(err => {
+      const dbEl = document.getElementById("pg-dbcount");
+      const diskEl = document.getElementById("pg-disk");
+      if (dbEl) dbEl.innerHTML = "<span class='text-slate-400'>-</span>";
+      if (diskEl) diskEl.innerHTML = "<span class='text-slate-400'>-</span>";
+    });
+});
+</script>
