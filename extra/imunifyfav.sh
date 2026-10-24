@@ -1,6 +1,19 @@
 #!/bin/bash
 set -e
 
+# Sanitize Python and package manager environment so child Python processes use their own virtualenvs
+unset PYTHONPATH
+unset PYTHONHOME
+unset VIRTUAL_ENV
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+export UCF_FORCE_CONFFOLD=1
+
+# Ensure any interrupted dpkg processes are configured cleanly first
+if command -v dpkg >/dev/null 2>&1; then
+    dpkg --configure -a 2>/dev/null || true
+fi
+
 # ImunifyAV architecture check (CloudLinux strictly requires x86_64)
 ARCH=$(uname -m)
 if [ "$ARCH" != "x86_64" ]; then
@@ -181,7 +194,7 @@ wget -q https://repo.imunify360.cloudlinux.com/defence360/imav-deploy.sh -O /tmp
 chmod +x /tmp/imav-deploy.sh
 
 echo "🚀 Deploying ImunifyAV (non-interactive mode)..."
-bash /tmp/imav-deploy.sh -y
+env -u PYTHONPATH -u PYTHONHOME -u VIRTUAL_ENV DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a bash /tmp/imav-deploy.sh -y
 rm -f /tmp/imav-deploy.sh
 
 # 3. Configure features and permissions

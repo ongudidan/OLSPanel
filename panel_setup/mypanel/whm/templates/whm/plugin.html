@@ -108,20 +108,22 @@ function renderPlugins() {
         let btn = "";
 
         if (p.is_installed) {
-            btn = `<button class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold cursor-default" disabled>
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                <span>Installed</span>
-            </button>`;
-        } else if (p.pre_build_path) {
-            let currentUrl = window.location.origin + window.location.pathname;
-            let baseUrl = currentUrl.replace(/plugin\/?$/, '');
-            let path = p.pre_build_path.replace(/^\/+/, '');
-            let finalUrl = baseUrl + path;
+            if (p.pre_build_path) {
+                let currentUrl = window.location.origin + window.location.pathname;
+                let baseUrl = currentUrl.replace(/plugin\/?$/, '');
+                let path = p.pre_build_path.replace(/^\/+/, '');
+                let finalUrl = baseUrl + path;
 
-            btn = `<a href="${finalUrl}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                <span>Install</span>
-            </a>`;
+                btn = `<a href="${finalUrl}" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold shadow-xs transition-colors">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Manage</span>
+                </a>`;
+            } else {
+                btn = `<button class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold cursor-default" disabled>
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Installed</span>
+                </button>`;
+            }
         } else {
             const INSTALL_URL = "{% url 'install_plugin' 0 %}".replace("/0/", "/");
             btn = `<a href="${INSTALL_URL}${p.id}/" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors">

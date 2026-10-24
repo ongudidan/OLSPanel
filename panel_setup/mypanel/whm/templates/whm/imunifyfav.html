@@ -2,7 +2,7 @@
 {% block title %}ImunifyAV Antivirus{% endblock title %}
 {% block content %}
 
-<div class="max-w-xl mx-auto my-6">
+<div class="max-w-2xl mx-auto my-6">
     <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden text-center">
         <div class="px-4 py-3 bg-white border-b border-slate-200 flex items-center justify-between">
             <h4 class="text-base font-semibold text-slate-900 m-0 flex items-center gap-2">
@@ -14,7 +14,7 @@
             <img src="/media/icon/imunifyfav.png" alt="ImunifyAV Logo" class="h-24 w-auto object-contain mb-4">
 
             {% if not is_arch_supported %}
-                <div class="w-full max-w-sm mb-4">
+                <div class="w-full max-w-md mb-4">
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-800 text-left">
                         <div class="flex items-center gap-2 mb-1">
                             <i class="mdi mdi-alert-circle-outline text-base text-amber-600"></i>
@@ -24,7 +24,7 @@
                     </div>
                 </div>
             {% elif install_available %}
-                <div class="w-full max-w-sm flex flex-col gap-2">
+                <div class="w-full max-w-md flex flex-col gap-2">
                     <a href="/3rdparty/imunifyfav/auto_index.php" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
                         <img src="/media/icon/imunifyfav.png" class="w-5 h-5 object-contain" alt="ImunifyAV">
                         <span>Access ImunifyAV Dashboard</span>
@@ -34,28 +34,28 @@
                     </button>
                 </div>
             {% elif is_installed and not is_operational %}
-                <div class="w-full max-w-sm mb-4">
+                <div class="w-full max-w-md mb-4">
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs font-semibold text-amber-800 text-left">
                         <div class="flex items-center gap-2 mb-1">
                             <i class="mdi mdi-alert text-base text-amber-600"></i>
                             <span class="font-bold">Incomplete Installation</span>
                         </div>
-                        Imunify components (such as defence360agent or UI) are missing or incomplete. Click below to perform a clean repair.
+                        Imunify components are incomplete. Click below to run the live repair installer.
                     </div>
                 </div>
                 <div>
-                    <button id="save" class="btn btn-secondary inline-flex items-center gap-2 px-6 py-2.5 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                    <button id="save" class="inline-flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
                         <i class="mdi mdi-wrench"></i> Repair / Reinstall ImunifyAV
                     </button>
                 </div>
             {% else %}
-                <div class="w-full max-w-sm mb-4">
+                <div class="w-full max-w-md mb-4">
                     <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs font-semibold text-rose-800">
                         ImunifyAV is not installed yet.
                     </div>
                 </div>
                 <div>
-                    <button id="save" class="btn btn-secondary inline-flex items-center gap-2 px-6 py-2.5 hover:/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                    <button id="save" class="inline-flex items-center gap-2 px-6 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
                         <i class="mdi mdi-download"></i> Install ImunifyAV
                     </button>
                 </div>
@@ -65,12 +65,10 @@
                 {% csrf_token %}
             </div>
 
-            <div id="responseContainer" style="display: none;" class="mt-4 flex items-center gap-2 text-xs text-brand font-semibold">
-                <svg class="animate-spin h-4 w-4 text-brand" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                <span>Processing installation, please wait...</span>
-            </div>
+            <!-- Terminal Live Streaming Display -->
+            <div id="terminal" style="display: none;" class="w-full mt-5 p-4 bg-slate-950 text-emerald-400 font-mono text-xs rounded-lg border border-slate-800 h-96 overflow-y-auto whitespace-pre-wrap text-left shadow-inner"></div>
 
-            <div id="alertContainer" style="display: none;" class="w-full max-w-sm mt-4 p-3 rounded-lg text-xs flex items-center justify-between">
+            <div id="alertContainer" style="display: none;" class="w-full max-w-md mt-4 p-3 rounded-lg text-xs flex items-center justify-between">
                 <div id="message"></div>
                 <button type="button" onclick="document.getElementById('alertContainer').style.display='none'" class="text-slate-400 hover:text-slate-600 text-sm font-bold bg-transparent border-0">&times;</button>
             </div>
@@ -88,44 +86,61 @@ if (saveBtn) {
 }
 
 function install_soft() {
-    const responseDisplay = document.getElementById('responseContainer');
-    const alertContainer = document.getElementById('alertContainer');
-    const messageDisplay = document.getElementById('message');
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const terminal = document.getElementById("terminal");
+    const saveBtn = document.getElementById("save");
+    const alertContainer = document.getElementById("alertContainer");
 
-    if (responseDisplay) responseDisplay.style.display = 'flex';
+    if (saveBtn) saveBtn.style.display = "none";
+    if (alertContainer) alertContainer.style.display = "none";
 
-    fetch("{% url 'install_imunifyfav' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken
-        },
-        body: new URLSearchParams({ 'domain': "ok" }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (responseDisplay) responseDisplay.style.display = 'none';
-        if (alertContainer && messageDisplay) {
-            alertContainer.style.display = "flex";
-            if (data.status === 'success') {
-                alertContainer.className = "w-full max-w-sm mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg text-xs flex items-center justify-between";
-                messageDisplay.innerText = data.message || "Installation completed successfully.";
-            } else {
-                alertContainer.className = "w-full max-w-sm mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between";
-                messageDisplay.innerText = data.message || "Installation failed.";
+    terminal.style.display = "block";
+    terminal.textContent = "🚀 Connecting to live installer...\n\n";
+
+    fetch("/whm/install_plugin_run/3/")
+        .then(async res => {
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            let outputBuffer = "";
+
+            function flush() {
+                if (outputBuffer) {
+                    terminal.textContent += outputBuffer;
+                    outputBuffer = "";
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
             }
-        }
-        setTimeout(() => location.reload(), 3000);
-    })
-    .catch(error => {
-        if (responseDisplay) responseDisplay.style.display = 'none';
-        if (alertContainer && messageDisplay) {
-            alertContainer.style.display = "flex";
-            alertContainer.className = "w-full max-w-sm mt-4 p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between";
-            messageDisplay.innerText = "Error: " + error.toString();
-        }
-    });
+
+            async function read() {
+                const { done, value } = await reader.read();
+                if (done) {
+                    flush();
+                    terminal.textContent += "\n\n🎉 Installation process completed! Reloading...";
+                    terminal.scrollTop = terminal.scrollHeight;
+                    setTimeout(() => location.reload(), 2500);
+                    return;
+                }
+
+                buffer += decoder.decode(value, { stream: true });
+                let lines = buffer.split("\n");
+                buffer = lines.pop();
+
+                for (let line of lines) {
+                    if (line.trim()) {
+                        outputBuffer += line + "\n";
+                    }
+                }
+
+                flush();
+                requestAnimationFrame(read);
+            }
+
+            read();
+        })
+        .catch(err => {
+            terminal.textContent += "\n❌ Communication Error: " + err;
+            if (saveBtn) saveBtn.style.display = "inline-flex";
+        });
 }
 </script>
 

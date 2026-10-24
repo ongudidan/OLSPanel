@@ -2816,7 +2816,11 @@ def imunifyfav_whm(request):
     is_operational = False
     if is_installed and os.path.exists(venv_python):
         try:
-            check = subprocess.run([venv_python, "-c", "import defence360agent"], capture_output=True, timeout=5)
+            clean_env = os.environ.copy()
+            clean_env.pop("PYTHONPATH", None)
+            clean_env.pop("PYTHONHOME", None)
+            clean_env.pop("VIRTUAL_ENV", None)
+            check = subprocess.run([venv_python, "-c", "import defence360agent"], capture_output=True, timeout=5, env=clean_env)
             if check.returncode == 0:
                 is_operational = True
         except Exception:
@@ -3396,6 +3400,14 @@ def install_plugin_run(request, plugin_id):
             process = None
             script_path = None
 
+            clean_env = os.environ.copy()
+            clean_env.pop("PYTHONPATH", None)
+            clean_env.pop("PYTHONHOME", None)
+            clean_env.pop("VIRTUAL_ENV", None)
+            clean_env["DEBIAN_FRONTEND"] = "noninteractive"
+            clean_env["NEEDRESTART_MODE"] = "a"
+            clean_env["UCF_FORCE_CONFFOLD"] = "1"
+
             try:
 
                 # =========================
@@ -3411,7 +3423,8 @@ def install_plugin_run(request, plugin_id):
                         stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT,
                         text=True,
-                        bufsize=1
+                        bufsize=1,
+                        env=clean_env
                     )
 
                 # =========================
@@ -3422,8 +3435,14 @@ def install_plugin_run(request, plugin_id):
                     yield "📜 SH detected...\n"
 
                     script_path = f"/tmp/plugin_{plugin_id}.sh"
+                    local_extra = os.path.join(settings.BASE_DIR.parent, "extra", os.path.basename(plugin_url))
 
-                    subprocess.run(["wget", "-O", script_path, plugin_url], check=True)
+                    if os.path.isfile(local_extra):
+                        shutil.copy2(local_extra, script_path)
+                    else:
+                        subprocess.run(["wget", "-q", "-O", script_path, plugin_url], check=True)
+
+                    subprocess.run(["sed", "-i", "s/\\r$//", script_path], check=True)
                     subprocess.run(["chmod", "+x", script_path], check=True)
 
                     yield "🚀 Running script...\n\n"
@@ -3433,7 +3452,8 @@ def install_plugin_run(request, plugin_id):
                         stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT,
                         text=True,
-                        bufsize=1
+                        bufsize=1,
+                        env=clean_env
                     )
 
                 else:

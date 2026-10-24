@@ -208,8 +208,16 @@ def install_imunifyfav_now():
         subprocess.run(["sed", "-i", "s/\\r$//", upgrade_script_path], check=True)
         subprocess.run(["chmod", "+x", upgrade_script_path], check=True)
 
-        # Run script and capture output
-        res = subprocess.run([upgrade_script_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=600)
+        # Run script and capture output with sanitized environment
+        clean_env = os.environ.copy()
+        clean_env.pop("PYTHONPATH", None)
+        clean_env.pop("PYTHONHOME", None)
+        clean_env.pop("VIRTUAL_ENV", None)
+        clean_env["DEBIAN_FRONTEND"] = "noninteractive"
+        clean_env["NEEDRESTART_MODE"] = "a"
+        clean_env["UCF_FORCE_CONFFOLD"] = "1"
+
+        res = subprocess.run([upgrade_script_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=600, env=clean_env)
 
         # Clean up script
         if os.path.exists(upgrade_script_path):
