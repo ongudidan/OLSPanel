@@ -1,6 +1,6 @@
 {
   "success": true,
-  "count": 8,
+  "count": 6,
   "plugins": [
     {
       "id": 2,
@@ -85,34 +85,6 @@
       "date": "2025-11-11",
       "pre_build_path": "imunifyfav_whm/",
       "image": "/media/icon/imunifyfav.png"
-    },
-    {
-      "id": 5,
-      "slug": "htaccess_compat",
-      "category_id": 6,
-      "category": "OpenLiteSpeed",
-      "name": ".htaccess Module",
-      "description": "Apache .htaccess rewrite rules compatibility module for OpenLiteSpeed.",
-      "path": "modules/htaccess_compat/",
-      "url": "https://ongudidan.github.io/OLSPanel/extra/module_installer/install_modules_htaccess_compat.sh",
-      "type": "free",
-      "date": "2026-08-25",
-      "pre_build_path": "",
-      "image": "/media/icon/htaccess.png"
-    },
-    {
-      "id": 6,
-      "slug": "lscache_owner",
-      "category_id": 6,
-      "category": "OpenLiteSpeed",
-      "name": "LSCache Owner",
-      "description": "Permissions and file ownership manager for OpenLiteSpeed cache.",
-      "path": "modules/lscache_owner/",
-      "url": "https://ongudidan.github.io/OLSPanel/extra/module_installer/lscache_owner_module_installer.sh",
-      "type": "free",
-      "date": "2026-08-25",
-      "pre_build_path": "",
-      "image": "/media/icon/lscache.png"
     }
   ],
   "categories": [
@@ -145,12 +117,6 @@
       "name": "Security",
       "slug": "security",
       "plugin_count": 1
-    },
-    {
-      "id": 6,
-      "name": "OpenLiteSpeed",
-      "slug": "openlitespeed",
-      "plugin_count": 2
     }
   ]
 }

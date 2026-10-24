@@ -10,7 +10,6 @@ DEFAULT_CATEGORIES = [
     {"id": 3, "name": "Migration & Backup", "slug": "migration-backup"},
     {"id": 4, "name": "Development", "slug": "development"},
     {"id": 5, "name": "Security", "slug": "security"},
-    {"id": 6, "name": "OpenLiteSpeed", "slug": "openlitespeed"},
 ]
 
 DEFAULT_PLUGINS = [
@@ -98,34 +97,6 @@ DEFAULT_PLUGINS = [
         "pre_build_path": "imunifyfav_whm/",
         "image": "/media/icon/imunifyfav.png",
     },
-    {
-        "id": 5,
-        "slug": "htaccess_compat",
-        "category_id": 6,
-        "category": "OpenLiteSpeed",
-        "name": ".htaccess Module",
-        "description": "Apache .htaccess rewrite rules compatibility module for OpenLiteSpeed.",
-        "path": "modules/htaccess_compat/",
-        "url": "https://ongudidan.github.io/OLSPanel/extra/module_installer/install_modules_htaccess_compat.sh",
-        "type": "free",
-        "date": "2026-08-25",
-        "pre_build_path": "",
-        "image": "/media/icon/htaccess.png",
-    },
-    {
-        "id": 6,
-        "slug": "lscache_owner",
-        "category_id": 6,
-        "category": "OpenLiteSpeed",
-        "name": "LSCache Owner",
-        "description": "Permissions and file ownership manager for OpenLiteSpeed cache.",
-        "path": "modules/lscache_owner/",
-        "url": "https://ongudidan.github.io/OLSPanel/extra/module_installer/lscache_owner_module_installer.sh",
-        "type": "free",
-        "date": "2026-08-25",
-        "pre_build_path": "",
-        "image": "/media/icon/lscache.png",
-    },
 ]
 
 def get_plugins_catalog():
@@ -151,11 +122,14 @@ def get_plugin_by_id(plugin_id):
     return None
 
 def get_categories_catalog():
-    """Return categories list with accurate plugin counts."""
+    """Return categories list with accurate plugin counts, excluding empty categories."""
     import copy
     cats = copy.deepcopy(DEFAULT_CATEGORIES)
     plugins = DEFAULT_PLUGINS
+    active_cats = []
     for cat in cats:
         count = sum(1 for p in plugins if p.get("category_id") == cat.get("id"))
-        cat["plugin_count"] = count
-    return cats
+        if count > 0:
+            cat["plugin_count"] = count
+            active_cats.append(cat)
+    return active_cats
