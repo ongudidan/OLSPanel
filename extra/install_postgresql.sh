@@ -282,23 +282,9 @@ echo "  psql -U postgres -h localhost -W"
 
 echo "✅ PostgreSQL configuration secured successfully."
 
+echo "📦 Installing OLSPanel PostgreSQL & phpPgAdmin plugin..."
+install_cp_plugin https://github.com/ongudidan/olspanel-plugin-postgresql/releases/latest/download/postgresql.zip
 
-
-
-
-MODULE_DIR="$PROJECT_DIR/modules"
-sudo mkdir -p "$MODULE_DIR"
-sudo wget -O "$MODULE_DIR/postgresql.zip" "https://ongudidan.github.io/OLSPanel/plugin/postgresql_module.zip"
-sudo unzip -o "$MODULE_DIR/postgresql.zip" -d "$MODULE_DIR"
-sudo rm -f "$MODULE_DIR/postgresql.zip"
-
-iphp_install
-# === Install PHP MongoDB Extension and Plugin ===
-phppgadmin="$PROJECT_DIR/3rdparty/phppgadmin"
-if [ ! -d "$phppgadmin" ]; then
-    echo "📦 Installing phppgadmin plugin..."
-    install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/phppgadmin.zip
-fi
 echo "🎉 PostgreSQL installation and configuration complete!"
 echo "Admin user: $ADMIN_USER"
 echo "Admin password: $ADMIN_PASS"

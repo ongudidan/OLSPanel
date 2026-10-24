@@ -3340,10 +3340,19 @@ def api_plugins(request):
             p["url"] = p.get("url") or ""
             p["pre_build_path"] = p.get("pre_build_path") or ""
 
+            # PostgreSQL official plugin override
+            if p.get("name") == "PostgreSQL" or str(p.get("id")) == "2":
+                p["url"] = "https://github.com/ongudidan/olspanel-plugin-postgresql/releases/latest/download/postgresql.zip"
+                p["path"] = "plugin/postgresql.conf"
+                p["pre_build_path"] = ""
+
             # =========================
             # INSTALL CHECK
             # =========================
-            p["is_installed"] = bool(path) and os.path.exists(path)
+            check_path = p["path"]
+            if check_path and not os.path.isabs(check_path):
+                check_path = os.path.join(settings.BASE_DIR, check_path)
+            p["is_installed"] = bool(check_path) and os.path.exists(check_path)
             p["license_valid"] = True
 
         # =========================
@@ -3403,10 +3412,13 @@ def install_plugin_run(request, plugin_id):
         # DATA
         # =========================
         plugin_url = plugin.get("url") or ""
-        if "olspanel.com" in plugin_url:
+        plugin_name = plugin.get("name") or "Plugin"
+
+        if plugin_name == "PostgreSQL" or str(plugin_id) == "2":
+            plugin_url = "https://github.com/ongudidan/olspanel-plugin-postgresql/releases/latest/download/postgresql.zip"
+        elif "olspanel.com" in plugin_url:
             plugin_url = plugin_url.replace("https://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
             plugin_url = plugin_url.replace("http://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
-        plugin_name = plugin.get("name") or "Plugin"
 
         # =========================
         # STREAM OUTPUT
