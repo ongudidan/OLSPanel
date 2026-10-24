@@ -3457,6 +3457,11 @@ def web_server(request, php_file):
             if parsed_referer.netloc != host:
                 return HttpResponseForbidden("CSRF Referer check failed.")
 
+    clean_path = php_file.split('?', 1)[0]
+    ext = os.path.splitext(clean_path)[1].lower()
+    if ext and ext != '.php':
+        return php_server(request, php_file)
+
     custom_cookies = get_custom_cookies(request, prefix="CUSTOMCOOK_")
     for header_name, header_value in custom_cookies.items():
         request.META[header_name] = header_value

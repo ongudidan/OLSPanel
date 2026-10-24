@@ -247,6 +247,56 @@ if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/Generic.php" ]; then
     sed -i "s|sprintf(__DIR__ . '/../../bin/execute.py %s'|sprintf('sudo -n %s/../../bin/execute.py %s', __DIR__|g" "$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/Generic.php"
 fi
 
+# Ensure execute.py strips jwt when connecting to root socket (root socket does not accept jwt in params)
+if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/bin/execute.py" ]; then
+    python3 -c "
+with open('$PROJECT_DIR/3rdparty/imunifyfav/bin/execute.py', 'r') as f:
+    content = f.read()
+target = '    socket_path = SOCKET_PATH_ROOT if os.getegid() == 0 else SOCKET_PATH_USER'
+replacement = '''    socket_path = SOCKET_PATH_ROOT if os.getegid() == 0 else SOCKET_PATH_USER
+    if socket_path == SOCKET_PATH_ROOT:
+        try:
+            _cmd = json.loads(command)
+            if isinstance(_cmd, dict) and \"params\" in _cmd and isinstance(_cmd[\"params\"], dict):
+                _cmd[\"params\"].pop(\"jwt\", None)
+                command = json.dumps(_cmd)
+        except Exception:
+            pass'''
+if target in content and '_cmd = json.loads(command)' not in content:
+    with open('$PROJECT_DIR/3rdparty/imunifyfav/bin/execute.py', 'w') as f:
+        f.write(content.replace(target, replacement, 1))
+" 2>/dev/null || true
+fi
+
+# Ensure Request.php does not pass jwt to backend for admin users
+if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/classes/Request.php" ]; then
+    sed -i 's/if (\$jwt) {/if (\$jwt \&\& !\$this->panel->isAdmin) {/g' "$PROJECT_DIR/3rdparty/imunifyfav/classes/Request.php"
+fi
+
+# Ensure AbstractPanel.php prepareRequest strips jwt for admin users
+if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/AbstractPanel.php" ]; then
+    python3 -c "
+with open('$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/AbstractPanel.php', 'r') as f:
+    content = f.read()
+target = '''        if (isset(\$this->request->params)) {
+            \$args->params = \$this->request->params;
+        }'''
+replacement = '''        if (isset(\$this->request->params)) {
+            \$args->params = \$this->request->params;
+            if (\$this->isAdmin) {
+                if (is_object(\$args->params) && isset(\$args->params->jwt)) {
+                    unset(\$args->params->jwt);
+                } elseif (is_array(\$args->params) && isset(\$args->params[\"jwt\"])) {
+                    unset(\$args->params[\"jwt\"]);
+                }
+            }
+        }'''
+if target in content:
+    with open('$PROJECT_DIR/3rdparty/imunifyfav/classes/panels/AbstractPanel.php', 'w') as f:
+        f.write(content.replace(target, replacement, 1))
+" 2>/dev/null || true
+fi
+
 # Ensure index.php matches ImunifyAV package mode
 if [ -f "$PROJECT_DIR/3rdparty/imunifyfav/index.php" ]; then
     sed -i 's/var IMUNIFY_PACKAGE = "360";/var IMUNIFY_PACKAGE = "AV";/g' "$PROJECT_DIR/3rdparty/imunifyfav/index.php"
