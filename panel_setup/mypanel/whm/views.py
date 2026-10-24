@@ -2834,6 +2834,29 @@ def imunifyfav_whm(request):
         "arch": arch,
     })
 
+@alogin_required
+def imunifyfav_login(request):
+    """
+    Generate an ImunifyAV auto-login token directly as root and redirect to the SPA.
+    """
+    token = ""
+    try:
+        clean_env = os.environ.copy()
+        clean_env.pop("PYTHONPATH", None)
+        clean_env.pop("PYTHONHOME", None)
+        clean_env.pop("VIRTUAL_ENV", None)
+        cmd = ["/usr/bin/imunify-antivirus", "login", "get", "--username", "root"]
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=5, env=clean_env)
+        out = res.stdout.strip()
+        if out and " " not in out and "\n" not in out and len(out) > 20:
+            token = out
+    except Exception as e:
+        logger.error(f"Failed to generate ImunifyAV login token: {e}")
+
+    if token:
+        return redirect(f"/3rdparty/imunifyfav/#/login?token={token}")
+    return redirect("/3rdparty/imunifyfav/auto_index.php")
+
 @alogin_required  # or use your custom @alogin_required
 def install_imunifyfav(request):
     """

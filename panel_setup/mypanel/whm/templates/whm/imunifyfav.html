@@ -25,7 +25,7 @@
                 </div>
             {% elif install_available %}
                 <div class="w-full max-w-md flex flex-col gap-2">
-                    <a href="/3rdparty/imunifyfav/auto_index.php" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
+                    <a href="{% url 'imunifyfav_login' %}" target="_blank" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand/90 text-white text-xs font-semibold rounded-md shadow-xs transition-colors">
                         <img src="/media/icon/imunifyfav.png" class="w-5 h-5 object-contain" alt="ImunifyAV">
                         <span>Access ImunifyAV Dashboard</span>
                     </a>

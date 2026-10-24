@@ -145,6 +145,18 @@ EOL
     echo "✅ Created plugin config: $conf_file"
 }
 
+create_imunify_sudoers() {
+    local sudoers_dir="/etc/sudoers.d"
+    local sudoers_file="$sudoers_dir/imunify"
+
+    if [ -d "$sudoers_dir" ]; then
+        echo "nobody ALL=(ALL) NOPASSWD: /usr/bin/imunify-antivirus" > "$sudoers_file"
+        echo "www-data ALL=(ALL) NOPASSWD: /usr/bin/imunify-antivirus" >> "$sudoers_file"
+        chmod 0440 "$sudoers_file"
+        echo "✅ Created sudoers permission: $sudoers_file"
+    fi
+}
+
 create_imunify_autologin_php() {
     local php_dir="$PROJECT_DIR/3rdparty/imunifyfav"
     local php_file="$php_dir/auto_index.php"
@@ -153,25 +165,27 @@ create_imunify_autologin_php() {
 
     cat > "$php_file" <<'PHP_EOF'
 <?php
-// Get the username from the HTTP header
-$username = $_SERVER['PANEL_USERNAME'] ?? '';
+// Get username from HTTP header, query string, or fallback to root
+$username = $_SERVER['PANEL_USERNAME'] ?? $_GET['username'] ?? '';
 if (empty($username) || $username === 'admin') {
     $username = 'root';
 }
 
-$token = '';
-$cmd = "imunify-antivirus login get --username " . escapeshellarg($username) . " 2>/dev/null";
-$output = trim((string)shell_exec($cmd));
-
-// Fallback to root if user-specific token generation failed
-if (empty($output) && $username !== 'root') {
-    $cmd = "imunify-antivirus login get --username root 2>/dev/null";
-    $output = trim((string)shell_exec($cmd));
+function get_imunify_token($user) {
+    $escaped = escapeshellarg($user);
+    $output = trim((string)shell_exec("sudo /usr/bin/imunify-antivirus login get --username $escaped 2>/dev/null"));
+    if (empty($output)) {
+        $output = trim((string)shell_exec("/usr/bin/imunify-antivirus login get --username $escaped 2>/dev/null"));
+    }
+    if (!empty($output) && strpos($output, ' ') === false && strpos($output, "\n") === false && strlen($output) > 20) {
+        return $output;
+    }
+    return '';
 }
 
-// Validate token format (JWT string without spaces or newlines)
-if (!empty($output) && strpos($output, ' ') === false && strpos($output, "\n") === false) {
-    $token = $output;
+$token = get_imunify_token($username);
+if (empty($token) && $username !== 'root') {
+    $token = get_imunify_token('root');
 }
 
 if (!empty($token)) {
@@ -203,7 +217,8 @@ if command -v imunify-antivirus >/dev/null 2>&1; then
     imunify-antivirus config update '{"PERMISSIONS": {"allow_malware_scan": true}}' 2>/dev/null || true
 fi
 
-# 4. Create autologin script and plugin config
+# 4. Create autologin script, sudoers, and plugin config
+create_imunify_sudoers
 create_imunify_autologin_php
 create_imunifyfav_conf
 

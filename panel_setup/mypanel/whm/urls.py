@@ -90,6 +90,7 @@ urlpatterns = [
     path('node_module_manage/', node_module_manage, name='node_module_manage'),
     path('node_module_load/', node_module_load, name='node_module_load'),
     path('imunifyfav_whm/', imunifyfav_whm, name='imunifyfav_whm'),
+    path('imunifyfav_login/', imunifyfav_login, name='imunifyfav_login'),
     path('install_imunifyfav/', install_imunifyfav, name='install_imunifyfav'),
     path('composer_whm/', composer_whm, name='composer_whm'),
     path('install_composer/', install_composer, name='install_composer'),
