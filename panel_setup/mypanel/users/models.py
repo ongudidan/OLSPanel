@@ -58,6 +58,7 @@ class Package(models.Model):
     userid = models.IntegerField(null=True, blank=True)
     enforce_disk_limits = models.BooleanField(default=False)
     allowed_subdomains = models.IntegerField(default=0)
+    postgresql_databases = models.IntegerField(default=0)
 
     class Meta:
         db_table = 'packages'

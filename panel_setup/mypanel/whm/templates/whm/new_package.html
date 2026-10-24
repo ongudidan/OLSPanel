@@ -129,16 +129,31 @@
                 </div>
             </div>
 
-            <!-- Row 5: Subdomains -->
-            <div class="space-y-1">
-                <div class="flex items-center justify-between">
-                    <label for="allowed_subdomains" class="block text-[11px] font-semibold text-slate-700">Allowed Subdomains</label>
-                    <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+            <!-- Row 5: Subdomains & PostgreSQL Databases Limit -->
+            <div class="grid grid-cols-1 {% if has_postgresql %}sm:grid-cols-2{% endif %} gap-3">
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="allowed_subdomains" class="block text-[11px] font-semibold text-slate-700">Allowed Subdomains</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-domain absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="allowed_subdomains" name="allowed_subdomains" value="{{ pk.allowed_subdomains|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
-                <div class="relative">
-                    <i class="mdi mdi-domain absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="allowed_subdomains" name="allowed_subdomains" value="{{ pk.allowed_subdomains|default:'0' }}" placeholder="0" required>
+
+                {% if has_postgresql %}
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label for="postgresql_databases" class="block text-[11px] font-semibold text-slate-700">PostgreSQL Databases Limit</label>
+                        <span class="text-[10px] text-slate-400">0 = Unlimited</span>
+                    </div>
+                    <div class="relative">
+                        <i class="mdi mdi-database-outline absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="number" class="w-full pl-8 pr-2.5 py-1.5 bg-white border border-slate-200 rounded text-xs font-mono text-slate-800 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition-all" id="postgresql_databases" name="postgresql_databases" value="{{ pk.postgresql_databases|default:'0' }}" placeholder="0" required>
+                    </div>
                 </div>
+                {% endif %}
             </div>
 
             <!-- Action Controls -->

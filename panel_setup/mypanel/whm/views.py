@@ -868,7 +868,7 @@ def package_list(request):
     
 @alogin_required
 def new_package(request):
-   
+    has_postgresql = os.path.isdir(os.path.join(settings.BASE_DIR, 'modules', 'postgresql')) or os.path.isfile(os.path.join(settings.BASE_DIR, 'plugin', 'postgresql.conf'))
     
     # Handle form submission
     if request.method == 'POST':
@@ -881,17 +881,18 @@ def new_package(request):
         allowed_domains = request.POST.get('allowed_domains')
         allowed_subdomains = request.POST.get('allowed_subdomains')
         limit_action = request.POST.get('limit_action')
-        
-        
+        postgresql_databases = request.POST.get('postgresql_databases', 0)
+        try:
+            postgresql_databases = int(postgresql_databases or 0)
+        except (ValueError, TypeError):
+            postgresql_databases = 0
         
         # Check if a record with the same name, content, and type already exists in the domain
         if Package.objects.filter(name=name).exists():
             messages.error(request, 'A Package with the same name and content already exists.')
             return redirect(f'/whm/package_list/')
-            
-         
 
-        # Create a new DNS record
+        # Create a new package
         new_pk = Package(
             name=name,
             disk_space=disk_space,
@@ -902,24 +903,22 @@ def new_package(request):
             allowed_domains=allowed_domains,
             allowed_subdomains=allowed_subdomains,
             enforce_disk_limits=limit_action,
-            
-            
+            postgresql_databases=postgresql_databases,
         )
         new_pk.save()
-        
 
         # Display a success message and redirect to the list page
         messages.success(request, 'Package has been added successfully.')
         return redirect('/whm/package_list/')
-        
 
-    return render(request, 'whm/new_package.html',{'title': 'Add'})    
-    
+    return render(request, 'whm/new_package.html', {'title': 'Add', 'has_postgresql': has_postgresql})    
+
 
 @alogin_required
 def update_package(request, rid):
     # Fetch the package to be updated
     pkg = get_object_or_404(Package, id=rid)
+    has_postgresql = os.path.isdir(os.path.join(settings.BASE_DIR, 'modules', 'postgresql')) or os.path.isfile(os.path.join(settings.BASE_DIR, 'plugin', 'postgresql.conf'))
     
     if request.method == 'POST':
         # Retrieve form data
@@ -947,7 +946,12 @@ def update_package(request, rid):
         pkg.ftp_accounts = ftp_accounts
         pkg.allowed_domains = allowed_domains
         pkg.allowed_subdomains = allowed_subdomains
-        pkg.enforce_disk_limits=limit_action
+        pkg.enforce_disk_limits = limit_action
+        if 'postgresql_databases' in request.POST:
+            try:
+                pkg.postgresql_databases = int(request.POST.get('postgresql_databases', 0) or 0)
+            except (ValueError, TypeError):
+                pkg.postgresql_databases = 0
         pkg.save()
 
         # Display a success message and redirect to the package list
@@ -955,7 +959,7 @@ def update_package(request, rid):
         return redirect('/whm/package_list/')
     
     # Render the form with existing package data
-    return render(request, 'whm/new_package.html', {'pk': pkg,'title': 'Update'})
+    return render(request, 'whm/new_package.html', {'pk': pkg, 'title': 'Update', 'has_postgresql': has_postgresql})
 
     
     

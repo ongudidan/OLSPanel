@@ -1,4 +1,6 @@
+import os
 import requests
+from django.conf import settings
 from .plugin import * 
 
 
@@ -18,6 +20,10 @@ def dynamic_plugins(request):
     account_plugin = get_account_plugins_list()
     support_plugin = get_support_plugins_list()
      
+    has_postgresql = (
+        os.path.isdir(os.path.join(settings.BASE_DIR, 'modules', 'postgresql')) or
+        os.path.isfile(os.path.join(settings.BASE_DIR, 'plugin', 'postgresql.conf'))
+    )
     
     return {
         'w_users_plugin': users_plugin,
@@ -33,6 +39,7 @@ def dynamic_plugins(request):
         'w_configuration_plugin': configuration_plugin,
         'w_account_plugin': account_plugin,
         'w_support_plugin': support_plugin,
+        'has_postgresql': has_postgresql,
     }
     
     

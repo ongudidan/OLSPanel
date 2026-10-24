@@ -41,7 +41,10 @@
                         <th class="px-3 py-2.5">Disk Space</th>
                         <th class="px-3 py-2.5">Bandwidth</th>
                         <th class="px-3 py-2.5">Email Accounts</th>
-                        <th class="px-3 py-2.5">Databases</th>
+                        <th class="px-3 py-2.5">{% if has_postgresql %}MySQL DBs{% else %}Databases{% endif %}</th>
+                        {% if has_postgresql %}
+                        <th class="px-3 py-2.5">PostgreSQL DBs</th>
+                        {% endif %}
                         <th class="px-3 py-2.5">FTP</th>
                         <th class="px-3 py-2.5">Domains</th>
                         <th class="px-3 py-2.5">Sub Domains</th>
@@ -56,6 +59,9 @@
                         <td class="px-3 py-2.5 font-mono">{% if pk.bandwidth == 0 or pk.bandwidth == '0' %}Unlimited{% else %}{{ pk.bandwidth }} MB{% endif %}</td>
                         <td class="px-3 py-2.5">{% if pk.email_accounts == 0 or pk.email_accounts == '0' %}Unlimited{% else %}{{ pk.email_accounts }}{% endif %}</td>
                         <td class="px-3 py-2.5">{% if pk.databases == 0 or pk.databases == '0' %}Unlimited{% else %}{{ pk.databases }}{% endif %}</td>
+                        {% if has_postgresql %}
+                        <td class="px-3 py-2.5">{% if pk.postgresql_databases == 0 or pk.postgresql_databases == '0' %}Unlimited{% else %}{{ pk.postgresql_databases }}{% endif %}</td>
+                        {% endif %}
                         <td class="px-3 py-2.5">{% if pk.ftp_accounts == 0 or pk.ftp_accounts == '0' %}Unlimited{% else %}{{ pk.ftp_accounts }}{% endif %}</td>
                         <td class="px-3 py-2.5">{% if pk.allowed_domains == 0 or pk.allowed_domains == '0' %}Unlimited{% else %}{{ pk.allowed_domains }}{% endif %}</td>
                         <td class="px-3 py-2.5">{% if pk.allowed_subdomains == 0 or pk.allowed_subdomains == '0' %}Unlimited{% else %}{{ pk.allowed_subdomains }}{% endif %}</td>
@@ -67,7 +73,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="9" class="px-3 py-6 text-center text-slate-400">No packages found.</td>
+                        <td colspan="{% if has_postgresql %}10{% else %}9{% endif %}" class="px-3 py-6 text-center text-slate-400">No packages found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -102,11 +108,12 @@ function performPkgSearch(query) {
 
     let noMatchRow = document.getElementById("noPkgSearchMatchRow");
     if (visibleCount === 0 && rows.length > 0) {
+        const totalCols = document.querySelectorAll("thead th").length || 9;
         if (!noMatchRow) {
             noMatchRow = document.createElement("tr");
             noMatchRow.id = "noPkgSearchMatchRow";
             noMatchRow.className = "no-search-results-row";
-            noMatchRow.innerHTML = `<td colspan="9" class="px-3 py-6 text-center text-slate-400">No packages match "<strong>${q}</strong>"</td>`;
+            noMatchRow.innerHTML = `<td colspan="${totalCols}" class="px-3 py-6 text-center text-slate-400">No packages match "<strong>${q}</strong>"</td>`;
             pkgTableBody.appendChild(noMatchRow);
         } else {
             noMatchRow.querySelector("strong").textContent = q;
