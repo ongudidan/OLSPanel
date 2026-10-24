@@ -2721,16 +2721,18 @@ def manage_php_extension(php_version, extension, action):
 
         # Determine package manager & repo setup
         if os_name in ["ubuntu", "debian"]:
-            # Add LiteSpeed repo only for lsphp packages (optional: skip for system php)
+            # Add LiteSpeed repo only for lsphp packages if not already present
             if not php_version.startswith('cgi'):
-                wget_proc = subprocess.Popen(["wget", "-O", "-", "https://repo.litespeed.sh"], stdout=subprocess.PIPE)
-                bash_proc = subprocess.Popen(["sudo", "bash"], stdin=wget_proc.stdout)
-                wget_proc.stdout.close()
-                bash_proc.communicate()
-                if bash_proc.returncode != 0:
-                    raise subprocess.CalledProcessError(bash_proc.returncode, "sudo bash")
-                from whm.function import run_package_update
-                run_package_update()
+                repo_list = '/etc/apt/sources.list.d/lst_debian_repo.list'
+                if not os.path.exists(repo_list) and not os.path.exists('/etc/apt/sources.list.d/lst_repo.list'):
+                    wget_proc = subprocess.Popen(["wget", "-O", "-", "https://repo.litespeed.sh"], stdout=subprocess.PIPE)
+                    bash_proc = subprocess.Popen(["sudo", "bash"], stdin=wget_proc.stdout)
+                    wget_proc.stdout.close()
+                    bash_proc.communicate()
+                    if bash_proc.returncode != 0:
+                        raise subprocess.CalledProcessError(bash_proc.returncode, "sudo bash")
+                    from whm.function import run_package_update
+                    run_package_update()
             install_command = "apt-get"
         elif os_name in ["centos", "almalinux", "rocky", "rhel", "fedora", "oraclelinux", "amazonlinux"]:
             install_command = "dnf" if subprocess.run(["command", "-v", "dnf"], stdout=subprocess.PIPE, stderr=subprocess.PIPE).returncode == 0 else "yum"

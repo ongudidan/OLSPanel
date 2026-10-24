@@ -97,3 +97,4 @@ chmod +x panel.sh
 sed -i 's/\r$//' panel.sh
 
 ./panel.sh
+stty sane 2>/dev/null || true

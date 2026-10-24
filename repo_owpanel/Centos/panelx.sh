@@ -1408,48 +1408,33 @@ fix_dovecot_log_permissions() {
 }
 
 
-python3 -c "
-import sys
-sys.path.append('/usr/local/olspanel/mypanel')
-try:
-    from users.server_core import repair_all_vhosts_and_contexts
-    repair_all_vhosts_and_contexts()
-except Exception as e:
-    pass
-"
 display_success_message() {
-    # Use tput to set colors
-    GREEN=$(tput setaf 2)  # Green color
-    NC=$(tput sgr0)        # Reset color
+    # Reset terminal modes to ensure cooked output mode (restores ONLCR, OPOST, ECHO, ICANON)
+    stty sane 2>/dev/null || true
+    stty onlcr opost 2>/dev/null || true
+
+    GREEN=$'\e[38;5;83m'
+    NC=$'\e[0m'	
     
-    # Get the IP address (check if hostname -I works, fallback if not)
-    IP=$(hostname -I | awk '{print $1}')
-    if [ -z "$IP" ]; then
-        echo "Failed to retrieve IP address."
-        exit 1
-    fi
+    # Get the IP address
+    IP=$(ip=$(hostname -I | awk '{print $1}'); if [[ $ip == 10.* || $ip == 172.* || $ip == 192.168.* ]]; then ip=$(curl -4 -m 10 -s ifconfig.me); [[ -z $ip ]] && ip=$(hostname -I | awk '{print $1}'); fi; echo "$ip" | tr -d '[:space:]')
     
     # Check if port.txt exists and can be read
-    if [ -f /root/item/port.txt ]; then
-        PORT=$(cat /root/item/port.txt)
-    else
-        echo "Port file not found at /root/item/port.txt."
-        exit 1
-    fi
+    PORT=$(cat /root/item/port.txt 2>/dev/null | tr -d '[:space:]')
+    [ -z "$PORT" ] && PORT="2087"
 
     # Check if db_credentials_panel.txt exists and can be read
-    if [ -f /root/db_credentials_panel.txt ]; then
-        DB_PASSWORDx=$(get_password_from_file "/root/db_credentials_panel.txt")
-    else
-        echo "Database credentials file not found at /root/db_credentials_panel.txt."
-        exit 1
-    fi
+    DB_PASSWORDx=$(get_password_from_file "/root/db_credentials_panel.txt" | tr -d '[:space:]')
     
-    # Print success message in green
-    echo "${GREEN}You have successfully installed the webhost panel!"
-    echo "Admin URL is: https://${IP}:${PORT}"
-    echo "Username: admin"
-    echo "Password: ${DB_PASSWORDx}${NC}"
+    # Print success message in green with explicit \r\n to ensure lines start cleanly at column 0
+    printf "\r\n"
+    printf "%sYou have successfully installed OLSPanel!\r\n" "$GREEN"
+    printf "Admin URL is: https://%s:%s\r\n" "$IP" "$PORT"
+    printf "Username: admin\r\n"
+    printf "Password: %s%s\r\n\r\n" "$DB_PASSWORDx" "$NC"
+
+    # Restore terminal sanity for the shell prompt
+    stty sane 2>/dev/null || true
 }
 
 install_python_dependencies_in_venv() {
@@ -1763,11 +1748,7 @@ sudo /usr/local/lsws/bin/lswsctrl restart
 curl -sSL https://ongudidan.github.io/OLSPanel/extra/swap.sh | sed 's/\r$//' | bash
 curl -sSL https://ongudidan.github.io/OLSPanel/extra/database_update.sh | sed 's/\r$//' | bash
 curl -sSL https://ongudidan.github.io/OLSPanel/olsapp/install.sh | sed 's/\r$//' | bash
-if [[ ("$OS_NAME" == "centos" || "$OS_NAME" == "almalinux") && ("$OS_VERSION" == "7" || "$OS_VERSION" == "8") ]]; then
-        /root/venv/bin/python3.12 /usr/local/lsws/Example/html/mypanel/manage.py install_olsapp
-    else
-        /root/venv/bin/python3 /usr/local/lsws/Example/html/mypanel/manage.py install_olsapp
-    fi
+sudo chmod -R 777 /usr/local/olspanel/mypanel/3rdparty/rainloop/data 2>/dev/null || true
 
 python3 -c "
 import sys
@@ -1783,4 +1764,5 @@ sudo rm -rf /root/item
 sudo rm -f /root/item/mysqlPassword
 sudo rm -f /root/db_credentials_panel.txt
 sudo rm -f /root/webadmin
+stty sane 2>/dev/null || true
 

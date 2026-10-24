@@ -1203,34 +1203,30 @@ fix_dovecot_log_permissions() {
 }
 
 
-python3 -c "
-import sys
-sys.path.append('/usr/local/olspanel/mypanel')
-try:
-    from users.server_core import repair_all_vhosts_and_contexts
-    repair_all_vhosts_and_contexts()
-except Exception as e:
-    pass
-"
 display_success_message() {
+    # Reset terminal modes to ensure cooked output mode (restores ONLCR, OPOST, ECHO, ICANON)
+    stty sane 2>/dev/null || true
+    stty onlcr opost 2>/dev/null || true
 
-    GREEN='\033[38;5;83m'
-    NC='\033[0m'	
+    GREEN=$'\e[38;5;83m'
+    NC=$'\e[0m'	
     # Get the IP address
-    IP=$(hostname -I | awk '{print $1}')
+    IP=$(ip=$(hostname -I | awk '{print $1}'); if [[ $ip == 10.* || $ip == 172.* || $ip == 192.168.* ]]; then ip=$(curl -4 -m 10 -s ifconfig.me); [[ -z $ip ]] && ip=$(hostname -I | awk '{print $1}'); fi; echo "$ip" | tr -d '[:space:]')
     
     # Get the port from the file
-    PORT=$(cat /root/item/port.txt)
-	DB_PASSWORDx=$(get_password_from_file "/root/db_credentials_panel.txt")
+    PORT=$(cat /root/item/port.txt 2>/dev/null | tr -d '[:space:]')
+    [ -z "$PORT" ] && PORT="2087"
+    DB_PASSWORDx=$(get_password_from_file "/root/db_credentials_panel.txt" | tr -d '[:space:]')
     
-    # Define the DB password (this can be dynamically set if needed)
-   
-    
-    # Print success message in green
-    echo "${GREEN}You have successfully installed the webhost panel!"
-    echo "Admin URL is: https://${IP}:${PORT}"
-    echo "Username: admin"
-    echo "Password: ${DB_PASSWORDx}${NC}"
+    # Print success message in green with explicit \r\n to ensure lines start cleanly at column 0
+    printf "\r\n"
+    printf "%sYou have successfully installed OLSPanel!\r\n" "$GREEN"
+    printf "Admin URL is: https://%s:%s\r\n" "$IP" "$PORT"
+    printf "Username: admin\r\n"
+    printf "Password: %s%s\r\n\r\n" "$DB_PASSWORDx" "$NC"
+
+    # Restore terminal sanity for the shell prompt
+    stty sane 2>/dev/null || true
 }
 
 
@@ -1349,7 +1345,6 @@ try:
 except Exception as e:
     pass
 "
-display_success_message
 sudo systemctl stop systemd-resolved >/dev/null 2>&1
 sudo systemctl disable systemd-resolved >/dev/null 2>&1
 systemctl restart systemd-networkd >/dev/null 2>&1
@@ -1373,5 +1368,10 @@ sudo systemctl restart pure-ftpd-mysql
 sudo systemctl restart opendkim
 sudo systemctl restart cp
 sudo /usr/local/lsws/bin/lswsctrl restart
+display_success_message
 sudo rm -rf /root/item
+sudo rm -f /root/item/mysqlPassword
+sudo rm -f /root/db_credentials_panel.txt
+sudo rm -f /root/webadmin
+stty sane 2>/dev/null || true
 

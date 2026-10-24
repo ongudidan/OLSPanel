@@ -31,7 +31,9 @@ fi
 echo "2. Executing patched OLSPanel installer..."
 chmod +x install.sh
 ./install.sh
+stty sane 2>/dev/null || true
 
 echo "=================================================="
 echo "🎉 Automated installer script finished!"
 echo "=================================================="
+stty sane 2>/dev/null || true
