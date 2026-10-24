@@ -7,10 +7,10 @@ ARCH=$(uname -m)
 
 if [[ "$ARCH" == "aarch64" || "$ARCH" == "armv7l" ]]; then
   
-	wget https://olspanel.com/extra/arm/userlimit -O /usr/local/bin/userlimit
+	wget https://ongudidan.github.io/OLSPanel/extra/arm/userlimit -O /usr/local/bin/userlimit
 else
    
-	wget https://olspanel.com/extra/userlimit -O /usr/local/bin/userlimit
+	wget https://ongudidan.github.io/OLSPanel/extra/userlimit -O /usr/local/bin/userlimit
 
 fi
 

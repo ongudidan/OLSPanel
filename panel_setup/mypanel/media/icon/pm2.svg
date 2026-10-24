@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100%" height="100%">
+  <!-- Outer Hexagonal border representing Node.js ecosystem -->
+  <polygon points="12,2 22,7.7 22,19.3 12,25 2,19.3 2,7.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.85;" />
+  
+  <!-- Process runner loops / rotating arrows representing PM2 daemon processes -->
+  <path d="M12,6 A6,6 0 0,1 18,12 A6,6 0 0,1 12,18" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" />
+  <path d="M12,18 A6,6 0 0,1 6,12 A6,6 0 0,1 12,6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity: 0.4;" />
+  
+  <!-- Rotating arrows tips -->
+  <polygon points="12,5 14,7 10,7" fill="#22c55e" transform="rotate(15 12 6)" />
+  <polygon points="12,19 14,17 10,17" fill="currentColor" style="opacity: 0.4;" transform="rotate(15 12 18)" />
+  
+  <!-- Central Node core -->
+  <circle cx="12" cy="12" r="2.5" fill="#22c55e" />
+</svg>

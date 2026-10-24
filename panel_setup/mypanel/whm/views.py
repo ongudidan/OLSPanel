@@ -3299,6 +3299,8 @@ def install_postgresql(request):
           
     
 
+from .plugins_catalog import get_plugins_catalog, get_categories_catalog, get_plugin_by_id
+
 @alogin_required    
 def plugin(request):
     return render(request, "whm/plugin.html")    
@@ -3307,49 +3309,17 @@ def plugin(request):
 def api_plugins(request):
     try:
         plugin_id = request.GET.get("id")
-        base_url = "https://cp.olspanel.com/api/plugins"
-            
-        # =========================
-        # ADD ID PARAM IF EXISTS
-        # =========================
         if plugin_id:
-            if "?" in base_url:
-                url = f"{base_url}&id={plugin_id}"
-            else:
-                url = f"{base_url}?id={plugin_id}"
+            plugin = get_plugin_by_id(plugin_id)
+            plugins = [plugin] if plugin else []
         else:
-            url = base_url
-            
-        # =========================
-        # FETCH PLUGINS
-        # =========================
-        res = requests.get(url, timeout=30)
-        data = res.json()
-
-        plugins = data.get("plugins", [])
+            plugins = get_plugins_catalog()
 
         # =========================
-        # PROCESS PLUGINS
+        # PROCESS & CHECK INSTALL
         # =========================
         for p in plugins:
-
-            path = p.get("path") or ""
-
-            # normalize
-            p["path"] = path
-            p["url"] = p.get("url") or ""
-            p["pre_build_path"] = p.get("pre_build_path") or ""
-
-            # PostgreSQL official plugin override
-            if p.get("name") == "PostgreSQL" or str(p.get("id")) == "2":
-                p["url"] = "https://github.com/ongudidan/olspanel-plugin-postgresql/releases/latest/download/postgresql.zip"
-                p["path"] = "plugin/postgresql.conf"
-                p["pre_build_path"] = ""
-
-            # =========================
-            # INSTALL CHECK
-            # =========================
-            check_path = p["path"]
+            check_path = p.get("path") or ""
             if check_path and not os.path.isabs(check_path):
                 check_path = os.path.join(settings.BASE_DIR, check_path)
             p["is_installed"] = bool(check_path) and os.path.exists(check_path)
@@ -3374,10 +3344,13 @@ def api_plugins(request):
 @alogin_required
 def api_categories(request):
     try:
-        res = requests.get("https://cp.olspanel.com/api/plugins/categories", timeout=30)
-        return JsonResponse(res.json())
+        categories = get_categories_catalog()
+        return JsonResponse({
+            "success": True,
+            "categories": categories
+        })
     except Exception as e:
-        return JsonResponse({"success": False, "message": str(e)})   
+        return JsonResponse({"success": False, "categories": [], "message": str(e)})   
 
 
 @alogin_required
@@ -3392,13 +3365,9 @@ def install_plugin_run(request, plugin_id):
     try:
 
         # =========================
-        # GET PLUGIN
+        # GET PLUGIN FROM LOCAL CATALOG
         # =========================
-        api_url = f"https://cp.olspanel.com/api/plugins/?id={plugin_id}"
-        res = requests.get(api_url, timeout=30)
-        data = res.json()
-
-        plugin = (data.get("plugins") or [None])[0]
+        plugin = get_plugin_by_id(plugin_id)
 
         if not plugin:
             return JsonResponse(
@@ -3406,17 +3375,13 @@ def install_plugin_run(request, plugin_id):
                 status=404
             )
 
-
-
         # =========================
         # DATA
         # =========================
         plugin_url = plugin.get("url") or ""
         plugin_name = plugin.get("name") or "Plugin"
 
-        if plugin_name == "PostgreSQL" or str(plugin_id) == "2":
-            plugin_url = "https://github.com/ongudidan/olspanel-plugin-postgresql/releases/latest/download/postgresql.zip"
-        elif "olspanel.com" in plugin_url:
+        if "olspanel.com" in plugin_url:
             plugin_url = plugin_url.replace("https://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
             plugin_url = plugin_url.replace("http://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
 
