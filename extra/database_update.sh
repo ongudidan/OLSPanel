@@ -318,8 +318,13 @@ mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_API_KEYS" > /dev/nul
 SQL_MIGRATIONS="INSERT IGNORE INTO \`django_migrations\` (\`app\`, \`name\`, \`applied\`) VALUES
 ('users', '0005_package_profile_pkg_id_domain_dns_record', NOW()),
 ('users', '0006_apikey_apps_appsettings_backuplist_bandwidth_and_more', NOW()),
-('users', '0007_dbclusternode_channel_name_and_more', NOW());"
+('users', '0007_dbclusternode_channel_name_and_more', NOW()),
+('users', '0008_package_postgresql_databases', NOW());"
 mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_MIGRATIONS" > /dev/null 2>&1
+
+# Ensure packages table has postgresql_databases column
+SQL_PG_PKG="ALTER TABLE packages ADD COLUMN IF NOT EXISTS \`postgresql_databases\` INT(11) DEFAULT 0;"
+mysql -u "$DB_USER" -p"$MYSQL_PASSWORD" "$DB_NAME" -e "$SQL_PG_PKG" > /dev/null 2>&1 || true
 
 # Fix Dovecot MySQL password if %password% placeholder remains
 DOVECOT_CONF="/etc/dovecot/dovecot.conf"

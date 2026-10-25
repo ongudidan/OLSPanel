@@ -60,7 +60,7 @@
                         <td class="px-3 py-2.5">{% if pk.email_accounts == 0 or pk.email_accounts == '0' %}Unlimited{% else %}{{ pk.email_accounts }}{% endif %}</td>
                         <td class="px-3 py-2.5">{% if pk.databases == 0 or pk.databases == '0' %}Unlimited{% else %}{{ pk.databases }}{% endif %}</td>
                         {% if has_postgresql %}
-                        <td class="px-3 py-2.5">{% if pk.postgresql_databases == 0 or pk.postgresql_databases == '0' %}Unlimited{% else %}{{ pk.postgresql_databases }}{% endif %}</td>
+                        <td class="px-3 py-2.5">{% if not pk.postgresql_databases or pk.postgresql_databases == 0 or pk.postgresql_databases == '0' %}Unlimited{% else %}{{ pk.postgresql_databases }}{% endif %}</td>
                         {% endif %}
                         <td class="px-3 py-2.5">{% if pk.ftp_accounts == 0 or pk.ftp_accounts == '0' %}Unlimited{% else %}{{ pk.ftp_accounts }}{% endif %}</td>
                         <td class="px-3 py-2.5">{% if pk.allowed_domains == 0 or pk.allowed_domains == '0' %}Unlimited{% else %}{{ pk.allowed_domains }}{% endif %}</td>

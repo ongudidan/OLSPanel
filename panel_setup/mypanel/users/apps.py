@@ -16,6 +16,20 @@ class UserConfig(AppConfig):
         if any(cmd in cmd_args for cmd in ['makemigrations', 'migrate', 'collectstatic', 'createsuperuser']):
             return
 
+        def _ensure_package_schema():
+            try:
+                from django.db import connection
+                with connection.cursor() as cursor:
+                    cursor.execute("SHOW TABLES LIKE 'packages'")
+                    if cursor.fetchone():
+                        cursor.execute("SHOW COLUMNS FROM packages LIKE 'postgresql_databases'")
+                        if not cursor.fetchone():
+                            cursor.execute("ALTER TABLE packages ADD COLUMN postgresql_databases INT(11) DEFAULT 0")
+            except Exception:
+                pass
+
+        _ensure_package_schema()
+
         def _startup_repair():
             import time
             time.sleep(3)

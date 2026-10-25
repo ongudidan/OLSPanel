@@ -32,14 +32,47 @@ CREATE TABLE IF NOT EXISTS `api_keys` (
 INSERT IGNORE INTO `django_migrations` (`app`, `name`, `applied`) VALUES
 ('users', '0005_package_profile_pkg_id_domain_dns_record', NOW()),
 ('users', '0006_apikey_apps_appsettings_backuplist_bandwidth_and_more', NOW()),
-('users', '0007_dbclusternode_channel_name_and_more', NOW());
+('users', '0007_dbclusternode_channel_name_and_more', NOW()),
+('users', '0008_package_postgresql_databases', NOW());
+
+ALTER TABLE packages ADD COLUMN IF NOT EXISTS `postgresql_databases` INT(11) DEFAULT 0;
 
 UPDATE `app_settings` SET `setting_value` = '/usr/bin/php-cgi' WHERE `setting_key` = 'cgi_bin' AND (`setting_value` = '/usr/bin/php-cgi8.2' OR `setting_value` NOT LIKE '/%');
 EOF
 fi
 
-if [ -f "/root/venv/bin/python" ] && [ -f "${PROJECT_DIR}/manage.py" ]; then
-    /root/venv/bin/python "${PROJECT_DIR}/manage.py" migrate --noinput > /dev/null 2>&1
+if [ -f "${PROJECT_DIR}/manage.py" ]; then
+    PY_BIN="python3"
+    if [ -x "/root/venv/bin/python" ]; then
+        PY_BIN="/root/venv/bin/python"
+    fi
+    $PY_BIN -c "
+import sys, os
+sys.path.insert(0, '$PROJECT_DIR')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'user_management.settings')
+try:
+    import django
+    django.setup()
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute(\"SHOW TABLES LIKE 'packages'\")
+        if cursor.fetchone():
+            cursor.execute(\"SHOW COLUMNS FROM packages LIKE 'postgresql_databases'\")
+            if not cursor.fetchone():
+                cursor.execute(\"ALTER TABLE packages ADD COLUMN postgresql_databases INT(11) DEFAULT 0\")
+        cursor.execute(\"SHOW TABLES LIKE 'django_migrations'\")
+        if cursor.fetchone():
+            cursor.execute(\"\"\"
+                INSERT IGNORE INTO django_migrations (app, name, applied) VALUES
+                ('users', '0005_package_profile_pkg_id_domain_dns_record', NOW()),
+                ('users', '0006_apikey_apps_appsettings_backuplist_bandwidth_and_more', NOW()),
+                ('users', '0007_dbclusternode_channel_name_and_more', NOW()),
+                ('users', '0008_package_postgresql_databases', NOW())
+            \"\"\")
+except Exception:
+    pass
+" 2>/dev/null || true
+    $PY_BIN "${PROJECT_DIR}/manage.py" migrate --noinput > /dev/null 2>&1 || true
 fi
 
 # Fix Dovecot MySQL password if %password% placeholder remains

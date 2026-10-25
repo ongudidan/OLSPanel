@@ -852,14 +852,36 @@ def add_user_all(request):
 
     return render(request, 'whm/user_create.html', {'php_versions': php_versions, 'pkg': pkg})    
 
+def ensure_package_postgresql_column():
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW TABLES LIKE 'packages'")
+            if cursor.fetchone():
+                cursor.execute("SHOW COLUMNS FROM packages LIKE 'postgresql_databases'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE packages ADD COLUMN postgresql_databases INT(11) DEFAULT 0")
+    except Exception:
+        pass
+
+
 @alogin_required
 def package_list(request):
     search_query = (request.POST.get('search') or request.GET.get('search', '')).strip()
-    if search_query:
-        # Use __icontains for case-insensitive partial match
-        pkg = Package.objects.filter(name__icontains=search_query)
-    else:
-        pkg = Package.objects.all()
+    try:
+        if search_query:
+            pkg = list(Package.objects.filter(name__icontains=search_query))
+        else:
+            pkg = list(Package.objects.all())
+    except Exception:
+        ensure_package_postgresql_column()
+        try:
+            if search_query:
+                pkg = list(Package.objects.filter(name__icontains=search_query))
+            else:
+                pkg = list(Package.objects.all())
+        except Exception:
+            pkg = []
 
     return render(request, 'whm/pkg_list.html', {'package': pkg, 'search_query': search_query})
     
@@ -881,11 +903,13 @@ def new_package(request):
         allowed_domains = request.POST.get('allowed_domains')
         allowed_subdomains = request.POST.get('allowed_subdomains')
         limit_action = request.POST.get('limit_action')
-        postgresql_databases = request.POST.get('postgresql_databases', 0)
-        try:
-            postgresql_databases = int(postgresql_databases or 0)
-        except (ValueError, TypeError):
-            postgresql_databases = 0
+        postgresql_databases = 0
+        if has_postgresql:
+            raw_pg = request.POST.get('postgresql_databases', 0)
+            try:
+                postgresql_databases = int(raw_pg or 0)
+            except (ValueError, TypeError):
+                postgresql_databases = 0
         
         # Check if a record with the same name, content, and type already exists in the domain
         if Package.objects.filter(name=name).exists():
@@ -905,7 +929,11 @@ def new_package(request):
             enforce_disk_limits=limit_action,
             postgresql_databases=postgresql_databases,
         )
-        new_pk.save()
+        try:
+            new_pk.save()
+        except Exception:
+            ensure_package_postgresql_column()
+            new_pk.save()
 
         # Display a success message and redirect to the list page
         messages.success(request, 'Package has been added successfully.')
@@ -917,7 +945,12 @@ def new_package(request):
 @alogin_required
 def update_package(request, rid):
     # Fetch the package to be updated
-    pkg = get_object_or_404(Package, id=rid)
+    try:
+        pkg = get_object_or_404(Package, id=rid)
+    except Exception:
+        ensure_package_postgresql_column()
+        pkg = get_object_or_404(Package, id=rid)
+
     has_postgresql = os.path.isdir(os.path.join(settings.BASE_DIR, 'modules', 'postgresql')) or os.path.isfile(os.path.join(settings.BASE_DIR, 'plugin', 'postgresql.conf'))
     
     if request.method == 'POST':
@@ -947,12 +980,16 @@ def update_package(request, rid):
         pkg.allowed_domains = allowed_domains
         pkg.allowed_subdomains = allowed_subdomains
         pkg.enforce_disk_limits = limit_action
-        if 'postgresql_databases' in request.POST:
+        if has_postgresql and 'postgresql_databases' in request.POST:
             try:
                 pkg.postgresql_databases = int(request.POST.get('postgresql_databases', 0) or 0)
             except (ValueError, TypeError):
                 pkg.postgresql_databases = 0
-        pkg.save()
+        try:
+            pkg.save()
+        except Exception:
+            ensure_package_postgresql_column()
+            pkg.save()
 
         # Display a success message and redirect to the package list
         messages.success(request, 'Package has been updated successfully.')

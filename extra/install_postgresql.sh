@@ -304,8 +304,12 @@ try:
         if not cursor.fetchone():
             cursor.execute(\"ALTER TABLE packages ADD COLUMN postgresql_databases INT(11) DEFAULT 0\")
             print('✅ Added postgresql_databases column to packages table')
-        else:
-            print('ℹ️ Column postgresql_databases already exists in packages table')
+        cursor.execute("SHOW TABLES LIKE 'django_migrations'")
+        if cursor.fetchone():
+            cursor.execute("""
+                INSERT IGNORE INTO django_migrations (app, name, applied) VALUES
+                ('users', '0008_package_postgresql_databases', NOW())
+            """)
 except Exception as e:
     print(f'⚠️ Warning checking package schema: {e}')
 " 2>/dev/null || true
