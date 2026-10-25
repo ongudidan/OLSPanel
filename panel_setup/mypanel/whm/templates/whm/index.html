@@ -283,6 +283,71 @@
         <div class="flex flex-col gap-2.5">
 
             <!-- SIDEBAR CARD 1: GENERAL INFORMATION (WITH STATS AT TOP) -->
+            <style>
+            /* Animated Striped Progress Bars (Uploading Style) */
+            @keyframes resource-upload-stripes {
+                0% {
+                    background-position: 28px 0;
+                }
+                100% {
+                    background-position: 0 0;
+                }
+            }
+
+            .resource-bar-striped {
+                height: 100% !important;
+                border-radius: 3px !important;
+                background-size: 28px 28px !important;
+                animation: resource-upload-stripes 1.2s linear infinite !important;
+                box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.28), inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+                transition: width 0.5s ease-in-out;
+            }
+
+            /* Darkest green for normal usage */
+            .resource-bar-dark-green {
+                background-color: #064e3b !important;
+                background-image: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.22) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.22) 50%,
+                    rgba(255, 255, 255, 0.22) 75%,
+                    transparent 75%,
+                    transparent
+                ), linear-gradient(to bottom, #065f46, #064e3b) !important;
+            }
+
+            /* Dark amber for warning usage (>65%) */
+            .resource-bar-amber {
+                background-color: #92400e !important;
+                background-image: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.22) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.22) 50%,
+                    rgba(255, 255, 255, 0.22) 75%,
+                    transparent 75%,
+                    transparent
+                ), linear-gradient(to bottom, #b45309, #78350f) !important;
+            }
+
+            /* Dark rose for critical usage (>85%) */
+            .resource-bar-rose {
+                background-color: #881337 !important;
+                background-image: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.22) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255, 255, 255, 0.22) 50%,
+                    rgba(255, 255, 255, 0.22) 75%,
+                    transparent 75%,
+                    transparent
+                ), linear-gradient(to bottom, #be123c, #881337) !important;
+            }
+            </style>
             <div class="bg-white border border-slate-200 rounded-[4px] shadow-xs overflow-hidden">
                 <div class="px-3.5 py-2.5 bg-white border-b border-slate-100">
                     <h6 class="m-0 text-xs font-bold uppercase tracking-wider text-slate-800">General Information</h6>
@@ -294,10 +359,10 @@
                     <div class="flex flex-col gap-1 pb-2 mb-1.5 border-b border-slate-100">
                         <div class="flex items-center justify-between text-[11px] font-bold">
                             <span class="text-slate-500 uppercase tracking-wide">CPU Usage</span>
-                            <span id="cpup" class="font-mono text-slate-800">0%</span>
+                            <span id="cpup" class="font-mono text-emerald-950 font-bold">0%</span>
                         </div>
-                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px;">
-                            <div id="cpu" class="h-full transition-all duration-500 bg-emerald-500" style="width: 0%; height: 100%; border-radius: 3px;"></div>
+                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);">
+                            <div id="cpu" class="resource-bar-striped resource-bar-dark-green" style="width: 0%; height: 100%; border-radius: 3px;"></div>
                         </div>
                     </div>
 
@@ -305,10 +370,10 @@
                     <div class="flex flex-col gap-1 pb-2 mb-1.5 border-b border-slate-100">
                         <div class="flex items-center justify-between text-[11px] font-bold">
                             <span class="text-slate-500 uppercase tracking-wide">Memory (RAM)</span>
-                            <span id="ramp" class="font-mono text-slate-800">0%</span>
+                            <span id="ramp" class="font-mono text-emerald-950 font-bold">0%</span>
                         </div>
-                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px;">
-                            <div id="ram" class="h-full transition-all duration-500 bg-emerald-500" style="width: 0%; height: 100%; border-radius: 3px;"></div>
+                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);">
+                            <div id="ram" class="resource-bar-striped resource-bar-dark-green" style="width: 0%; height: 100%; border-radius: 3px;"></div>
                         </div>
                     </div>
 
@@ -316,10 +381,10 @@
                     <div class="flex flex-col gap-1 pb-2 mb-1.5 border-b border-slate-100">
                         <div class="flex items-center justify-between text-[11px] font-bold">
                             <span class="text-slate-500 uppercase tracking-wide">Disk Usage</span>
-                            <span id="diskp" class="font-mono text-slate-800">0%</span>
+                            <span id="diskp" class="font-mono text-emerald-950 font-bold">0%</span>
                         </div>
-                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px;">
-                            <div id="disk" class="h-full transition-all duration-500 bg-emerald-500" style="width: 0%; height: 100%; border-radius: 3px;"></div>
+                        <div class="w-full bg-slate-100 border border-slate-200 overflow-hidden" style="height: 16px; min-height: 16px; border-radius: 3px; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);">
+                            <div id="disk" class="resource-bar-striped resource-bar-dark-green" style="width: 0%; height: 100%; border-radius: 3px;"></div>
                         </div>
                     </div>
 
@@ -431,14 +496,14 @@ function updateBar(elementId, percentage, spanId) {
     barElement.style.height = "100%";
     barElement.style.borderRadius = "3px";
     if (pct > 85) {
-        barElement.className = "h-full transition-all duration-500 bg-rose-500";
-        spanElement.className = "font-mono text-rose-600";
+        barElement.className = "resource-bar-striped resource-bar-rose";
+        spanElement.className = "font-mono text-rose-700 font-bold";
     } else if (pct > 65) {
-        barElement.className = "h-full transition-all duration-500 bg-amber-500";
-        spanElement.className = "font-mono text-amber-600";
+        barElement.className = "resource-bar-striped resource-bar-amber";
+        spanElement.className = "font-mono text-amber-700 font-bold";
     } else {
-        barElement.className = "h-full transition-all duration-500 bg-emerald-500";
-        spanElement.className = "font-mono text-slate-800";
+        barElement.className = "resource-bar-striped resource-bar-dark-green";
+        spanElement.className = "font-mono text-emerald-950 font-bold";
     }
 }
 
