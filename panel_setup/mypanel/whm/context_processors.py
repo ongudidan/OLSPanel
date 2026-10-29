@@ -56,6 +56,16 @@ def admin_user_context(request):
                 admin_user = request.user
 
     impersonated_user = getattr(request, 'impersonated_user', None)
+    if not impersonated_user and hasattr(request, 'admin_session'):
+        imp_id = request.admin_session.get('impersonated_user_id')
+        if imp_id:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            try:
+                impersonated_user = User.objects.get(id=imp_id)
+            except User.DoesNotExist:
+                impersonated_user = None
+
     if not impersonated_user and admin_user and hasattr(request, 'user') and request.user.is_authenticated:
         if request.user.id != admin_user.id:
             impersonated_user = request.user

@@ -1162,6 +1162,12 @@ def auto_login_by_admin(request, rid):
         login(request, user)
         request.session.set_expiry(0)
         request.session.modified = True
+
+        # Explicitly persist impersonated client user ID in admin session
+        if hasattr(request, 'admin_session') and getattr(request, 'admin_user', None):
+            request.admin_session['impersonated_user_id'] = user.id
+            request.admin_session.modified = True
+
         return redirect('/')  # Redirect to home or any desired page
     else:
         messages.warning(request, "Invalid username or password")
@@ -2319,6 +2325,10 @@ def exit_impersonate(request):
     Clears any lingering impersonated regular user session and redirects back to WHM,
     keeping the administrator session completely active.
     """
+    if hasattr(request, 'admin_session') and 'impersonated_user_id' in request.admin_session:
+        del request.admin_session['impersonated_user_id']
+        request.admin_session.modified = True
+
     if hasattr(request, 'session'):
         request.session.flush()
     messages.success(request, "Impersonated client session cleared successfully.")
@@ -3012,6 +3022,11 @@ def user_file_manger(request):
             login(request, user)
             request.session.set_expiry(0)
             request.session.modified = True
+
+            if hasattr(request, 'admin_session') and getattr(request, 'admin_user', None):
+                request.admin_session['impersonated_user_id'] = user.id
+                request.admin_session.modified = True
+
             return redirect('/file_manager/')  # Redirect to home or any desired page
         else:
             messages.warning(request, "Invalid username or password")

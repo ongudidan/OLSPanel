@@ -10,8 +10,11 @@ from django.shortcuts import render
 def admincheck(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
+        impersonated_user = getattr(request, 'impersonated_user', None)
         admin_user = getattr(request, 'admin_user', None)
-        if admin_user and (not hasattr(request, 'user') or not request.user.is_authenticated):
+        if impersonated_user and not request.path.startswith('/whm/') and request.GET.get('scope') != 'admin':
+            request.user = impersonated_user
+        elif admin_user and (not hasattr(request, 'user') or not request.user.is_authenticated):
             request.user = admin_user
             
         if not hasattr(request, 'user') or not request.user.is_authenticated:
@@ -25,8 +28,11 @@ def loginadminoruser(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         # Check if either regular user OR admin user is authenticated
+        impersonated_user = getattr(request, 'impersonated_user', None)
         admin_user = getattr(request, 'admin_user', None)
-        if admin_user and (not hasattr(request, 'user') or not request.user.is_authenticated):
+        if impersonated_user and not request.path.startswith('/whm/') and request.GET.get('scope') != 'admin':
+            request.user = impersonated_user
+        elif admin_user and (not hasattr(request, 'user') or not request.user.is_authenticated):
             request.user = admin_user
 
         regular_user_authenticated = hasattr(request, 'user') and request.user.is_authenticated

@@ -34,21 +34,43 @@ class SeparateAdminSessionMiddleware:
         else:
             request.admin_user = None
 
-        # Fallback 1: If admin_user is authenticated via admin session, but request.user is not authenticated,
-        # set request.user = request.admin_user
-        if request.admin_user and hasattr(request, 'user') and not request.user.is_authenticated:
-            request.user = request.admin_user
-
-        # Track impersonated client user (if request.user is an authenticated client distinct from admin_user)
+        # Load impersonated client user if recorded in admin session
         request.impersonated_user = None
-        if request.admin_user and hasattr(request, 'user') and request.user.is_authenticated:
+        if request.admin_user:
+            impersonated_user_id = request.admin_session.get('impersonated_user_id')
+            if impersonated_user_id:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                try:
+                    request.impersonated_user = User.objects.get(id=impersonated_user_id)
+                except User.DoesNotExist:
+                    request.impersonated_user = None
+                    if 'impersonated_user_id' in request.admin_session:
+                        del request.admin_session['impersonated_user_id']
+                        request.admin_session.modified = True
+
+        # Fallback/sync: if impersonated_user is not in admin_session yet, but request.user is authenticated client distinct from admin_user
+        if not request.impersonated_user and request.admin_user and hasattr(request, 'user') and request.user.is_authenticated:
             if request.user.id != request.admin_user.id:
                 request.impersonated_user = request.user
+                request.admin_session['impersonated_user_id'] = request.user.id
+                request.admin_session.modified = True
 
-        # WHM & Admin Scope: If navigating inside /whm/ or under an explicit admin scope (e.g. ?scope=admin),
-        # always bind request.user to request.admin_user so administrative interfaces execute with full admin context
-        # and are never polluted by a client session opened in another tab.
+        # WHM & Admin Scope vs Client Impersonation Binding:
         if request.admin_user and (request.path.startswith('/whm/') or request.GET.get('scope') == 'admin'):
+            # Always bind request.user to admin_user inside /whm/ or ?scope=admin so admin views run with full admin privileges
+            request.user = request.admin_user
+        elif request.impersonated_user:
+            # Inside user panel while impersonating: ALWAYS pin request.user to impersonated_user across all reloads/refreshes
+            request.user = request.impersonated_user
+            if hasattr(request, 'session'):
+                if request.session.get('_auth_user_id') != str(request.impersonated_user.id):
+                    request.session['_auth_user_id'] = str(request.impersonated_user.id)
+                    request.session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+                    request.session.modified = True
+        elif request.admin_user and hasattr(request, 'user') and not request.user.is_authenticated:
+            # Fallback 1: If admin_user is authenticated via admin session, but request.user is not authenticated,
+            # set request.user = request.admin_user
             request.user = request.admin_user
 
         # Fallback 2: If standard request.user is authenticated and is admin (whm=1 or superuser/staff),

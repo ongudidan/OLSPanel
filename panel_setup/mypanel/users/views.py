@@ -50,6 +50,10 @@ def is_whm_user(request):
     Check if the currently authenticated user has WHM/super-admin privileges
     and is not currently impersonating a regular user.
     """
+    impersonated_user = getattr(request, 'impersonated_user', None)
+    if impersonated_user:
+        return False
+
     admin_user = getattr(request, 'admin_user', None)
     current_user = getattr(request, 'user', None)
     
@@ -417,7 +421,12 @@ def user_logout(request):
     and redirect back to WHM admin dashboard, leaving the admin session completely intact!
     """
     admin_user = getattr(request, 'admin_user', None)
-    if admin_user and hasattr(request, 'user') and request.user.is_authenticated and request.user.id != admin_user.id:
+    impersonated = getattr(request, 'impersonated_user', None)
+    if hasattr(request, 'admin_session') and 'impersonated_user_id' in request.admin_session:
+        del request.admin_session['impersonated_user_id']
+        request.admin_session.modified = True
+
+    if admin_user and (impersonated or (hasattr(request, 'user') and request.user.is_authenticated and request.user.id != admin_user.id)):
         logout(request)
         return redirect('/whm/')
 
