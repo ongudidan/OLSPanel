@@ -57,6 +57,22 @@ with zipfile.ZipFile(config_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
                 zf.write(full_p, arc_p)
         print("✅ Rebuilt plugin/config_ufw.zip")
 
+# 2b. Create plugin/git_deploy.zip (if olspanel-plugin-git-deploy is present)
+git_deploy_src = os.path.abspath(os.path.join(base_dir, "..", "olspanel-plugin-git-deploy", "git_deploy"))
+if os.path.isdir(git_deploy_src):
+    git_deploy_zip = os.path.join(base_dir, "plugin", "git_deploy.zip")
+    with zipfile.ZipFile(git_deploy_zip, "w", zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(git_deploy_src):
+            if '__pycache__' in root or '.git' in root:
+                continue
+            for f in files:
+                if f.endswith('.pyc'):
+                    continue
+                full_p = os.path.join(root, f)
+                rel_p = os.path.relpath(full_p, os.path.dirname(git_deploy_src))
+                zf.write(full_p, rel_p)
+    print("✅ Rebuilt plugin/git_deploy.zip")
+
 # 3. Create panel_updates/panel_setup.zip
 panel_zip_path = os.path.join(base_dir, "panel_updates", "panel_setup.zip")
 mypanel_dir = os.path.join(base_dir, "panel_setup", "mypanel")

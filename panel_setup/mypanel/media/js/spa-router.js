@@ -145,9 +145,10 @@
 
             const path = targetUrl.pathname.toLowerCase();
 
-            // Skip auth logout, auto login sessions, standalone 3rdparty web apps, and direct downloads
+            // Skip auth logout, exit impersonate, auto login sessions, standalone 3rdparty web apps, and direct downloads
             if (
                 path.includes('logout') ||
+                path.includes('exit_impersonate') ||
                 path.includes('auto_login') ||
                 path.startsWith('/3rdparty/') ||
                 path.includes('phpmyadmin') ||
@@ -334,13 +335,20 @@
                     const code = oldScript.textContent;
                     if (code && code.trim()) {
                         try {
-                            (0, eval)(code);
+                            const inlineScript = document.createElement('script');
+                            inlineScript.textContent = code;
+                            document.head.appendChild(inlineScript);
+                            inlineScript.remove();
                         } catch (err) {
                             try {
-                                const fn = new Function(code);
-                                fn.call(window);
-                            } catch (fnErr) {
-                                console.warn('[SPA Inline Script Warning]:', err);
+                                (0, eval)(code);
+                            } catch (evalErr) {
+                                try {
+                                    const fn = new Function(code);
+                                    fn.call(window);
+                                } catch (fnErr) {
+                                    console.warn('[SPA Inline Script Warning]:', err, evalErr, fnErr);
+                                }
                             }
                         }
                     }
@@ -624,6 +632,40 @@
                 title: newTitle,
                 contentHtml: newContentHtml
             });
+
+            // Synchronize user menu & top impersonation banner if present in fetched document
+            try {
+                const newUserMenu = doc.querySelector('.user-menu');
+                const currentUserMenu = document.querySelector('.user-menu');
+                if (newUserMenu && currentUserMenu) {
+                    currentUserMenu.innerHTML = newUserMenu.innerHTML;
+                }
+
+                // Sync header "Return to WHM" / "Clear impersonation" button
+                const newHeaderReturn = doc.querySelector('#navbar a[href*="exit_impersonate"]');
+                const currentHeaderReturn = document.querySelector('#navbar a[href*="exit_impersonate"]');
+                if (newHeaderReturn && !currentHeaderReturn && currentUserMenu) {
+                    currentUserMenu.parentElement.insertBefore(newHeaderReturn.cloneNode(true), currentUserMenu);
+                } else if (!newHeaderReturn && currentHeaderReturn) {
+                    currentHeaderReturn.remove();
+                }
+
+                // Sync top impersonation banner bar (.bg-indigo-950)
+                const newBanner = doc.querySelector('.page-wrapper > .bg-indigo-950');
+                const currentBanner = document.querySelector('.page-wrapper > .bg-indigo-950');
+                if (newBanner && !currentBanner) {
+                    const pageWrapper = document.querySelector('.page-wrapper');
+                    if (pageWrapper) {
+                        pageWrapper.insertBefore(newBanner.cloneNode(true), pageWrapper.firstElementChild);
+                    }
+                } else if (!newBanner && currentBanner) {
+                    currentBanner.remove();
+                } else if (newBanner && currentBanner) {
+                    currentBanner.innerHTML = newBanner.innerHTML;
+                }
+            } catch (e) {
+                console.warn('[SPA] Header sync warning:', e);
+            }
 
             const safeHref = window.location.origin + finalParsed.pathname + finalParsed.search + finalParsed.hash;
             applyPageContent(newTitle, newContentHtml, safeHref, { push, replace, scroll });
