@@ -701,6 +701,46 @@ def create_database_common_user(username):
             logger.error(e)
             return str(e)  # Return the error message as a string
             
+def delete_database_common_user(username):
+    """
+    Remove MySQL/MariaDB common user created for phpMyAdmin/database access:
+    - DROP USER IF EXISTS '<username>'@'localhost'
+    - Remove 'etc/phpmyadmin_<username>' file
+    - Remove 'etc/_<username>' password backup file
+    """
+    if not username:
+        return False
+
+    django_root = settings.BASE_DIR
+
+    # 1. Drop MySQL common user
+    try:
+        if re.match(r'^[a-zA-Z0-9_]+$', str(username)):
+            with connection.cursor() as cursor:
+                cursor.execute(f"DROP USER IF EXISTS `{username}`@'localhost'")
+                cursor.execute("FLUSH PRIVILEGES;")
+    except Exception as e:
+        logger.error(f"Error dropping MySQL common user '{username}': {e}")
+
+    # 2. Remove etc/phpmyadmin_<username>
+    pma_pass_file = os.path.join(django_root, 'etc', f"phpmyadmin_{username}")
+    if os.path.exists(pma_pass_file):
+        try:
+            os.remove(pma_pass_file)
+        except Exception as e:
+            logger.error(f"Error removing {pma_pass_file}: {e}")
+
+    # 3. Remove etc/_<username> (password backup file)
+    user_pass_file = os.path.join(django_root, 'etc', f"_{username}")
+    if os.path.exists(user_pass_file):
+        try:
+            os.remove(user_pass_file)
+        except Exception as e:
+            logger.error(f"Error removing {user_pass_file}: {e}")
+
+    return True
+
+
 def list_db_by_prefix(username):
     database_names = []  # Initialize an empty list for database names
     prefix = f"{username}_"  # Define the prefix to match

@@ -248,41 +248,11 @@ def suspend_user(request):
         if usr.is_active:
             return JsonResponse({'success': False, 'message': f"User '{username}' must be suspended before deletion."}, status=200)
 
-        if ftp_accounts.exists():
-            ftp_accounts.delete()
-        if email_accounts.exists():
-            email_accounts.delete()
-        if emf.exists():
-            emf.delete()
-
-        database_names = get_user_database_info(usr.username)
-        for database in database_names:
-            delete_database(usr.username, database['db_name'])
-
-        user_list = list_users_by_prefix(usr.username)
-        for user_db in user_list:
-            dbx = replace_first_with_underscore(user_db, usr.username)
-            delete_db_user_credentials(usr.username, dbx)
-
-        if domains.exists():
-            for domain in domains:
-                vhost_action(domain.domain, 'delete')
-                remove_map_from_httpd_config(domain.domain)
-                remove_virtual_host_from_httpd_config(domain.domain)
-                remove_domain_folder(domain.domain)
-                delete_record(domain.domain)
-            domains.delete()
-
-        base_dir = f'/home/{usr.username}'
-        if os.path.isdir(base_dir):
-            shutil.rmtree(base_dir)
-        maildir_path = f"/home/vmail/{usr.username}"
-        if os.path.isdir(maildir_path):
-            shutil.rmtree(maildir_path)
-
-        usr.delete()
-        restart_openlitespeed()
-        return JsonResponse({'success': True, 'message': f"User '{username}' and all associated FTP, email accounts, and domains have been deleted."})
+        ok, msg = delete_user_account_completely(usr)
+        if ok:
+            return JsonResponse({'success': True, 'message': msg})
+        else:
+            return JsonResponse({'success': False, 'message': msg}, status=500)
 
     else:
         return JsonResponse({'success': False, 'message': f"Unknown state '{state}'. Use SUSPEND, UNSUSPEND or DELETE."}, status=200)

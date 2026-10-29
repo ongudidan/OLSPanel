@@ -1057,59 +1057,11 @@ def suspend_user(request, rid):
             if usr.is_active == 1:
                 messages.error(request, f'User {usr.username} must be suspended before deletion.')
             else:
-                # Delete all associated FTP accounts
-                if ftp_accounts.exists():
-                    ftp_accounts.delete()
-                
-                # Delete all associated email accounts
-                if email_accounts.exists():
-                    email_accounts.delete()
-                    
-                if emf.exists():
-                    emf.delete()
-                    
-                
-                database_names = get_user_database_info(usr.username)
-                for database in database_names:
-                    delete_database(usr.username,database['db_name'])
-                    
-                user_list = list_users_by_prefix(usr.username)
-                for user_db in user_list:
-                    dbx = replace_first_with_underscore(user_db, usr.username)
-                    delete_db_user_credentials(usr.username, dbx)
-                    
- 
-                
-                # Delete all associated domains
-                if domains.exists():
-                    for domain in domains:
-                        vhost_action(domain.domain, 'delete')  # Delete the virtual host
-                        success = remove_map_from_httpd_config(domain.domain)  # Update with actual config file path
-                        remove_virtual_host_from_httpd_config(domain.domain)
-                        remove_domain_folder(domain.domain)
-                        delete_record(domain.domain)
-        
-                    domains.delete()  # Delete domain records from the database
-                    
-                
-                if usr.username:
-                    # Delete the user's home directory
-                    base_dir = f'/home/{usr.username}'
-                    if os.path.isdir(base_dir):
-                        shutil.rmtree(base_dir)
-                        
-                    
-                    # Delete the user's mail directory
-                    maildir_path = f"/home/vmail/{usr.username}"
-                    if os.path.isdir(maildir_path):
-                        shutil.rmtree(maildir_path)
-                        
-
-                
-                BackupList.objects.filter(userid=usr.id).delete()
-                usr.delete()
-                restart_openlitespeed()
-                messages.success(request, f'User {usr.username}, all associated FTP, email accounts, and domains have been deleted.')
+                ok, msg = delete_user_account_completely(usr)
+                if ok:
+                    messages.success(request, msg)
+                else:
+                    messages.error(request, msg)
 
         # Redirect after processing the action
         

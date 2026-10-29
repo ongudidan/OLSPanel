@@ -78,10 +78,20 @@ class SeparateAdminSessionMiddleware:
             if request.admin_session.modified:
                 if request.admin_session._session:
                     request.admin_session.save()
+
+                    remember_me = request.admin_session.get('remember_me', False)
+                    if hasattr(request, 'session'):
+                        remember_me = remember_me or request.session.get('remember_me', False)
+
+                    if remember_me:
+                        cookie_max_age = getattr(settings, 'ADMIN_SESSION_COOKIE_AGE', getattr(settings, 'SESSION_REMEMBER_ME_AGE', 60 * 60 * 24 * 30))
+                    else:
+                        cookie_max_age = None  # Session cookie: expires when browser closes
+
                     response.set_cookie(
                         admin_cookie_name,
                         request.admin_session.session_key,
-                        max_age=getattr(settings, 'ADMIN_SESSION_COOKIE_AGE', settings.SESSION_COOKIE_AGE),
+                        max_age=cookie_max_age,
                         path=getattr(settings, 'SESSION_COOKIE_PATH', '/'),
                         domain=getattr(settings, 'SESSION_COOKIE_DOMAIN', None),
                         secure=getattr(settings, 'ADMIN_SESSION_COOKIE_SECURE', settings.SESSION_COOKIE_SECURE),

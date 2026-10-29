@@ -79,7 +79,8 @@ MIDDLEWARE = [
     'users.middleware.DynamicCsrfMiddleware.DynamicCsrfMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'whm.middleware.admin_dual_session.SeparateAdminSessionMiddleware',    
+    'whm.middleware.admin_dual_session.SeparateAdminSessionMiddleware', 
+    'users.middleware.SessionIdleTimeoutMiddleware.SessionIdleTimeoutMiddleware',   
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -297,8 +298,18 @@ EMAIL_HOST_PASSWORD = str(os.getenv('EMAIL_PASSWORD'))
 SESSION_COOKIE_NAME = "sessionid" 
 ADMIN_SESSION_COOKIE_NAME = "session_admin"   # admin users
 
-SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+# Default cookie expiration when "Remember Me" is NOT checked:
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = True: Cookie is deleted when browser is closed.
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Persistent session lifetime when "Remember Me" IS checked: 30 days
+SESSION_REMEMBER_ME_AGE = 60 * 60 * 24 * 30  # 30 days
+
+# Idle timeout: Auto-logout after 2 hours of inactivity (when Remember Me is unchecked)
+SESSION_IDLE_TIMEOUT = 60 * 60 * 2  # 2 hours
+
+# Default session age fallback (if browser left open without remember me): 2 hours
+SESSION_COOKIE_AGE = 60 * 60 * 2  # 2 hours
 SESSION_SAVE_EVERY_REQUEST = False
 SESSION_COOKIE_PATH = '/'
 SESSION_COOKIE_DOMAIN = None

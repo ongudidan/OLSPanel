@@ -64,6 +64,7 @@
                             <input type="text" name="otp" id="otp" maxlength="6" class="form-control text-center font-weight-bold" style="font-size: 1.15rem; letter-spacing: 4px; border-radius: 6px;" placeholder="000000" {% if not has_passkeys %}autofocus{% endif %} autocomplete="one-time-code">
                             <input type="hidden" name="username" id="usernameInput" value="{{ username }}">
                             <input type="hidden" name="password" value="{{ password }}">
+                            <input type="hidden" name="remember_me" value="{{ remember_me }}">
                         </div>
 
 

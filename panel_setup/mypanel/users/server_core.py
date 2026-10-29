@@ -1786,6 +1786,212 @@ def restart_openlitespeed():
     return False
 
 
+def delete_system_user(username):
+    """
+    Completely and safely remove a Linux system user, their group, crontab, and processes.
+    """
+    if not username or not isinstance(username, str):
+        logger.error(f"delete_system_user: invalid username '{username}'")
+        return False, "Invalid username"
+
+    username = username.strip()
+
+    # Protected system and administrative users that must NEVER be deleted
+    PROTECTED_USERS = {
+        'root', 'daemon', 'bin', 'sys', 'sync', 'games', 'man', 'lp', 'mail',
+        'news', 'uucp', 'proxy', 'majordomo', 'postgres', 'mysql', 'nobody',
+        'nogroup', 'www-data', 'backup', 'list', 'irc', 'gnats', 'shadow',
+        'systemd-network', 'systemd-resolve', 'systemd-timesync', 'syslog',
+        'messagebus', '_apt', 'lxd', 'uuidd', 'dnsmasq', 'sshd', 'pollinate',
+        'ubuntu', 'opc', 'admin', 'olspanel', 'vmail', 'dovecot', 'dovenull',
+        'postfix', 'pureftpd'
+    }
+
+    if username.lower() in PROTECTED_USERS:
+        err_msg = f"Security check: Protected user '{username}' cannot be deleted."
+        logger.error(err_msg)
+        return False, err_msg
+
+    # Verify if user exists in /etc/passwd
+    user_info = None
+    try:
+        user_info = pwd.getpwnam(username)
+    except KeyError:
+        logger.info(f"System user '{username}' not found in /etc/passwd.")
+
+    # Guard against deleting system accounts by UID (< 1000)
+    if user_info and user_info.pw_uid < 1000:
+        err_msg = f"Security check: System account '{username}' (UID {user_info.pw_uid}) cannot be deleted."
+        logger.error(err_msg)
+        return False, err_msg
+
+    # Step 1: Terminate all processes running under this user
+    try:
+        subprocess.run(['sudo', 'pkill', '-9', '-u', username], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(0.3)
+    except Exception as e:
+        logger.error(f"Error killing processes for '{username}': {e}")
+
+    # Step 2: Remove crontab for this user
+    try:
+        subprocess.run(['sudo', 'crontab', '-u', username, '-r'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        pass
+
+    # Step 3: Remove user limits if configured
+    try:
+        from whm.function import remove_user_limit
+        remove_user_limit(username)
+    except Exception:
+        pass
+
+    # Step 4: Remove user from system with userdel -f
+    if user_info:
+        try:
+            res = subprocess.run(['sudo', 'userdel', '-f', username], capture_output=True, text=True)
+            if res.returncode != 0 and "does not exist" not in res.stderr.lower():
+                logger.error(f"userdel error for '{username}': {res.stderr}")
+            else:
+                print(f"System user '{username}' deleted successfully.")
+        except Exception as e:
+            logger.error(f"Failed to delete system user '{username}': {e}")
+
+    # Step 5: Check and delete the group if it still exists
+    try:
+        grp.getgrnam(username)
+        subprocess.run(['sudo', 'groupdel', username], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"System group '{username}' deleted successfully.")
+    except KeyError:
+        pass
+    except Exception as e:
+        logger.error(f"Error deleting group '{username}': {e}")
+
+    # Step 6: Clean up system mail spools if any exist
+    for spool in [f"/var/mail/{username}", f"/var/spool/mail/{username}"]:
+        try:
+            if os.path.exists(spool):
+                if os.path.isdir(spool):
+                    shutil.rmtree(spool, ignore_errors=True)
+                else:
+                    os.remove(spool)
+        except Exception as e:
+            logger.error(f"Error removing mail spool '{spool}': {e}")
+
+    return True, f"System user '{username}' removed completely."
+
+
+def delete_user_account_completely(usr):
+    """
+    Completely deletes a panel user, all services, files, databases, system user, and groups.
+    Accepts either a User model instance or a username string.
+    """
+    from django.contrib.auth.models import User
+    from .models import Domain, Emails, EmailForword, Ftps, BackupList, Apps, Bandwidth, Dns_record
+    try:
+        from file_manager.models import UserSettings
+    except ImportError:
+        UserSettings = None
+
+    if isinstance(usr, str):
+        username = usr.strip()
+        usr_obj = User.objects.filter(username=username).first()
+    else:
+        usr_obj = usr
+        username = usr.username.strip()
+
+    PROTECTED_USERS = {'root', 'admin', 'olspanel', 'ubuntu', 'opc'}
+    if username.lower() in PROTECTED_USERS:
+        return False, f"Cannot delete protected administrative user '{username}'."
+
+    user_id = usr_obj.id if usr_obj else None
+
+    # 1. Clean up database models if user object exists or by user_id
+    if user_id:
+        try:
+            Ftps.objects.filter(userid=user_id).delete()
+            Emails.objects.filter(userid=user_id).delete()
+            EmailForword.objects.filter(userid=user_id).delete()
+            BackupList.objects.filter(userid=user_id).delete()
+            Apps.objects.filter(userid=user_id).delete()
+            Bandwidth.objects.filter(userid=user_id).delete()
+            Dns_record.objects.filter(userid=user_id).delete()
+            if UserSettings:
+                UserSettings.objects.filter(userid=user_id).delete()
+        except Exception as e:
+            logger.error(f"Error deleting user records for '{username}': {e}")
+
+    # 2. Clean up databases and db users
+    try:
+        from users.database import (
+            get_user_database_info,
+            delete_database,
+            list_users_by_prefix,
+            replace_first_with_underscore,
+            delete_db_user_credentials,
+            delete_database_common_user
+        )
+        database_names = get_user_database_info(username)
+        for database in database_names:
+            delete_database(username, database['db_name'])
+
+        user_list = list_users_by_prefix(username)
+        for user_db in user_list:
+            dbx = replace_first_with_underscore(user_db, username)
+            delete_db_user_credentials(username, dbx)
+
+        delete_database_common_user(username)
+    except Exception as e:
+        logger.error(f"Error cleaning up databases for '{username}': {e}")
+
+    # 3. Clean up domains, virtual hosts, and DNS
+    try:
+        from users.database import delete_record
+        domains = Domain.objects.filter(userid=user_id) if user_id else Domain.objects.none()
+        if domains.exists():
+            for domain in domains:
+                try:
+                    vhost_action(domain.domain, 'delete')
+                    remove_map_from_httpd_config(domain.domain)
+                    remove_virtual_host_from_httpd_config(domain.domain)
+                    remove_domain_folder(domain.domain)
+                    delete_record(domain.domain)
+                except Exception as e:
+                    logger.error(f"Error deleting domain '{domain.domain}': {e}")
+            domains.delete()
+    except Exception as e:
+        logger.error(f"Error deleting domains for '{username}': {e}")
+
+    # 4. Remove directories (/home/{username} and /home/vmail/{username})
+    base_dir = f'/home/{username}'
+    if os.path.isdir(base_dir):
+        try:
+            shutil.rmtree(base_dir)
+        except Exception:
+            subprocess.run(['sudo', 'rm', '-rf', base_dir], check=False)
+
+    maildir_path = f"/home/vmail/{username}"
+    if os.path.isdir(maildir_path):
+        try:
+            shutil.rmtree(maildir_path)
+        except Exception:
+            subprocess.run(['sudo', 'rm', '-rf', maildir_path], check=False)
+
+    # 5. Delete Linux system user, group, crontab, and terminate processes
+    delete_system_user(username)
+
+    # 6. Delete Django User record
+    if usr_obj:
+        try:
+            usr_obj.delete()
+        except Exception as e:
+            logger.error(f"Error deleting Django user record '{username}': {e}")
+
+    # 7. Restart OpenLiteSpeed
+    restart_openlitespeed()
+
+    return True, f"User '{username}' and all associated services, domains, databases, and OS accounts have been deleted completely."
+
+
 def get_php_versions():
     php_versions = []
     # Define a regex pattern to match version numbers

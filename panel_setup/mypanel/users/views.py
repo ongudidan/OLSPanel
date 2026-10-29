@@ -1,6 +1,7 @@
 import requests
 import os
 import stat
+import time
 import json
 import subprocess
 import binascii
@@ -330,20 +331,41 @@ class CustomLoginView(LoginView):
         has_totp = (settings_obj.two_step == 1)
         has_passkeys = UserPasskey.objects.filter(user=user).exists()
 
+        # Check Remember Me from form or POST
+        remember_me = bool(
+            form.cleaned_data.get("remember_me") or 
+            self.request.POST.get("remember_me") in ["on", "true", "1", True]
+        )
+
         if (has_totp or has_passkeys) and not otp_code:
             self.request.session['pending_2fa_username'] = username
+            self.request.session['pending_2fa_remember_me'] = remember_me
             self.request.session.modified = True
             return render(self.request, "users/otp.html", {
                 "username": username,
                 "password": password,
+                "remember_me": "on" if remember_me else "",
                 "need_otp": True,
                 "has_totp": has_totp,
                 "has_passkeys": has_passkeys,
             })
 
-        # Log into standard session so user authentication is preserved on all page refreshes
+        # Recover remember_me if returning from 2FA
+        if not remember_me and self.request.session.get('pending_2fa_remember_me'):
+            remember_me = bool(self.request.session.get('pending_2fa_remember_me'))
+            self.request.session.pop('pending_2fa_remember_me', None)
+
+        # Log into standard session
         login(self.request, user)
-        self.request.session.set_expiry(60 * 60 * 24 * 30)
+        if remember_me:
+            remember_age = getattr(settings, 'SESSION_REMEMBER_ME_AGE', 60 * 60 * 24 * 30)
+            self.request.session.set_expiry(remember_age)
+            self.request.session['remember_me'] = True
+        else:
+            self.request.session.set_expiry(0)  # Expire when browser is closed
+            self.request.session['remember_me'] = False
+
+        self.request.session['last_activity'] = time.time()
         self.request.session.modified = True
 
         user_data = get_user_data_by_id(user.id)
@@ -352,6 +374,13 @@ class CustomLoginView(LoginView):
         if whm == 1:
             self.request.admin_session['_auth_user_id'] = str(user.id)
             self.request.admin_session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+            self.request.admin_session['remember_me'] = remember_me
+            self.request.admin_session['last_activity'] = time.time()
+            if remember_me:
+                remember_age = getattr(settings, 'SESSION_REMEMBER_ME_AGE', 60 * 60 * 24 * 30)
+                self.request.admin_session.set_expiry(remember_age)
+            else:
+                self.request.admin_session.set_expiry(0)
             self.request.admin_session.modified = True
             return redirect('/whm/')
         else:
@@ -4165,19 +4194,36 @@ def passkey_auth_verify(request):
 
         user_data = get_user_data_by_id(user.id)
         whm = user_data.get('whm', 0)
+        remember_me = bool(request.session.get('pending_2fa_remember_me', False))
         
         if whm == 1:
             request.admin_session['_auth_user_id'] = str(user.id)
             request.admin_session['_auth_user_backend'] = 'django.contrib.auth.backends.ModelBackend'
+            request.admin_session['remember_me'] = remember_me
+            request.admin_session['last_activity'] = time.time()
+            if remember_me:
+                remember_age = getattr(settings, 'SESSION_REMEMBER_ME_AGE', 60 * 60 * 24 * 30)
+                request.admin_session.set_expiry(remember_age)
+            else:
+                request.admin_session.set_expiry(0)
             request.admin_session.modified = True
             redirect_url = '/whm/'
         else:
             login(request, user)
+            if remember_me:
+                remember_age = getattr(settings, 'SESSION_REMEMBER_ME_AGE', 60 * 60 * 24 * 30)
+                request.session.set_expiry(remember_age)
+                request.session['remember_me'] = True
+            else:
+                request.session.set_expiry(0)
+                request.session['remember_me'] = False
+            request.session['last_activity'] = time.time()
             request.session.modified = True
             redirect_url = '/'
 
         # Clear pending session variable
         request.session.pop('pending_2fa_username', None)
+        request.session.pop('pending_2fa_remember_me', None)
         request.session.modified = True
 
         return JsonResponse({"status": "success", "redirect_url": redirect_url})

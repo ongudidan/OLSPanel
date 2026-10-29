@@ -264,6 +264,13 @@ class Command(BaseCommand):
         try:
             usr = User.objects.get(username=username)
         except User.DoesNotExist:
+            if state == 'DELETE':
+                ok, msg = delete_user_account_completely(username)
+                if ok:
+                    self.stdout.write(json.dumps({"success": True, "message": msg}))
+                else:
+                    self.stderr.write(json.dumps({"success": False, "message": msg}))
+                return
             output = {
                 "success": False,
                 "message": f"User '{username}' does not exist."
@@ -322,50 +329,19 @@ class Command(BaseCommand):
                 self.stderr.write(json.dumps(output))
                 return
 
-            if ftp_accounts.exists():
-                ftp_accounts.delete()
-
-            if email_accounts.exists():
-                email_accounts.delete()
-
-            if emf.exists():
-                emf.delete()
-
-            database_names = get_user_database_info(usr.username)
-            for database in database_names:
-                delete_database(usr.username, database['db_name'])
-
-            user_list = list_users_by_prefix(usr.username)
-            for user_db in user_list:
-                dbx = replace_first_with_underscore(user_db, usr.username)
-                delete_db_user_credentials(usr.username, dbx)
-
-            if domains.exists():
-                for domain in domains:
-                    vhost_action(domain.domain, 'delete')
-                    remove_map_from_httpd_config(domain.domain)
-                    remove_virtual_host_from_httpd_config(domain.domain)
-                    remove_domain_folder(domain.domain)
-                    delete_record(domain.domain)
-
-                domains.delete()
-
-            if usr.username:
-                base_dir = f'/home/{usr.username}'
-                if os.path.isdir(base_dir):
-                    shutil.rmtree(base_dir)
-
-                maildir_path = f"/home/vmail/{usr.username}"
-                if os.path.isdir(maildir_path):
-                    shutil.rmtree(maildir_path)
-
-            usr.delete()
-            restart_openlitespeed()
-            output = {
-                "success": True,
-                "message": f"User '{username}' and all associated FTP, email accounts, and domains have been deleted."
-            }
-            self.stdout.write(json.dumps(output))
+            ok, msg = delete_user_account_completely(usr)
+            if ok:
+                output = {
+                    "success": True,
+                    "message": msg
+                }
+                self.stdout.write(json.dumps(output))
+            else:
+                output = {
+                    "success": False,
+                    "message": msg
+                }
+                self.stderr.write(json.dumps(output))
         elif state == 'DISABLE_OTP':
             settings, _ = UserSettings.objects.get_or_create(userid=usr.id)
             settings.two_step = 0
