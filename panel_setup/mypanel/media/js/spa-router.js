@@ -150,6 +150,8 @@
                 path.includes('logout') ||
                 path.includes('exit_impersonate') ||
                 path.includes('auto_login') ||
+                path.includes('/oauth/') ||
+                path.includes('/app/callback/') ||
                 path.startsWith('/3rdparty/') ||
                 path.includes('phpmyadmin') ||
                 path.includes('webmail') ||
