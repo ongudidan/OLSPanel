@@ -2029,8 +2029,10 @@ def replace_php_version_in_vhost(domain_name, new_php_version):
         with open(vhost_file_path, 'r') as file:
             lines = file.readlines()
 
-        # Define a regex pattern to find the ScriptHandler line
-        script_handler_pattern = re.compile(r'^(.*?add\s+lsapi:)(\w+)(\s+php.*)$', re.MULTILINE)
+        # Define a regex pattern to find the ScriptHandler line.
+        # Handler names are derived from the domain, so they may contain '-' (e.g. dish-dash.example.com);
+        # \w alone would skip those and leave the handler pointing at a non-existent extprocessor (403).
+        script_handler_pattern = re.compile(r'^(.*?add\s+lsapi:)(\S+)(\s+php.*)$', re.MULTILINE)
 
         # Replace the old version in the ScriptHandler line
         for i, line in enumerate(lines):
