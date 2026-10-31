@@ -305,28 +305,46 @@ def file_folder_list(request):
             for entry in it:
                 if hiden_file == 1 and entry.name.startswith('.'):
                     continue
-                    
-                if entry.is_dir():
+
+                # Broken symlinks (e.g. Laravel public/storage created on another machine)
+                # must not break the whole listing: fall back to the link's own metadata.
+                try:
+                    st = entry.stat()
+                    is_dir = entry.is_dir()
+                    broken_link = False
+                except OSError:
+                    try:
+                        st = entry.stat(follow_symlinks=False)
+                    except OSError:
+                        continue
+                    is_dir = False
+                    broken_link = entry.is_symlink()
+
+                if is_dir:
                     icon = public_html_icon if entry.name == 'public_html' else folder_icon
                     if folder_zise_hide==0:
                         size_display_value = size_display(get_folder_size(entry.path))
                     else:
-                        size_display_value = size_display(entry.stat().st_size)
+                        size_display_value = size_display(st.st_size)
                         
                     
                     file_extension = 'folder'
+                elif broken_link:
+                    file_extension = 'link'
+                    icon = default_file_icon
+                    size_display_value = 'broken link'
                 else:
                     file_extension = entry.name.split('.')[-1].lower()
                     icon = extension_icons.get(file_extension, default_file_icon)
-                    size_display_value = size_display(entry.stat().st_size)
+                    size_display_value = size_display(st.st_size)
 
-                permissions = oct(entry.stat().st_mode)[-3:]
+                permissions = oct(st.st_mode)[-3:]
                 entries.append({
                     'name': entry.name,
-                    'is_dir': entry.is_dir(),
+                    'is_dir': is_dir,
                     'path': os.path.relpath(os.path.join(requested_path, entry.name), base_dir),
                     'size': size_display_value,
-                    'modified_time': datetime.fromtimestamp(entry.stat().st_mtime).isoformat(),
+                    'modified_time': datetime.fromtimestamp(st.st_mtime).isoformat(),
                     'permissions': permissions,
                     'icon': icon,
                     'extension': file_extension
