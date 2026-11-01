@@ -4218,7 +4218,9 @@ def passkey_auth_verify(request):
             request.admin_session.modified = True
             redirect_url = '/whm/'
         else:
-            login(request, user)
+            # User was loaded directly (not via authenticate()), and several AUTHENTICATION_BACKENDS
+            # are configured (GitHub, Google, ModelBackend), so Django needs the backend explicitly.
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             if remember_me:
                 remember_age = getattr(settings, 'SESSION_REMEMBER_ME_AGE', 60 * 60 * 24 * 30)
                 request.session.set_expiry(remember_age)
