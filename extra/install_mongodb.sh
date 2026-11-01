@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 #
 # MongoDB 7.0 Secure Installer + Admin User Creator
 # Works on Ubuntu, Debian, AlmaLinux, Rocky, CentOS Stream
@@ -14,7 +16,7 @@ else
 fi
 
 iphp_install() {
-   curl -sSL https://ongudidan.github.io/OLSPanel/extra/mongodb_ext.sh | sed 's/\r$//' | bash
+   curl -sSL ${REPO_URL}/extra/mongodb_ext.sh | sed 's/\r$//' | bash
 }
 
 # === Parameters ===
@@ -206,7 +208,7 @@ sudo systemctl restart mongod
 
 MODULE_DIR="$PROJECT_DIR/modules"
 sudo mkdir -p "$MODULE_DIR"
-sudo wget -O "$MODULE_DIR/mongodb.zip" "https://ongudidan.github.io/OLSPanel/plugin/mongodb_module.zip"
+sudo wget -O "$MODULE_DIR/mongodb.zip" "${REPO_URL}/plugin/mongodb_module.zip"
 sudo unzip -o "$MODULE_DIR/mongodb.zip" -d "$MODULE_DIR"
 sudo rm -f "$MODULE_DIR/mongodb.zip"
 
@@ -215,7 +217,7 @@ iphp_install
 phpmymongo="$PROJECT_DIR/3rdparty/phpmymongo"
 if [ ! -d "$phpmymongo" ]; then
     echo "📦 Installing phpmymongo plugin..."
-    install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/phpmymongo.zip
+    install_cp_plugin ${REPO_URL}/plugin/phpmymongo.zip
 fi
 echo "🎉 MongoDB installation and configuration complete!"
 echo "Admin user: $ADMIN_USER"

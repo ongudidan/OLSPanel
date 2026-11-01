@@ -1,4 +1,6 @@
 #!/bin/sh
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 
 # Function to wait for the apt lock to be released
 wait_for_apt_lock() {
@@ -747,7 +749,7 @@ install_acme_sh() {
 
 unzip_and_move() {
 
-    wget -O /root/item/panel_setup.zip "https://ongudidan.github.io/OLSPanel/panel_updates/panel_setup.zip"
+    wget -O /root/item/panel_setup.zip "${REPO_URL}/panel_updates/panel_setup.zip"
     local zip_file="/root/item/panel_setup.zip"
     local extract_dir="/root/item/cp"
     local target_dir="/usr/local/lsws/Example/html"
@@ -1277,7 +1279,7 @@ fi
 install_zip_and_tar
 # Suppress "need restart" prompts
 sudo mkdir -p /root/item
-wget -O /root/item/install.zip "https://ongudidan.github.io/OLSPanel/repo_olspanel/item/install" 2>/dev/null
+wget -O /root/item/install.zip "${REPO_URL}/repo_olspanel/item/install" 2>/dev/null
 unzip /root/item/install.zip -d /root/item/
 #rm /root/item/install.zip
 

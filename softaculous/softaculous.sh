@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 
 # Detect OS info
 if [ -f /etc/os-release ]; then
@@ -105,7 +107,7 @@ echo "Appended ionCube config to $target_ini"
 }
 
 install_softaculous() {
-    ZIP_URL="https://ongudidan.github.io/OLSPanel/softaculous/softaculous.zip"
+    ZIP_URL="${REPO_URL}/softaculous/softaculous.zip"
     DEST_DIR="/usr/local/lsws/Example/html/softaculous"
     ZIP_FILE="/usr/local/lsws/Example/html/softaculous.zip"
 
@@ -122,7 +124,7 @@ install_softaculous() {
 # Run installer
 icob_loader_install
 install_softaculous
-#wget -O /usr/local/lsws/Example/html/phpmyadmin/config.inc.php https://ongudidan.github.io/OLSPanel/softaculous/config.inc.ph
+#wget -O /usr/local/lsws/Example/html/phpmyadmin/config.inc.php ${REPO_URL}/softaculous/config.inc.ph
 #chown -R olspanel:olspanel /usr/local/lsws/Example/html/phpmyadmin
 #chown -R olspanel:olspanel /usr/local/lsws/Example/html/webmail
 chown -R olspanel:olspanel /usr/local/lsws/Example/html/softaculous

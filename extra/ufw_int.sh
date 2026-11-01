@@ -1,12 +1,14 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 set -e
 
 # Download and install UFW CGI Plugin
-wget -O /usr/local/ufw.zip "https://ongudidan.github.io/OLSPanel/plugin/ufw.zip"
+wget -O /usr/local/ufw.zip "${REPO_URL}/plugin/ufw.zip"
 sudo unzip -o /usr/local/ufw.zip -d /usr/local
 
 # Download and install UFW default configuration files if not present
-wget -O /usr/local/config_ufw.zip "https://ongudidan.github.io/OLSPanel/plugin/config_ufw.zip"
+wget -O /usr/local/config_ufw.zip "${REPO_URL}/plugin/config_ufw.zip"
 if [ ! -d "/usr/local/ufw/config" ]; then
     sudo unzip -o /usr/local/config_ufw.zip -d /usr/local/ufw
 fi

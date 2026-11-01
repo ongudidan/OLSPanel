@@ -25,10 +25,101 @@ if command -v npx &> /dev/null && [ -d "${PROJECT_ROOT}/panel_setup/mypanel" ]; 
 fi
 
 # Build panel_setup.zip and plugin zip files using Python3
-python3 - <<EOF
-import zipfile, os
+PROJECT_ROOT="${PROJECT_ROOT}" python3 - <<'EOF'
+import zipfile, os, re, json
 
-base_dir = "${PROJECT_ROOT}"
+base_dir = os.environ["PROJECT_ROOT"]
+
+# 0. Synchronize centralized REPO_URL from repo_url.txt across all scripts, configs, and Django settings
+repo_url_file = os.path.join(base_dir, "repo_url.txt")
+repo_url = "https://ongudidan.github.io/OLSPanel"
+if os.path.isfile(repo_url_file):
+    with open(repo_url_file, "r", encoding="utf-8") as rf:
+        val = rf.read().strip().rstrip("/")
+        if val:
+            repo_url = val
+
+print(f"🔗 Synchronizing centralized repository URL: {repo_url}")
+
+# Sync into panel_setup/mypanel/etc/repo_url
+etc_dir = os.path.join(base_dir, "panel_setup", "mypanel", "etc")
+os.makedirs(etc_dir, exist_ok=True)
+with open(os.path.join(etc_dir, "repo_url"), "w", encoding="utf-8") as ef:
+    ef.write(f"{repo_url}\n")
+
+# Sync fallback REPO_URL in all .sh files and Python files
+for root, dirs, files in os.walk(base_dir):
+    if ".git" in root or "__pycache__" in root:
+        continue
+    for fname in files:
+        fpath = os.path.join(root, fname)
+        if fname.endswith(".sh") and fname != "build_update.sh":
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    text = f.read()
+                new_text = re.sub(
+                    r'REPO_URL="\$\{REPO_URL:-[^}]+\}"',
+                    f'REPO_URL="${{REPO_URL:-{repo_url}}}"',
+                    text,
+                )
+                if new_text != text:
+                    with open(fpath, "w", encoding="utf-8") as f:
+                        f.write(new_text)
+            except Exception:
+                pass
+        elif fname.endswith(".py") and "panel_setup" in root:
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    text = f.read()
+                new_text = re.sub(
+                    r'getattr\(settings,\s*"OLSPANEL_REPO_URL",\s*"[^"]+"\)',
+                    f'getattr(settings, "OLSPANEL_REPO_URL", "{repo_url}")',
+                    text,
+                )
+                if fname == "settings.py":
+                    new_text = re.sub(
+                        r'(def get_repo_url\(\):[\s\S]*?return\s+)"[^"]+"(\s*\n\s*OLSPANEL_REPO_URL)',
+                        rf'\1"{repo_url}"\2',
+                        new_text,
+                    )
+                if new_text != text:
+                    with open(fpath, "w", encoding="utf-8") as f:
+                        f.write(new_text)
+            except Exception:
+                pass
+
+# Sync plugins.json
+plugins_json_path = os.path.join(base_dir, "plugins.json")
+if os.path.isfile(plugins_json_path):
+    try:
+        with open(plugins_json_path, "r", encoding="utf-8") as pf:
+            pdata = json.load(pf)
+        changed = False
+        for p in pdata.get("plugins", []):
+            u = p.get("url", "")
+            for suffix in ("/extra/install_mongodb.sh", "/extra/imunifyfav.sh"):
+                if u.endswith(suffix) and u != f"{repo_url}{suffix}":
+                    p["url"] = f"{repo_url}{suffix}"
+                    changed = True
+        if changed:
+            with open(plugins_json_path, "w", encoding="utf-8") as pf:
+                json.dump(pdata, pf, indent=2)
+                pf.write("\n")
+    except Exception as e:
+        print(f"⚠️ Warning syncing plugins.json: {e}")
+
+# Sync README.md install command URLs
+readme_path = os.path.join(base_dir, "README.md")
+if os.path.isfile(readme_path):
+    try:
+        with open(readme_path, "r", encoding="utf-8") as rf:
+            rtext = rf.read()
+        new_rtext = re.sub(r'https?://[^\s)]+/install\.sh', f'{repo_url}/install.sh', rtext)
+        if new_rtext != rtext:
+            with open(readme_path, "w", encoding="utf-8") as rf:
+                rf.write(new_rtext)
+    except Exception:
+        pass
 
 # 1. Create plugin/ufw.zip
 ufw_zip_path = os.path.join(base_dir, "plugin", "ufw.zip")

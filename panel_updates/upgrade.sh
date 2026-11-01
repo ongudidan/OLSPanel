@@ -12,7 +12,9 @@ else
 fi
 
 BASE_DIR="${PROJECT_DIR%/*}" # e.g., /usr/local/olspanel
-UPDATE_HOST="https://ongudidan.github.io/OLSPanel/panel_updates"
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
+UPDATE_HOST="${REPO_URL}/panel_updates"
 TEMP_ZIP="/tmp/panel_setup_update.zip"
 
 echo "🚀 Downloading and applying custom OLSPanel update from ${UPDATE_HOST}..."
@@ -31,6 +33,10 @@ if [ -s "$TEMP_ZIP" ]; then
            "mypanel/etc/_*" \
            "mypanel/db.sqlite3" || true
     rm -f "$TEMP_ZIP"
+    if [ -s "${PROJECT_DIR}/etc/repo_url" ]; then
+        mkdir -p /etc/olspanel 2>/dev/null || true
+        cp "${PROJECT_DIR}/etc/repo_url" /etc/olspanel/repo_url 2>/dev/null || true
+    fi
     echo "✅ Codebase updated."
 else
     echo "❌ Failed to download panel_setup.zip"

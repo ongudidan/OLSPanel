@@ -2931,7 +2931,8 @@ def install_mongodb(request):
         def stream_output():
             yield f"🔽 Starting installation of mongodb...\n"
             
-            script_url = "https://ongudidan.github.io/OLSPanel/extra/install_mongodb.sh"
+            repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+            script_url = f"{repo_url}/extra/install_mongodb.sh"
             script_path = f"{settings.BASE_DIR.parent}/install_mongodb.sh"
 
             try:
@@ -3085,7 +3086,8 @@ def install_php_modules(request):
             yield f"📁 Using binary: {binf}\n"
             yield f"⚙️ Using INI: {ini}\n\n"
 
-            script_url = "https://ongudidan.github.io/OLSPanel/extra/php_modules.sh"
+            repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+            script_url = f"{repo_url}/extra/php_modules.sh"
             script_path = f"{settings.BASE_DIR.parent}/php_modules.sh"
 
             try:
@@ -3261,7 +3263,8 @@ def install_postgresql(request):
         def stream_output():
             yield f"🔽 Starting installation of postgresql...\n"
             
-            script_url = "https://ongudidan.github.io/OLSPanel/extra/install_postgresql.sh"
+            repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+            script_url = f"{repo_url}/extra/install_postgresql.sh"
             script_path = f"{settings.BASE_DIR.parent}/install_postgresql.sh"
 
             try:
@@ -3416,9 +3419,10 @@ def install_plugin_run(request, plugin_id):
         plugin_url = plugin.get("url") or ""
         plugin_name = plugin.get("name") or "Plugin"
 
+        repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
         if "olspanel.com" in plugin_url:
-            plugin_url = plugin_url.replace("https://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
-            plugin_url = plugin_url.replace("http://olspanel.com/", "https://ongudidan.github.io/OLSPanel/")
+            plugin_url = plugin_url.replace("https://olspanel.com/", f"{repo_url}/")
+            plugin_url = plugin_url.replace("http://olspanel.com/", f"{repo_url}/")
 
         # =========================
         # STREAM OUTPUT

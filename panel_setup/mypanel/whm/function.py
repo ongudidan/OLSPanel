@@ -65,7 +65,8 @@ def change_hostname(old_hostname, new_hostname):
         
 def install_panel_update():
     """Downloads and executes upgrade.sh from the update server"""
-    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/panel_updates/upgrade.sh"
+    repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+    upgrade_script_url = f"{repo_url}/panel_updates/upgrade.sh"
     upgrade_script_path = "/tmp/upgrade.sh"
 
     try:
@@ -99,7 +100,8 @@ def install_softaculous_now():
     """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
     
     set_api_status("api_status", 1)
-    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/softaculous/softaculous.sh"
+    repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+    upgrade_script_url = f"{repo_url}/softaculous/softaculous.sh"
     extract_path = settings.BASE_DIR.parent
     upgrade_script_path = f"{settings.BASE_DIR.parent}/softaculous.sh"
     download_path = f"{settings.BASE_DIR.parent}/softaculous.zip"
@@ -140,7 +142,8 @@ def install_olsapp_now():
     """Runs upgrade.sh from the web, then downloads and extracts the update file to /usr/local/lsws/Example/html/"""
     
     set_api_status("api_status", 1)
-    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/olsapp/olsapp.sh"
+    repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+    upgrade_script_url = f"{repo_url}/olsapp/olsapp.sh"
     extract_path = settings.BASE_DIR.parent
     upgrade_script_path = f"{settings.BASE_DIR.parent}/olsapp.sh"
     download_path = f"{settings.BASE_DIR.parent}/olsapp.zip"
@@ -189,8 +192,9 @@ def install_imunifyfav_now():
         if os.path.isfile(local_extra_script):
             shutil.copy2(local_extra_script, upgrade_script_path)
         else:
+            repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
             urls = [
-                "https://ongudidan.github.io/OLSPanel/extra/imunifyfav.sh",
+                f"{repo_url}/extra/imunifyfav.sh",
                 "https://olspanel.com/extra/imunifyfav.sh",
             ]
             downloaded = False
@@ -1556,7 +1560,8 @@ def install_csf(ports_to_allow=None):
         subprocess.run(["sudo", "systemctl", "disable", "ufw"], check=True)
 
         print("Step 4: Downloading CSF...")
-        subprocess.run(["wget", "https://ongudidan.github.io/OLSPanel/plugin/csf.tgz"], check=True)
+        repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+        subprocess.run(["wget", f"{repo_url}/plugin/csf.tgz"], check=True)
 
         print("Step 5: Extracting CSF...")
         subprocess.run(["tar", "-xzf", "csf.tgz"], check=True)
@@ -2811,8 +2816,8 @@ USERLIMIT_BIN = "/usr/local/bin/userlimit"
 
 
 def install_cgroup():
-     
-    upgrade_script_url = "https://ongudidan.github.io/OLSPanel/extra/cgroup.sh"
+    repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+    upgrade_script_url = f"{repo_url}/extra/cgroup.sh"
     upgrade_script_path = f"{settings.BASE_DIR.parent}/cgroup.sh"
 
     try:

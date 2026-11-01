@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 HOME_PATH_FILE="/etc/olspanel/base_dir"
 if [ -f "$HOME_PATH_FILE" ]; then
     # Read value from file
@@ -58,15 +60,15 @@ fi
 
 
 
-wget -O /etc/profile.d/olspanel.sh "https://ongudidan.github.io/OLSPanel/extra/olspanel.sh"
-curl -sSL https://ongudidan.github.io/OLSPanel/extra/ufw_int.sh | sed 's/\r$//' | bash
-curl -sSL https://ongudidan.github.io/OLSPanel/extra/install_php_cgi.sh | sed 's/\r$//' | bash
+wget -O /etc/profile.d/olspanel.sh "${REPO_URL}/extra/olspanel.sh"
+curl -sSL ${REPO_URL}/extra/ufw_int.sh | sed 's/\r$//' | bash
+curl -sSL ${REPO_URL}/extra/install_php_cgi.sh | sed 's/\r$//' | bash
 
-wget -O /usr/local/bin/install_cp_plugin "https://ongudidan.github.io/OLSPanel/extra/install_cp_plugin"
+wget -O /usr/local/bin/install_cp_plugin "${REPO_URL}/extra/install_cp_plugin"
 sed -i 's/\r$//' /usr/local/bin/install_cp_plugin
 chmod +x /usr/local/bin/install_cp_plugin
 
-wget -O /usr/local/bin/olspanel "https://ongudidan.github.io/OLSPanel/extra/olspanel"
+wget -O /usr/local/bin/olspanel "${REPO_URL}/extra/olspanel"
 sed -i 's/\r$//' /usr/local/bin/olspanel
 chmod +x /usr/local/bin/olspanel
 
@@ -76,14 +78,14 @@ chmod +x /usr/local/bin/olspanel
         roundcube="$PROJECT_DIR/3rdparty/roundcube/index.php"
 
         if [ ! -f "$roundcube" ]; then
-            install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/roundcube.zip
+            install_cp_plugin ${REPO_URL}/plugin/roundcube.zip
         fi
 
         if [ ! -f "$rainloop" ]; then
-            install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/rainloop.zip
+            install_cp_plugin ${REPO_URL}/plugin/rainloop.zip
         fi
 
-install_cp_plugin https://ongudidan.github.io/OLSPanel/plugin/phpmyadmin.zip
+install_cp_plugin ${REPO_URL}/plugin/phpmyadmin.zip
 
 if [ -d "/usr/local/lsws/Example/html" ]; then
     ln -sf "$PROJECT_DIR/3rdparty/roundcube" /usr/local/lsws/Example/html/roundcube 2>/dev/null || true

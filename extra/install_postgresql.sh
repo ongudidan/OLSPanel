@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 #
 # PostgreSQL Secure Installer + Admin User Creator
 # Works on Ubuntu, Debian, AlmaLinux, Rocky, CentOS Stream
@@ -37,8 +39,8 @@ iphp_install() {
     sudo mkdir -p "$MODULE_DIR"
 
    
-    sudo wget -O "$MODULE_DIR/$SO_NAME" "https://ongudidan.github.io/OLSPanel/extra/php_ext/8.2/pdo_pgsql.so"
-    sudo wget -O "$MODULE_DIR/$SO_NAME2" "https://ongudidan.github.io/OLSPanel/extra/php_ext/8.2/pgsql.so"
+    sudo wget -O "$MODULE_DIR/$SO_NAME" "${REPO_URL}/extra/php_ext/8.2/pdo_pgsql.so"
+    sudo wget -O "$MODULE_DIR/$SO_NAME2" "${REPO_URL}/extra/php_ext/8.2/pgsql.so"
 
     # Verify download
     if [ -f "$MODULE_DIR/$SO_NAME" ]; then

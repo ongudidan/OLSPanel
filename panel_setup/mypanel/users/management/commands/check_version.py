@@ -39,8 +39,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         try:
             # URL of the version file on the web
-            version_url = "https://ongudidan.github.io/OLSPanel/panel_updates/version.txt"
-            auto_update_version_url = "https://ongudidan.github.io/OLSPanel/panel_updates/version.txt?live=1"
+            repo_url = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
+            version_url = f"{repo_url}/panel_updates/version.txt"
+            auto_update_version_url = f"{repo_url}/panel_updates/version.txt?live=1"
             # Get OS details from settings, with defaults
             os_name = getattr(settings, "MY_OS_NAME", "linux")
             os_version = getattr(settings, "MY_OS_VERSION", "0")

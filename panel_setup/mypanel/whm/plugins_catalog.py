@@ -3,6 +3,9 @@ OLSPanel Official Plugin Catalog Definition
 Defines the local, self-hosted marketplace plugins and categories.
 Eliminates all runtime external dependencies on upstream servers.
 """
+from django.conf import settings
+
+REPO_URL = getattr(settings, "OLSPANEL_REPO_URL", "https://ongudidan.github.io/OLSPanel").rstrip("/")
 
 DEFAULT_CATEGORIES = [
     {"id": 1, "name": "Database", "slug": "database"},
@@ -35,7 +38,7 @@ DEFAULT_PLUGINS = [
         "name": "MongoDB",
         "description": "MongoDB document-oriented database server and phpMyMongo management interface.",
         "path": "/usr/bin/mongosh",
-        "url": "https://ongudidan.github.io/OLSPanel/extra/install_mongodb.sh",
+        "url": f"{REPO_URL}/extra/install_mongodb.sh",
         "type": "free",
         "date": "2025-02-05",
         "pre_build_path": "phpmymongos/",
@@ -91,7 +94,7 @@ DEFAULT_PLUGINS = [
         "name": "ImunifyAV (Antivirus)",
         "description": "Antivirus scanner and malware detection for web hosting environments.",
         "path": "/usr/bin/imunify-antivirus",
-        "url": "https://ongudidan.github.io/OLSPanel/extra/imunifyfav.sh",
+        "url": f"{REPO_URL}/extra/imunifyfav.sh",
         "type": "free",
         "date": "2025-11-11",
         "pre_build_path": "imunifyfav_whm/",

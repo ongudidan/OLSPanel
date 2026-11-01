@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 
 
 HOME_PATH_FILE="/etc/olspanel/base_dir"
@@ -119,7 +121,7 @@ run_py() {
 }
 
 install_olsappxx() {
-    ZIP_URL="https://ongudidan.github.io/OLSPanel/olsapp/olsapp.zip?ts=$(date +%s)"
+    ZIP_URL="${REPO_URL}/olsapp/olsapp.zip?ts=$(date +%s)"
     DEST_DIR="${PROJECT_DIR%/*}/olsapp"
     ZIP_FILE="${PROJECT_DIR%/*}/olsapp.zip"
 
@@ -176,7 +178,7 @@ EOF
 }
 
 install_olsapp() {
-    ZIP_URL="https://ongudidan.github.io/OLSPanel/olsapp/olsapp.zip?ts=$(date +%s)"
+    ZIP_URL="${REPO_URL}/olsapp/olsapp.zip?ts=$(date +%s)"
 
     # If project is default olspanel path
     if [ "$PROJECT_DIR" = "/usr/local/olspanel/mypanel" ]; then
@@ -197,8 +199,8 @@ install_olsapp() {
     rm -f "$ZIP_FILE"
 if [ "$PROJECT_DIR" = "/usr/local/olspanel/mypanel" ]; then
 create_olsapp_conf
-#wget -O "$DEST_DIR/core/softpanel.php" "https://ongudidan.github.io/OLSPanel/olsapp/softpanel_for_bin.ph" --no-cache --no-cookies
-wget -O "$DEST_DIR/conf.php" "https://ongudidan.github.io/OLSPanel/olsapp/conf_for_bin.ph" --no-cache --no-cookies
+#wget -O "$DEST_DIR/core/softpanel.php" "${REPO_URL}/olsapp/softpanel_for_bin.ph" --no-cache --no-cookies
+wget -O "$DEST_DIR/conf.php" "${REPO_URL}/olsapp/conf_for_bin.ph" --no-cache --no-cookies
 chown -R olspanel:olspanel $DEST_DIR
 else
 chown -R olspanel:olspanel ${PROJECT_DIR%/*}/olsapp

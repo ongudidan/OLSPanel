@@ -258,6 +258,27 @@ def get_panel_version():
 
 VERSION = get_panel_version()
 
+def get_repo_url():
+    if os.getenv("OLSPANEL_REPO_URL"):
+        return os.getenv("OLSPANEL_REPO_URL").strip().rstrip("/")
+    candidate_paths = [
+        os.path.join(BASE_DIR, "etc", "repo_url"),
+        "/etc/olspanel/repo_url",
+        os.path.join(BASE_DIR.parent.parent, "repo_url.txt"),
+    ]
+    for path in candidate_paths:
+        if os.path.isfile(path):
+            try:
+                with open(path, "r") as f:
+                    url = f.read().strip().rstrip("/")
+                    if url:
+                        return url
+            except Exception:
+                pass
+    return "https://ongudidan.github.io/OLSPanel"
+
+OLSPANEL_REPO_URL = get_repo_url()
+
 USE_I18N = True
 
 USE_L10N = True

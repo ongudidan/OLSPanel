@@ -1,5 +1,11 @@
 #!/bin/sh
 
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
+export OLSPANEL_REPO_URL="$REPO_URL"
+sudo mkdir -p /etc/olspanel 2>/dev/null || mkdir -p /etc/olspanel 2>/dev/null || true
+echo "$REPO_URL" | sudo tee /etc/olspanel/repo_url >/dev/null 2>&1 || echo "$REPO_URL" > /etc/olspanel/repo_url 2>/dev/null || true
+
 # Function to wait for apt lock to be released
 wait_for_apt_lock() {
     echo "Checking for apt package manager lock..."
@@ -75,8 +81,8 @@ elif [ "$SERVER_OS" = "Centos" ]; then
     sudo dnf update -y && sudo dnf install -y wget curl unzip
 fi
 
-wget -O panel.sh "https://ongudidan.github.io/OLSPanel/repo_owpanel/$SERVER_OS/panel.sh"
-wget -O requirements.txt "https://ongudidan.github.io/OLSPanel/repo_owpanel/requirements.txt"
+wget -O panel.sh "${REPO_URL}/repo_owpanel/$SERVER_OS/panel.sh"
+wget -O requirements.txt "${REPO_URL}/repo_owpanel/requirements.txt"
 
 # Ensure the script is executable
 chmod +x panel.sh

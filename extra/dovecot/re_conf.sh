@@ -1,4 +1,6 @@
 #!/bin/bash
+REPO_URL="${OLSPANEL_REPO_URL:-$(cat /etc/olspanel/repo_url 2>/dev/null | tr -d '\r\n')}"
+REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 
 # Check if Dovecot is running
 if systemctl is-active --quiet dovecot; then
@@ -45,7 +47,7 @@ if echo "$VERSION" | awk -F. '{exit !($1>2 || ($1==2 && $2>=4))}'; then
     echo "Dovecot 2.4+ detected, applying 2.4 configuration..."
 
     wget -qO /etc/dovecot/dovecot.conf \
-    https://ongudidan.github.io/OLSPanel/extra/dovecot/dovecot.conf
+    ${REPO_URL}/extra/dovecot/dovecot.conf
 
     chmod 644 /etc/dovecot/dovecot.conf
 
