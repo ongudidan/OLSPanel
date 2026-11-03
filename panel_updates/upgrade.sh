@@ -135,7 +135,29 @@ except Exception as e:
     $PYTHON_BIN "${PROJECT_DIR}/manage.py" migrate --noinput > /dev/null 2>&1 || true
 fi
 
-# 6. Ensure correct file ownership
+# 6. Ensure correct file ownership and Dovecot 2.4+ LDA config socket permissions
+chown root:root / /etc /usr /var 2>/dev/null || true
+chmod 0755 / /etc /usr /var 2>/dev/null || true
+if [ -d "/etc/opendkim/keys" ]; then
+    chown -R opendkim:opendkim /etc/opendkim/keys 2>/dev/null || true
+fi
 chown -R www-data:www-data "${PROJECT_DIR}" 2>/dev/null || true
+if [ -d "/home/vmail" ]; then
+    chown -R vmail:vmail /home/vmail 2>/dev/null || true
+fi
+if [ -f "/etc/dovecot/dovecot.conf" ] && grep -q "dovecot_config_version" /etc/dovecot/dovecot.conf 2>/dev/null; then
+    if ! grep -q "service config" /etc/dovecot/dovecot.conf 2>/dev/null; then
+        cat >> /etc/dovecot/dovecot.conf << 'EOF'
+
+service config {
+  unix_listener config {
+    group = vmail
+    mode = 0660
+  }
+}
+EOF
+        systemctl restart dovecot 2>/dev/null || true
+    fi
+fi
 
 echo "🎉 Custom Update Applied Successfully!"

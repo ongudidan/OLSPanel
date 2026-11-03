@@ -1579,7 +1579,6 @@ def php_editor(request):
 @admincheck
 def email_accounts(request):
     username_string = request.user.username
-    
 
     if request.method == 'POST':
         search_query = request.POST.get('search', '')
@@ -1697,8 +1696,15 @@ def email_accounts_create(request):
         user_directory = f"/home/vmail/{username_string}/{domain}/{req_username}/Maildir"
         if not os.path.exists(user_directory):
             try:
-                os.makedirs(user_directory)
-                os.chown(user_directory, 5000, 5000)
+                os.makedirs(user_directory, exist_ok=True)
+                for p in [
+                    f"/home/vmail/{username_string}",
+                    f"/home/vmail/{username_string}/{domain}",
+                    f"/home/vmail/{username_string}/{domain}/{req_username}",
+                    user_directory,
+                ]:
+                    if os.path.exists(p):
+                        os.chown(p, 5000, 5000)
                 os.chmod(user_directory, stat.S_IRWXU)
                 
             except Exception as e:

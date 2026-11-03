@@ -46,6 +46,7 @@ urlpatterns = [
     path('reboot/', reboot, name='reboot'),
     path('reboot_view/', reboot_view, name='reboot_server'),
     path('email_queue/', email_queue, name='email_queue'),
+    path('smtp_relay/', smtp_relay, name='smtp_relay'),
     path('configserver/', configserver, name='configserver'),
     path('csf_install/', csf_install, name='csf_install'),
     path('mod_install/', mod_install, name='mod_install'),

@@ -4,6 +4,19 @@ REPO_URL="${REPO_URL:-https://ongudidan.github.io/OLSPanel}"
 
 # Check if Dovecot is running
 if systemctl is-active --quiet dovecot; then
+    if grep -q "dovecot_config_version" /etc/dovecot/dovecot.conf 2>/dev/null && ! grep -q "service config" /etc/dovecot/dovecot.conf 2>/dev/null; then
+        echo "Adding Dovecot 2.4+ service config socket permissions for vmail..."
+        cat >> /etc/dovecot/dovecot.conf << 'EOF'
+
+service config {
+  unix_listener config {
+    group = vmail
+    mode = 0660
+  }
+}
+EOF
+        systemctl restart dovecot
+    fi
     echo "Dovecot is already running. No action needed."
     exit 0
 fi

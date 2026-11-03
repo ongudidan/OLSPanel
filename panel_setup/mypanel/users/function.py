@@ -1109,7 +1109,7 @@ def setup_dkim(domain):
 
         # Generate DKIM keys directly in the target directory
         subprocess.run(
-            ["opendkim-genkey", "-t", "-s", "default", "-d", domain, "-D", domain_dir], 
+            ["opendkim-genkey", "-s", "default", "-d", domain, "-D", domain_dir], 
             check=True
         )
 

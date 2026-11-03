@@ -1,0 +1,390 @@
+{% extends "whm/base.html" %}
+{% block title %}SMTP Relay &amp; Mail Setup{% endblock title %}
+{% block content %}
+
+<div class="space-y-5">
+
+    <!-- 1. Outbound SMTP Relay Configuration Card -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <div class="px-5 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-semibold text-slate-800">Outbound SMTP Relay Configuration</h1>
+                    <p class="text-xs text-slate-500">Route outgoing server emails through Oracle Cloud, Brevo, Amazon SES, Mailgun, or any Port 587 SMTP relay</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                {% if relay_config.enabled %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Relay Active: {{ relay_config.smtp_host }}:{{ relay_config.smtp_port }}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    Direct Delivery (Port 25)
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="p-5 space-y-5">
+            <!-- Quick Provider Presets -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-2">Quick Provider Preset</label>
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="applySmtpPreset('oci')" id="preset-oci" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        Oracle Cloud (OCI)
+                    </button>
+                    <button type="button" onclick="applySmtpPreset('brevo')" id="preset-brevo" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        Brevo (Sendinblue)
+                    </button>
+                    <button type="button" onclick="applySmtpPreset('ses')" id="preset-ses" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        Amazon SES
+                    </button>
+                    <button type="button" onclick="applySmtpPreset('mailgun')" id="preset-mailgun" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        Mailgun
+                    </button>
+                    <button type="button" onclick="applySmtpPreset('sendgrid')" id="preset-sendgrid" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        SendGrid
+                    </button>
+                    <button type="button" onclick="applySmtpPreset('gmail')" id="preset-gmail" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        Gmail / Workspace
+                    </button>
+                    <button type="button" onclick="applySmtpPreset('custom')" id="preset-custom" class="smtp-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                        Custom SMTP
+                    </button>
+                </div>
+                <div id="presetHelperNotice" class="mt-2.5 px-3.5 py-2.5 rounded-lg bg-blue-50/80 border border-blue-200 text-xs text-blue-800 hidden"></div>
+            </div>
+
+            <!-- Main Configuration Form -->
+            <form method="POST" action="" class="space-y-4 m-0">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_smtp_relay">
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-6">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">SMTP Server Endpoint (Host)</label>
+                        <input type="text" id="smtp_host" name="smtp_host" value="{{ relay_config.smtp_host }}" placeholder="e.g. smtp.email.af-johannesburg-1.oci.oraclecloud.com" required
+                            class="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">SMTP Port</label>
+                        <input type="number" id="smtp_port" name="smtp_port" value="{{ relay_config.smtp_port|default:'587' }}" placeholder="587" required
+                            class="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
+                    </div>
+
+                    <div class="md:col-span-4">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Server Mail Hostname (myhostname)</label>
+                        <input type="text" id="mail_hostname" name="mail_hostname" value="{{ relay_config.mail_hostname }}" placeholder="e.g. mail.yourdomain.com"
+                            class="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">SMTP Username</label>
+                        <input type="text" id="smtp_username" name="smtp_username" value="{{ relay_config.smtp_username }}" placeholder="Enter SMTP username (e.g. ocid1.user.oc1...)" required
+                            class="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">
+                            SMTP Password
+                            {% if relay_config.has_password %}
+                            <span class="text-emerald-600 font-normal">(Saved — leave blank to keep existing password)</span>
+                            {% endif %}
+                        </label>
+                        <input type="password" id="smtp_password" name="smtp_password" value=""
+                            placeholder="{% if relay_config.has_password %}•••••••••••••••• (leave blank to keep current){% else %}Enter SMTP password{% endif %}"
+                            {% if not relay_config.has_password %}required{% endif %}
+                            class="w-full px-3 py-2 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand focus:ring-1 focus:ring-brand outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                    <div class="text-[11px] text-slate-500">
+                        Automatically configures Postfix SASL TLS (`587`), OpenDKIM key permissions, and Dovecot LDA sockets.
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="submit" class="btn-brand inline-flex items-center gap-1.5 px-4 py-2 bg-brand hover:bg-brand/90 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Save &amp; Apply SMTP Relay</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% if relay_config.enabled %}
+            <!-- Test SMTP Connection & Disable Relay Bar -->
+            <div class="pt-4 border-t border-slate-200 flex flex-col lg:flex-row lg:items-end justify-between gap-4">
+                <form method="POST" action="" class="flex-1 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end m-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="test_smtp_relay">
+                    <div class="sm:col-span-5">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Test Sender Email (Approved Sender)</label>
+                        {% if mailboxes %}
+                        <select name="test_from" class="w-full px-3 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand outline-none">
+                            {% for mb in mailboxes %}
+                            <option value="{{ mb }}">{{ mb }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <input type="email" name="test_from" placeholder="info@yourdomain.com" class="w-full px-3 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg">
+                        {% endif %}
+                    </div>
+                    <div class="sm:col-span-4">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Send Test Email To (Optional)</label>
+                        <input type="email" name="test_to" placeholder="yourname@gmail.com" class="w-full px-3 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand outline-none">
+                    </div>
+                    <div class="sm:col-span-3">
+                        <button type="submit" class="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Test Connection &amp; Send</span>
+                        </button>
+                    </div>
+                </form>
+
+                <form method="POST" action="" class="m-0" onsubmit="return confirm('Disable SMTP relay and switch back to direct Port 25 delivery?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="disable_smtp_relay">
+                    <button type="submit" name="action" value="disable_smtp_relay" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                        <span>Disable Relay</span>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 2. Cloudflare / External DNS Mail Records Assistant -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+        <div class="px-5 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-base font-semibold text-slate-800">Cloudflare / External DNS Records for Email</h2>
+                    <p class="text-xs text-slate-500">Copy these exact records into Cloudflare DNS so your domain can receive and send emails cleanly</p>
+                </div>
+            </div>
+
+            {% if domains_dns %}
+            <div class="flex items-center gap-2">
+                <label for="cfDomainSelector" class="text-xs font-semibold text-slate-600">Select Domain:</label>
+                <select id="cfDomainSelector" onchange="switchCfDomain(this.value)" class="px-3 py-1.5 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-brand outline-none">
+                    {% for d in domains_dns %}
+                    <option value="cf-dom-{{ d.id }}">{{ d.domain }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-5">
+            {% if domains_dns %}
+                {% for d in domains_dns %}
+                <div id="cf-dom-{{ d.id }}" class="cf-domain-panel {% if not forloop.first %}hidden{% endif %} space-y-3">
+                    <div class="px-3.5 py-2.5 rounded-lg bg-amber-50/70 border border-amber-200 text-xs text-amber-800 flex items-center justify-between flex-wrap gap-2">
+                        <span>
+                            <strong>Important for Cloudflare:</strong> Set the <code>mail</code> <strong>A</strong> record to <strong>DNS only (Grey Cloud)</strong>, and set the <strong>MX</strong> record Name to <code>@</code> (root domain, not <code>mail</code>).
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                        <table class="w-full text-left text-xs text-slate-600">
+                            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                                <tr>
+                                    <th class="px-3.5 py-2.5 w-20">Type</th>
+                                    <th class="px-3.5 py-2.5 w-44">Name (Host)</th>
+                                    <th class="px-3.5 py-2.5">Content / Target Value</th>
+                                    <th class="px-3.5 py-2.5 w-36">Cloudflare Proxy</th>
+                                    <th class="px-3.5 py-2.5 w-24 text-right">Copy</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <!-- A Record for mail -->
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-3.5 py-2.5 font-mono font-bold text-slate-800">A</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800">{{ d.mail_a_host }}</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800 break-all">{{ d.mail_a_value }}</td>
+                                    <td class="px-3.5 py-2.5">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-300">DNS Only (Grey)</span>
+                                    </td>
+                                    <td class="px-3.5 py-2.5 text-right">
+                                        <button type="button" onclick="copyDnsText('{{ d.mail_a_value|escapejs }}', this)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded cursor-pointer">Copy</button>
+                                    </td>
+                                </tr>
+                                <!-- MX Record for @ -->
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-3.5 py-2.5 font-mono font-bold text-slate-800">MX</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800">{{ d.mx_host }}</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800 break-all">{{ d.mx_value }} <span class="text-slate-400">(Priority: {{ d.mx_priority }})</span></td>
+                                    <td class="px-3.5 py-2.5 text-slate-400">DNS Only</td>
+                                    <td class="px-3.5 py-2.5 text-right">
+                                        <button type="button" onclick="copyDnsText('{{ d.mx_value|escapejs }}', this)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded cursor-pointer">Copy</button>
+                                    </td>
+                                </tr>
+                                <!-- SPF TXT Record -->
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-3.5 py-2.5 font-mono font-bold text-slate-800">TXT <span class="text-[10px] font-normal text-slate-400">(SPF)</span></td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800">{{ d.spf_host }}</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800 break-all">{{ d.spf_value }}</td>
+                                    <td class="px-3.5 py-2.5 text-slate-400">DNS Only</td>
+                                    <td class="px-3.5 py-2.5 text-right">
+                                        <button type="button" onclick="copyDnsText('{{ d.spf_value|escapejs }}', this)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded cursor-pointer">Copy</button>
+                                    </td>
+                                </tr>
+                                <!-- DKIM TXT Record -->
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-3.5 py-2.5 font-mono font-bold text-slate-800">TXT <span class="text-[10px] font-normal text-slate-400">(DKIM)</span></td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800">{{ d.dkim_host }}</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-[11px] text-slate-800 break-all max-w-xl">
+                                        {% if d.dkim_value %}{{ d.dkim_value }}{% else %}<span class="text-slate-400 italic">DKIM key not generated yet</span>{% endif %}
+                                    </td>
+                                    <td class="px-3.5 py-2.5 text-slate-400">DNS Only</td>
+                                    <td class="px-3.5 py-2.5 text-right">
+                                        {% if d.dkim_value %}
+                                        <button type="button" onclick="copyDnsText('{{ d.dkim_value|escapejs }}', this)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded cursor-pointer">Copy</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <!-- DMARC TXT Record -->
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-3.5 py-2.5 font-mono font-bold text-slate-800">TXT <span class="text-[10px] font-normal text-slate-400">(DMARC)</span></td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800">{{ d.dmarc_host }}</td>
+                                    <td class="px-3.5 py-2.5 font-mono text-slate-800 break-all">{{ d.dmarc_value }}</td>
+                                    <td class="px-3.5 py-2.5 text-slate-400">DNS Only</td>
+                                    <td class="px-3.5 py-2.5 text-right">
+                                        <button type="button" onclick="copyDnsText('{{ d.dmarc_value|escapejs }}', this)" class="px-2.5 py-1 text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded cursor-pointer">Copy</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-xs text-slate-400 text-center py-6">No domains added yet. Add a domain first to view its Cloudflare mail DNS records.</div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+const PRESETS = {
+    oci: {
+        host: "{{ relay_config.smtp_host|default:'smtp.email.af-johannesburg-1.oci.oraclecloud.com'|escapejs }}",
+        fallbackHost: "smtp.email.af-johannesburg-1.oci.oraclecloud.com",
+        port: "587",
+        note: "<strong>Oracle Cloud (OCI Email Delivery):</strong> 1) Add your sender email address under <em>Developer Services &rarr; Email Delivery &rarr; Approved Senders</em>. 2) Generate your SMTP Username &amp; Password under <em>Profile Icon (top right) &rarr; User Settings &rarr; SMTP Credentials</em>."
+    },
+    brevo: {
+        host: "smtp-relay.brevo.com",
+        port: "587",
+        note: "<strong>Brevo (Sendinblue):</strong> Find your SMTP login and Master SMTP Key under <em>Brevo Dashboard &rarr; Transactional &rarr; Real-time &rarr; Configuration (SMTP &amp; API)</em>."
+    },
+    ses: {
+        host: "email-smtp.us-east-1.amazonaws.com",
+        port: "587",
+        note: "<strong>Amazon SES:</strong> Verify your domain/email in AWS SES and create IAM SMTP credentials under <em>SES &rarr; SMTP settings &rarr; Create SMTP credentials</em>."
+    },
+    mailgun: {
+        host: "smtp.mailgun.org",
+        port: "587",
+        note: "<strong>Mailgun:</strong> Use your Mailgun domain SMTP login (e.g. <code>postmaster@mg.yourdomain.com</code>) and password from <em>Sending &rarr; Domain Settings &rarr; SMTP credentials</em>."
+    },
+    sendgrid: {
+        host: "smtp.sendgrid.net",
+        port: "587",
+        note: "<strong>SendGrid:</strong> Set SMTP Username to literally <code>apikey</code> and paste your SendGrid API Key as the SMTP Password."
+    },
+    gmail: {
+        host: "smtp.gmail.com",
+        port: "587",
+        note: "<strong>Gmail / Google Workspace:</strong> Enter your full Gmail address as Username and generate a 16-character <em>Google App Password</em> as the Password."
+    },
+    custom: {
+        host: "",
+        port: "587",
+        note: "<strong>Custom SMTP Relay:</strong> Enter your SMTP provider's hostname, port (usually 587 for STARTTLS), username, and password."
+    }
+};
+
+function applySmtpPreset(key) {
+    const preset = PRESETS[key];
+    if (!preset) return;
+
+    const hostInput = document.getElementById("smtp_host");
+    const portInput = document.getElementById("smtp_port");
+    const notice = document.getElementById("presetHelperNotice");
+
+    if (key === "oci") {
+        if (!hostInput.value || !hostInput.value.includes("oraclecloud.com")) {
+            hostInput.value = preset.fallbackHost;
+        }
+    } else if (preset.host) {
+        hostInput.value = preset.host;
+    }
+
+    if (preset.port) {
+        portInput.value = preset.port;
+    }
+
+    if (notice && preset.note) {
+        notice.innerHTML = preset.note;
+        notice.classList.remove("hidden");
+    }
+}
+
+function switchCfDomain(panelId) {
+    document.querySelectorAll(".cf-domain-panel").forEach(el => {
+        el.classList.add("hidden");
+    });
+    const target = document.getElementById(panelId);
+    if (target) {
+        target.classList.remove("hidden");
+    }
+}
+
+function copyDnsText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = "Copied!";
+        btn.classList.add("bg-emerald-100", "text-emerald-700");
+        setTimeout(() => {
+            btn.textContent = orig;
+            btn.classList.remove("bg-emerald-100", "text-emerald-700");
+        }, 1500);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const currentProvider = "{{ relay_config.provider|default:'direct' }}";
+    if (currentProvider && currentProvider !== "direct" && PRESETS[currentProvider]) {
+        const notice = document.getElementById("presetHelperNotice");
+        if (notice) {
+            notice.innerHTML = PRESETS[currentProvider].note;
+            notice.classList.remove("hidden");
+        }
+    }
+});
+</script>
+
+{% endblock content %}

@@ -645,6 +645,12 @@ def get_email_plugins_list():
             'icon': '/media/icon/mail.svg',
             'url': reverse('email_queue'),
             'sorder': 1,
+        },
+        {
+            'name': 'SMTP Relay & Mail Setup',
+            'icon': '/media/icon/mail.svg',
+            'url': reverse('smtp_relay'),
+            'sorder': 2,
         }
     ])
 

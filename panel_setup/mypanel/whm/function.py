@@ -2920,4 +2920,342 @@ def set_user_limit(user: str, cpu: int, ram_mb: int) -> str:
         return add_result
 
     except Exception as e:
-        return f"[FAILED] Error setting limit for {user}: {str(e)}"                                                           
+        return f"[FAILED] Error setting limit for {user}: {str(e)}"
+
+
+# ==========================================
+# OUTBOUND SMTP RELAY & CLOUDFLARE MAIL HELPERS
+# ==========================================
+
+def get_smtp_relay_config():
+    """Read current Postfix SMTP relay configuration and server mail settings."""
+    config = {
+        "enabled": False,
+        "provider": "direct",
+        "smtp_host": "",
+        "smtp_port": "587",
+        "smtp_username": "",
+        "has_password": False,
+        "mail_hostname": "",
+        "relayhost_raw": "",
+    }
+    try:
+        if os.path.isfile("/etc/postfix/main.cf"):
+            with open("/etc/postfix/main.cf", "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    s = line.strip()
+                    if not s or s.startswith("#") or "=" not in s:
+                        continue
+                    k, v = [p.strip() for p in s.split("=", 1)]
+                    if k == "relayhost" and v:
+                        config["relayhost_raw"] = v
+                    elif k == "myhostname" and v:
+                        config["mail_hostname"] = v
+
+        relay_raw = config["relayhost_raw"]
+        if relay_raw:
+            config["enabled"] = True
+            m = re.match(r"^\[?([^\]\:]+)\]?(?::(\d+))?$", relay_raw)
+            if m:
+                config["smtp_host"] = m.group(1).strip()
+                if m.group(2):
+                    config["smtp_port"] = m.group(2).strip()
+
+        if os.path.isfile("/etc/postfix/sasl_passwd"):
+            with open("/etc/postfix/sasl_passwd", "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    s = line.strip()
+                    if not s or s.startswith("#"):
+                        continue
+                    parts = s.split(None, 1)
+                    if len(parts) == 2:
+                        target_part, cred_part = parts[0], parts[1]
+                        if not config["smtp_host"]:
+                            tm = re.match(r"^\[?([^\]\:]+)\]?(?::(\d+))?$", target_part)
+                            if tm:
+                                config["smtp_host"] = tm.group(1).strip()
+                                if tm.group(2):
+                                    config["smtp_port"] = tm.group(2).strip()
+                        if ":" in cred_part:
+                            u, p = cred_part.split(":", 1)
+                            config["smtp_username"] = u.strip()
+                            config["has_password"] = bool(p.strip())
+                            break
+
+        host_lower = config["smtp_host"].lower()
+        if not config["enabled"]:
+            config["provider"] = "direct"
+        elif "oraclecloud.com" in host_lower:
+            config["provider"] = "oci"
+        elif "brevo.com" in host_lower or "sendinblue.com" in host_lower:
+            config["provider"] = "brevo"
+        elif "amazonaws.com" in host_lower:
+            config["provider"] = "ses"
+        elif "mailgun.org" in host_lower:
+            config["provider"] = "mailgun"
+        elif "sendgrid.net" in host_lower:
+            config["provider"] = "sendgrid"
+        elif "gmail.com" in host_lower:
+            config["provider"] = "gmail"
+        else:
+            config["provider"] = "custom"
+    except Exception as e:
+        logger.error(f"Error reading SMTP relay config: {e}")
+
+    return config
+
+
+def ensure_mail_system_permissions():
+    """Ensure OpenDKIM, Dovecot 2.4 config socket, and vmail permissions are valid."""
+    try:
+        for d in ["/", "/etc", "/usr", "/var"]:
+            if os.path.exists(d):
+                os.chown(d, 0, 0)
+                os.chmod(d, 0o755)
+        if os.path.isdir("/etc/opendkim/keys"):
+            subprocess.run(["chown", "-R", "opendkim:opendkim", "/etc/opendkim/keys"], check=False)
+        if os.path.isdir("/home/vmail"):
+            subprocess.run(["chown", "-R", "vmail:vmail", "/home/vmail"], check=False)
+        if os.path.isfile("/etc/dovecot/dovecot.conf"):
+            with open("/etc/dovecot/dovecot.conf", "r", encoding="utf-8", errors="ignore") as df:
+                dconf = df.read()
+            if "dovecot_config_version" in dconf and "service config" not in dconf:
+                with open("/etc/dovecot/dovecot.conf", "a", encoding="utf-8") as df:
+                    df.write(
+                        "\nservice config {\n  unix_listener config {\n    group = vmail\n    mode = 0660\n  }\n}\n"
+                    )
+                subprocess.run(["systemctl", "restart", "dovecot"], check=False)
+    except Exception as e:
+        logger.error(f"Error ensuring mail system permissions: {e}")
+
+
+def save_smtp_relay_config(smtp_host, smtp_port, smtp_username, smtp_password="", mail_hostname=""):
+    """Save and apply Postfix outbound SMTP relay configuration."""
+    smtp_host = (smtp_host or "").strip().strip("[]")
+    smtp_port = str(smtp_port or "587").strip()
+    smtp_username = (smtp_username or "").strip()
+    mail_hostname = (mail_hostname or "").strip()
+
+    if not smtp_host or not smtp_port.isdigit():
+        return False, "Please provide a valid SMTP Host and numeric SMTP Port (e.g., 587)."
+    if not smtp_username:
+        return False, "Please provide your SMTP Username."
+
+    try:
+        ensure_mail_system_permissions()
+
+        # Preserve existing password if password field was left blank
+        if not smtp_password and os.path.isfile("/etc/postfix/sasl_passwd"):
+            with open("/etc/postfix/sasl_passwd", "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    s = line.strip()
+                    if not s or s.startswith("#"):
+                        continue
+                    parts = s.split(None, 1)
+                    if len(parts) == 2 and ":" in parts[1]:
+                        _, existing_pw = parts[1].split(":", 1)
+                        if existing_pw:
+                            smtp_password = existing_pw
+                            break
+
+        if not smtp_password:
+            return False, "Please provide your SMTP Password."
+
+        # Write /etc/postfix/sasl_passwd
+        sasl_line = f"[{smtp_host}]:{smtp_port} {smtp_username}:{smtp_password}\n"
+        with open("/etc/postfix/sasl_passwd", "w", encoding="utf-8") as f:
+            f.write(sasl_line)
+
+        os.chown("/etc/postfix/sasl_passwd", 0, 0)
+        os.chmod("/etc/postfix/sasl_passwd", 0o600)
+        subprocess.run(["postmap", "/etc/postfix/sasl_passwd"], check=True)
+        if os.path.isfile("/etc/postfix/sasl_passwd.db"):
+            os.chown("/etc/postfix/sasl_passwd.db", 0, 0)
+            os.chmod("/etc/postfix/sasl_passwd.db", 0o600)
+
+        with open("/etc/postfix/header_checks", "w", encoding="utf-8") as hf:
+            hf.write("/^X-Sender:/ IGNORE\n")
+
+        postconf_settings = [
+            f"relayhost = [{smtp_host}]:{smtp_port}",
+            "inet_protocols = ipv4",
+            "smtp_sasl_auth_enable = yes",
+            "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd",
+            "smtp_sasl_security_options = noanonymous",
+            "smtp_sasl_tls_security_options = noanonymous",
+            "smtp_sasl_mechanism_filter = plain, login",
+            "smtp_tls_security_level = encrypt",
+            "smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt",
+            "mydestination = $myhostname, localhost.$mydomain, localhost",
+            "header_checks = regexp:/etc/postfix/header_checks",
+        ]
+        if mail_hostname:
+            postconf_settings.append(f"myhostname = {mail_hostname}")
+
+        for setting in postconf_settings:
+            subprocess.run(["postconf", "-e", setting], check=True)
+
+        subprocess.run(["systemctl", "restart", "opendkim"], check=False)
+        subprocess.run(["systemctl", "restart", "postfix"], check=True)
+        return True, f"Outbound SMTP relay ([{smtp_host}]:{smtp_port}) configured and applied to Postfix."
+    except Exception as e:
+        logger.error(f"Error saving SMTP relay config: {e}")
+        return False, f"Failed to configure SMTP relay: {e}"
+
+
+def disable_smtp_relay():
+    """Disable outbound SMTP relay and revert Postfix to direct Port 25 delivery."""
+    try:
+        ensure_mail_system_permissions()
+        subprocess.run(["postconf", "-e", "relayhost ="], check=True)
+        subprocess.run(["postconf", "-e", "smtp_sasl_auth_enable = no"], check=True)
+        subprocess.run(["systemctl", "restart", "postfix"], check=True)
+        return True, "Outbound SMTP relay disabled. Postfix is now using direct Port 25 delivery."
+    except Exception as e:
+        return False, f"Failed to disable SMTP relay: {e}"
+
+
+def test_smtp_relay_connection(test_from="", test_to=""):
+    """Test live SMTP authentication against the configured relay and optionally send a test email."""
+    import smtplib
+
+    cfg = get_smtp_relay_config()
+    if not cfg.get("enabled") or not cfg.get("smtp_host"):
+        return False, "No outbound SMTP relay is currently configured."
+
+    smtp_host = cfg["smtp_host"]
+    smtp_port = int(cfg.get("smtp_port") or 587)
+    smtp_user = ""
+    smtp_pass = ""
+
+    if os.path.isfile("/etc/postfix/sasl_passwd"):
+        with open("/etc/postfix/sasl_passwd", "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                s = line.strip()
+                if not s or s.startswith("#"):
+                    continue
+                parts = s.split(None, 1)
+                if len(parts) == 2 and ":" in parts[1]:
+                    smtp_user, smtp_pass = parts[1].split(":", 1)
+                    break
+
+    if not smtp_user or not smtp_pass:
+        return False, "SMTP credentials not found in /etc/postfix/sasl_passwd."
+
+    try:
+        if smtp_port == 465:
+            server = smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10)
+            server.ehlo()
+        else:
+            server = smtplib.SMTP(smtp_host, smtp_port, timeout=10)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+        server.login(smtp_user, smtp_pass)
+        server.quit()
+    except Exception as e:
+        return False, f"SMTP Authentication failed on {smtp_host}:{smtp_port}: {e}"
+
+    test_from = (test_from or "").strip()
+    test_to = (test_to or "").strip()
+    if test_from and test_to:
+        try:
+            msg = (
+                f"From: {test_from}\r\n"
+                f"To: {test_to}\r\n"
+                f"Subject: OLSPanel SMTP Relay Test ({smtp_host})\r\n"
+                f"Content-Type: text/plain; charset=UTF-8\r\n\r\n"
+                f"Success! Outbound email delivery from {test_from} via {smtp_host}:{smtp_port} is working properly.\r\n"
+            )
+            p = subprocess.Popen(
+                ["/usr/sbin/sendmail", "-f", test_from, test_to],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            p.communicate(input=msg, timeout=10)
+            subprocess.run(["postqueue", "-f"], check=False)
+            return (
+                True,
+                f"SMTP authentication to {smtp_host}:{smtp_port} succeeded and test email was dispatched from {test_from} to {test_to}.",
+            )
+        except Exception as e:
+            return False, f"SMTP login succeeded, but sending test message failed: {e}"
+
+    return True, f"SMTP authentication to {smtp_host}:{smtp_port} succeeded (235 Authentication successful)."
+
+
+def get_domains_cloudflare_mail_records(user_id=None):
+    """Build copy-paste Cloudflare DNS records (A, MX, SPF, DKIM, DMARC) for domains."""
+    from users.models import Domain, Dns_record, Emails
+    from users.database import get_server_ip
+
+    server_ip = get_server_ip() or ""
+    relay_cfg = get_smtp_relay_config()
+    provider = relay_cfg.get("provider", "direct")
+
+    spf_include = ""
+    if provider == "oci":
+        spf_include = " include:rp.oracleemaildelivery.com"
+    elif provider == "brevo":
+        spf_include = " include:spf.brevo.com"
+    elif provider == "ses":
+        spf_include = " include:amazonses.com"
+    elif provider == "mailgun":
+        spf_include = " include:mailgun.org"
+    elif provider == "sendgrid":
+        spf_include = " include:sendgrid.net"
+    elif provider == "gmail":
+        spf_include = " include:_spf.google.com"
+
+    qs = Domain.objects.all().order_by("domain")
+    if user_id is not None:
+        qs = qs.filter(userid=user_id)
+
+    domains_info = []
+    seen = set()
+    for d in qs:
+        dom = (d.domain or "").strip().lower()
+        if not dom or dom in seen:
+            continue
+        seen.add(dom)
+
+        # Read DKIM public key from /etc/opendkim/keys/<dom>/default.txt or PowerDNS table
+        dkim_val = ""
+        dkim_file = f"/etc/opendkim/keys/{dom}/default.txt"
+        if os.path.isfile(dkim_file):
+            try:
+                with open(dkim_file, "r", encoding="utf-8", errors="ignore") as f:
+                    raw = f.read().strip()
+                m = re.search(r"TXT\s*\((.*?)\)", raw, re.DOTALL)
+                if m:
+                    chunks = re.findall(r'"([^"]*)"', m.group(1))
+                    dkim_val = re.sub(r"\bt=y;\s*", "", "".join(chunks)).strip()
+            except Exception:
+                pass
+        if not dkim_val:
+            rec = Dns_record.objects.filter(name=f"default._domainkey.{dom}", type="TXT").first()
+            if rec and rec.content:
+                dkim_val = rec.content.strip()
+
+        domains_info.append(
+            {
+                "id": d.id,
+                "domain": dom,
+                "server_ip": server_ip,
+                "mail_a_host": "mail",
+                "mail_a_value": server_ip,
+                "mx_host": "@",
+                "mx_value": f"mail.{dom}",
+                "mx_priority": "10",
+                "spf_host": "@",
+                "spf_value": f"v=spf1 a mx ip4:{server_ip}{spf_include} ~all",
+                "dkim_host": "default._domainkey",
+                "dkim_value": dkim_val,
+                "dmarc_host": "_dmarc",
+                "dmarc_value": "v=DMARC1; p=none",
+            }
+        )
+
+    return domains_info

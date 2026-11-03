@@ -1597,15 +1597,63 @@ def email_queue(request):
                 messages.warning(request, f'Error deleting email {email_id}: {error}')
             else:
                 messages.success(request, f'Email {email_id} deleted successfully.')
-    
-    # Get the output from 'postqueue -p' command
-    #output, error = get_queue_from_command()
+
     output = parse_postqueue()
-    
-        
-    
-    # Render the template with the parsed output
     return render(request, 'whm/email_queue.html', {'queue_data': output})
+
+
+@alogin_required
+def smtp_relay(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'save_smtp_relay':
+            smtp_host = request.POST.get('smtp_host', '').strip()
+            smtp_port = request.POST.get('smtp_port', '587').strip()
+            smtp_username = request.POST.get('smtp_username', '').strip()
+            smtp_password = request.POST.get('smtp_password', '').strip()
+            mail_hostname = request.POST.get('mail_hostname', '').strip()
+            ok, msg = save_smtp_relay_config(
+                smtp_host=smtp_host,
+                smtp_port=smtp_port,
+                smtp_username=smtp_username,
+                smtp_password=smtp_password,
+                mail_hostname=mail_hostname,
+            )
+            if ok:
+                messages.success(request, msg)
+            else:
+                messages.error(request, msg)
+
+        elif action == 'disable_smtp_relay':
+            ok, msg = disable_smtp_relay()
+            if ok:
+                messages.success(request, msg)
+            else:
+                messages.error(request, msg)
+
+        elif action == 'test_smtp_relay':
+            test_from = request.POST.get('test_from', '').strip()
+            test_to = request.POST.get('test_to', '').strip()
+            ok, msg = test_smtp_relay_connection(test_from=test_from, test_to=test_to)
+            if ok:
+                messages.success(request, msg)
+            else:
+                messages.error(request, msg)
+
+    relay_config = get_smtp_relay_config()
+    domains_dns = get_domains_cloudflare_mail_records()
+    mailboxes = list(Emails.objects.all().order_by('email').values_list('email', flat=True))
+
+    return render(
+        request,
+        'whm/smtp_relay.html',
+        {
+            'relay_config': relay_config,
+            'domains_dns': domains_dns,
+            'mailboxes': mailboxes,
+        },
+    )
     
 @alogin_required       
 def csf_install(request):

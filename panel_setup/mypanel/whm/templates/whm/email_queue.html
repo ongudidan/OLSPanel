@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="space-y-5">
-    <!-- Main Card -->
+    <!-- Outbound Mail Queue Card -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
         <!-- Header -->
         <div class="px-5 py-4 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -150,18 +150,6 @@ function performMqueueFilter(query) {
     } else if (noMatchRow) {
         noMatchRow.style.display = "none";
     }
-
-    if (q) {
-        sessionStorage.setItem("whm_mqueue_search", q);
-        const url = new URL(window.location);
-        url.searchParams.set("search", q);
-        window.history.replaceState({}, "", url);
-    } else {
-        sessionStorage.removeItem("whm_mqueue_search");
-        const url = new URL(window.location);
-        url.searchParams.delete("search");
-        window.history.replaceState({}, "", url);
-    }
 }
 
 function clearMqueueSearch() {
@@ -183,12 +171,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 performMqueueFilter(val);
             }, 100);
         });
-
-        const savedQuery = new URLSearchParams(window.location.search).get("search") || sessionStorage.getItem("whm_mqueue_search") || "";
-        if (savedQuery) {
-            mqueueSearchInput.value = savedQuery;
-            performMqueueFilter(savedQuery);
-        }
     }
 });
 </script>
